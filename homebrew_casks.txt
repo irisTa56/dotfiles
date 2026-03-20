@@ -1,0 +1,14 @@
+claude
+claude-code
+clipy
+copilot-cli
+corretto@17
+entire
+gcloud-cli
+google-chrome
+livebook
+qgis
+session-manager-plugin
+visual-studio-code
+wireshark-app
+zoom

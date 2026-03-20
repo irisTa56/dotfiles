@@ -1,0 +1,21 @@
+[tools]
+erlang = "28"
+elixir = "1.19"
+node = "24"
+python = "3.14"
+rust = "latest"
+cargo-binstall = "latest"
+"npm:@fission-ai/openspec" = "latest"
+"npm:diff2html-cli" = "latest"
+"npm:zenn-cli" = "latest"
+"pipx:basic-memory" = "latest"
+"pipx:cargo-lambda" = "latest"
+"pipx:skillport" = "latest"
+"pipx:localstack" = "latest"
+
+[env]
+ERL_AFLAGS = "-kernel shell_history enabled"
+
+[settings]
+experimental = true
+idiomatic_version_file_enable_tools = ["python"]
