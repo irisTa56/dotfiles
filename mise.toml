@@ -1,0 +1,8 @@
+[tools]
+gitleaks = "latest"
+
+[tasks.pre-commit]
+description = "Run pre-commit checks"
+run = """
+gitleaks protect -v --staged
+"""
