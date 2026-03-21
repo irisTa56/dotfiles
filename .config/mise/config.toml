@@ -10,7 +10,6 @@ cargo-binstall = "latest"
 "npm:zenn-cli" = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
-"pipx:skillport" = "latest"
 "pipx:localstack" = "latest"
 
 [env]

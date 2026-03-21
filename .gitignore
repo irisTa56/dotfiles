@@ -1,0 +1,6 @@
+/.claude/skills/*
+!/.claude/skills/README.md
+!/.claude/skills/organize-reading-note/
+!/.claude/skills/organize-reading-note/*
+
+skills-lock.json
