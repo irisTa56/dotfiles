@@ -1,8 +1,19 @@
 [tools]
 gitleaks = "latest"
+cargo-binstall = "latest"
+"cargo:lychee" = "latest"
+"cargo:rumdl" = "latest"
+"npm:@smithery/cli" = "latest"
+"pipx:skillport" = "latest"
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 run = """
 gitleaks protect -v --staged
+lychee .
+rumdl check
 """
+
+[tasks.format-md]
+description = "Format markdown files"
+run = "rumdl check --fix"
