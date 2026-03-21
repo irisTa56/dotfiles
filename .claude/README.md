@@ -1,6 +1,6 @@
-# Agent Skills
+# Claude
 
-## References
+## Agent Skills
 
 - <https://agentskills.io/home>
   - Standard specification and guidelines.
@@ -11,9 +11,9 @@
 - <https://github.com/VoltAgent/awesome-agent-skills>
   - VoltAgent's curated list of skills.
 
-## Install from [Smithery Registry](https://smithery.ai/skills) via [Smithery CLI](https://github.com/smithery-ai/cli)
+### Install from [Smithery Registry](https://smithery.ai/skills) via [Smithery CLI](https://github.com/smithery-ai/cli)
 
-```bash
+```shell
 cat <<'EOF' | xargs -I{} smithery skill add --agent claude-code {}
 davila7/humanizer
 k-dense-ai/citation-management
@@ -38,9 +38,9 @@ k-dense-ai/statistical-analysis
 EOF
 ```
 
-## Install from GitHub repositories via [SkillPort](https://github.com/gotalab/skillport)
+### Install from GitHub repositories via [SkillPort](https://github.com/gotalab/skillport)
 
-```bash
+```shell
 cat <<'EOF' | xargs -L1 skillport --skills-dir .claude/skills add -y
 anthropics/skills skills/skill-creator
 github/awesome-copilot skills/agentic-eval
