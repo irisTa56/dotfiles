@@ -84,5 +84,8 @@ When a PDF is provided:
 
 ### Language
 
-- Write the note in the same language as the reference material
+- **Write the Summary and Notes sections in the same language as the reference material** — if the reference is in English, write in English; if in Japanese, write in Japanese
+- When reorganizing excerpts and highlights from the reference, preserve the original wording as closely as possible; do not paraphrase or translate into a different language
+- User's own annotations (e.g., personal commentary in a different language from the reference) should be kept in their original language as-is
 - Keep technical terms in their original language when appropriate
+- Do not expand abbreviations or acronyms unless they are ambiguous in context
