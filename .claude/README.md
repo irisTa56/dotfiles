@@ -19,15 +19,12 @@ davila7/humanizer
 k-dense-ai/citation-management
 k-dense-ai/dask
 k-dense-ai/exploratory-data-analysis
-k-dense-ai/geomaster
 k-dense-ai/geopandas
 k-dense-ai/hypothesis-generation
 k-dense-ai/literature-review
-k-dense-ai/markdown-mermaid-writing
 k-dense-ai/markitdown
 k-dense-ai/matplotlib
 k-dense-ai/networkx
-k-dense-ai/open-notebook
 k-dense-ai/plotly
 k-dense-ai/polars
 k-dense-ai/scientific-brainstorming
@@ -58,5 +55,7 @@ github/awesome-copilot skills/refactor
 github/awesome-copilot skills/refactor-plan
 github/awesome-copilot skills/update-implementation-plan
 jgraph/drawio-mcp skill-cli/drawio
+K-Dense-AI/claude-scientific-skills scientific-skills/geomaster
+K-Dense-AI/claude-scientific-skills scientific-skills/markdown-mermaid-writing
 EOF
 ```
