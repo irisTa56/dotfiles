@@ -7,6 +7,8 @@ python = "3.14"
 rust = "latest"
 cargo-binstall = "latest"
 "npm:diff2html-cli" = "latest"
+"npm:markdownlint-cli2" = "latest"
+"npm:mongosh" = "latest"
 "npm:zenn-cli" = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
@@ -17,4 +19,4 @@ ERL_AFLAGS = "-kernel shell_history enabled"
 
 [settings]
 experimental = true
-idiomatic_version_file_enable_tools = ["python"]
+idiomatic_version_file_enable_tools = ["python", "ruby"]
