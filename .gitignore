@@ -2,5 +2,7 @@
 !/.claude/skills/README.md
 !/.claude/skills/organize-reading-note/
 !/.claude/skills/organize-reading-note/*
+!/.claude/skills/page-reader/
+!/.claude/skills/page-reader/*
 
 skills-lock.json
