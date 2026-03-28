@@ -11,7 +11,7 @@ Organize raw reading notes into structured, coherent bullet points.
 
 1. **Receive input**: User provides a reference (URL, PDF, etc.) and optionally raw notes (highlights, excerpts, impressions)
 2. **Extract PDF highlights** (if PDF provided):
-   - Use Read tool to read the PDF
+   - Extract text from the PDF using `uv run --with pymupdf`
    - Visually identify highlighted text (yellow/colored backgrounds)
    - Extract highlighted text and any associated comments/annotations
    - Combine with user's raw notes if provided
@@ -54,7 +54,7 @@ Replace the raw notes with `## Tags`, `## Summary`, and `## Notes` sections:
 
 When a PDF is provided:
 
-- Read the PDF using Read tool (all pages or specific ranges as needed)
+- Extract text from the PDF using `uv run --with pymupdf` (process all pages or specific ranges as needed)
 - Visually identify highlighted text (yellow, green, or other colored backgrounds)
 - Extract the highlighted text carefully, preserving exact wording
 - Look for any associated comments or annotations near highlights
