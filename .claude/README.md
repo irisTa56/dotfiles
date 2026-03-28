@@ -44,6 +44,7 @@ github/awesome-copilot skills/agentic-eval
 github/awesome-copilot skills/architecture-blueprint-generator
 github/awesome-copilot skills/autoresearch
 github/awesome-copilot skills/context-map
+github/awesome-copilot skills/create-architectural-decision-record
 github/awesome-copilot skills/create-implementation-plan
 github/awesome-copilot skills/create-readme
 github/awesome-copilot skills/create-specification
