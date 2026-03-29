@@ -32,3 +32,23 @@ Skill list: [skillport-skills.txt](skillport-skills.txt)
 ```shell
 xargs -L1 skillport --skills-dir .claude/skills add -y < .claude/skillport-skills.txt
 ```
+
+## MPC Servers
+
+### Local
+
+```json
+{
+  "mcpServers": {
+    "basic-memory": {
+      "command": "uvx",
+      "args": ["basic-memory", "mcp"]
+    },
+    "colab-mcp": {
+      "command": "uvx",
+      "args": ["git+https://github.com/googlecolab/colab-mcp"],
+      "timeout": 30000
+    }
+  }
+}
+```
