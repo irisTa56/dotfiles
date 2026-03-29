@@ -3,8 +3,6 @@ gitleaks = "latest"
 cargo-binstall = "latest"
 "cargo:lychee" = "latest"
 "cargo:rumdl" = "latest"
-"npm:@smithery/cli" = "latest"
-"pipx:skillport" = "latest"
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
