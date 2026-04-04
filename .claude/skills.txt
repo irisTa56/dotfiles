@@ -15,6 +15,12 @@ github/awesome-copilot --skill prd
 github/awesome-copilot --skill refactor
 github/awesome-copilot --skill refactor-plan
 github/awesome-copilot --skill update-implementation-plan
+googleworkspace/cli --skill gws-docs
+googleworkspace/cli --skill gws-drive
+googleworkspace/cli --skill gws-script
+googleworkspace/cli --skill gws-shared
+googleworkspace/cli --skill gws-sheets
+googleworkspace/cli --skill gws-slides
 jgraph/drawio-mcp --skill drawio
 K-Dense-AI/claude-scientific-skills --skill citation-management
 K-Dense-AI/claude-scientific-skills --skill dask
