@@ -1,10 +1,7 @@
 claude
 claude-code
 clipy
-copilot-cli
 corretto@17
-entire
-gcloud-cli
 google-chrome
 livebook
 qgis
