@@ -1,19 +1,20 @@
 [tools]
-bun = "latest"
-erlang = "28"
 elixir = "1.19"
+erlang = "28"
 node = "24"
 python = "3.14"
-rust = "latest"
+bun = "latest"
 cargo-binstall = "latest"
+localstack = { version = "latest", exe = "localstack" }
+lychee = "latest"
+markdownlint-cli2 = "latest"
+mongosh = "latest"
+rust = "latest"
+shfmt = "latest"
 "npm:diff2html-cli" = "latest"
-"npm:markdownlint-cli2" = "latest"
-"npm:mongosh" = "latest"
 "npm:zenn-cli" = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
-"pipx:localstack" = "latest"
-shfmt = "latest"
 
 [env]
 ERL_AFLAGS = "-kernel shell_history enabled"
