@@ -17,6 +17,7 @@ jq
 mise
 mkcert
 pandoc
+poppler
 rclone
 shellcheck
 shfmt
