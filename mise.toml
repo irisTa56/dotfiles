@@ -1,8 +1,7 @@
 [tools]
 gitleaks = "latest"
-cargo-binstall = "latest"
-"cargo:lychee" = "latest"
-"cargo:rumdl" = "latest"
+lychee = "latest"
+rumdl = "latest"
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"

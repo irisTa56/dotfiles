@@ -4,5 +4,7 @@
 !/.claude/skills/organize-reading-note/*
 !/.claude/skills/page-reader/
 !/.claude/skills/page-reader/*
+!/.claude/skills/pdf-figure-extractor/
+!/.claude/skills/pdf-figure-extractor/*
 
 skills-lock.json
