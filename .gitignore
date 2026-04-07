@@ -1,5 +1,7 @@
 /.claude/skills/*
 !/.claude/skills/README.md
+!/.claude/skills/md-to-docx/
+!/.claude/skills/md-to-docx/*
 !/.claude/skills/organize-reading-note/
 !/.claude/skills/organize-reading-note/*
 !/.claude/skills/page-reader/
