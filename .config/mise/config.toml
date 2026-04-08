@@ -27,4 +27,3 @@ ERL_AFLAGS = "-kernel shell_history enabled"
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["python", "ruby"]
-install_before = "3d"

@@ -32,15 +32,6 @@ xargs -L1 npx skills add --agent claude-code --yes < .claude/skills.txt
 }
 ```
 
-## mise
-
-[Minimum release age](https://mise.jdx.dev/tips-and-tricks.html#minimum-release-age) is set to `3d` in `~/.config/mise/config.toml`.
-To install a security-fix release immediately, bypass the delay with the `--before` flag:
-
-```shell
-mise install <tool>@<version> --before 0d
-```
-
 ## Development
 
 Set up pre-commit hooks with [mise](https://mise.jdx.dev/cli/generate/git-pre-commit.html).
