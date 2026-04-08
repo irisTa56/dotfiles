@@ -19,6 +19,7 @@ rust = "latest"
 "npm:zenn-cli" = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
+"pipx:markitdown" = "latest"
 
 [env]
 ERL_AFLAGS = "-kernel shell_history enabled"
@@ -26,3 +27,4 @@ ERL_AFLAGS = "-kernel shell_history enabled"
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["python", "ruby"]
+install_before = "3d"
