@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "docx": "^9.0.0",
+    "fast-xml-parser": "^5.5.10",
+    "katex": "^0.16.0",
+    "marked": "^15.0.0"
+  }
+}

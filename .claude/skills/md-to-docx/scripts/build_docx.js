@@ -3,7 +3,10 @@
  * md-to-docx — Convert a Markdown file to a styled .docx using docx-js.
  *
  * Usage:
- *   NODE_PATH=$(npm root -g) node build_docx.js <input.md> <output.docx> [options]
+ *   node build_docx.js <input.md> <output.docx> [options]
+ *
+ * Prerequisites:
+ *   cd ~/.claude/skills/md-to-docx && npm ci
  *
  * Run with --help for the full option list. All options have defaults that
  * reproduce the reference style exactly.
@@ -13,14 +16,20 @@
 const fs = require('fs');
 const path = require('path');
 
+// Resolve dependencies from the skill's own node_modules.
+const SKILL_ROOT = path.resolve(__dirname, '..');
+
+function skillRequire(id) {
+  return require(require.resolve(id, { paths: [SKILL_ROOT] }));
+}
+
 let marked, docx;
 try {
-  marked = require('marked').marked;
-  docx = require('docx');
+  marked = skillRequire('marked').marked;
+  docx = skillRequire('docx');
 } catch (e) {
-  console.error('Error: missing dependency. Install with:');
-  console.error('  npm install -g docx marked');
-  console.error('Then run with: NODE_PATH=$(npm root -g) node build_docx.js ...');
+  console.error('Error: missing dependency. Run:');
+  console.error('  cd ~/.claude/skills/md-to-docx && npm ci');
   process.exit(1);
 }
 
@@ -28,7 +37,18 @@ const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   ImageRun, AlignmentType, LevelFormat, ExternalHyperlink, HeadingLevel,
   BorderStyle, WidthType, ShadingType, FootnoteReferenceRun,
+  Math: DocxMath, MathRun,
 } = docx;
+
+// Optional: KaTeX + fast-xml-parser for native Word math (OMML).
+// Falls back to Unicode text rendering if unavailable.
+let katex, mathmlToDocxChildren;
+try {
+  katex = skillRequire('katex');
+  mathmlToDocxChildren = require(path.join(__dirname, 'mathml-to-docx.js')).mathmlToDocxChildren;
+} catch (_) {
+  // KaTeX or fast-xml-parser not installed — builtin engine will be used.
+}
 
 // ---------- argv parsing ----------
 function parseArgs(argv) {
@@ -79,7 +99,10 @@ if (cliOpts.help || positional.length < 2) {
   console.log(`md-to-docx — convert Markdown to a styled .docx
 
 Usage:
-  NODE_PATH=$(npm root -g) node build_docx.js <input.md> <output.docx> [options]
+  node build_docx.js <input.md> <output.docx> [options]
+
+Prerequisites:
+  cd ~/.claude/skills/md-to-docx && npm ci
 
 Options:
   --font <name>            Body font (default: "Yu Gothic")
@@ -90,6 +113,7 @@ Options:
   --accent <hex>           H2/H3 color, no # (default: 2E74B5)
   --max-image-px <n>       Max image width in pixels (default: 580)
   --resource-path <p1:p2>  Extra image search dirs (default: md file dir)
+  --math-engine <engine>   Math engine: auto|katex|builtin (default: auto)
   -h, --help               Show this help`);
   process.exit(cliOpts.help ? 0 : 1);
 }
@@ -115,6 +139,17 @@ const TITLE_COLOR = parseColor(cliOpts['title-color'], '1F3864', 'title-color');
 const ACCENT_COLOR = parseColor(cliOpts.accent, '2E74B5', 'accent');
 const MAX_IMG_PX = Math.floor(parseNumber(cliOpts['max-image-px'], 580, 'max-image-px'));
 const EXTRA_PATHS = String(cliOpts['resource-path'] || '').split(':').filter(Boolean);
+const MATH_ENGINE = (cliOpts['math-engine'] || 'auto').toLowerCase();
+if (!['auto', 'katex', 'builtin'].includes(MATH_ENGINE)) {
+  console.error(`Error: --math-engine must be one of auto, katex, builtin, got "${cliOpts['math-engine']}"`);
+  process.exit(1);
+}
+const USE_KATEX = MATH_ENGINE === 'katex' || (MATH_ENGINE === 'auto' && !!katex);
+if (MATH_ENGINE === 'katex' && !katex) {
+  console.error('Error: --math-engine katex requires katex and fast-xml-parser.');
+  console.error('  cd ~/.claude/skills/md-to-docx && npm ci');
+  process.exit(1);
+}
 
 const FONT = { name: FONT_NAME, hint: 'eastAsia' };
 const MONO = { name: MONO_NAME };
@@ -149,7 +184,9 @@ const fnIndex = {};
 fnIds.forEach((id, i) => { fnIndex[id] = i + 1; });
 mdRaw = mdRaw.replace(/\[\^([^\]]+)\]/g, (_, id) => `\uE000FN${fnIndex[id] || id}\uE001`);
 
-// math
+// ---------- math ----------
+
+// Builtin TeX → Unicode fallback (no extra dependencies).
 function texToText(tex) {
   return tex
     .replace(/\\text\{([^}]+)\}/g, '$1')
@@ -172,8 +209,37 @@ function texToText(tex) {
     .replace(/\\,/g, ' ').replace(/\\;/g, ' ')
     .trim();
 }
-mdRaw = mdRaw.replace(/\$\$([\s\S]*?)\$\$/g, (_, tex) => '\n\n\uE100' + texToText(tex) + '\uE101\n\n');
-mdRaw = mdRaw.replace(/\$([^$\n]+)\$/g, (_, tex) => '\uE102' + texToText(tex) + '\uE103');
+
+// Stash raw TeX strings so they survive marked.lexer() and can be rendered
+// at output time with either KaTeX or the builtin engine.
+const mathStash = [];
+function stashMath(tex) {
+  const id = mathStash.length;
+  mathStash.push(tex);
+  return String(id);
+}
+
+/**
+ * Convert a raw TeX string to an array of docx MathComponent objects.
+ * Tries KaTeX → MathML → OMML first, then falls back to Unicode text.
+ */
+function renderMathChildren(tex, displayMode) {
+  if (USE_KATEX) {
+    try {
+      const mml = katex.renderToString(tex, {
+        output: 'mathml', throwOnError: false, displayMode: !!displayMode,
+      });
+      const children = mathmlToDocxChildren(mml);
+      if (children && children.length) return children;
+    } catch (_) { /* fall through to builtin */ }
+  }
+  // Builtin: TeX → Unicode → MathRun
+  const unicode = texToText(tex) || tex;
+  return [new MathRun(unicode)];
+}
+
+mdRaw = mdRaw.replace(/\$\$([\s\S]*?)\$\$/g, (_, tex) => '\n\n\uE100' + stashMath(tex) + '\uE101\n\n');
+mdRaw = mdRaw.replace(/\$([^$\n]+)\$/g, (_, tex) => '\uE102' + stashMath(tex) + '\uE103');
 
 // Restore code blocks now that math/footnote substitutions are done.
 mdRaw = mdRaw.replace(/\uE200(\d+)\uE201/g, (_, i) => codeStash[+i]);
@@ -240,7 +306,7 @@ function detectImage(buf) {
 // the top-level `cliOpts`.
 function expandText(text, runOpts = {}) {
   const out = [];
-  const re = /\uE000FN(\d+)\uE001|\uE100([^\uE101]*)\uE101|\uE102([^\uE103]*)\uE103/g;
+  const re = /\uE000FN(\d+)\uE001|\uE100(\d+)\uE101|\uE102(\d+)\uE103/g;
   let last = 0, m;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) {
@@ -249,9 +315,11 @@ function expandText(text, runOpts = {}) {
     if (m[1] !== undefined) {
       out.push(new FootnoteReferenceRun(parseInt(m[1], 10)));
     } else if (m[2] !== undefined) {
-      out.push(new TextRun({ text: m[2], font: FONT, italics: true, ...runOpts }));
+      // Display math encountered inline (rare) — render as Math
+      out.push(new DocxMath({ children: renderMathChildren(mathStash[parseInt(m[2], 10)], true) }));
     } else if (m[3] !== undefined) {
-      out.push(new TextRun({ text: m[3], font: FONT, italics: true, ...runOpts }));
+      // Inline math → native Word Math object
+      out.push(new DocxMath({ children: renderMathChildren(mathStash[parseInt(m[3], 10)], false) }));
     }
     last = m.index + m[0].length;
   }
@@ -470,12 +538,13 @@ function walk(toks) {
           break;
         }
         const ptext = (t.text || '');
-        if (/^\uE100[^\uE101]*\uE101$/.test(ptext.trim())) {
-          const inner = ptext.trim().slice(1, -1);
+        const displayMatch = ptext.trim().match(/^\uE100(\d+)\uE101$/);
+        if (displayMatch) {
+          const mathChildren = renderMathChildren(mathStash[parseInt(displayMatch[1], 10)], true);
           els.push(new Paragraph({
             alignment: AlignmentType.CENTER,
             spacing: { before: 160, after: 160 },
-            children: [new TextRun({ text: inner, italics: true, font: FONT, size: 26 })],
+            children: [new DocxMath({ children: mathChildren })],
           }));
           break;
         }
