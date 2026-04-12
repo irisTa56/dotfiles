@@ -4,6 +4,7 @@ colima
 coreutils
 docker
 docker-compose
+ffmpeg@7
 findutils
 gawk
 gemini-cli

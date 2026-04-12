@@ -1,7 +1,6 @@
 [tools]
 elixir = "1.19"
 erlang = "28"
-ffmpeg = "7"
 node = "24"
 python = "3.14"
 awscli = { version = "latest", symlink_bins = "true" }
