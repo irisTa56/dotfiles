@@ -5,13 +5,13 @@
 Check installed skills:
 
 ```shell
-.claude/check_installed_skills.sh
+./check_installed_skills.sh
 ```
 
 Install from GitHub repositories via [Skills CLI](https://github.com/vercel-labs/skills):
 
 ```shell
-xargs -L1 npx skills add --agent claude-code --yes < .claude/skills.txt
+xargs -I {} npx skills add {} -a claude-code -y < skills.txt
 ```
 
 ## MCP Servers
