@@ -1,5 +1,6 @@
 anthropics/skills --skill skill-creator
 blader/humanizer
+github/awesome-copilot --skill acquire-codebase-knowledge
 github/awesome-copilot --skill agentic-eval
 github/awesome-copilot --skill architecture-blueprint-generator
 github/awesome-copilot --skill autoresearch
