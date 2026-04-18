@@ -1,5 +1,4 @@
 claude
-claude-code
 clipy
 corretto@17
 google-chrome
