@@ -3,12 +3,11 @@ cmake
 colima
 coreutils
 docker
+docker-buildx
 docker-compose
 ffmpeg@7
 findutils
 gawk
-gemini-cli
-gh
 gnu-sed
 gnu-tar
 googleworkspace-cli
@@ -20,8 +19,6 @@ mkcert
 pandoc
 poppler
 rclone
-shellcheck
-shfmt
 socat
 tree
 uv
