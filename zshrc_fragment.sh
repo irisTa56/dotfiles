@@ -1,9 +1,12 @@
 # shellcheck shell=bash
 
+DOTFILES_DIR="${0:A:h}"
+
 # aliases
 
 alias ls='"$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin/ls" --color=auto --show-control-char'
 alias show-my-ip='dig +short -t txt o-o.myaddr.l.google.com @8.8.8.8'
+alias with-new-terminal='elixir "$DOTFILES_DIR/scripts/with_new_terminal.exs"'
 
 # functions
 
