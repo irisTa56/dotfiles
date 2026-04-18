@@ -9,13 +9,13 @@ defmodule Helper do
       |> Enum.reject(&comment_or_blank?/1)
       |> Enum.join("\n")
 
-    body = "setopt no_bang_hist && clear\n" <> body
-
     body =
       case cwd do
         nil -> body
         dir -> "cd #{dir}\n" <> body
       end
+
+    body = "setopt no_bang_hist && clear\n" <> body
 
     script = escape(String.trim_trailing(body))
     title = escape(title)
