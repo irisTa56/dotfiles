@@ -15,6 +15,7 @@ localstack = { version = "latest", exe = "localstack" }
 lychee = "latest"
 markdownlint-cli2 = "latest"
 mongosh = "latest"
+ollama = "latest"
 rust = "latest"
 shellcheck = "latest"
 shfmt = "latest"
@@ -23,7 +24,6 @@ shfmt = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
 "pipx:markitdown" = "latest"
-ollama = "latest"
 
 [env]
 ERL_AFLAGS = "-kernel shell_history enabled"
