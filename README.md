@@ -8,10 +8,10 @@ Check installed skills:
 ./check_installed_skills.sh
 ```
 
-Install from GitHub repositories via [Skills CLI](https://github.com/vercel-labs/skills):
+Install missing skills via [Skills CLI](https://github.com/vercel-labs/skills):
 
 ```shell
-xargs -I {} npx skills add {} -a claude-code -y < skills.txt
+./check_installed_skills.sh --install
 ```
 
 ## MCP Servers
