@@ -1,4 +1,12 @@
 anthropics/skills --skill skill-creator
+basicmachines-co/basic-memory-skills --skill memory-defrag
+basicmachines-co/basic-memory-skills --skill memory-ingest
+basicmachines-co/basic-memory-skills --skill memory-lifecycle
+basicmachines-co/basic-memory-skills --skill memory-metadata-search
+basicmachines-co/basic-memory-skills --skill memory-notes
+basicmachines-co/basic-memory-skills --skill memory-reflect
+basicmachines-co/basic-memory-skills --skill memory-research
+basicmachines-co/basic-memory-skills --skill memory-schema
 blader/humanizer
 github/awesome-copilot --skill acquire-codebase-knowledge
 github/awesome-copilot --skill agentic-eval

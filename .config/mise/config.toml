@@ -23,6 +23,7 @@ shfmt = "latest"
 "pipx:basic-memory" = "latest"
 "pipx:cargo-lambda" = "latest"
 "pipx:markitdown" = "latest"
+ollama = "latest"
 
 [env]
 ERL_AFLAGS = "-kernel shell_history enabled"
