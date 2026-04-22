@@ -21,6 +21,17 @@ When writing or editing prose in markdown documents, follow these rules.
   - Do not use exaggeration, sweeping assertions, promotional language, praise, or theatrical phrasing.
   - To remove AI-sounding patterns from prose, use the `humanizer` skill as a reference.
 
+## Sources
+
+- When a statement relies on information that is not common knowledge, link to a primary or authoritative source so the reader can verify it.
+  - Common knowledge (no link needed): widely known facts, basic language/framework features documented in every tutorial.
+  - Non-obvious (link needed): specific API behavior, numeric claims (benchmarks, statistics, thresholds), design rationale behind a tool, changes introduced in a particular version, conclusions from a paper or blog post.
+- Use inline markdown links — link the relevant phrase rather than appending a bare URL.
+  - NG: `The library uses epoll internally.`
+  - OK: `The library [uses epoll internally](https://docs.example.com/internals#event-loop).`
+- If you fetched or consulted a URL while composing the text, that URL is almost certainly worth citing — omitting it is the most common violation of this rule.
+- When multiple statements draw from the same source, a single link on first mention is sufficient.
+
 ## Logic
 
 - Develop the argument carefully and step by step.
