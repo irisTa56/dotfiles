@@ -45,3 +45,6 @@ Follow these rules when writing Japanese prose.
 - When inline markdown syntax (emphasis `**bold**` / `*italic*`, links `[text](url)`, code spans `code`, etc.) appears mid-sentence in Japanese prose, insert a half-width space before and after.
   - NG: `他方の**絶対的な**節約量`, `詳細は[§3](#annotate)を参照`.
   - OK: `他方の **絶対的な** 節約量`, `詳細は [§3](#annotate) を参照`.
+- Exception: do **not** insert a space between a full-width symbol (`・`、`（`、`「` など) and the following inline markdown syntax. Full-width symbols already carry visual spacing; adding a half-width space after them creates an excessive gap.
+  - NG: `あああ・ aaa`.
+  - OK: `あああ・aaa`.
