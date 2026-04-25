@@ -2,16 +2,23 @@
 
 ## Agent Skills
 
-Check installed skills:
+Skills live under `.agents/skills/`, which [Skills CLI](https://github.com/vercel-labs/skills) writes to.
+Symlink `~/.claude/skills` to it once:
 
 ```shell
-./check_installed_skills.sh
+ln -sfn "$PWD/.agents/skills" ~/.claude/skills
 ```
 
-Install missing skills via [Skills CLI](https://github.com/vercel-labs/skills):
+Restore pinned skills from `skills-lock.json`:
 
 ```shell
-./check_installed_skills.sh --install
+skills experimental_install
+```
+
+Diff installed skills against the lock file (`<` lines are missing, `>` lines are unpinned drift):
+
+```shell
+mise run skills-diff
 ```
 
 ## MCP Servers
