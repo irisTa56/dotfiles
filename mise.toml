@@ -7,6 +7,12 @@ rumdl = "latest"
 [env]
 HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
+[hooks]
+postinstall = '''
+hook="$(git rev-parse --git-path hooks/pre-commit)"
+test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmod +x "$hook"; }
+'''
+
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 run = """
