@@ -2,15 +2,32 @@
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
+"npm:skills" = "latest"
+
+[env]
+HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 run = """
 gitleaks protect -v --staged
-lychee .
 rumdl check
+lychee -v .
 """
 
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
+
+[tasks.skills-diff]
+description = "Diff installed skills against skills-lock.json (locally-tracked skills excluded)"
+shell = "bash -c"
+quiet = true
+run = """
+comm -3 \
+  <(jq -r '.skills | keys[]' skills-lock.json | sort) \
+  <(ls .agents/skills \
+      | grep -vxFf <(sed -nE 's|^!/\\.agents/skills/([^/]+)/$|\\1|p' .gitignore) \
+      | sort) \
+  | awk -F'\\t' 'NF==1{print "missing: "$1} NF==2{print "drift:   "$2}'
+"""
