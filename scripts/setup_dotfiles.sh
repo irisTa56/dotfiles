@@ -12,7 +12,9 @@ _tmp*/
 .ipynb_checkpoints/
 .pytest_cache/
 .tmp.drive*
+**/.claude/settings.local.json
 *uncommitted*/
+erl_crash.dump
 EOF
 
 cat <<'EOF' >~/.zprofile
