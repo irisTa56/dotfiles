@@ -8,6 +8,16 @@ Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, and `~
 mise run setup:dotfiles
 ```
 
+## Tool Versions
+
+Upgrade tools to the newest version released on or before a given date:
+
+```shell
+mise upgrade --before 7d --dry-run
+mise upgrade --before 7d
+mise upgrade --before 2024-06-01
+```
+
 ## Agent Skills
 
 Skills live under `.agents/skills/`, which [Skills CLI](https://github.com/vercel-labs/skills) writes to.
