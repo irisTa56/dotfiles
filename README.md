@@ -23,18 +23,26 @@ mise run skills-diff
 
 ## MCP Servers
 
-```json
-{
-  "mcpServers": {
-    "basic-memory": {
-      "command": "uvx",
-      "args": ["basic-memory", "mcp"]
-    },
-    "colab-mcp": {
-      "command": "uvx",
-      "args": ["git+https://github.com/googlecolab/colab-mcp"],
-      "timeout": 30000
-    }
-  }
-}
+Claude Desktop is treated as the source of truth.
+`mcpServers.json` is a snapshot dumped from its config; per-client installs read from this snapshot.
+
+Refresh the snapshot after editing Claude Desktop:
+
+```shell
+mise run mcp:dump
 ```
+
+See which servers are missing or extra in each client relative to the snapshot:
+
+```shell
+mise run mcp:diff
+```
+
+Install one server into Claude Code (user scope) or VS Code (user profile) from this directory:
+
+```shell
+mise run mcp:claude basic-memory
+mise run mcp:vscode basic-memory
+```
+
+Environment variable placeholders in `mcpServers.json` are expanded via `envsubst` at install time.
