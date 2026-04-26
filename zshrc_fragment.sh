@@ -6,6 +6,7 @@ DOTFILES_DIR="${0:A:h}"
 
 alias ls='"$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin/ls" --color=auto --show-control-char'
 alias show-my-ip='dig +short -t txt o-o.myaddr.l.google.com @8.8.8.8'
+alias mise-outdated-age='elixir "$DOTFILES_DIR/scripts/mise_outdated_age.exs"'
 alias with-new-terminal='elixir "$DOTFILES_DIR/scripts/with_new_terminal.exs"'
 alias to-snake-case='pbpaste | sed -E "s/([a-z0-9])([A-Z])/\1_\2/g; s/([A-Z]+)([A-Z][a-z])/\1_\2/g; s/[^[:alnum:]]+/_/g; s/^_+//; s/_+$//" | tr "[:upper:]" "[:lower:]" | pbcopy'
 
