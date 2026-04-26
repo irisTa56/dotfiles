@@ -25,6 +25,10 @@ shellcheck scripts/*.sh
 shfmt -d scripts/*.sh
 """
 
+[tasks."setup:dotfiles"]
+description = "Run initial dotfiles setup (dircolors, gitignore, zprofile)"
+run = "scripts/setup_dotfiles.sh"
+
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
@@ -37,7 +41,7 @@ run = "rumdl check --fix"
 description = "Format shell scripts"
 run = "shfmt -w scripts/*.sh"
 
-[tasks.skills-diff]
+[tasks."skills:diff"]
 description = "Diff installed skills against skills-lock.json (locally-tracked skills excluded)"
 shell = "bash -c"
 quiet = true

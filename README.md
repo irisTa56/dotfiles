@@ -1,5 +1,13 @@
 # dotfiles
 
+## Initial Setup
+
+Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, and `~/.zprofile`:
+
+```shell
+mise run setup:dotfiles
+```
+
 ## Agent Skills
 
 Skills live under `.agents/skills/`, which [Skills CLI](https://github.com/vercel-labs/skills) writes to.
@@ -18,7 +26,7 @@ skills experimental_install
 Diff installed skills against the lock file (`<` lines are missing, `>` lines are unpinned drift):
 
 ```shell
-mise run skills-diff
+mise run skills:diff
 ```
 
 ## MCP Servers
