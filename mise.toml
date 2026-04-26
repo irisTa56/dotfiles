@@ -2,6 +2,8 @@
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
+shellcheck = "latest"
+shfmt = "latest"
 "npm:skills" = "latest"
 
 [env]
@@ -19,6 +21,8 @@ run = """
 gitleaks protect -v --staged
 lychee .
 rumdl check
+shellcheck scripts/*.sh
+shfmt -d scripts/*.sh
 """
 
 [tasks.link-check]
@@ -28,6 +32,10 @@ run = "lychee -v ."
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
+
+[tasks.format-sh]
+description = "Format shell scripts"
+run = "shfmt -w scripts/*.sh"
 
 [tasks.skills-diff]
 description = "Diff installed skills against skills-lock.json (locally-tracked skills excluded)"
