@@ -17,9 +17,13 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 description = "Run pre-commit checks"
 run = """
 gitleaks protect -v --staged
+lychee .
 rumdl check
-lychee -v .
 """
+
+[tasks.link-check]
+description = "Check if links are valid, showing redirects"
+run = "lychee -v ."
 
 [tasks.format-md]
 description = "Format markdown files"
@@ -37,3 +41,27 @@ comm -3 \
       | sort) \
   | awk -F'\\t' 'NF==1{print "missing: "$1} NF==2{print "drift:   "$2}'
 """
+
+[tasks."mcp:dump"]
+description = "Dump Claude Desktop's mcpServers (SoT) into mcpServers.json"
+run = "scripts/mcp_dump.sh"
+
+[tasks."mcp:diff"]
+description = "Show servers missing from / extra in each client vs mcpServers.json"
+run = "scripts/mcp_diff.sh"
+
+[tasks."mcp:claude"]
+description = "Install <name> from mcpServers.json into Claude Code user scope (~/.claude.json)"
+usage = 'arg "<name>" help="Server name (catalog: mcpServers.json)"'
+shell = "bash -c"
+run = '''
+claude mcp add-json -s user "$usage_name" "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n]')"
+'''
+
+[tasks."mcp:vscode"]
+description = "Install <name> from mcpServers.json into VS Code user profile"
+usage = 'arg "<name>" help="Server name (catalog: mcpServers.json)"'
+shell = "bash -c"
+run = '''
+code --add-mcp "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n] + {name:$n}')"
+'''
