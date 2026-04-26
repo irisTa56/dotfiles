@@ -4,7 +4,7 @@ set -euxo pipefail
 curl -s -o ~/.dircolors https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS
 
 mkdir -p ~/.config/git
-cat << 'EOF' > ~/.config/git/ignore
+cat <<'EOF' >~/.config/git/ignore
 __pycache__/
 __tmp*
 _tmp*/
@@ -15,6 +15,6 @@ _tmp*/
 *uncommitted*/
 EOF
 
-cat << 'EOF' > ~/.zprofile
+cat <<'EOF' >~/.zprofile
 eval $(/opt/homebrew/bin/brew shellenv)
 EOF
