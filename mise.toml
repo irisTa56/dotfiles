@@ -22,7 +22,7 @@ gitleaks protect -v --staged
 lychee .
 rumdl check
 shellcheck scripts/*.sh
-shfmt -d scripts/*.sh
+shfmt -i 2 -d scripts/*.sh
 """
 
 [tasks."setup:dotfiles"]
@@ -39,7 +39,7 @@ run = "rumdl check --fix"
 
 [tasks.format-sh]
 description = "Format shell scripts"
-run = "shfmt -w scripts/*.sh"
+run = "shfmt -i 2 -w scripts/*.sh"
 
 [tasks."skills:diff"]
 description = "Diff installed skills against skills-lock.json (locally-tracked skills excluded)"

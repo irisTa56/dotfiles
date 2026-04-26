@@ -8,8 +8,8 @@ src="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 out="$script_dir/../mcpServers.json"
 
 [ -f "$src" ] || {
-	echo "claude_desktop_config.json not found: $src" >&2
-	exit 1
+  echo "claude_desktop_config.json not found: $src" >&2
+  exit 1
 }
 
 jq '.mcpServers // {}' "$src" >"$out.tmp" && mv "$out.tmp" "$out"
