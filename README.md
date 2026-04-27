@@ -33,6 +33,18 @@ Restore pinned skills from `skills-lock.json`:
 skills experimental_install
 ```
 
+Add a new skill (drops the redundant `.claude/skills/` and `.continue/skills/` symlink dirs that the CLI creates):
+
+```shell
+mise run skills:add owner/repo skill-name
+```
+
+Remove installed skills (same cleanup, also prunes `skills-lock.json`):
+
+```shell
+mise run skills:remove skill-name [more-skills...]
+```
+
 Diff installed skills against the lock file (`<` lines are missing, `>` lines are unpinned drift):
 
 ```shell

@@ -41,6 +41,32 @@ run = "rumdl check --fix"
 description = "Format shell scripts"
 run = "shfmt -i 2 -w scripts/*.sh"
 
+[tasks."skills:add"]
+description = "Add a skill via skills CLI, then drop redundant per-agent symlink dirs"
+usage = '''
+arg "<package>" help="Skill package (e.g. owner/repo)"
+arg "<skill>" help="Skill name within the package"
+'''
+shell = "bash -c"
+run = '''
+skills add "$usage_package" --skill "$usage_skill" -y
+rm -rf .claude/skills .continue/skills
+'''
+
+[tasks."skills:remove"]
+description = "Remove skills via skills CLI, prune skills-lock.json, drop per-agent symlink dirs"
+usage = 'arg "<skills>..." help="Skill names"'
+shell = "bash -c"
+run = '''
+set -euo pipefail
+read -ra names <<<"$usage_skills"
+skills remove "${names[@]}" -y
+tmp=$(mktemp)
+jq 'reduce $ARGS.positional[] as $s (.; del(.skills[$s]))' \
+  skills-lock.json --args -- "${names[@]}" > "$tmp" && mv "$tmp" skills-lock.json
+rm -rf .claude/skills .continue/skills
+'''
+
 [tasks."skills:diff"]
 description = "Diff installed skills against skills-lock.json (locally-tracked skills excluded)"
 shell = "bash -c"

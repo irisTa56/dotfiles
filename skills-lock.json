@@ -61,6 +61,11 @@
       "sourceType": "github",
       "computedHash": "bf74ec18ab1266010c9ffc219588c63c16e80dbc1bdc9cc1e978ae30b93e4a4d"
     },
+    "diataxis": {
+      "source": "rlespinasse/agent-skills",
+      "sourceType": "github",
+      "computedHash": "985f0bd3aebb05a0bd138e6aef116f0ad785e2d2161e662cf14e1896ae7f5d52"
+    },
     "documentation-writer": {
       "source": "github/awesome-copilot",
       "sourceType": "github",
