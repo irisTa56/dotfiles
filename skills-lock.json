@@ -101,6 +101,11 @@
       "sourceType": "github",
       "computedHash": "2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21"
     },
+    "grill-me": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "784f0dbb7403b0f00324bce9a112f715342777a0daee7bbb7385f9c6f0a170ea"
+    },
     "gws-docs": {
       "source": "googleworkspace/cli",
       "sourceType": "github",
@@ -250,6 +255,11 @@
       "source": "K-Dense-AI/claude-scientific-skills",
       "sourceType": "github",
       "computedHash": "7498aec2edcbe0e0c657d2f702478eacd6d0277d0304de5f557a045083298f05"
+    },
+    "to-prd": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "computedHash": "8351452ad372ea4f839d3f7b951927b417851ffa49e7e6af28ea0f0ae111dca8"
     },
     "update-implementation-plan": {
       "source": "github/awesome-copilot",
