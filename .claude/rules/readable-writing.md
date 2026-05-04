@@ -16,9 +16,9 @@ When writing or editing prose in markdown documents, follow these rules.
 
 ## Keep lines short and scannable
 
-- Break at Japanese sentence boundaries (句点 `。` or bullet boundaries) so that each line carries one idea.
-- When a single bullet grows beyond roughly two clauses, consider nesting rather than simply inserting line breaks.
-  - Simply splitting a long bullet with line breaks is not enough.
-  - Consider whether the content has a parent-child relationship that warrants nesting.
-  - A plain line break is fine when nesting adds no clarity, and no break at all is fine when the line is already short.
-- Prefer a vertical list over a long inline enumeration (e.g., `A、B、C、D` → four sub-bullets).
+- Do not insert a line break inside a sentence. Line breaks are allowed only at sentence boundaries (句点 `。`, period `.`, or bullet boundaries).
+- Do not split a long bullet with a flat line break. If a bullet has two or more clauses, take one of the following:
+  - Rewrite them into a single sentence (paraphrasing or joining with `;`).
+  - Nest them as child bullets (parent-child).
+  - Separate them as sibling bullets.
+- Do not write a long inline enumeration. Expand `A、B、C、D` into a vertical list of sub-bullets.
