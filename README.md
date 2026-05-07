@@ -20,35 +20,43 @@ mise upgrade --before 2024-06-01
 
 ## Agent Skills
 
-Skills live under `.agents/skills/`, which [Skills CLI](https://github.com/vercel-labs/skills) writes to.
+Skills live under `.claude/skills/`, managed by [APM](https://github.com/microsoft/apm).
+`apm.yml` declares the packages and `apm.lock.yaml` pins the resolved commits and content hashes.
 Symlink `~/.claude/skills` to it once:
 
 ```shell
-ln -sfn "$PWD/.agents/skills" ~/.claude/skills
+ln -sfn "$PWD/.claude/skills" ~/.claude/skills
 ```
 
-Restore pinned skills from `skills-lock.json`:
+Restore pinned skills from `apm.lock.yaml`:
 
 ```shell
-skills experimental_install
+apm install
 ```
 
-Add a new skill (drops the redundant `.claude/skills/` and `.continue/skills/` symlink dirs that the CLI creates):
+Add a new skill package (`owner/repo` for a single-skill repo, `owner/repo/path/to/skill` for a monorepo entry):
 
 ```shell
-mise run skills:add owner/repo skill-name
+apm install owner/repo
 ```
 
-Remove installed skills (same cleanup, also prunes `skills-lock.json`):
+Remove installed packages (also strips them from `apm.yml` and `apm.lock.yaml`):
 
 ```shell
-mise run skills:remove skill-name [more-skills...]
+apm uninstall <package> [more...]
 ```
 
-Diff installed skills against the lock file (`<` lines are missing, `>` lines are unpinned drift):
+Audit deployed files against the lockfile, plus integrity and hidden-character checks:
 
 ```shell
-mise run skills:diff
+apm audit
+```
+
+Show packages whose upstream advanced past the pinned ref, then update:
+
+```shell
+apm outdated
+apm install --update
 ```
 
 ## MCP Servers

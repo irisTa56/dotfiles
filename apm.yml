@@ -1,0 +1,64 @@
+name: dotfiles
+version: 1.0.0
+description: Personal dotfiles, shared agent skills, and tool config
+author: irisTa56
+includes: auto
+
+dependencies:
+  apm:
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/citation-management
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/dask
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/exploratory-data-analysis
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/geomaster
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/geopandas
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/hypothesis-generation
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/literature-review
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/markdown-mermaid-writing
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/matplotlib
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/networkx
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/polars
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-brainstorming
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-critical-thinking
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-visualization
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/seaborn
+    - K-Dense-AI/claude-scientific-skills/scientific-skills/statistical-analysis
+    - anthropics/skills/skills/skill-creator
+    - basicmachines-co/basic-memory-skills/memory-defrag
+    - basicmachines-co/basic-memory-skills/memory-ingest
+    - basicmachines-co/basic-memory-skills/memory-lifecycle
+    - basicmachines-co/basic-memory-skills/memory-metadata-search
+    - basicmachines-co/basic-memory-skills/memory-notes
+    - basicmachines-co/basic-memory-skills/memory-reflect
+    - basicmachines-co/basic-memory-skills/memory-research
+    - basicmachines-co/basic-memory-skills/memory-schema
+    - blader/humanizer
+    - github/awesome-copilot/skills/acquire-codebase-knowledge
+    - github/awesome-copilot/skills/agentic-eval
+    - github/awesome-copilot/skills/architecture-blueprint-generator
+    - github/awesome-copilot/skills/autoresearch
+    - github/awesome-copilot/skills/context-map
+    - github/awesome-copilot/skills/create-architectural-decision-record
+    - github/awesome-copilot/skills/create-implementation-plan
+    - github/awesome-copilot/skills/create-readme
+    - github/awesome-copilot/skills/create-specification
+    - github/awesome-copilot/skills/create-technical-spike
+    - github/awesome-copilot/skills/documentation-writer
+    - github/awesome-copilot/skills/draw-io-diagram-generator
+    - github/awesome-copilot/skills/git-commit
+    - github/awesome-copilot/skills/prd
+    - github/awesome-copilot/skills/refactor
+    - github/awesome-copilot/skills/refactor-plan
+    - github/awesome-copilot/skills/update-implementation-plan
+    - googleworkspace/cli/skills/gws-docs
+    - googleworkspace/cli/skills/gws-drive
+    - googleworkspace/cli/skills/gws-script
+    - googleworkspace/cli/skills/gws-shared
+    - googleworkspace/cli/skills/gws-sheets
+    - googleworkspace/cli/skills/gws-slides
+    - jgraph/drawio-mcp/skill-cli/drawio
+    - mattpocock/skills/skills/engineering/to-prd
+    - mattpocock/skills/skills/productivity/grill-me
+    - rlespinasse/agent-skills/skills/diataxis
+  mcp: []
+
+scripts: {}
