@@ -387,6 +387,15 @@ dependencies:
   deployed_files:
   - .claude/skills/update-implementation-plan
   content_hash: sha256:b2f2a6bf2544b416b9145e805c0f534ad078e7135c1ce26e73af1b0cd99cb692
+- repo_url: github/awesome-copilot
+  host: github.com
+  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  virtual_path: skills/memory-merger
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-merger
+  content_hash: sha256:6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3
 - repo_url: googleworkspace/cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
@@ -477,3 +486,12 @@ dependencies:
   deployed_files:
   - .claude/skills/diataxis
   content_hash: sha256:7c19c88b2f9cc5f54d0505c0b3ab2433c4188d41146335b0f6e5f872b0b554aa
+- repo_url: sanyuan0704/sanyuan-skills
+  host: github.com
+  resolved_commit: 807460aaa6e23313d9e16c397d100130691083a5
+  virtual_path: skills/code-review-expert
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/code-review-expert
+  content_hash: sha256:45869066f7810678e258b06e5c2e2426a1b15ec7673c33b4395f2fb8b82c6457
