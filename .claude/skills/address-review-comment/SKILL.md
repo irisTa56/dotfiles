@@ -48,7 +48,7 @@ After extraction, set a tentative reply target type without interrupting the use
 - Prefer `ai-bot` when any of the following is true:
   - `user.type == "Bot"`
   - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
-- Otherwise, set `human`
+- Otherwise, set `human`.
 
 Treat this as provisional and finalize at Step 7.
 
@@ -61,9 +61,9 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 
 ### 3. Understand the Context
 
-- Read the file and lines the comment refers to
-- Understand the reviewer's suggestion or concern
-- Look at surrounding code for broader context if needed
+- Read the file and lines the comment refers to.
+- Understand the reviewer's suggestion or concern.
+- Look at surrounding code for broader context if needed.
 
 ### 4. Evaluate Validity
 
@@ -72,8 +72,16 @@ Take the reviewer's suggestion seriously, but do NOT blindly accept:
 - **Technically correct?** Does the suggestion fix a real bug, improve correctness, or address a genuine concern?
 - **Improves quality?** Does it improve readability, maintainability, or performance?
 - **Trade-offs?** Are there considerations the reviewer may not have seen?
-- **Scope appropriate?** Is the suggestion proportional, or over-engineering?
-- **Step back once**: Is there a more fundamental fix that removes repeated manual work or prevents the class of issue (e.g., automation/script/abstraction instead of ad-hoc procedural edits)?
+- **Proportionate solution?** Evaluate whether the reviewer's proposed approach is appropriately scoped. A simpler or more targeted fix may address the same concern without unnecessary complexity. (This evaluates the *how*, not the *whether* — the underlying problem should still be addressed.)
+- **Step back once**: Reframe the suggestion holistically. Is there a more fundamental fix that removes repeated manual work or prevents the class of issue (e.g., automation/script/abstraction instead of ad-hoc procedural edits)?
+- **Broken-window risk?** Even if the issue looks minor now, consider whether leaving it invites further degradation or costly rework later. If so, fix it.
+- **Grounded in actual behavior?** Evaluate based on what the code actually does, not what specs or plans say it should do. If a spec or plan appears flawed, flag it to the user rather than silently conforming.
+
+Anti-patterns — do NOT fall into these:
+
+- Applying a symptomatic / band-aid fix instead of addressing the root cause.
+- Dismissing a suggestion because "the existing implementation already does it this way."
+- Adding a comment to acknowledge a problem while leaving the code unchanged.
 
 Decide on one of:
 
@@ -86,21 +94,27 @@ Decide on one of:
 
 ### 5. Apply Fix (if needed)
 
-- Make the **minimal, targeted** change that addresses the comment
-- Do NOT modify code outside the scope of the comment
-- Do NOT add unrelated improvements
-- If the chosen verdict requires code changes, complete all file edits in this step before moving to Step 7
+**Nature of the change** — keep it minimal and targeted:
+
+- Address the root cause identified in Step 4; do not bundle unrelated refactors or improvements.
+
+**Breadth of the change** — apply consistently:
+
+- **Consistency sweep**: After applying the fix, check whether the same bug or pattern exists in related areas (other call sites, sibling functions, similar files). Apply the same fix to all occurrences so that partial corrections do not remain.
+- If the sweep reveals a large number of affected sites (suggesting a systemic issue), fix what is practical within this PR and flag the remainder to the user for a follow-up.
+
+Complete all file edits in this step before proceeding.
 
 ### 6. Draft Reply
 
 Compose a reply draft early, before final confirmation:
 
-- Write in the **same language as the reviewer's comment**
+- Write in the **same language as the reviewer's comment**.
 - Select tone by reply target type:
-  - `human`: concise, professional, and courteous (brief appreciation is allowed)
-  - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries)
-- If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`)
-- If no fix will be made: explain the reasoning respectfully
+  - `human`: concise, professional, and courteous (brief appreciation is allowed).
+  - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
+- If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If no fix will be made: explain the reasoning respectfully.
 
 ### 7. Confirm Fix with User
 
@@ -108,12 +122,12 @@ Present the diff and reasoning to the user as a **single final execution checkpo
 
 Checklist:
 
-- Precondition: if code changes are required, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval
-- Show what was changed and why
-- If no change was made, explain why the suggestion was declined or deferred
-- Show inferred reply target type (`human` or `ai-bot`) and finalize it here together with commit/push confirmation
-- Ask for override only when the user disagrees or the inference confidence is low
-- Show the Step 6 draft reply that will be posted after commit/push
+- Precondition: if code changes are required, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval.
+- Show what was changed and why.
+- If no change was made, explain why the suggestion was declined or deferred.
+- Show inferred reply target type (`human` or `ai-bot`) and finalize it here together with commit/push confirmation.
+- Ask for override only when the user disagrees or the inference confidence is low.
+- Show the Step 6 draft reply that will be posted after commit/push.
 
 Wait for user approval, then execute the remaining steps in order without another confirmation.
 
@@ -130,9 +144,9 @@ git push
 ```
 
 - Choose the appropriate type: `fix`, `refactor`, `style`, `docs`, `perf`, etc.
-- Keep the description under 72 characters
-- Stage only the files related to this review comment
-- Push to the current branch so the commit is visible on the PR
+- Keep the description under 72 characters.
+- Stage only the files related to this review comment.
+- Push to the current branch so the commit is visible on the PR.
 
 ### 9. Post Reply
 
@@ -144,18 +158,18 @@ Post the approved reply using `mcp_github_add_reply_to_pull_request_comment`:
 
 After posting:
 
-- If reply target type is `human`: do not resolve the thread
-- If reply target type is `ai-bot`: resolve the thread
+- If reply target type is `human`: do not resolve the thread.
+- If reply target type is `ai-bot`: resolve the thread.
 
 Resolve flow for `ai-bot`:
 
-- Call `github-pull-request_currentActivePullRequest` and read `reviewThreads`
-- Treat `commentId` as a REST API numeric ID (not a review thread ID)
+- Call `github-pull-request_currentActivePullRequest` and read `reviewThreads`.
+- Treat `commentId` as a REST API numeric ID (not a review thread ID).
 - Map `commentId` to a thread by checking nested thread comments:
-  - First try direct numeric match (`comment.id == commentId` or `comment.databaseId == commentId` if available)
-  - If only node IDs are available, use the `node_id` captured in Step 2 to match thread comments
-- If found and `canResolve` is `true`, call `github-pull-request_resolveReviewThread` with that thread `id`
-- If not found or `canResolve` is `false`, skip resolving and only keep the posted reply
+  - First try direct numeric match (`comment.id == commentId` or `comment.databaseId == commentId` if available).
+  - If only node IDs are available, use the `node_id` captured in Step 2 to match thread comments.
+- If found and `canResolve` is `true`, call `github-pull-request_resolveReviewThread` with that thread `id`.
+- If not found or `canResolve` is `false`, skip resolving and only keep the posted reply.
 
 ## Important Rules
 
