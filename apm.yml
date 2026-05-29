@@ -5,22 +5,6 @@ author: irisTa56
 includes: auto
 dependencies:
   apm:
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/citation-management
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/dask
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/exploratory-data-analysis
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/geomaster
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/geopandas
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/hypothesis-generation
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/literature-review
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/markdown-mermaid-writing
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/matplotlib
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/networkx
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/polars
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-brainstorming
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-critical-thinking
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/scientific-visualization
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/seaborn
-  - K-Dense-AI/claude-scientific-skills/scientific-skills/statistical-analysis
   - anthropics/skills/skills/skill-creator
   - basicmachines-co/basic-memory-skills/memory-defrag
   - basicmachines-co/basic-memory-skills/memory-ingest
@@ -44,21 +28,37 @@ dependencies:
   - github/awesome-copilot/skills/documentation-writer
   - github/awesome-copilot/skills/draw-io-diagram-generator
   - github/awesome-copilot/skills/git-commit
+  - github/awesome-copilot/skills/memory-merger
   - github/awesome-copilot/skills/prd
   - github/awesome-copilot/skills/refactor
   - github/awesome-copilot/skills/refactor-plan
   - github/awesome-copilot/skills/update-implementation-plan
   - googleworkspace/cli/skills/gws-docs
   - googleworkspace/cli/skills/gws-drive
-  - googleworkspace/cli/skills/gws-script
+  - googleworkspace/cli/skills/gws-gmail
   - googleworkspace/cli/skills/gws-shared
   - googleworkspace/cli/skills/gws-sheets
   - googleworkspace/cli/skills/gws-slides
   - jgraph/drawio-mcp/skill-cli/drawio
+  - K-Dense-AI/scientific-agent-skills/skills/citation-management
+  - K-Dense-AI/scientific-agent-skills/skills/dask
+  - K-Dense-AI/scientific-agent-skills/skills/exploratory-data-analysis
+  - K-Dense-AI/scientific-agent-skills/skills/geomaster
+  - K-Dense-AI/scientific-agent-skills/skills/geopandas
+  - K-Dense-AI/scientific-agent-skills/skills/hypothesis-generation
+  - K-Dense-AI/scientific-agent-skills/skills/literature-review
+  - K-Dense-AI/scientific-agent-skills/skills/markdown-mermaid-writing
+  - K-Dense-AI/scientific-agent-skills/skills/matplotlib
+  - K-Dense-AI/scientific-agent-skills/skills/networkx
+  - K-Dense-AI/scientific-agent-skills/skills/polars
+  - K-Dense-AI/scientific-agent-skills/skills/scientific-brainstorming
+  - K-Dense-AI/scientific-agent-skills/skills/scientific-critical-thinking
+  - K-Dense-AI/scientific-agent-skills/skills/scientific-visualization
+  - K-Dense-AI/scientific-agent-skills/skills/seaborn
+  - K-Dense-AI/scientific-agent-skills/skills/statistical-analysis
   - mattpocock/skills/skills/engineering/to-prd
   - mattpocock/skills/skills/productivity/grill-me
   - rlespinasse/agent-skills/skills/diataxis
   - sanyuan0704/sanyuan-skills/skills/code-review-expert
-  - github/awesome-copilot/skills/memory-merger
   mcp: []
 scripts: {}

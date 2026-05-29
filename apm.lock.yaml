@@ -1,154 +1,154 @@
 lockfile_version: '1'
-generated_at: '2026-05-07T11:26:27.329096+00:00'
-apm_version: 0.12.3
+generated_at: '2026-05-29T08:16:32.460079+00:00'
+apm_version: 0.13.0
 dependencies:
-- repo_url: K-Dense-AI/claude-scientific-skills
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/citation-management
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/citation-management
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/citation-management
-  content_hash: sha256:670540ec1b6a0e53e584ea4e614d42686f53daeb3be5fd014ef8be030450664d
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:64ca5d2cffe397e809800f11b67afd798a3a192b3b577eafae9cc5021169b1d8
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/dask
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/dask
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/dask
-  content_hash: sha256:31ec5ed2a8ba35e2947ab6f3c0ef0a9b874e75dcffe5e7ea16fba69918f06720
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:65d3c49e389ee4d3cab91e073f52dbdddb1d220db5607334be18bcf69abc8d28
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/exploratory-data-analysis
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/exploratory-data-analysis
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/exploratory-data-analysis
-  content_hash: sha256:fdd6788214442a6203c6f454a383bcbf5c7718818f594e4483fdb0a29d856b70
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:a8f317b4653915f8a1349f7c2fd63d51152fffc9c52626bf8b3c7a6c355f2a53
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/geomaster
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/geomaster
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/geomaster
-  content_hash: sha256:d8c878cefbea7340fc121e9efd4dee8b0e4c2163e8105638ba3cd01596dba7ba
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:937ed91943e398ee960fdd717819344bb3be3c0fc200f7011103502d57aefb90
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/geopandas
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/geopandas
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/geopandas
-  content_hash: sha256:e5b25e002a18026d1e97dcf9f683939f3aae0857948b057d62aa1da3dcd73c1c
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:e248f9203b92af9bc996c1dcd2d3bb768749c2cd04e73f2801762af3ad8ec237
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/hypothesis-generation
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/hypothesis-generation
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/hypothesis-generation
-  content_hash: sha256:e052956dc537bfe08039767fd7812e6f4be1a085bef725d0265a38952bba4508
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:20f0ffdcb1832e938c32c61fc3950849378fe2eb44d836cace79843a5725f1c1
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/literature-review
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/literature-review
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/literature-review
-  content_hash: sha256:7f0243a792308702f928c4b85b0d912b283794bb3db26ccd2050b4231d7a0900
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:0ff14303c4fe0ba8ed06f1268c58f55e46682078e2f3e2e214ee1405e233294e
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/markdown-mermaid-writing
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/markdown-mermaid-writing
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/markdown-mermaid-writing
-  content_hash: sha256:1fa60a60ac28de7695ee4c8a21dd0bc6fc8809eeaacf6ca3d4b54da4ab7c8181
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:2256dadde8dc2692838f13570296bf25de9b2d28f2306a04edfcd8893fe6e895
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/matplotlib
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/matplotlib
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/matplotlib
-  content_hash: sha256:609d9c7a455912ae368dfb91ab200af67e552900129cacbb8e0c0cb3125c1d69
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:010bbef79e326f30cfe4075aa69c6d0326025b8872ee6345f782a601d02c7cd8
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/networkx
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/networkx
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/networkx
-  content_hash: sha256:c15661f0ae318404b4d63eb08f3e09d4d51dd6adb5dc806dcf23e775dfc9fdc5
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:81ef1950722e2fb54d9868cb4e7f9f9a092feeffb157048141a8b7e35b94b660
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/polars
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/polars
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/polars
-  content_hash: sha256:ed6175662e8150f1dca7e45c3b9b1a32dba0c15d40bc4393335cfd0d8a31bce9
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:a71a21278ac1b5f9b2066f123e77eda156aeb11aef7c5e9dc6460c4601df4b36
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/scientific-brainstorming
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/scientific-brainstorming
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/scientific-brainstorming
-  content_hash: sha256:91152cf5fdaaf3401592486a510ba3d50f58377700c0638af1600bf37232121c
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:c634eb6b768ee7e7e707a78a5b35cf4d04bbbbac6a9bd03288a1bda6430378ea
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/scientific-critical-thinking
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/scientific-critical-thinking
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/scientific-critical-thinking
-  content_hash: sha256:f327de8c32ba398379d4f5daa273768f3ad9ee91302abf54600fee938651cd33
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:5ffc67d73bb49fefe57aff8398e70606f604e7251ed08402a41c79e98ab4b71e
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/scientific-visualization
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/scientific-visualization
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/scientific-visualization
-  content_hash: sha256:4e0b3bb70dfbadfc2317ee2e14ec707a276cd1e29449d690c83c3b9b6baa6465
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:39de1cef8f8e64a6956b9c4897030bf43a9ec2ad58820c348caa1bc1aa7d6247
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/seaborn
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/seaborn
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/seaborn
-  content_hash: sha256:63a8487cc7a0c9ea7e15bc15ad5917debcdd1da1b687ee6d6a6dc07e97f6eb6d
-- repo_url: K-Dense-AI/claude-scientific-skills
+  content_hash: sha256:5ebd985fcd6e41a6f14c08e08b35df3eaf25c621720a8704074a00430335d08b
+- repo_url: K-Dense-AI/scientific-agent-skills
   host: github.com
-  resolved_commit: 7a1d69cc3feb50b20f4b4bbe275316d39a5a7ba7
-  virtual_path: scientific-skills/statistical-analysis
+  resolved_commit: effb57c5699c1d400ef461a7aa80fc6693939805
+  virtual_path: skills/statistical-analysis
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/statistical-analysis
-  content_hash: sha256:837b4ee330a80366c0a89cc56ee7d2fcd7ff69ae92b9a70e4d5788891be08fb6
+  content_hash: sha256:63f6efe3e1b6e51a6b2ccb830148e073a285fc7fc36acad83448a31b14a3343e
 - repo_url: anthropics/skills
   host: github.com
-  resolved_commit: d211d437443a7b2496a3dad9575e7dddd724c585
+  resolved_commit: da20c92503b2e8ff1cf28ca81a0df4673debdbf7
   virtual_path: skills/skill-creator
   is_virtual: true
   package_type: claude_skill
@@ -229,14 +229,14 @@ dependencies:
   content_hash: sha256:876c3923dde4f88ce9502314832471f52a4fc15a4563b31cdbd74396fba33043
 - repo_url: blader/humanizer
   host: github.com
-  resolved_commit: 8b3a17889fbf12bedae20974a3c9f9de746ed754
+  resolved_commit: a2ace14a88a6746f64f1f53ed8272d6788828038
   package_type: claude_skill
   deployed_files:
   - .claude/skills/humanizer
-  content_hash: sha256:b813857f183da05d08d5a80adac671df94c139f855809bd47ab8b7bb245546a2
+  content_hash: sha256:0e456dd5eb31b1fa120b9a584d8661ef591d58d8e0dbe585a24cd2698becf9bb
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/acquire-codebase-knowledge
   is_virtual: true
   package_type: claude_skill
@@ -245,7 +245,7 @@ dependencies:
   content_hash: sha256:94a1da1b609e31d3ac4629f4670784c63675639955965b503d10928035b4f727
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/agentic-eval
   is_virtual: true
   package_type: claude_skill
@@ -254,7 +254,7 @@ dependencies:
   content_hash: sha256:40771d7d389c1542e6cb995d75e516893466f01c3b66bc040b158ceb793d4bed
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/architecture-blueprint-generator
   is_virtual: true
   package_type: claude_skill
@@ -263,7 +263,7 @@ dependencies:
   content_hash: sha256:9b20f13d1d96ba1c2550e1ce535f932e943c42939d3fae906a9e0d6c1bfb471a
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/autoresearch
   is_virtual: true
   package_type: claude_skill
@@ -272,7 +272,7 @@ dependencies:
   content_hash: sha256:8bfae087ef27eb37092d94caf1da3406b500aa908756772bb1349a1ac70823dd
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/context-map
   is_virtual: true
   package_type: claude_skill
@@ -281,7 +281,7 @@ dependencies:
   content_hash: sha256:cca0523289057f0f6fbff2c3ead5063359dd2482a451bf8694eac0f282185786
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/create-architectural-decision-record
   is_virtual: true
   package_type: claude_skill
@@ -290,7 +290,7 @@ dependencies:
   content_hash: sha256:5c99e32293271aef0270c279c2af8b62301e29257bf85f2ebf7e810c740b4404
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/create-implementation-plan
   is_virtual: true
   package_type: claude_skill
@@ -299,7 +299,7 @@ dependencies:
   content_hash: sha256:4764bacd34af8e5c27a85ca01a90197afcf1f1ed1785975ba91d9b80dff60e2d
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/create-readme
   is_virtual: true
   package_type: claude_skill
@@ -308,7 +308,7 @@ dependencies:
   content_hash: sha256:d0ece1b2164ce1376e4ab6e98d6ac079df3a2a94f5f02224362b6a1ce2516ae9
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/create-specification
   is_virtual: true
   package_type: claude_skill
@@ -317,7 +317,7 @@ dependencies:
   content_hash: sha256:45b9ef98b0fb82ba0e1aee65dfb464fa1f8494a14a557b9788d73aae87e9e618
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/create-technical-spike
   is_virtual: true
   package_type: claude_skill
@@ -326,7 +326,7 @@ dependencies:
   content_hash: sha256:e711706b4aebacac01bcc025e19bcf0e88bf784cbe6419ddf07c2be67c501f33
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/documentation-writer
   is_virtual: true
   package_type: claude_skill
@@ -335,7 +335,7 @@ dependencies:
   content_hash: sha256:ee53d65b163cd7eb953a930c95841cfe398cc2c0bd24c06508bbaa07c432be35
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/draw-io-diagram-generator
   is_virtual: true
   package_type: claude_skill
@@ -344,7 +344,7 @@ dependencies:
   content_hash: sha256:1da717c88f800bb96d895290a71741110a039285604329e67d544cb6685ef2a8
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/git-commit
   is_virtual: true
   package_type: claude_skill
@@ -353,7 +353,16 @@ dependencies:
   content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
+  virtual_path: skills/memory-merger
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-merger
+  content_hash: sha256:6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3
+- repo_url: github/awesome-copilot
+  host: github.com
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/prd
   is_virtual: true
   package_type: claude_skill
@@ -362,7 +371,7 @@ dependencies:
   content_hash: sha256:1f3e1f005fc40fda85d250ae906c8ee4f7e8e833e23adfeca6542c19609fd7cd
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/refactor
   is_virtual: true
   package_type: claude_skill
@@ -371,31 +380,22 @@ dependencies:
   content_hash: sha256:87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/refactor-plan
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/refactor-plan
-  content_hash: sha256:e4b09e28e20bcfcd1c48b7a2504fb3cdab4c36b455f2d7689574470c76ea5c2c
+  content_hash: sha256:26f32d34d48e9a40e5dd91d877319c94c6b8537e204d95d187ba45b443276868
 - repo_url: github/awesome-copilot
   host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
+  resolved_commit: 9b74459b5ae5aad67781c4a9de1093605d620f23
   virtual_path: skills/update-implementation-plan
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/update-implementation-plan
   content_hash: sha256:b2f2a6bf2544b416b9145e805c0f534ad078e7135c1ce26e73af1b0cd99cb692
-- repo_url: github/awesome-copilot
-  host: github.com
-  resolved_commit: bb91d3606099fc047798a8b8c28d60989a531a01
-  virtual_path: skills/memory-merger
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/memory-merger
-  content_hash: sha256:6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3
 - repo_url: googleworkspace/cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
@@ -417,12 +417,12 @@ dependencies:
 - repo_url: googleworkspace/cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
-  virtual_path: skills/gws-script
+  virtual_path: skills/gws-gmail
   is_virtual: true
   package_type: claude_skill
   deployed_files:
-  - .claude/skills/gws-script
-  content_hash: sha256:799025ea93e295538fdecdff445dc2c054c388e1ecaebafeb3195fb5607b2f97
+  - .claude/skills/gws-gmail
+  content_hash: sha256:5e5b5fdb4b4f347310d929657ed773abcaf528b5ac0a68deee12d3d38d307642
 - repo_url: googleworkspace/cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
@@ -452,16 +452,16 @@ dependencies:
   content_hash: sha256:5018c4b5578fae15b5c5212ad5a68263721c59c40e4bbecd8f4494cc93cb5471
 - repo_url: jgraph/drawio-mcp
   host: github.com
-  resolved_commit: dcd3233f8fc61354428fd38ad854f7849567ffd1
+  resolved_commit: aacdd6d4c17d38b8d0ca1d40bcdb7a89f9f5ebab
   virtual_path: skill-cli/drawio
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/drawio
-  content_hash: sha256:492b29b435632538c50ccaa0519531cf4afb7a639219ad504d86a5a01d262032
+  content_hash: sha256:e2daf082cf6564a6830369c0de16527ed58642394af6a8adafe2b152817206c1
 - repo_url: mattpocock/skills
   host: github.com
-  resolved_commit: 733d312884b3878a9a9cff693c5886943753a741
+  resolved_commit: e3b90b5238f38cdea5996e16861dcae28ef52eda
   virtual_path: skills/engineering/to-prd
   is_virtual: true
   package_type: claude_skill
@@ -470,7 +470,7 @@ dependencies:
   content_hash: sha256:6d741474efd4bc3db55fabc2722ed78ca9c374cabcb6212936d79d4fd4a30fcb
 - repo_url: mattpocock/skills
   host: github.com
-  resolved_commit: 733d312884b3878a9a9cff693c5886943753a741
+  resolved_commit: e3b90b5238f38cdea5996e16861dcae28ef52eda
   virtual_path: skills/productivity/grill-me
   is_virtual: true
   package_type: claude_skill
@@ -479,7 +479,7 @@ dependencies:
   content_hash: sha256:784f0dbb7403b0f00324bce9a112f715342777a0daee7bbb7385f9c6f0a170ea
 - repo_url: rlespinasse/agent-skills
   host: github.com
-  resolved_commit: 9ea7cc4d04a79c078954a35e69803f88fbf647f2
+  resolved_commit: e873c97e5dee6e180d0681c219b8bb593bfd6448
   virtual_path: skills/diataxis
   is_virtual: true
   package_type: claude_skill
@@ -488,7 +488,7 @@ dependencies:
   content_hash: sha256:7c19c88b2f9cc5f54d0505c0b3ab2433c4188d41146335b0f6e5f872b0b554aa
 - repo_url: sanyuan0704/sanyuan-skills
   host: github.com
-  resolved_commit: 807460aaa6e23313d9e16c397d100130691083a5
+  resolved_commit: 08b6572ef108f22d4e8a3ecf9182a4bbef097744
   virtual_path: skills/code-review-expert
   is_virtual: true
   package_type: claude_skill
