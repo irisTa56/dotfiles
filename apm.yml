@@ -60,5 +60,6 @@ dependencies:
   - mattpocock/skills/skills/productivity/grill-me
   - rlespinasse/agent-skills/skills/diataxis
   - sanyuan0704/sanyuan-skills/skills/code-review-expert
+  - teng-lin/notebooklm-py
   mcp: []
 scripts: {}

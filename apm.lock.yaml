@@ -495,3 +495,10 @@ dependencies:
   deployed_files:
   - .claude/skills/code-review-expert
   content_hash: sha256:45869066f7810678e258b06e5c2e2426a1b15ec7673c33b4395f2fb8b82c6457
+- repo_url: teng-lin/notebooklm-py
+  host: github.com
+  resolved_commit: d52611cd7f5d318c7b83c047ab3ffff79d07b406
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/notebooklm-py
+  content_hash: sha256:bd16bc643e43efc2d1c23a5aa233752f61a880c156b8bfcdf9ecfccb4f48f2e3
