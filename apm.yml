@@ -6,14 +6,18 @@ includes: auto
 dependencies:
   apm:
   - anthropics/skills/skills/skill-creator
-  - basicmachines-co/basic-memory-skills/memory-defrag
-  - basicmachines-co/basic-memory-skills/memory-ingest
-  - basicmachines-co/basic-memory-skills/memory-lifecycle
-  - basicmachines-co/basic-memory-skills/memory-metadata-search
-  - basicmachines-co/basic-memory-skills/memory-notes
-  - basicmachines-co/basic-memory-skills/memory-reflect
-  - basicmachines-co/basic-memory-skills/memory-research
-  - basicmachines-co/basic-memory-skills/memory-schema
+  - basicmachines-co/basic-memory/skills/memory-capture
+  - basicmachines-co/basic-memory/skills/memory-continue
+  - basicmachines-co/basic-memory/skills/memory-curate
+  - basicmachines-co/basic-memory/skills/memory-defrag
+  - basicmachines-co/basic-memory/skills/memory-ingest
+  - basicmachines-co/basic-memory/skills/memory-lifecycle
+  - basicmachines-co/basic-memory/skills/memory-metadata-search
+  - basicmachines-co/basic-memory/skills/memory-notes
+  - basicmachines-co/basic-memory/skills/memory-reflect
+  - basicmachines-co/basic-memory/skills/memory-research
+  - basicmachines-co/basic-memory/skills/memory-schema
+  - basicmachines-co/basic-memory/skills/memory-tasks
   - blader/humanizer
   - github/awesome-copilot/skills/acquire-codebase-knowledge
   - github/awesome-copilot/skills/agentic-eval

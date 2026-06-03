@@ -155,78 +155,114 @@ dependencies:
   deployed_files:
   - .claude/skills/skill-creator
   content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-defrag
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-capture
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-capture
+  content_hash: sha256:fac633ed65979974c7f271d57dfc4b5ab5b9ea5aea0631219f3b4167424b009b
+- repo_url: basicmachines-co/basic-memory
+  host: github.com
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-continue
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-continue
+  content_hash: sha256:fb5b54b9250f284e2ff61661c5fec29b9ff361a2a43df85f9a87df72d98e25a4
+- repo_url: basicmachines-co/basic-memory
+  host: github.com
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-curate
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-curate
+  content_hash: sha256:73e21ef17b37a7ba77d24b6d452230c81f933250fe36239bbbc3756777ee424f
+- repo_url: basicmachines-co/basic-memory
+  host: github.com
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-defrag
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-defrag
   content_hash: sha256:82da4efe339bfb37fe68e97909df5a966d821fb790a4c0ab092a020f1252621e
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-ingest
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-ingest
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-ingest
   content_hash: sha256:c1ecd6237ae2cba8073082f7bc9a54b06a41101bfe2643c3b302c66400f3d98b
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-lifecycle
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-lifecycle
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-lifecycle
   content_hash: sha256:13d1b99948c6341735d9e65d6a697edc83fc51bc7fab7e84df8da625fb24e081
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-metadata-search
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-metadata-search
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-metadata-search
   content_hash: sha256:b4f9e5f4bdabc9e191e4c5b807cc29b5e57da532f77f3eacf84e36d1e57ee297
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-notes
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-notes
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-notes
-  content_hash: sha256:c6ac355ae99e11a963f05a1d2452598403078d33eb9f7e096b1e43aa60caec15
-- repo_url: basicmachines-co/basic-memory-skills
+  content_hash: sha256:f1b167acaf5ea7d83cb10912189dc463675defdb100b237d65887688ef026842
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-reflect
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-reflect
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-reflect
   content_hash: sha256:a2fcd9a3141857bce1ce34f55ba98b0d941c40542a1be4f53ee3d776f57127b1
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-research
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-research
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-research
   content_hash: sha256:294b3a6c9978a93e3bfc613ec33646c2e47a01d15633e31cb294daf79c7d81aa
-- repo_url: basicmachines-co/basic-memory-skills
+- repo_url: basicmachines-co/basic-memory
   host: github.com
-  resolved_commit: 6d2b1d426d0dacf020aef45f029768c9d8c1e5e5
-  virtual_path: memory-schema
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-schema
   is_virtual: true
   package_type: claude_skill
   deployed_files:
   - .claude/skills/memory-schema
-  content_hash: sha256:876c3923dde4f88ce9502314832471f52a4fc15a4563b31cdbd74396fba33043
+  content_hash: sha256:b7bd1ce883063d9c9139f7507878f9ac512a68a84febc157a83de82ec637db47
+- repo_url: basicmachines-co/basic-memory
+  host: github.com
+  resolved_commit: fc2ee07076eb397b09db7b2681e5213002df0d70
+  virtual_path: skills/memory-tasks
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-tasks
+  content_hash: sha256:abc17a4831fee2a02abdb7035383820cf2950f56dcf8f07cedb27d82741e4f2b
 - repo_url: blader/humanizer
   host: github.com
   resolved_commit: a2ace14a88a6746f64f1f53ed8272d6788828038
