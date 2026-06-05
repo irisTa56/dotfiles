@@ -1,18 +1,19 @@
 ---
-description: Conventions for Japanese prose in markdown documents (notes, specs, READMEs, etc.). Language-agnostic prose conventions live in honest-writing.md.
+description: Conventions for Japanese text in markdown documents (notes, specs, READMEs, etc.), including technical writing. Language-agnostic prose conventions live in honest-writing.md.
 paths:
   - "**/*.md"
 ---
 
 # Japanese Writing
 
-Follow these rules when writing Japanese prose.
+Follow these rules when writing Japanese text, including technical documents.
 
 ## Prefer Japanese over English when an equivalent exists
 
 - In Japanese text, use a well-established Japanese translation (including katakana loanwords) instead of leaving the original English term.
   - Kanji translations (English shown here for cross-reference only; see §3 for when to actually annotate): 活性値 (activation), 順伝播 / 逆伝播 (forward / backward), 再計算 (recomputation), 連鎖律 (chain rule), 勾配 (gradient).
-  - Katakana forms (use as-is; the English origin is self-evident): パラメータ, ステージ, マイクロバッチ, パイプライン, バッチ, デフォルト.
+  - Katakana forms — use the katakana form when the term is used as a general concept; the English origin is self-evident: パラメータ, ステージ, マイクロバッチ, パイプライン, バッチ, デフォルト.
+    - Exception: keep the original English term (not the katakana form) when the term names a concrete entity (e.g., a specific API parameter, config key, or identifier) or when cross-referencing an English source where the exact wording matters.
 - Leave the following in their original form:
   - Proper nouns (e.g., PipeDream-Flush, GPipe).
   - Established acronyms (e.g., 1F1B, FLOP, LLM).
@@ -39,6 +40,17 @@ Follow these rules when writing Japanese prose.
     - Example: `詳細は別の節（pipeline parallelism の章）を参照。`
   - Use half-width `()` when the content is purely half-width (English, code, math).
     - Example: `活性値 (activation)`, `(Narayanan et al. 2021)`.
+
+## Space between English words and surrounding Japanese
+
+- For a single English word adjacent to Japanese — including a compound of one English word plus Japanese — do not put a space around the English word.
+  - OK: `Python製`, `Goで書く`, `gRPC経由のリクエスト`.
+  - NG: `Python 製`, `Go で書く`.
+- Otherwise, separate the English run from the surrounding Japanese with a half-width space.
+  - OK: `machine learning を学ぶ`, `REST API の設計`.
+- Avoid compounds that splice consecutive English words directly onto Japanese (e.g., `REST APIサーバー`).
+  - Take one of: break the English run with a Japanese particle so each English word stands alone (`RESTのAPIサーバー`), or make the whole phrase English (`REST API server`).
+- This rule governs bare English words in running text. Spacing around markdown syntax (code spans, emphasis, links) follows the separate rule below.
 
 ## Put spaces around inline markdown syntax in Japanese text
 
