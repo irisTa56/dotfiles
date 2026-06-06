@@ -1,8 +1,8 @@
 ---
 description: Keep always-loaded agent instruction files necessary and sufficient
 paths:
-  - "**/CLAUDE.md"
   - "**/AGENTS.md"
+  - "**/CLAUDE.md"
 ---
 
 # Agent Instruction Files
@@ -28,6 +28,7 @@ Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and other f
 - Rules a linter, formatter, or config file already enforces; let the toolchain carry them.
 - Content that is authoritative elsewhere. Link to it instead of restating; a duplicated copy drifts out of sync.
 - Near-identical wording in two places. Say it once, in the most relevant section.
+- Historical narrative — how a convention evolved, migration backstory, or changelog-style entries. State the current rule; let git history carry the past.
 
 ## Form
 
