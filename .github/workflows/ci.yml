@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - ".claude/skills/md-to-docx/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".claude/skills/md-to-docx/**"
+      - ".github/workflows/ci.yml"
+
+# Dependabot PRs run with a read-only token; this job needs nothing more.
+permissions:
+  contents: read
+
+jobs:
+  md-to-docx:
+    name: md-to-docx smoke test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .claude/skills/md-to-docx
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: .claude/skills/md-to-docx/package-lock.json
+
+      - run: npm ci
+
+      - run: npm test
