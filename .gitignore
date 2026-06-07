@@ -9,6 +9,8 @@
 !/.claude/skills/page-reader/**
 !/.claude/skills/pdf-figure-extractor/
 !/.claude/skills/pdf-figure-extractor/**
+!/.claude/skills/review-loop/
+!/.claude/skills/review-loop/**
 
 # APM dependencies
 apm_modules/
