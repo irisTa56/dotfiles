@@ -2,11 +2,23 @@
 
 ## Initial Setup
 
-Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, and `~/.zprofile`:
+Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zprofile`, and `~/.zshenv` (each is overwritten with canonical content):
 
 ```shell
 mise run setup:dotfiles
 ```
+
+### Shell startup: `.zprofile` vs `.zshenv`
+
+The Homebrew environment is split across two files on purpose:
+
+- `.zprofile` runs `brew shellenv` to put `/opt/homebrew/bin` ahead of `/usr/bin` on PATH.
+  - It must live in a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes `/opt/homebrew/bin` to the end.
+  - Only a `brew shellenv` running *after* path_helper re-prepends Homebrew, which is why it belongs here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- `.zshenv` only exports `HOMEBREW_PREFIX` and never touches PATH.
+  - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
+  - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
+  - Setting PATH here would be undone by path_helper, so only the variable is set.
 
 ## Tool Versions
 
