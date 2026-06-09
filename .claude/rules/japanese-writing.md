@@ -43,9 +43,9 @@ Follow these rules when writing Japanese text, including technical documents.
 
 ## Space between English words and surrounding Japanese
 
-- For a single English word adjacent to Japanese — including a compound of one English word plus Japanese — do not put a space around the English word.
-  - OK: `Python製`, `Goで書く`, `gRPC経由のリクエスト`.
-  - NG: `Python 製`, `Go で書く`.
+- For a single English word adjacent to Japanese — including a compound of one English word plus Japanese — do not put a space on either side of the English word. This applies to both the boundary with preceding Japanese and the one with following Japanese.
+  - OK: `Rust製`, `gRPC経由のリクエスト`, `これはElixirで書く`.
+  - NG: `Rust 製`, `gRPC 経由のリクエスト`, `これは Elixirで書く`.
 - Otherwise, separate the English run from the surrounding Japanese with a half-width space.
   - OK: `machine learning を学ぶ`, `REST API の設計`.
 - Avoid compounds that splice consecutive English words directly onto Japanese (e.g., `REST APIサーバー`).
