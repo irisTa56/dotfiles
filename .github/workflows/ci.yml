@@ -1,15 +1,11 @@
 name: CI
 
 on:
+  # No path filter: this check is a required status check on main, so it must
+  # report on every PR (a check that never runs would block merges forever).
   pull_request:
-    paths:
-      - ".claude/skills/md-to-docx/**"
-      - ".github/workflows/ci.yml"
   push:
     branches: [main]
-    paths:
-      - ".claude/skills/md-to-docx/**"
-      - ".github/workflows/ci.yml"
 
 # Dependabot PRs run with a read-only token; this job needs nothing more.
 permissions:
