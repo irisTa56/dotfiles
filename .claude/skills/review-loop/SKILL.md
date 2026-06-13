@@ -1,16 +1,23 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Use after a non-trivial code change, or when the user asks to repeatedly review until clean. Delegation + loop + review mindset; the subagent does the actual review pass (e.g. via code-review-expert or /code-review)."
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Use after a non-trivial code change, or when the user asks to repeatedly review until clean. Delegation + loop + review mindset; the subagent does the actual review pass via the code-review-expert skill."
 ---
 
 # Review Loop
 
 ## Workflow
 
-1. **Review in a subagent.** Spawn a subagent to review the current changes (e.g. via the `code-review-expert` skill or `/code-review`), so the review comes from a clean, independent perspective (and keeps the main context uncluttered). It returns findings only — no edits.
+1. **Review in a subagent.** Spawn a subagent to review the current changes via the `code-review-expert` skill, emphasizing the perspectives below, so the review comes from a clean, independent vantage point (and keeps the main context uncluttered). It returns findings only — no edits.
 2. **Report findings** to the user as the subagent returned them.
 3. **Judge each finding's validity**; state which you accept or reject and why.
 4. **Loop**: fix the valid findings per the mindset below, then spawn a fresh review subagent. Repeat until a review pass returns no valid findings.
+
+## Perspectives for the Review
+
+Direct the reviewer to weigh these on top of the `code-review-expert` defaults:
+
+1. Whether the change is organically integrated into the deliverable as a whole, rather than a surface-level feature implementation — coherent with the existing design and optimized in context, not bolted on.
+2. Whether the automated tests are sound in quality and coverage, and whether they exercise externally observable behavior rather than internal implementation details.
 
 ## Mindset for Addressing Findings
 
