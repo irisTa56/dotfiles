@@ -66,14 +66,29 @@ defmodule MiseOutdatedAge do
   defp fmt_date(iso) when iso in [nil, ""], do: "-"
 
   defp fmt_date(iso) do
-    case DateTime.from_iso8601(iso) do
-      {:ok, dt, _} ->
+    case parse_datetime(iso) do
+      {:ok, dt} ->
         days = div(DateTime.diff(DateTime.utc_now(), dt), 86_400)
         label = if days < 1, do: "today", else: "#{days}d ago"
         "#{Calendar.strftime(dt, "%Y-%m-%d")} (#{label})"
 
-      _ ->
+      :error ->
         String.slice(iso, 0, 10)
+    end
+  end
+
+  # Accept both offset-aware timestamps (e.g. "...Z") and naive ones
+  # (e.g. "2026-06-04T15:34:21"), treating the latter as UTC.
+  defp parse_datetime(iso) do
+    case DateTime.from_iso8601(iso) do
+      {:ok, dt, _} ->
+        {:ok, dt}
+
+      _ ->
+        case NaiveDateTime.from_iso8601(iso) do
+          {:ok, ndt} -> {:ok, DateTime.from_naive!(ndt, "Etc/UTC")}
+          _ -> :error
+        end
     end
   end
 end
