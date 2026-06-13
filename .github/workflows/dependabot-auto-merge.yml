@@ -1,0 +1,31 @@
+name: Dependabot auto-merge
+
+on: pull_request
+
+# Dependabot PRs run with a read-only token by default; declaring the
+# permissions here elevates GITHUB_TOKEN so the bot can approve and merge.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: approve and enable auto-merge
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      # Approving as github-actions[bot] satisfies the 1-review ruleset rule
+      # (a different identity than the PR author, dependabot[bot]).
+      - name: Approve
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Auto-merge waits for the required "md-to-docx smoke test" check, so a
+      # failing update (any semver level, incl. major) will not be merged.
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
