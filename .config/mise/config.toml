@@ -1,17 +1,13 @@
 [tools]
-elixir = "1.19"
-erlang = "28"
+elixir = "1.20"
+erlang = "29"
 node = "24"
 python = "3.14"
 awscli = { version = "latest", symlink_bins = "true" }
-bun = "latest"
 cargo-binstall = "latest"
 claude-code = "latest"
-entire = "latest"
 gcloud = "latest"
-localstack = { version = "latest", exe = "localstack" }
 lychee = "latest"
-mongosh = "latest"
 ollama = "latest"
 rumdl = "latest"
 rust = "latest"
