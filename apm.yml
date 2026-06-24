@@ -3,6 +3,8 @@ version: 1.0.0
 description: Personal dotfiles, shared agent skills, and tool config
 author: irisTa56
 includes: auto
+targets:
+- agent-skills
 dependencies:
   apm:
   - anthropics/skills/skills/skill-creator

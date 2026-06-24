@@ -2,7 +2,7 @@ version: 2
 updates:
   # npm dependencies of the md-to-docx skill
   - package-ecosystem: "npm"
-    directory: "/.claude/skills/md-to-docx"
+    directory: "/.agents/skills/md-to-docx"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
