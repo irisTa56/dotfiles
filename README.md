@@ -32,7 +32,7 @@ mise upgrade --before 2024-06-01
 
 ## Agent Skills
 
-Skills live under `.agents/skills/`, managed by [APM](https://github.com/microsoft/apm).
+Most skills live under `.agents/skills/`, managed by [APM](https://github.com/microsoft/apm).
 The `targets: [agent-skills]` field in `apm.yml` makes APM deploy skills to the shared
 cross-client `.agents/skills/` directory instead of per-client paths like `.claude/skills/`.
 `apm.yml` declares the packages and `apm.lock.yaml` pins the resolved commits and content hashes.
@@ -72,6 +72,24 @@ Show packages whose upstream advanced past the pinned ref, then update:
 apm outdated
 apm install --update
 ```
+
+### Gist-sourced skills
+
+Some skills are published as a single-file GitHub gist, which APM deploys under a directory named after the gist hash rather than a readable name.
+These are vendored from `gistSkills.json`, a `name -> raw gist URL` catalog, by `scripts/sync_gist_skills.sh`.
+The catalog is the source of truth, and the materialized `.agents/skills/<name>/SKILL.md` is gitignored like APM deps.
+This mirrors the MCP snapshot model below.
+Unlike APM packages, these are not restored by `apm install`; run `mise run skills:sync` separately.
+
+List the catalog, then sync every entry (or one by name):
+
+```shell
+mise run skills:list
+mise run skills:sync
+mise run skills:sync japanese-tech-writing
+```
+
+Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then run `mise run skills:sync <name>`.
 
 ## MCP Servers
 

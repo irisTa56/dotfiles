@@ -65,3 +65,14 @@ shell = "bash -c"
 run = '''
 code --add-mcp "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n] + {name:$n}')"
 '''
+
+[tasks."skills:list"]
+description = "List gist-sourced skills declared in gistSkills.json"
+run = "jq -r 'keys[]' gistSkills.json"
+
+[tasks."skills:sync"]
+description = "Vendor gist-sourced skills into .agents/skills/ (gitignored like APM deps; catalog is SoT)"
+usage = 'arg "[name]" help="Skill from gistSkills.json to sync; omit to sync all"'
+# ${usage_name:-} is intentionally unquoted: no arg must expand to zero args (sync all),
+# not an empty-string arg, which the script would reject as an invalid name.
+run = "scripts/sync_gist_skills.sh ${usage_name:-}"
