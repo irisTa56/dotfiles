@@ -18,13 +18,13 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-run = """
+run = '''
 gitleaks protect -v --staged
 lychee .
 rumdl check
 shellcheck scripts/*.sh
 shfmt -i 2 -d scripts/*.sh
-"""
+'''
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
