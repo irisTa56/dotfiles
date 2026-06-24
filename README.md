@@ -32,12 +32,14 @@ mise upgrade --before 2024-06-01
 
 ## Agent Skills
 
-Skills live under `.claude/skills/`, managed by [APM](https://github.com/microsoft/apm).
+Skills live under `.agents/skills/`, managed by [APM](https://github.com/microsoft/apm).
+The `targets: [agent-skills]` field in `apm.yml` makes APM deploy skills to the shared
+cross-client `.agents/skills/` directory instead of per-client paths like `.claude/skills/`.
 `apm.yml` declares the packages and `apm.lock.yaml` pins the resolved commits and content hashes.
 Symlink `~/.claude/skills` to it once:
 
 ```shell
-ln -sfn "$PWD/.claude/skills" ~/.claude/skills
+ln -sfn "$PWD/.agents/skills" ~/.claude/skills
 ```
 
 Restore pinned skills from `apm.lock.yaml`:
