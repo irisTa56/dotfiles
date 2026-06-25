@@ -9,6 +9,8 @@
 !/.agents/skills/page-reader/**
 !/.agents/skills/pdf-figure-extractor/
 !/.agents/skills/pdf-figure-extractor/**
+!/.agents/skills/pr-description/
+!/.agents/skills/pr-description/**
 !/.agents/skills/review-loop/
 !/.agents/skills/review-loop/**
 
