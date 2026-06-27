@@ -42,30 +42,6 @@ run = "rumdl check --fix"
 description = "Format shell scripts"
 run = "shfmt -i 2 -w scripts/*.sh"
 
-[tasks."mcp:dump"]
-description = "Dump Claude Desktop's mcpServers (SoT) into mcpServers.json"
-run = "scripts/mcp_dump.sh"
-
-[tasks."mcp:diff"]
-description = "Show servers missing from / extra in each client vs mcpServers.json"
-run = "scripts/mcp_diff.sh"
-
-[tasks."mcp:claude"]
-description = "Install <name> from mcpServers.json into Claude Code user scope (~/.claude.json)"
-usage = 'arg "<name>" help="Server name (catalog: mcpServers.json)"'
-shell = "bash -c"
-run = '''
-claude mcp add-json -s user "$usage_name" "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n]')"
-'''
-
-[tasks."mcp:vscode"]
-description = "Install <name> from mcpServers.json into VS Code user profile"
-usage = 'arg "<name>" help="Server name (catalog: mcpServers.json)"'
-shell = "bash -c"
-run = '''
-code --add-mcp "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n] + {name:$n}')"
-'''
-
 [tasks."ccusage:daily"]
 description = "Show ccusage daily report (last 2 weeks) in a Quick Look popup"
 run = 'scripts/ccusage_popup.sh daily'

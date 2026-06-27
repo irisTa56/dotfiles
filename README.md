@@ -78,7 +78,6 @@ apm install --update
 Some skills are published as a single-file GitHub gist, which APM deploys under a directory named after the gist hash rather than a readable name.
 These are vendored from `gistSkills.json`, a `name -> raw gist URL` catalog, by `scripts/sync_gist_skills.sh`.
 The catalog is the source of truth, and the materialized `.agents/skills/<name>/SKILL.md` is gitignored like APM deps.
-This mirrors the MCP snapshot model below.
 Unlike APM packages, these are not restored by `apm install`; run `mise run skills:sync` separately.
 
 List the catalog, then sync every entry (or one by name):
@@ -93,26 +92,11 @@ Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then
 
 ## MCP Servers
 
-Claude Desktop is treated as the source of truth.
-`mcpServers.json` is a snapshot dumped from its config; per-client installs read from this snapshot.
+The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
+Claude Desktop's DXT extensions and remote connectors are managed in-app, not from this directory.
 
-Refresh the snapshot after editing Claude Desktop:
-
-```shell
-mise run mcp:dump
-```
-
-See which servers are missing or extra in each client relative to the snapshot:
+To wire `basic-memory` into a fresh client:
 
 ```shell
-mise run mcp:diff
+claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
 ```
-
-Install one server into Claude Code (user scope) or VS Code (user profile) from this directory:
-
-```shell
-mise run mcp:claude basic-memory
-mise run mcp:vscode basic-memory
-```
-
-Environment variable placeholders in `mcpServers.json` are expanded via `envsubst` at install time.
