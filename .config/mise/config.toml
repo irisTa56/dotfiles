@@ -13,6 +13,7 @@ rumdl = "latest"
 rust = "latest"
 shellcheck = "latest"
 shfmt = "latest"
+"npm:ccusage" = "latest"
 "npm:diff2html-cli" = "latest"
 "pipx:basic-memory" = "latest"
 
