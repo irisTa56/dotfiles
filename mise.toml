@@ -84,3 +84,13 @@ usage = 'arg "[name]" help="Skill from gistSkills.json to sync; omit to sync all
 # ${usage_name:-} is intentionally unquoted: no arg must expand to zero args (sync all),
 # not an empty-string arg, which the script would reject as an invalid name.
 run = "scripts/sync_gist_skills.sh ${usage_name:-}"
+
+[tasks."skills:remove"]
+description = "Uninstall apm skill(s), then prune the stray .claude/skills mirror that apm uninstall leaves behind"
+usage = 'arg "<pkg>" var=#true help="apm package path(s) to remove, e.g. blader/humanizer"'
+# `apm uninstall` re-integrates the remaining skills via runtime auto-detection,
+# ignoring the `targets: [agent-skills]` pin and mirroring them into .claude/skills/
+# (a dir `apm install` never makes); drop it after removal. $usage_pkg is unquoted
+# on purpose: a variadic arg arrives space-joined and must word-split into one
+# positional per package (apm paths have no spaces).
+run = "apm uninstall $usage_pkg && rm -rf .claude/skills"
