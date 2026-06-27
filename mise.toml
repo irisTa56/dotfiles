@@ -66,6 +66,14 @@ run = '''
 code --add-mcp "$(envsubst < mcpServers.json | jq --arg n "$usage_name" '.[$n] + {name:$n}')"
 '''
 
+[tasks."ccusage:daily"]
+description = "Show ccusage daily report (last 2 weeks) in a Quick Look popup"
+run = 'scripts/ccusage_popup.sh daily'
+
+[tasks."ccusage:weekly"]
+description = "Show ccusage weekly report (last 2 months) in a Quick Look popup"
+run = 'scripts/ccusage_popup.sh weekly'
+
 [tasks."skills:list"]
 description = "List gist-sourced skills declared in gistSkills.json"
 run = "jq -r 'keys[]' gistSkills.json"
