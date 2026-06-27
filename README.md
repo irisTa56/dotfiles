@@ -57,7 +57,7 @@ apm install owner/repo
 Remove installed packages (also strips them from `apm.yml` and `apm.lock.yaml`):
 
 ```shell
-apm uninstall <package> [more...]
+mise run skills:remove <package> [more...]
 ```
 
 Audit deployed files against the lockfile, plus integrity and hidden-character checks:
