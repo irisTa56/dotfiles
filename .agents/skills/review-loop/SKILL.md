@@ -18,6 +18,13 @@ Direct the reviewer to weigh these on top of the `code-review-expert` defaults:
 
 1. Whether the change is organically integrated into the deliverable as a whole, rather than a surface-level feature implementation — coherent with the existing design and optimized in context, not bolted on.
 2. Whether the automated tests are sound in quality and coverage, and whether they exercise externally observable behavior rather than internal implementation details.
+3. Whether declarative tooling config (e.g. `pyproject.toml`, `ruff.toml`, `mise.toml`, `.gitignore`) is authored minimally — only deviations from default, with no pre-emptive defense.
+   - Flag added lines that:
+     - restate a tool's default value, rather than configuring only what a concrete, already-encountered problem requires;
+     - pre-emptively ignore lint rules or add "just in case" suppressions for problems that have not occurred;
+     - defensively pin or bound pre-1.0 dependency versions absent an observed break;
+     - embed process/progress notes (e.g. "committed once Phase N lands") in shipped config.
+   - Treat these as maintainability findings (typically P2/P3), not correctness.
 
 ## Mindset for Addressing Findings
 
