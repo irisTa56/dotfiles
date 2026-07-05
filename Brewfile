@@ -1,4 +1,4 @@
-tap "bro3886/tap", trusted: true
+tap "bro3886/tap", "https://github.com/BRO3886/homebrew-tap", trusted: true
 # Automatic configure script builder
 brew "autoconf"
 # Cross-platform make
@@ -7,6 +7,8 @@ brew "cmake"
 brew "colima"
 # GNU File, Shell, and Text utilities
 brew "coreutils"
+# Your feedback loop with the agent: review plans and code locally
+brew "crit"
 # Pack, ship and run any application as a lightweight container
 brew "docker"
 # Docker CLI plugin for extended build capabilities with BuildKit
