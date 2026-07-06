@@ -14,7 +14,7 @@ _tmp*/
 .tmp.drive*
 **/.claude/settings.local.json
 *uncommitted*/
-CLAUDE.local.toml
+CLAUDE.local.md
 erl_crash.dump
 EOF
 
