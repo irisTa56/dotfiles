@@ -13,6 +13,8 @@
 !/.agents/skills/pr-description/**
 !/.agents/skills/review-loop/
 !/.agents/skills/review-loop/**
+!/.agents/skills/support-pr-review/
+!/.agents/skills/support-pr-review/**
 
 # APM dependencies
 apm_modules/
