@@ -35,21 +35,33 @@ Follow these rules when writing Japanese text, including technical documents.
 ## Use punctuation that matches the enclosed content
 
 - Colons: always use the half-width `:`, never the full-width `：`.
+- Separators and range marks: when every joined token is half-width (English, code, numbers), use the half-width `,` `/` `~` `-`, not their full-width counterparts. (Lists that include a Japanese token are outside this rule.)
+  - NG: `Rust、Go、Python`, `foo・bar`, `1〜10`. OK: `Rust, Go, Python`, `foo / bar`, `1~10`.
 - Parentheses: match the language of the enclosed content.
   - Use full-width `（）` when the content is Japanese (even if it contains some English terms).
     - Example: `詳細は別の節（pipeline parallelism の章）を参照。`
-  - Use half-width `()` when the content is purely half-width (English, code, math).
+  - Use half-width `()` when the content is purely half-width (English, code, math). The separators inside then follow the half-width rule above.
     - Example: `活性値 (activation)`, `(Narayanan et al. 2021)`.
+    - NG: `（foo、bar）`. OK: `(foo, bar)`.
 
 ## Space between English words and surrounding Japanese
 
-- For a single English word adjacent to Japanese — including a compound of one English word plus Japanese — do not put a space on either side of the English word. This applies to both the boundary with preceding Japanese and the one with following Japanese.
-  - OK: `Rust製`, `gRPC経由のリクエスト`, `これはElixirで書く`.
-  - NG: `Rust 製`, `gRPC 経由のリクエスト`, `これは Elixirで書く`.
-- Otherwise, separate the English run from the surrounding Japanese with a half-width space.
-  - OK: `machine learning を学ぶ`, `REST API の設計`.
-- Avoid compounds that splice consecutive English words directly onto Japanese (e.g., `REST APIサーバー`).
-  - Take one of: break the English run with a Japanese particle so each English word stands alone (`RESTのAPIサーバー`), or make the whole phrase English (`REST API server`).
+Default to a half-width space at every boundary between an English run and adjacent Japanese. Deviate only under the cases below, and never leave a space on just one side of an English run.
+
+- **Lexical compound → no space.** When the English and the adjacent Japanese fuse into a single *established* word — a fixed term such as `生成AI`, or a bound affix such as `製` / `系` / `版` — a space would break the word, so join them. Treat a pair as established when it is in common fixed use as a set term (the kind you would list as one glossary headword), not assembled on the spot for the sentence at hand. This covers only established terms and affixes; a productive pairing of two content words is the next case, not this one.
+  - OK: `生成AI`, `Rust製`, `Elixir系`.
+  - NG: `生成 AI`, `Rust 製`.
+- **Two content words bare-adjacent → avoid; rephrase.** An English content word placed next to a Japanese content word with only a space between them — no established compound, no particle — is a productive, non-lexicalized pairing. Avoid it; rephrase by one of:
+  - Introduce a particle so the English term becomes a grammatical argument (膠着; the space stays): `gRPC を経由したデータ移動` or `gRPC によるデータ移動`, not `gRPC 経由のデータ移動`.
+  - Translate or transliterate the term into Japanese — the meaning-preserving fix: `Open Source 開発` → `オープンソース開発`.
+  - Collapse a multi-word English term into an established acronym, which becomes a single joinable token: `Large Language Model 基盤` → `LLM基盤`.
+  - Only if none of these is possible, join with no space as a last resort (`gRPC経由`) — the accepted floor for a single English token.
+- **Particle-governed standalone English → space (膠着).** When a particle (`を`, `の`, `に`, `で`, `は`, …) binds a standalone English term — one not fused into a compound on its other side — keep the default space.
+  - OK: `machine learning を学ぶ`, `REST API の設計`, `API を使う`.
+- **Never a one-sided space.** Spacing must be uniform across an English run — every boundary joined, or every boundary spaced, counting the mandatory space between consecutive English words as a boundary too. A particle binds its neighbor more tightly (膠着) than a plain space does, so mixing joined and spaced boundaries tears the run apart.
+  - The trailing token of a compound is locked to no-space, so a following particle joins too: NG `生成AI を使う` (`AI` joined on the left, spaced on the right); OK `生成AIを使う`.
+  - A multi-word English term already contains an internal space, so uniformity forces its outer boundaries to be spaced as well — it can never fuse into a compound, which is why the bare-adjacency case forces a rephrase: NG `自主的にOpen Source開発する`; OK `自主的にオープンソース開発する`.
+  - Full-width punctuation and brackets (`。`, `、`, `「」`, `（）`, …) already carry visual spacing, so they count as a spaced side. An English word with such a mark on one side and a space on the other is not a violation: OK `〜。API を使う`.
 - This rule governs bare English words in running text. Spacing around markdown syntax (code spans, emphasis, links) follows the separate rule below.
 
 ## Put spaces around inline markdown syntax in Japanese text
