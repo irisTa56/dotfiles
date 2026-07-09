@@ -48,10 +48,10 @@ Follow these rules when writing Japanese text, including technical documents.
 
 Default to a half-width space at every boundary between an English run and adjacent Japanese. Deviate only under the cases below, and never leave a space on just one side of an English run.
 
-- **Lexical compound → no space.** When the English and the adjacent Japanese fuse into a single *established* word — a fixed term such as `生成AI`, or a bound affix such as `製` / `系` / `版` — a space would break the word, so join them. Treat a pair as established when it is in common fixed use as a set term (the kind you would list as one glossary headword), not assembled on the spot for the sentence at hand. This covers only established terms and affixes; a productive pairing of two content words is the next case, not this one.
-  - OK: `生成AI`, `Rust製`, `Elixir系`.
-  - NG: `生成 AI`, `Rust 製`.
-- **Two content words bare-adjacent → avoid; rephrase.** An English content word placed next to a Japanese content word with only a space between them — no established compound, no particle — is a productive, non-lexicalized pairing. Avoid it; rephrase by one of:
+- **Lexical compound → no space.** When the English and the adjacent Japanese fuse into a single word — a noun compound such as `生成AI` / `Docker環境` / `Rust言語`, or a bound affix such as `製` / `系` / `版` — a space would break the word, so join them. Test it by reading the pair back in English: if the Japanese element becomes a content word and the whole is a self-contained noun phrase (`Docker環境` = "Docker environment", `Rust言語` = "Rust language"), it is a compound; if that element becomes a preposition or other relational word (`gRPC経由` = "via gRPC"), it is not — that is the next case.
+  - OK: `生成AI`, `Docker環境`, `Rust製`, `Elixir系`.
+  - NG: `生成 AI`, `Docker 環境`, `Rust 製`.
+- **Not a compound → avoid the bare space; rephrase.** When the pair is not a noun compound — either because the Japanese element is relational (`gRPC 経由の…` = "via gRPC") or because the English side is a multi-word term that cannot join uniformly (`Open Source 開発`) — do not leave the English and Japanese sitting side by side with only a space. Rephrase by one of:
   - Introduce a particle so the English term becomes a grammatical argument (膠着; the space stays): `gRPC を経由したデータ移動` or `gRPC によるデータ移動`, not `gRPC 経由のデータ移動`.
   - Translate or transliterate the term into Japanese — the meaning-preserving fix: `Open Source 開発` → `オープンソース開発`.
   - Collapse a multi-word English term into an established acronym, which becomes a single joinable token: `Large Language Model 基盤` → `LLM基盤`.
