@@ -19,7 +19,6 @@ When writing or editing prose in markdown documents, follow these rules.
 - Avoid ornate language; explain things honestly.
   - Prioritize objective facts. When you are not certain, say so plainly instead of hedging or asserting.
   - Do not use exaggeration, sweeping assertions, promotional language, praise, or theatrical phrasing.
-  - To remove AI-sounding patterns from prose, use the `humanizer` skill as a reference.
 
 ## Sources
 
