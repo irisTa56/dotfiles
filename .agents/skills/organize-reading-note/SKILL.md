@@ -1,6 +1,7 @@
 ---
 name: organize-reading-note
 description: Organize reading notes into structured bullet points. Use when the user provides a reference (URL, PDF, etc.) with raw notes containing highlights and excerpts they found interesting. If a PDF is provided, automatically extracts highlights and comments from the PDF. The skill organizes these notes into coherent bullet points while preserving the original content, selects appropriate tags, and follows the reference's language.
+disable-model-invocation: true
 ---
 
 # Reading Notes Organizer
