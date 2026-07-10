@@ -1,6 +1,7 @@
 ---
 name: md-to-docx
 description: Convert an existing Markdown file into a polished, ready-to-share .docx using docx-js. Use when the user wants to turn a markdown document (with tables, images, code blocks, footnotes, TeX math, links) into a Word document that looks good without manual cleanup. Triggers include "md を docx に変換", "markdown to docx", "Word 化", "docx 化", or any request that takes a `.md` file as input and expects a styled `.docx` as output. Distinct from the general `docx` skill, which focuses on creating new docx files from scratch or editing existing ones — prefer this skill whenever the source is markdown.
+disable-model-invocation: true
 ---
 
 # md-to-docx

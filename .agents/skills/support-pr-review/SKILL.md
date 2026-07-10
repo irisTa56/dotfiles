@@ -1,6 +1,7 @@
 ---
 name: support-pr-review
 description: "Draft review comments for a GitHub PR as a reviewer — without posting them — grounded in context a generic diff bot cannot see: the user's stated concern, the change's conformance to its linked intent, cross-repo omissions, and the gaps existing bot/human comments left. Use when the user shares a PR URL and asks for review support or comment drafts. Drafting only; never posts."
+disable-model-invocation: true
 ---
 
 # Support PR Review
