@@ -1,6 +1,6 @@
 ---
 name: md-to-docx
-description: Convert an existing Markdown file into a polished, ready-to-share .docx using docx-js. Use when the user wants to turn a markdown document (with tables, images, code blocks, footnotes, TeX math, links) into a Word document that looks good without manual cleanup. Triggers include "md を docx に変換", "markdown to docx", "Word 化", "docx 化", or any request that takes a `.md` file as input and expects a styled `.docx` as output. Distinct from the general `docx` skill, which focuses on creating new docx files from scratch or editing existing ones — prefer this skill whenever the source is markdown.
+description: Convert an existing Markdown file into a polished, ready-to-share .docx using docx-js. Use when the user wants to turn a markdown document (with tables, images, code blocks, footnotes, TeX math, links) into a Word document that looks good without manual cleanup. Triggers include "markdown to docx", "convert md to docx", "make a Word doc from this markdown", or any request that takes a `.md` file as input and expects a styled `.docx` as output. Distinct from the general `docx` skill, which focuses on creating new docx files from scratch or editing existing ones — prefer this skill whenever the source is markdown.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Convert a Markdown file to a styled `.docx` via a Node.js script that uses [docx-js](https://github.com/dolanmiu/docx) and [marked](https://github.com/markedjs/marked).
 
-The defaults reproduce a polished bilingual (Japanese / English) report style — content-aware table column widths, Yu Gothic typography, blue heading hierarchy with rules, monospaced code blocks with light shading, native Word footnotes, and TeX → Unicode math fallback.
+The defaults reproduce a polished bilingual (Japanese / English) report style with no manual cleanup — see the "Default style summary" table below for the exact spec.
 
 ## When to use
 
@@ -84,7 +84,7 @@ node build_docx.js report.md report.docx --resource-path "../assets:../../shared
 | Inline code | Menlo, light gray shading `#F2F2F2` |
 | Images | PNG / JPEG / GIF, centered, italic gray caption from alt text, max 580px wide |
 | Footnotes | Native Word footnotes from `[^id]` markers |
-| Math (katex) | TeX → KaTeX MathML → native Word OMML: fractions, radicals, sub/superscripts, sums, integrals, matrices |
+| Math (katex) | TeX → KaTeX MathML → native Word OMML equations |
 | Math (builtin) | TeX → Unicode fallback in Word equation objects: `\frac{a}{b}` → `(a) ÷ (b)`, `\geq` → `≥`, etc. |
 | Lists | `LevelFormat.BULLET` (•/◦/▪) and `DECIMAL`, hanging indent |
 | Hyperlinks | Blue `#2E74B5` underlined |
@@ -93,7 +93,7 @@ node build_docx.js report.md report.docx --resource-path "../assets:../../shared
 
 - **Headings**: H1–H5 supported. H6 is rendered with the H5 style.
 - **Images**: PNG, JPEG, and GIF only. SVG and other formats are skipped with a warning.
-- **Math**: With `katex` engine, rendered as native Word equations (OMML) supporting fractions, radicals, sub/superscripts, sums, integrals, and matrices. With `builtin` engine, rendered as Unicode text inside Word equation objects.
+- **Math**: the `katex` engine produces native Word equations (OMML); the `builtin` engine falls back to Unicode text inside equation objects (supported constructs are listed under Features).
 - **Code blocks**: fenced (```` ``` ````) and inline (`` ` ``) only. Indented (4-space) code blocks are not protected from math/footnote pre-processing.
 - **Footnote definitions**: single-line only. GFM continuation lines (blank lines or 4-space-indented continuations forming multi-paragraph footnotes) are not captured — only the first line of each `[^id]: ...` definition becomes the footnote body.
 - **Hard-coded colors**: caption gray, H4 dark gray, H5 gray, code-block borders, and table borders are not affected by `--accent` / `--title-color`.
