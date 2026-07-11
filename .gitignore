@@ -1,20 +1,20 @@
-/.agents/skills/*
-!/.agents/skills/address-review-comment/
-!/.agents/skills/address-review-comment/**
-!/.agents/skills/md-to-docx/
-!/.agents/skills/md-to-docx/**
-!/.agents/skills/organize-reading-note/
-!/.agents/skills/organize-reading-note/**
-!/.agents/skills/page-reader/
-!/.agents/skills/page-reader/**
-!/.agents/skills/pdf-figure-extractor/
-!/.agents/skills/pdf-figure-extractor/**
-!/.agents/skills/pr-description/
-!/.agents/skills/pr-description/**
-!/.agents/skills/review-loop/
-!/.agents/skills/review-loop/**
-!/.agents/skills/support-pr-review/
-!/.agents/skills/support-pr-review/**
+/.claude/skills/*
+!/.claude/skills/address-review-comment/
+!/.claude/skills/address-review-comment/**
+!/.claude/skills/md-to-docx/
+!/.claude/skills/md-to-docx/**
+!/.claude/skills/organize-reading-note/
+!/.claude/skills/organize-reading-note/**
+!/.claude/skills/page-reader/
+!/.claude/skills/page-reader/**
+!/.claude/skills/pdf-figure-extractor/
+!/.claude/skills/pdf-figure-extractor/**
+!/.claude/skills/pr-description/
+!/.claude/skills/pr-description/**
+!/.claude/skills/review-loop/
+!/.claude/skills/review-loop/**
+!/.claude/skills/support-pr-review/
+!/.claude/skills/support-pr-review/**
 
 # APM dependencies
 apm_modules/

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Vendor gist-sourced single-file skills into .agents/skills/<name>/SKILL.md.
+# Vendor gist-sourced single-file skills into .claude/skills/<name>/SKILL.md.
 # Catalog: gistSkills.json (SoT) maps skill name -> raw gist URL.
 # Materialized SKILL.md files are gitignored like APM deps; the catalog+script is the source of truth.
 # Usage: sync_gist_skills.sh [name]   # no name = sync every catalog entry
@@ -8,7 +8,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "$0")" && pwd)
 root="$script_dir/.."
 catalog="$root/gistSkills.json"
-skills_dir="$root/.agents/skills"
+skills_dir="$root/.claude/skills"
 
 [ -f "$catalog" ] || {
   echo "catalog not found: $catalog" >&2
@@ -19,7 +19,7 @@ skills_dir="$root/.agents/skills"
 sync_one() {
   local name="$1" url dir tmp
   # Guard the catalog key: it becomes a path component, so reject anything that
-  # could escape or nest outside .agents/skills/<name>/.
+  # could escape or nest outside .claude/skills/<name>/.
   case "$name" in
   "" | . | .. | */*)
     echo "[fail] $name: invalid skill name" >&2
