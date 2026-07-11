@@ -1,5 +1,5 @@
 ---
-description: Conventions for Japanese text in markdown documents (notes, specs, READMEs, etc.), including technical writing. Language-agnostic prose conventions live in honest-writing.md.
+description: Conventions for Japanese text in markdown documents (notes, specs, READMEs, etc.), including technical writing. Language-agnostic prose conventions live in document-writing.md.
 paths:
   - "**/*.md"
 ---

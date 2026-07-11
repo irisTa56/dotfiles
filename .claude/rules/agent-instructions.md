@@ -3,6 +3,7 @@ description: Keep always-loaded agent instruction files necessary and sufficient
 paths:
   - "**/AGENTS.md"
   - "**/CLAUDE.md"
+  - "**/INSTRUCTIONS.md"
 ---
 
 # Agent Instruction Files
@@ -33,7 +34,7 @@ Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and other f
 ## Form
 
 - Write concrete, verifiable instructions over vague ones — "use 2-space indentation" beats "format code properly".
-- Keep each instruction to a single scannable bullet (see `readable-writing.md`).
+- Keep each instruction to a single scannable bullet (see `document-writing.md`).
 - Prefer describing where things live and the shape of the project over an exhaustive structure dump; let the agent discover specifics on demand.
 - Keep each file small. [Anthropic targets under ~200 lines per file](https://code.claude.com/docs/en/memory); when one grows past that, split by path scope using `paths` frontmatter rather than appending.
 
