@@ -1,12 +1,12 @@
 ---
-description: How to write prose in markdown documents — substance, sourcing, and readability
+description: How to write clear prose — substance, sourcing, and readability
 paths:
   - "**/*.md"
 ---
 
-# Writing Prose in Documents
+# Writing Prose
 
-When writing or editing prose in markdown documents, follow these rules. Behavioral principles (honesty, grounding claims) live in the always-loaded instructions (`~/.claude/INSTRUCTIONS.md`); this file covers document-authoring specifics.
+When writing substantial prose — in a markdown document or in conversation — follow these rules. Behavioral principles (honesty, grounding claims) live in the always-loaded instructions (`~/.claude/INSTRUCTIONS.md`); this file covers prose-authoring specifics.
 
 ## Substance and logic
 
