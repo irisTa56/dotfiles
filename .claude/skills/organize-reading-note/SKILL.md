@@ -11,11 +11,7 @@ Organize raw reading notes into structured, coherent bullet points.
 ## Workflow
 
 1. **Receive input**: User provides a reference (URL, PDF, etc.) and optionally raw notes (highlights, excerpts, impressions)
-2. **Extract PDF highlights** (if PDF provided):
-   - Extract text from the PDF using `uv run --with pymupdf`
-   - Visually identify highlighted text (yellow/colored backgrounds)
-   - Extract highlighted text and any associated comments/annotations
-   - Combine with user's raw notes if provided
+2. **Extract PDF highlights** (if PDF provided) — follow the "PDF Highlight Extraction" guideline below
 3. **Fetch reference**: If URL provided, use WebFetch to understand the source content
 4. **Summarize**: Write 1-3 bullet points capturing the reference's main thesis (especially if user's notes miss key points)
 5. **Analyze notes**: Identify the main themes and logical groupings in the extracted/provided notes
