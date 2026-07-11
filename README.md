@@ -30,6 +30,26 @@ mise upgrade --before 7d
 mise upgrade --before 2024-06-01
 ```
 
+## Agent Instructions
+
+`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the shareable and private parts separately:
+
+- `.claude/INSTRUCTIONS.md` — user-scoped principles (shareable), symlinked to `~/.claude/INSTRUCTIONS.md`.
+  - Deliberately not named `CLAUDE.md`, so it never loads as this repo's own project instructions.
+- `~/.claude/RTK.md` — private and machine-local, not managed here (create it separately).
+- `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
+
+Wire them once on a new machine:
+
+```shell
+ln -sf "$PWD/.claude/INSTRUCTIONS.md" ~/.claude/INSTRUCTIONS.md
+ln -sfn "$PWD/.claude/rules" ~/.claude/rules
+cat >~/.claude/CLAUDE.md <<'EOF'
+@INSTRUCTIONS.md
+@RTK.md
+EOF
+```
+
 ## Agent Skills
 
 Most skills live under `.agents/skills/`, managed by [APM](https://github.com/microsoft/apm).
