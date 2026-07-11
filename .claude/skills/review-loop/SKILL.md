@@ -7,7 +7,9 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## Workflow
 
-1. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill, emphasizing the perspectives below, so the review comes from a clean, independent vantage point (and keeps the main context uncluttered). `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails). The subagent returns findings only — no edits.
+1. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
+   - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
+   - The subagent returns findings only; it makes no edits.
 2. **Report findings** to the user as the subagent returned them.
 3. **Judge each finding's validity**; state which you accept or reject and why.
 4. **Loop**: fix the valid findings per the mindset below, then spawn a fresh review subagent. Repeat until a review pass returns no valid findings.

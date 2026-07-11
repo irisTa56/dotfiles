@@ -136,7 +136,8 @@ for region in regions:
 
 ## What Requires Visual Confirmation
 
-- **Vector diagrams / flowcharts**: Composed of many small shapes and lines. The individual components can be detected, but the overall bounding box of the "figure" must be estimated from the cluster of shapes. Render a section preview and use the Read tool to verify before cropping.
+- **Vector diagrams / flowcharts**: composed of many small shapes and lines; individual components are detectable, but the figure's overall bounding box must be estimated from the cluster.
+  - Render a section preview and use the Read tool to verify before cropping.
 - **Figures blending into surrounding text**: When there is no distinct background or border separating the figure from body text.
 
 ## Output
