@@ -37,6 +37,6 @@ When the user asks in conversation how something changed, follow these:
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
 - When the meaning a document conveys — its substance, claims, or reasoning — has changed, don't stop at a line-level diff or a list of wording fixes; state what changed and why (the intent behind the change).
 
-## Writing prose in documents
+## Writing prose
 
-When writing or editing prose in a markdown document — including a new file drafted from our conversation — follow `~/.claude/rules/document-writing.md`.
+When writing substantial prose — an authored document, or a summary of research or analysis in conversation — follow `~/.claude/rules/document-writing.md`. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
