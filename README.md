@@ -52,14 +52,18 @@ EOF
 
 ## Agent Skills
 
-Most skills live under `.agents/skills/`, managed by [APM](https://github.com/microsoft/apm).
-The `targets: [agent-skills]` field in `apm.yml` makes APM deploy skills to the shared
-cross-client `.agents/skills/` directory instead of per-client paths like `.claude/skills/`.
+Most skills live under `.claude/skills/`, managed by [APM](https://github.com/microsoft/apm), co-located with the instructions and rules above.
+GitHub Copilot [also reads `.claude/skills/`](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills), so this single directory serves both the primary Claude setup and Copilot as a secondary client.
 `apm.yml` declares the packages and `apm.lock.yaml` pins the resolved commits and content hashes.
+
+The `target: claude` field in `apm.yml` is deliberately the **singular** `target:` key, not the plural `targets:`.
+`apm uninstall` reads only the singular field, so with `target:` set it honors the pin and touches `.claude/skills/` alone.
+A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk targets (`.github/`, `.cursor/`, …) and mirror skills into a stray `.agents/skills/`.
+
 Symlink `~/.claude/skills` to it once:
 
 ```shell
-ln -sfn "$PWD/.agents/skills" ~/.claude/skills
+ln -sfn "$PWD/.claude/skills" ~/.claude/skills
 ```
 
 Restore pinned skills from `apm.lock.yaml`:
@@ -97,7 +101,7 @@ apm install --update
 
 Some skills are published as a single-file GitHub gist, which APM deploys under a directory named after the gist hash rather than a readable name.
 These are vendored from `gistSkills.json`, a `name -> raw gist URL` catalog, by `scripts/sync_gist_skills.sh`.
-The catalog is the source of truth, and the materialized `.agents/skills/<name>/SKILL.md` is gitignored like APM deps.
+The catalog is the source of truth, and the materialized `.claude/skills/<name>/SKILL.md` is gitignored like APM deps.
 Unlike APM packages, these are not restored by `apm install`; run `mise run skills:sync` separately.
 
 List the catalog, then sync every entry (or one by name):
