@@ -1,10 +1,12 @@
 lockfile_version: '1'
-generated_at: '2026-07-11T13:16:10.097711+00:00'
-apm_version: 0.21.0
+generated_at: '2026-07-13T01:01:54.787807+00:00'
+apm_version: 0.24.0
 dependencies:
 - repo_url: anthropics/skills
+  name: skills
   host: github.com
   resolved_commit: 57546260929473d4e0d1c1bb75297be2fdfa1949
+  version: unknown
   virtual_path: skills/skill-creator
   is_virtual: true
   package_type: claude_skill
@@ -49,8 +51,10 @@ dependencies:
     .claude/skills/skill-creator/scripts/utils.py: sha256:3af8ae62c40c73ab712207436a0d9a981e845f25c5a7040229eb189cc8e45bb1
   content_hash: sha256:b2bfe91d69ca99994c0566baede889e7d2b9bb8791c6b6106c5d387392f717f6
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-capture
   is_virtual: true
   package_type: claude_skill
@@ -61,8 +65,10 @@ dependencies:
     .claude/skills/memory-capture/SKILL.md: sha256:5a0e39213dffadb4394dbad596c3ab2afd387177063343c9e8790a6b54ddbd52
   content_hash: sha256:fac633ed65979974c7f271d57dfc4b5ab5b9ea5aea0631219f3b4167424b009b
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-continue
   is_virtual: true
   package_type: claude_skill
@@ -73,8 +79,10 @@ dependencies:
     .claude/skills/memory-continue/SKILL.md: sha256:519c8c415efad0923de0fcb78a5511b88b4667a765f42971ae21282d74c78b82
   content_hash: sha256:fb5b54b9250f284e2ff61661c5fec29b9ff361a2a43df85f9a87df72d98e25a4
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-curate
   is_virtual: true
   package_type: claude_skill
@@ -85,8 +93,10 @@ dependencies:
     .claude/skills/memory-curate/SKILL.md: sha256:1d8239d1d6480d1379b381dc3303959a53caf6a32cab332e7fd5da18ad472798
   content_hash: sha256:73e21ef17b37a7ba77d24b6d452230c81f933250fe36239bbbc3756777ee424f
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-defrag
   is_virtual: true
   package_type: claude_skill
@@ -97,8 +107,10 @@ dependencies:
     .claude/skills/memory-defrag/SKILL.md: sha256:9833723b0feacdc2ea2b36d428b381e06d84a490a96fa5f884775e4f7764aedc
   content_hash: sha256:82da4efe339bfb37fe68e97909df5a966d821fb790a4c0ab092a020f1252621e
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-ingest
   is_virtual: true
   package_type: claude_skill
@@ -109,8 +121,10 @@ dependencies:
     .claude/skills/memory-ingest/SKILL.md: sha256:3dbd6517d53e19280c792cfe3e7153a3c7d8486291153d75554c544bb6935b52
   content_hash: sha256:c1ecd6237ae2cba8073082f7bc9a54b06a41101bfe2643c3b302c66400f3d98b
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-lifecycle
   is_virtual: true
   package_type: claude_skill
@@ -121,8 +135,10 @@ dependencies:
     .claude/skills/memory-lifecycle/SKILL.md: sha256:f2ee82712215c2be28cc1a0a780f26b7fe3a8954c933a528edb455892f47c3f6
   content_hash: sha256:13d1b99948c6341735d9e65d6a697edc83fc51bc7fab7e84df8da625fb24e081
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-metadata-search
   is_virtual: true
   package_type: claude_skill
@@ -133,8 +149,10 @@ dependencies:
     .claude/skills/memory-metadata-search/SKILL.md: sha256:d5417b0f88d5ba72fac6da6802144c30e5b7029da83f712961db1689034fd92f
   content_hash: sha256:b4f9e5f4bdabc9e191e4c5b807cc29b5e57da532f77f3eacf84e36d1e57ee297
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-notes
   is_virtual: true
   package_type: claude_skill
@@ -145,8 +163,10 @@ dependencies:
     .claude/skills/memory-notes/SKILL.md: sha256:68a38d488900703cbd16e9f5dde8d5ac0500ed99959aecdda48dddd15c2b9c1e
   content_hash: sha256:f1b167acaf5ea7d83cb10912189dc463675defdb100b237d65887688ef026842
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-reflect
   is_virtual: true
   package_type: claude_skill
@@ -157,8 +177,10 @@ dependencies:
     .claude/skills/memory-reflect/SKILL.md: sha256:df1464e006bd32a98efe67dd8c138739c2a7eeeff3e5f23fbd538d20bf410edd
   content_hash: sha256:a2fcd9a3141857bce1ce34f55ba98b0d941c40542a1be4f53ee3d776f57127b1
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-research
   is_virtual: true
   package_type: claude_skill
@@ -169,8 +191,10 @@ dependencies:
     .claude/skills/memory-research/SKILL.md: sha256:227015f29c44bf0da1fb8c217728f343e5b392c392040cb8e4817e7c860a91fb
   content_hash: sha256:294b3a6c9978a93e3bfc613ec33646c2e47a01d15633e31cb294daf79c7d81aa
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-schema
   is_virtual: true
   package_type: claude_skill
@@ -181,8 +205,10 @@ dependencies:
     .claude/skills/memory-schema/SKILL.md: sha256:75e27db9b8adeb7857c7a701e3c58532e2643f2433ffb963fbf6dce4f0849137
   content_hash: sha256:b7bd1ce883063d9c9139f7507878f9ac512a68a84febc157a83de82ec637db47
 - repo_url: basicmachines-co/basic-memory
+  name: basic-memory
   host: github.com
   resolved_commit: b5f13d690317abe18987377d3100514d3b44d8a1
+  version: unknown
   virtual_path: skills/memory-tasks
   is_virtual: true
   package_type: claude_skill
@@ -193,8 +219,10 @@ dependencies:
     .claude/skills/memory-tasks/SKILL.md: sha256:57bb7232567a03a4442c142fb15614226291e8c895ef36d07ac7610013d75fee
   content_hash: sha256:abc17a4831fee2a02abdb7035383820cf2950f56dcf8f07cedb27d82741e4f2b
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/acquire-codebase-knowledge
   is_virtual: true
   package_type: claude_skill
@@ -225,8 +253,10 @@ dependencies:
     .claude/skills/acquire-codebase-knowledge/scripts/scan.py: sha256:193d5b9f73a71d6ecc2f39f13f33d96be49d675abe83f5857ddbdc4ae21b7bd9
   content_hash: sha256:94a1da1b609e31d3ac4629f4670784c63675639955965b503d10928035b4f727
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/create-architectural-decision-record
   is_virtual: true
   package_type: claude_skill
@@ -237,8 +267,10 @@ dependencies:
     .claude/skills/create-architectural-decision-record/SKILL.md: sha256:c11af0c34fa034e36e622ad97f1194824c3cbbe675a8b17cdc0bedc91b188a72
   content_hash: sha256:5c99e32293271aef0270c279c2af8b62301e29257bf85f2ebf7e810c740b4404
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/create-implementation-plan
   is_virtual: true
   package_type: claude_skill
@@ -249,8 +281,10 @@ dependencies:
     .claude/skills/create-implementation-plan/SKILL.md: sha256:58f9876006d632bc364794b0270e2c13a8e4de937e4641e6928927a08200aa67
   content_hash: sha256:4764bacd34af8e5c27a85ca01a90197afcf1f1ed1785975ba91d9b80dff60e2d
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/create-specification
   is_virtual: true
   package_type: claude_skill
@@ -261,8 +295,10 @@ dependencies:
     .claude/skills/create-specification/SKILL.md: sha256:ae2c3ca87d871056b4b7d8e11758ee8c29fcb307ba890b1407ab5a88b8d2a5d8
   content_hash: sha256:45b9ef98b0fb82ba0e1aee65dfb464fa1f8494a14a557b9788d73aae87e9e618
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/create-technical-spike
   is_virtual: true
   package_type: claude_skill
@@ -273,8 +309,10 @@ dependencies:
     .claude/skills/create-technical-spike/SKILL.md: sha256:2caccb0ba3b9851b82c648870330b6d22a47ee7cda4d3770ef8b5f8d6e439281
   content_hash: sha256:e711706b4aebacac01bcc025e19bcf0e88bf784cbe6419ddf07c2be67c501f33
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/documentation-writer
   is_virtual: true
   package_type: claude_skill
@@ -285,8 +323,10 @@ dependencies:
     .claude/skills/documentation-writer/SKILL.md: sha256:7e8244988c9f4eb63bf8c0edf160578544621eb96e5e51e2d848f1401c5de8f1
   content_hash: sha256:ee53d65b163cd7eb953a930c95841cfe398cc2c0bd24c06508bbaa07c432be35
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/draw-io-diagram-generator
   is_virtual: true
   package_type: claude_skill
@@ -321,8 +361,10 @@ dependencies:
     .claude/skills/draw-io-diagram-generator/scripts/validate-drawio.py: sha256:797cffe7564935a15889b278f8cab7e1a242a8af68cb029c65599260962804e9
   content_hash: sha256:1da717c88f800bb96d895290a71741110a039285604329e67d544cb6685ef2a8
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/git-commit
   is_virtual: true
   package_type: claude_skill
@@ -333,8 +375,10 @@ dependencies:
     .claude/skills/git-commit/SKILL.md: sha256:554d1a3c6d95f15bc1170160659ecdc9a9958b64f377f3988941b672c249b13f
   content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/memory-merger
   is_virtual: true
   package_type: claude_skill
@@ -345,8 +389,10 @@ dependencies:
     .claude/skills/memory-merger/SKILL.md: sha256:a98f9bbd157755bfcaa8914095990d13a8d614afa18c882f3892f81e257e221c
   content_hash: sha256:6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/prd
   is_virtual: true
   package_type: claude_skill
@@ -357,8 +403,10 @@ dependencies:
     .claude/skills/prd/SKILL.md: sha256:6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5
   content_hash: sha256:1f3e1f005fc40fda85d250ae906c8ee4f7e8e833e23adfeca6542c19609fd7cd
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/refactor
   is_virtual: true
   package_type: claude_skill
@@ -369,8 +417,10 @@ dependencies:
     .claude/skills/refactor/SKILL.md: sha256:58a38edd230cdcdd866939906321c8ba6f47c98a70d0cda373360196ee2ca1a7
   content_hash: sha256:87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/refactor-plan
   is_virtual: true
   package_type: claude_skill
@@ -381,8 +431,10 @@ dependencies:
     .claude/skills/refactor-plan/SKILL.md: sha256:93741df0042a15c01ae8589e72014dcf53c557c11ca1df69c29737534c312c29
   content_hash: sha256:26f32d34d48e9a40e5dd91d877319c94c6b8537e204d95d187ba45b443276868
 - repo_url: github/awesome-copilot
+  name: awesome-copilot
   host: github.com
   resolved_commit: bbb9295b63adb2db01f5e30bc32e454ab5f68382
+  version: unknown
   virtual_path: skills/update-implementation-plan
   is_virtual: true
   package_type: claude_skill
@@ -393,8 +445,10 @@ dependencies:
     .claude/skills/update-implementation-plan/SKILL.md: sha256:08f62222ba518b54dd0f369c539f6f75dabb32893768e0cb2ff49ecb1e8cb7a9
   content_hash: sha256:b2f2a6bf2544b416b9145e805c0f534ad078e7135c1ce26e73af1b0cd99cb692
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-docs
   is_virtual: true
   package_type: claude_skill
@@ -405,8 +459,10 @@ dependencies:
     .claude/skills/gws-docs/SKILL.md: sha256:676eb7a1d9e4a7bde0d19669299858daea3220650657199f21dcebb7fa6bf9d6
   content_hash: sha256:10dc2a8aa8cb28524a9d285ddba5602c24c21cbb640718fce522b58d90ee7b97
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-drive
   is_virtual: true
   package_type: claude_skill
@@ -417,8 +473,10 @@ dependencies:
     .claude/skills/gws-drive/SKILL.md: sha256:d37fad56bb9547d2e169bfd04fbf1f4a377281456765c6243f092f32c973cdac
   content_hash: sha256:d637ff849b82a9fc195bcfedea260cffe94eaa31b843b28cd04313b1720bb153
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-gmail
   is_virtual: true
   package_type: claude_skill
@@ -429,8 +487,10 @@ dependencies:
     .claude/skills/gws-gmail/SKILL.md: sha256:d37f41ad13fd3467d430e60dfb985d7818ef6976bae40182f8e46a410b8caa16
   content_hash: sha256:5e5b5fdb4b4f347310d929657ed773abcaf528b5ac0a68deee12d3d38d307642
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-shared
   is_virtual: true
   package_type: claude_skill
@@ -441,8 +501,10 @@ dependencies:
     .claude/skills/gws-shared/SKILL.md: sha256:87abfb41cdcc300b7f2f733d1558a8af8d3c2a7cca1512f9eba244965fad98b2
   content_hash: sha256:b197590681ce3d5a52e9c15a68652b5445d111dbfc0dc453f68fb0785aac443c
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-sheets
   is_virtual: true
   package_type: claude_skill
@@ -453,8 +515,10 @@ dependencies:
     .claude/skills/gws-sheets/SKILL.md: sha256:e0db8bb632b3425b6f10dac7b30c85a4ba6ed0fd8421bccd3d2242588cc02208
   content_hash: sha256:21c951f8bf399bb941740ab8b048157b43088ad96b743976e88abb0046d263d2
 - repo_url: googleworkspace/cli
+  name: cli
   host: github.com
   resolved_commit: a3768d0e82ad83cca2da97724e46bea4ff0e6dbd
+  version: unknown
   virtual_path: skills/gws-slides
   is_virtual: true
   package_type: claude_skill
@@ -465,8 +529,10 @@ dependencies:
     .claude/skills/gws-slides/SKILL.md: sha256:ac0feaccf8292d5a8de0f4e3fbbdc20b94cf15afea652d127ddc12f631e190a3
   content_hash: sha256:5018c4b5578fae15b5c5212ad5a68263721c59c40e4bbecd8f4494cc93cb5471
 - repo_url: mattpocock/skills
+  name: skills
   host: github.com
   resolved_commit: 8370e760d0251a3738e006aeacec6d1cb31dd208
+  version: unknown
   virtual_path: skills/engineering/tdd
   is_virtual: true
   package_type: claude_skill
@@ -483,8 +549,10 @@ dependencies:
     .claude/skills/tdd/tests.md: sha256:e12182f5c4c6a844b7c6ab4b8d2623b642aaaae5460fe58ed087efd4f3d5fb8a
   content_hash: sha256:db301393e86619f35ce069f835da580f87a3dce3e20c2f2b24bbb2e322b86200
 - repo_url: mattpocock/skills
+  name: skills
   host: github.com
   resolved_commit: 8370e760d0251a3738e006aeacec6d1cb31dd208
+  version: unknown
   virtual_path: skills/productivity/handoff
   is_virtual: true
   package_type: claude_skill
@@ -495,8 +563,10 @@ dependencies:
     .claude/skills/handoff/SKILL.md: sha256:94bee8c16cbfcf9f1e15187f7e5d0d5a93c4adb7c512feceecaab80c8ff7c059
   content_hash: sha256:5d0f81e38abe6b984e1feaa731927de5291d040982106ac513cf54ec240e00ec
 - repo_url: sanyuan0704/sanyuan-skills
+  name: sanyuan-skills
   host: github.com
   resolved_commit: 08b6572ef108f22d4e8a3ecf9182a4bbef097744
+  version: unknown
   virtual_path: skills/code-review-expert
   is_virtual: true
   package_type: claude_skill
@@ -519,8 +589,10 @@ dependencies:
     .claude/skills/code-review-expert/references/solid-checklist.md: sha256:3151fddd3241fb090c7c4af48a47a3bf1d19745a83fe332f758eb9d7b371a148
   content_hash: sha256:45869066f7810678e258b06e5c2e2426a1b15ec7673c33b4395f2fb8b82c6457
 - repo_url: teng-lin/notebooklm-py
+  name: notebooklm-py
   host: github.com
   resolved_commit: 473b8a8835baba0e083dbb3f9144d833ecc2d1ac
+  version: unknown
   package_type: claude_skill
   deployed_files:
   - .claude/skills/notebooklm-py
