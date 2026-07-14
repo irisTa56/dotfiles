@@ -1,6 +1,7 @@
 ---
 name: review-loop
 description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Use after a non-trivial code change, or when the user asks to repeatedly review until clean. Delegation + loop + review mindset; the subagent does the actual review pass via the code-review-expert skill."
+disable-model-invocation: true
 ---
 
 # Review Loop
@@ -11,8 +12,9 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
 2. **Report findings** to the user as the subagent returned them.
-3. **Judge each finding's validity**; state which you accept or reject and why.
-4. **Loop**: fix the valid findings per the mindset below, then spawn a fresh review subagent. Repeat until a review pass returns no valid findings.
+3. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
+4. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding.
+   - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
 
 ## Perspectives for the Review
 
@@ -27,13 +29,3 @@ Direct the reviewer to weigh these on top of the `code-review-expert` defaults:
      - defensively pin or bound pre-1.0 dependency versions absent an observed break;
      - embed process/progress notes (e.g. "committed once Phase N lands") in shipped config.
    - Treat these as maintainability findings (typically P2/P3), not correctness.
-
-## Mindset for Addressing Findings
-
-Apply when judging findings and applying fixes:
-
-1. Step back and view the findings holistically; aim for a root-cause fix, not a local patch.
-2. Even if an issue looks minor now, address it when it has "broken-window" character or risks future rework.
-3. Strictly avoid symptomatic fixes, tolerating the status quo with a comment, or rejecting a fix on the grounds that the existing code already does it this way.
-4. Check related sites for missed fixes; keep consistency and coherence across them.
-5. Don't follow the spec or plan blindly — reason from the actual behavior, and surface suspected spec/plan defects with the user.
