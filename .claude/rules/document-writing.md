@@ -6,7 +6,7 @@ paths:
 
 # Writing Prose
 
-When writing substantial prose — in a markdown document or in conversation — follow these rules. Behavioral principles (honesty, grounding claims) live in the always-loaded instructions (`~/.claude/INSTRUCTIONS.md`); this file covers prose-authoring specifics.
+These rules apply to prose written to a file, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`. Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
 ## Substance and logic
 

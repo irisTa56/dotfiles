@@ -39,4 +39,4 @@ When the user asks in conversation how something changed, follow these:
 
 ## Writing prose
 
-When writing substantial prose — an authored document, or a summary of research or analysis in conversation — follow `~/.claude/rules/document-writing.md`. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
+When writing prose to a file, always follow `~/.claude/rules/document-writing.md`. In conversation, follow it only for substantial prose — a summary of research or analysis, not a short reply. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
