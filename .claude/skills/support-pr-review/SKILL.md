@@ -72,9 +72,8 @@ Spend effort here, roughly in priority order, and skip anything a diff bot alrea
 
 If you find nothing beyond what the bots already said, say so honestly.
 
-**Mindset.** When judging every finding above, apply the finding-addressing mindset from the `review-loop` skill (root-cause over local patch, broken-window awareness, no symptomatic fixes, no deferring to "the existing code already does it this way", consistency across related sites, and reasoning from actual behavior rather than conforming to a flawed spec/plan).
-Read that skill's "Mindset for Addressing Findings" section as the source of truth.
-`review-loop` frames these for your own changes; as a reviewer you apply the same bar to someone else's PR — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
+**Mindset.** When judging every finding above, apply the `address-finding` skill's judgment mindset (its validity criteria and anti-patterns) as the source of truth.
+It frames judging findings when you are the one fixing; as a reviewer you hold someone else's PR to the same bar — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
 
 **Delegation.** The wide, small-return parts of this step are good candidates to delegate to a subagent that returns only its findings, keeping the main context clean: the `rg`/`grep` ripple-and-omission sweep (item 3), and reading the linked intent documents (Step 1).
 
@@ -97,6 +96,7 @@ Present each finding in **two layers with different readers**.
 
 ## Related
 
-- `review-loop` — the source of truth for the review perspectives and finding-addressing mindset this skill reuses; it reviews *your own* changes in a fix-and-re-review loop.
+- `review-loop` — the source of truth for the review perspectives this skill reuses; it reviews *your own* changes in a fix-and-re-review loop.
+- `address-finding` — the source of truth for the finding-addressing mindset this skill reuses when judging findings.
 - `address-review-comment` — the posting counterpart: responds to and resolves a single existing review comment.
 - `code-review-expert` — generic diff review; intentionally the layer this skill does not duplicate.

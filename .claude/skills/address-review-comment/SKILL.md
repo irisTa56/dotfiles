@@ -1,6 +1,7 @@
 ---
 name: address-review-comment
-description: Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via MCP/gh CLI (never fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it.
+description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via MCP/gh CLI (never fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
+disable-model-invocation: true
 ---
 
 # Address Review Comment
@@ -67,42 +68,13 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 
 ### 4. Evaluate Validity
 
-Take the reviewer's suggestion seriously, but do NOT blindly accept:
-
-- **Technically correct?** Does the suggestion fix a real bug, improve correctness, or address a genuine concern?
-- **Improves quality?** Does it improve readability, maintainability, or performance?
-- **Trade-offs?** Are there considerations the reviewer may not have seen?
-- **Proportionate solution?** Evaluate whether the reviewer's proposed approach is appropriately scoped. A simpler or more targeted fix may address the same concern without unnecessary complexity. (This evaluates the *how*, not the *whether* — the underlying problem should still be addressed.)
-- **Step back once**: Reframe the suggestion holistically. Is there a more fundamental fix that removes repeated manual work or prevents the class of issue (e.g., automation/script/abstraction instead of ad-hoc procedural edits)?
-- **Broken-window risk?** Even if the issue looks minor now, consider whether leaving it invites further degradation or costly rework later. If so, fix it.
-- **Grounded in actual behavior?** Evaluate based on what the code actually does, not what specs or plans say it should do. If a spec or plan appears flawed, flag it to the user rather than silently conforming.
-
-Anti-patterns — do NOT fall into these:
-
-- Applying a symptomatic / band-aid fix instead of addressing the root cause.
-- Dismissing a suggestion because "the existing implementation already does it this way."
-- Adding a comment to acknowledge a problem while leaving the code unchanged.
-
-Decide on one of:
-
-| Verdict | Action |
-|---------|--------|
-| Valid | Apply the fix as suggested (or a better variant that addresses the same concern) |
-| Valid but not fundamental | Apply a more structural fix and explain why it is safer/lower future cost |
-| Partially valid | Propose a balanced fix and explain reasoning |
-| Not valid | Prepare a respectful explanation of why |
+Use the `address-finding` skill (invoke it via the Skill tool) to evaluate the comment.
+It carries the full judgment criteria, the verdict options (valid / valid-but-not-fundamental / partially valid / not valid), and the anti-patterns.
+Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-**Nature of the change** — keep it minimal and targeted:
-
-- Address the root cause identified in Step 4; do not bundle unrelated refactors or improvements.
-
-**Breadth of the change** — apply consistently:
-
-- **Consistency sweep**: After applying the fix, check whether the same bug or pattern exists in related areas (other call sites, sibling functions, similar files). Apply the same fix to all occurrences so that partial corrections do not remain.
-- If the sweep reveals a large number of affected sites (suggesting a systemic issue), fix what is practical within this PR and flag the remainder to the user for a follow-up.
-
+If a fix is warranted, apply it under the `address-finding` skill: root-cause and minimal scope, its consistency sweep across related sites, and its reflective band-aid checkpoint.
 Complete all file edits in this step before proceeding.
 
 ### 6. Draft Reply
