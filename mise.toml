@@ -61,6 +61,13 @@ usage = 'arg "[name]" help="Skill from gistSkills.json to sync; omit to sync all
 # not an empty-string arg, which the script would reject as an invalid name.
 run = "scripts/sync_gist_skills.sh ${usage_name:-}"
 
+[tasks."skills:push"]
+description = "Push local edits to a gist-sourced SKILL.md back to its gist (external write; needs gh auth)"
+usage = 'arg "<name>" help="Skill from gistSkills.json to push back to its gist"'
+# $usage_name is a single required arg (usage errors if omitted); quote it since a skill
+# name is one token, unlike the deliberately unquoted optional arg in skills:sync.
+run = 'scripts/push_gist_skill.sh "$usage_name"'
+
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"
 usage = 'arg "<pkg>" var=#true help="apm package path(s) to remove, e.g. blader/humanizer"'
