@@ -114,6 +114,15 @@ mise run skills:sync japanese-tech-writing
 
 Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then run `mise run skills:sync <name>`.
 
+Since the materialized `SKILL.md` is gitignored and `skills:sync` overwrites it Gist→local, the gist is the only durable copy of a skill's content.
+After editing a skill locally, push the change back to its gist, or the next sync silently discards it:
+
+```shell
+mise run skills:push japanese-tech-writing
+```
+
+This writes to the gist through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
+
 ## MCP Servers
 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
