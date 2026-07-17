@@ -35,6 +35,7 @@ These rules apply to prose written to a file, and to substantial prose in conver
 
 - Do not insert a line break inside a sentence. Line breaks are allowed only at sentence boundaries (period `.`, 句点 `。`, or bullet boundaries).
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
+- Do not mimic the wrap width of surrounding hard-wrapped prose; apply the one-sentence-per-line rule regardless of how the neighboring lines happen to wrap. Pattern-matching the local line width is a classic misjudgment.
 - A long or multi-clause bullet is a structural problem. Fix the structure; do not paper over it with a line break. If a bullet carries two or more clauses, take one of the following:
   - Rewrite them into a single sentence (paraphrasing or joining with `;`).
   - Nest them as child bullets (parent-child).
