@@ -1,6 +1,6 @@
 ---
 name: address-review-comment
-description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via MCP/gh CLI (never fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
+description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via gh CLI (never fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
 disable-model-invocation: true
 ---
 
@@ -37,7 +37,7 @@ gh api repos/{owner}/{repo}/pulls/comments/{comment_id}
 From the response, extract:
 
 - `body` — the reviewer's comment text
-- `id` / `node_id` — REST numeric ID and GraphQL node ID of the comment
+- `id` — the REST numeric ID of the comment
 - `user.login` / `user.type` — reviewer identity and actor type
 - `path` — the file the comment refers to
 - `line` / `original_line` — the line number
@@ -122,30 +122,54 @@ git push
 
 ### 9. Post Reply
 
-Post the approved reply using `mcp_github_add_reply_to_pull_request_comment`:
+Post the approved reply with `gh` CLI, replying to the review comment thread.
+Write the approved reply body to a temporary file first, then pass it with `-F body=@<file>` so backticks, `$`, and newlines in the reply are never interpreted by the shell:
 
-- `owner`, `repo` — from the parsed URL
-- `commentId` — the comment ID from step 1
-- `body` — the approved reply text (replace `<commit_sha>` with actual SHA after Step 8 when a fix was made)
+```bash
+gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
+  -F body=@<reply-body-file>
+```
+
+- Replace `<commit_sha>` in the body with the actual SHA from Step 8 when a fix was made, before writing the file.
+- Do not inline the body with `-f body="..."`: reply text often quotes code, which the shell would expand or mangle.
 
 After posting:
 
 - If reply target type is `human`: do not resolve the thread.
 - If reply target type is `ai-bot`: resolve the thread.
 
-Resolve flow for `ai-bot`:
+Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
-- Call `github-pull-request_currentActivePullRequest` and read `reviewThreads`.
-- Treat `commentId` as a REST API numeric ID (not a review thread ID).
-- Map `commentId` to a thread by checking nested thread comments:
-  - First try direct numeric match (`comment.id == commentId` or `comment.databaseId == commentId` if available).
-  - If only node IDs are available, use the `node_id` captured in Step 2 to match thread comments.
-- If found and `canResolve` is `true`, call `github-pull-request_resolveReviewThread` with that thread `id`.
-- If not found or `canResolve` is `false`, skip resolving and only keep the posted reply.
+- Fetch the PR's review threads and map `comment_id` to its thread:
+
+  ```bash
+  gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
+    query($owner:String!, $repo:String!, $number:Int!) {
+      repository(owner:$owner, name:$repo) {
+        pullRequest(number:$number) {
+          reviewThreads(first:100) {
+            nodes { id isResolved viewerCanResolve comments(first:100) { nodes { databaseId } } }
+          }
+        }
+      }
+    }'
+  ```
+
+- Select the thread whose `comments.nodes[].databaseId` includes `comment_id`, and read its `id` (the GraphQL thread ID).
+- If the thread is found, not already `isResolved`, and `viewerCanResolve` is `true`, resolve it:
+
+  ```bash
+  gh api graphql -f threadId={thread_id} -f query='
+    mutation($threadId:ID!) {
+      resolveReviewThread(input:{threadId:$threadId}) { thread { id isResolved } }
+    }'
+  ```
+
+- If no matching thread is found, or `viewerCanResolve` is `false`, skip resolving and keep only the posted reply.
 
 ## Important Rules
 
-1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use MCP tools or `gh` CLI.
+1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
 3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
 4. **Commit language**: Always English, conventional commit format.
