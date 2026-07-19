@@ -16,6 +16,7 @@ _tmp*/
 *uncommitted*/
 CLAUDE.local.md
 erl_crash.dump
+mise.local.toml
 EOF
 
 cat <<'EOF' >~/.zprofile
