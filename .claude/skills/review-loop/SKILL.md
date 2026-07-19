@@ -1,7 +1,6 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Use after a non-trivial code change, or when the user asks to repeatedly review until clean. Delegation + loop + review mindset; the subagent does the actual review pass via the code-review-expert skill."
-disable-model-invocation: true
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the code-review-expert skill and makes no edits."
 ---
 
 # Review Loop
