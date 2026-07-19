@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "docx": "^9.7.1",
-    "fast-xml-parser": "^5.10.0",
+    "fast-xml-parser": "^5.10.1",
     "katex": "^0.17.0",
     "marked": "^18.0.6"
   }
