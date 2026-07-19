@@ -1,4 +1,3 @@
-tap "bro3886/tap", "https://github.com/BRO3886/homebrew-tap", trusted: true
 # Automatic configure script builder
 brew "autoconf"
 # Cross-platform make
@@ -15,6 +14,8 @@ brew "docker"
 brew "docker-buildx"
 # Isolated development environments using Docker
 brew "docker-compose"
+# TIFF library and utilities
+brew "libtiff"
 # Play, record, convert, and stream audio and video
 brew "ffmpeg@7", link: true
 # Collection of GNU find, xargs, and locate
@@ -59,8 +60,6 @@ brew "tmux"
 brew "tree"
 # Extremely fast Python package installer and resolver, written in Rust
 brew "uv"
-# Blazing fast CLI for macOS Reminders — sub-200ms reads and writes via EventKit
-brew "bro3886/tap/rem-cli"
 # Anthropic's official Claude AI desktop app
 cask "claude"
 # OpenJDK distribution from Amazon
