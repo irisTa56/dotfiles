@@ -64,6 +64,8 @@ brew "uv"
 cask "claude"
 # OpenJDK distribution from Amazon
 cask "corretto@17"
+# Online diagram software
+cask "drawio"
 # Web browser
 cask "google-chrome"
 # Native desktop AI assistant from Google
