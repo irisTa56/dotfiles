@@ -136,7 +136,7 @@ A hand-written skill therefore needs one line to unignore it:
 Re-including the directory is enough — the exclusion above uses a single `*`, which does not cross `/`, so it never matched the contents in the first place.
 
 No sync step follows: `~/.claude/skills` is a symlink to this directory, so the skill is live as soon as the files exist.
-`ask-kboat`, described under [Basic Memory projects](#basic-memory-projects), is one of these.
+`ask-kboat`, described under [Setting up K-Boat](#setting-up-k-boat), is one of these.
 
 ## MCP Servers
 
@@ -149,25 +149,20 @@ To wire `basic-memory` into a fresh client:
 claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
 ```
 
-### Basic Memory projects
+### Setting up K-Boat
 
-A knowledge base is a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory#readme): a name bound to a directory of Markdown notes.
-Every tool takes the project name, so a base has to be registered before any client can reach it — wiring the server above is not enough on its own.
+[K-Boat](https://github.com/irisTa56/k-boat) is a skill package that reads sources through NotebookLM and matures them into a concept graph.
+It owns the writing side; this repository only reads that graph, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what they say distinct from general knowledge.
 
-```shell
-basic-memory project add <name> <path>
-basic-memory project list
-```
-
-Registration is per-machine, so a fresh client needs the bases it reads registered by hand. The one this repository's skills depend on:
+K-Boat stores that graph as a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory#readme) — a name bound to a directory of Markdown notes — so using it here means registering that project.
+Wiring the server above is not enough on its own: every tool takes the project name, and registration is per-machine local state that no clone carries.
 
 ```shell
 basic-memory project add k-boat-knowledge ~/Documents/_repos/my-foam/.kboat
+basic-memory project list
 ```
 
-The notes are plain Markdown and stay readable in Obsidian or Foam without the server, which is only the search layer.
-So the notes directory is worth version-controlling in its own right, independently of this registration, which is local client state.
+Other projects may be registered alongside it, and the `memory-*` skills work against whichever one is in play; `k-boat-knowledge` is the only one this repository names directly.
 
-Several projects are registered; the `memory-*` skills work against whichever one is in play.
-The one this repository names directly is `k-boat-knowledge`, the distilled side of [K-Boat](https://github.com/irisTa56/k-boat) — a skill package that reads sources through NotebookLM and matures them into a concept graph.
-K-Boat owns the writing side; this repository only reads that base, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what the base says distinct from general knowledge.
+The notes themselves are plain Markdown and stay readable in Obsidian or Foam without the server, which is only the search layer.
+So the notes directory is worth version-controlling in its own right, independently of the registration above.
