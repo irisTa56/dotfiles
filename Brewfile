@@ -54,8 +54,6 @@ brew "rclone"
 brew "rtk"
 # SOcket CAT: netcat on steroids
 brew "socat"
-# Terminal multiplexer
-brew "tmux"
 # Display directories as trees (with optional color/HTML output)
 brew "tree"
 # Extremely fast Python package installer and resolver, written in Rust
