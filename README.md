@@ -135,9 +135,6 @@ A hand-written skill therefore needs one line to unignore it:
 
 Re-including the directory is enough — the exclusion above uses a single `*`, which does not cross `/`, so it never matched the contents in the first place.
 
-No sync step follows: `~/.claude/skills` is a symlink to this directory, so the skill is live as soon as the files exist.
-`ask-kboat`, described under [Setting up K-Boat](#setting-up-k-boat), is one of these.
-
 ## MCP Servers
 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
