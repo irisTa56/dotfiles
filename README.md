@@ -123,6 +123,21 @@ mise run skills:push japanese-tech-writing
 
 This writes to the gist through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
 
+### Repo-tracked skills
+
+A few skills are written here rather than pulled from an upstream, and this repository is their only copy.
+`.gitignore` excludes all of `.claude/skills/*`, which is what keeps APM and gist output out of version control.
+A hand-written skill therefore needs one line to unignore it:
+
+```gitignore
+!/.claude/skills/<name>/
+```
+
+Re-including the directory is enough — the exclusion above uses a single `*`, which does not cross `/`, so it never matched the contents in the first place.
+
+No sync step follows: `~/.claude/skills` is a symlink to this directory, so the skill is live as soon as the files exist.
+`ask-kboat`, described under [Setting up K-Boat](#setting-up-k-boat), is one of these.
+
 ## MCP Servers
 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
@@ -132,4 +147,17 @@ To wire `basic-memory` into a fresh client:
 
 ```shell
 claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
+```
+
+### Setting up K-Boat
+
+[K-Boat](https://github.com/irisTa56/k-boat) is a skill package that reads sources through NotebookLM and matures them into a concept graph.
+It owns the writing side; this repository only reads that graph, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what they say distinct from general knowledge.
+
+K-Boat stores that graph as a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory) — a name bound to a directory of Markdown notes — and the `ask-kboat` skill requires that project to be registered.
+Setting up the MCP server above is not enough on its own because project registration is per-machine local state that no clone carries.
+
+```shell
+basic-memory project add k-boat-knowledge <KBOAT_KNOWLEDGE_PATH>
+basic-memory project list
 ```
