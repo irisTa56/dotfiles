@@ -123,6 +123,21 @@ mise run skills:push japanese-tech-writing
 
 This writes to the gist through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
 
+### Repo-tracked skills
+
+A few skills are written here rather than pulled from an upstream, and this repository is their only copy.
+`.gitignore` excludes all of `.claude/skills/*`, which is what keeps APM and gist output out of version control.
+A hand-written skill therefore needs one line to unignore it:
+
+```gitignore
+!/.claude/skills/<name>/
+```
+
+Re-including the directory is enough — the exclusion above uses a single `*`, which does not cross `/`, so it never matched the contents in the first place.
+
+No sync step follows: `~/.claude/skills` is a symlink to this directory, so the skill is live as soon as the files exist.
+`ask-kboat`, described under [Basic Memory projects](#basic-memory-projects), is one of these.
+
 ## MCP Servers
 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
@@ -133,3 +148,26 @@ To wire `basic-memory` into a fresh client:
 ```shell
 claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
 ```
+
+### Basic Memory projects
+
+A knowledge base is a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory#readme): a name bound to a directory of Markdown notes.
+Every tool takes the project name, so a base has to be registered before any client can reach it — wiring the server above is not enough on its own.
+
+```shell
+basic-memory project add <name> <path>
+basic-memory project list
+```
+
+Registration is per-machine, so a fresh client needs the bases it reads registered by hand. The one this repository's skills depend on:
+
+```shell
+basic-memory project add k-boat-knowledge ~/Documents/_repos/my-foam/.kboat
+```
+
+The notes are plain Markdown and stay readable in Obsidian or Foam without the server, which is only the search layer.
+So the notes directory is worth version-controlling in its own right, independently of this registration, which is local client state.
+
+Several projects are registered; the `memory-*` skills work against whichever one is in play.
+The one this repository names directly is `k-boat-knowledge`, the distilled side of [K-Boat](https://github.com/irisTa56/k-boat) — a skill package that reads sources through NotebookLM and matures them into a concept graph.
+K-Boat owns the writing side; this repository only reads that base, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what the base says distinct from general knowledge.
