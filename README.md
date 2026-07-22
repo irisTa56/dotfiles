@@ -154,15 +154,10 @@ claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory
 [K-Boat](https://github.com/irisTa56/k-boat) is a skill package that reads sources through NotebookLM and matures them into a concept graph.
 It owns the writing side; this repository only reads that graph, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what they say distinct from general knowledge.
 
-K-Boat stores that graph as a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory#readme) — a name bound to a directory of Markdown notes — so using it here means registering that project.
-Wiring the server above is not enough on its own: every tool takes the project name, and registration is per-machine local state that no clone carries.
+K-Boat stores that graph as a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory) — a name bound to a directory of Markdown notes — and the `ask-kboat` skill requires that project to be registered.
+Setting up the MCP server above is not enough on its own because project registration is per-machine local state that no clone carries.
 
 ```shell
-basic-memory project add k-boat-knowledge ~/Documents/_repos/my-foam/.kboat
+basic-memory project add k-boat-knowledge <KBOAT_KNOWLEDGE_PATH>
 basic-memory project list
 ```
-
-Other projects may be registered alongside it, and the `memory-*` skills work against whichever one is in play; `k-boat-knowledge` is the only one this repository names directly.
-
-The notes themselves are plain Markdown and stay readable in Obsidian or Foam without the server, which is only the search layer.
-So the notes directory is worth version-controlling in its own right, independently of the registration above.
