@@ -16,9 +16,10 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - The subagent returns findings only; it makes no edits.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
+   - When a fix reaches past the purpose bound, that skill puts the excess to the user. This is the loop's one blocking pause: wait for the answer before continuing the round. Step 1's "do not wait" governs the purpose statement alone.
    - Record what a round knowingly leaves undone, with the disposition the user has already seen:
      - every valid finding it leaves unfixed;
-     - every part of a fix the purpose bound held back, whether the user carved it out or left it;
+     - every part of a fix the purpose bound held back, whether the user carved it out, which is owed, or left it, which owes nothing;
      - everything `address-finding` reported as a follow-up rather than applying.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
