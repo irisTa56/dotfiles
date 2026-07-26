@@ -71,7 +71,8 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
   gh api repos/{owner}/{repo}/pulls/{number} --jq '{title, body}'
   ```
 
-  This is what this workflow offers for `address-finding`'s purpose source, used unless the user states a narrower one. The comment sets what to fix; the PR sets how far a fix may reach.
+  This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
+- When the title and body state no intent, read the change as a whole instead (`gh pr diff {number} --name-only` alongside the title), and say which of the two you used.
 
 ### 4. Evaluate Validity
 

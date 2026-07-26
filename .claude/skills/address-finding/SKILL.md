@@ -47,8 +47,8 @@ Work already reported rather than applied — a sweep remainder, a spec contradi
 The part of the fix inside the bound lands either way. Put the part that reaches past it to the user, with the real options rather than a default to deferral:
 
 - extend the change to cover it;
-- carve it into a separate change;
-- leave it.
+- carve it out, recorded as a follow-up that is owed;
+- leave it, owing nothing.
 
 Recommend one and say why, then apply what the user decides.
 
@@ -74,7 +74,7 @@ Before settling on the fix, look at what it does to the code:
 
 When multiple findings are in play, view them together before fixing.
 Prefer one structural fix that dissolves a cluster of related findings over N independent local patches.
-That structural fix is larger than any of the patches it replaces, so weigh it against the purpose bound before applying it.
+A structural fix can reach further than any of the patches it replaces, so weigh it against the purpose bound before applying it.
 
 ## Anti-patterns
 
