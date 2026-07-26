@@ -21,7 +21,6 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
    - Record what a round knowingly leaves undone, with the disposition the user has already seen:
-     - every valid finding it leaves unfixed, which is owed unless the user said to drop it;
      - every part of a fix the purpose bound held back:
        - carved out by the user, which is owed;
        - left, which owes nothing;

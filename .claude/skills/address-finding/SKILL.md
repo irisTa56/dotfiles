@@ -62,9 +62,9 @@ Leaving it owes nothing.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
-- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound. When the sweep exposes a spread reaching past that bound, fix what falls inside it and report the rest to the user as a follow-up.
-  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
-  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
+- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound.
+  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files. When the spread reaches past the purpose bound, fix what falls inside it and report the rest to the user as a follow-up.
+  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does, wherever they live — this is breakage the fix caused, not a defect it found, so the purpose bound does not cap it. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
 
 ## 3. Reflective checkpoint — suspect a band-aid
