@@ -43,7 +43,7 @@ State the purpose and the source you took it from, so the user sees the bound th
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
 Where this skill already prescribes surfacing instead of applying — a contradicted spec, plan, or ADR, below — the stop does not apply: nothing lands, so there is nothing to stop.
-One thing lands outside the bound without stopping: a claim the fix itself falsified, for the reason the axis below gives.
+One thing lands outside the bound without stopping: a describing claim the fix itself falsified, for the reason the axis below gives.
 
 The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it.
 Put that part to them with the real options, rather than a default to deferral:
@@ -54,7 +54,7 @@ Put that part to them with the real options, rather than a default to deferral:
 
 Recommend one and say why, then apply what the user decides.
 
-Work is **owed** when the user carves it out, and when this skill surfaces work it must not apply itself — a contradicted spec, plan, or ADR.
+Work is **owed** when the user carves it out, and when this skill surfaces work it must not apply itself — a prescribing claim the fix contradicts, or a spec or plan §1 judged flawed.
 Leaving it owes nothing, and so does a counterpart this skill decided the other side does not need.
 
 ### Fix discipline

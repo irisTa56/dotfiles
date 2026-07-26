@@ -73,7 +73,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 
   This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
 - When the title and body state no intent, read the change as a whole instead.
-  - `gh pr diff {number} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
+  - `gh pr diff {number} --repo {owner}/{repo} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
 - Say explicitly which source the purpose came from; that satisfies `address-finding`'s purpose statement, so it is not repeated at Step 5.
 
 ### 4. Evaluate Validity
@@ -126,7 +126,7 @@ Checklist:
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, whether or not other edits landed. That covers two things:
   - a part of the fix the purpose bound held back;
-  - any spec, plan, or ADR the fix contradicts, surfaced rather than rewritten, which is owed.
+  - any prescribing claim the fix contradicts, or a spec judged flawed, surfaced rather than rewritten, which is owed.
 - Show inferred reply target type (`human` or `ai-bot`), and say whether the thread will be resolved under Rule 8; finalize both here together with commit/push confirmation.
 - Ask for override only when the user disagrees or the inference confidence is low.
 - Show the Step 6 draft reply that will be posted after commit/push.

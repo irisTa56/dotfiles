@@ -25,7 +25,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - every part of a fix the purpose bound held back:
        - carved out by the user, which is owed;
        - left, which owes nothing;
-     - every contradicted spec, plan, or ADR it surfaced instead of applying, which is owed;
+     - every prescribing claim it surfaced instead of rewriting, and every spec or plan it judged flawed, both owed;
      - every counterpart it decided the other side does not need, which owes nothing.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
