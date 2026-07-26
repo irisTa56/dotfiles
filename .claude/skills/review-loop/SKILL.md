@@ -10,7 +10,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
    - Take it from the user; when they have not stated one, infer it from the diff and say so before the first round.
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
-   - This statement is `address-finding`'s required purpose statement for every round; it is not restated per round.
+   - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
    - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not license a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
@@ -21,8 +21,10 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
    - Record what a round knowingly leaves undone, with the disposition the user has already seen:
-     - every valid finding it leaves unfixed, and whether that work is owed;
-     - every part of a fix the purpose bound held back, whether the user carved it out, which is owed, or left it, which owes nothing;
+     - every valid finding it leaves unfixed, which is owed unless the user said to drop it;
+     - every part of a fix the purpose bound held back:
+       - carved out by the user, which is owed;
+       - left, which owes nothing;
      - everything `address-finding` reported as a follow-up rather than applying.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
