@@ -74,7 +74,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
   This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
 - When the title and body state no intent, read the change as a whole instead.
   - `gh pr diff {number} --repo {owner}/{repo} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
-- Say explicitly which source the purpose came from; that satisfies `address-finding`'s purpose statement, so it is not repeated at Step 5.
+- State the purpose and which source it came from; that satisfies `address-finding`'s purpose statement, so it is not repeated at Step 5.
 
 ### 4. Evaluate Validity
 
@@ -108,7 +108,7 @@ Compose a reply draft early, before final confirmation:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
 - If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If any part did not land: say plainly what was left out and why, and whether it is to be done separately.
+- If any part did not land, or anything was surfaced rather than fixed: say plainly what was left out and why, and whether it is to be done separately.
   - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
 - If the comment was declined on the merits: explain the reasoning respectfully.
 
@@ -163,7 +163,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 
 After posting:
 
-- If reply target type is `human`: do not resolve the thread.
+- If reply target type is `human`: do not resolve the thread, which Step 7 cannot override.
 - If reply target type is `ai-bot`: resolve the thread, unless Step 7 settled otherwise.
 
 Resolve flow for `ai-bot` — resolve the review thread via GraphQL:

@@ -42,7 +42,7 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
-Where this skill already prescribes surfacing instead of applying — a contradicted spec, plan, or ADR, below — the stop does not apply: nothing lands, so there is nothing to stop.
+Where this skill prescribes surfacing instead of applying — a prescribing claim the fix contradicts, or a spec or plan judged flawed — the stop does not apply: nothing lands, so there is nothing to stop.
 One thing lands outside the bound without stopping: a describing claim the fix itself falsified, for the reason the axis below gives.
 
 The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it.

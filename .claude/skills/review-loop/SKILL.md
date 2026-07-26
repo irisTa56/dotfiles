@@ -20,7 +20,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
-   - Record what a round knowingly leaves undone, and what the user decided about it.
+   - Record what a round knowingly leaves undone, and what the user decided about it. Anything `address-finding` surfaced rather than fixed goes in the record whether or not the user answered.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
