@@ -42,8 +42,8 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
-Where this skill already prescribes reporting instead of applying — a spec contradiction, below — the stop does not apply: nothing lands, so there is nothing to stop.
-One thing lands outside the bound without stopping: a claim the fix itself falsified, because leaving it standing is breakage the fix caused rather than scope it chose.
+Where this skill already prescribes surfacing instead of applying — a contradicted spec, plan, or ADR, below — the stop does not apply: nothing lands, so there is nothing to stop.
+One thing lands outside the bound without stopping: a claim the fix itself falsified, for the reason the axis below gives.
 
 The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it.
 Put that part to them with the real options, rather than a default to deferral:
@@ -54,8 +54,8 @@ Put that part to them with the real options, rather than a default to deferral:
 
 Recommend one and say why, then apply what the user decides.
 
-Work is **owed** when the user carves it out, and when this skill surfaces something to the user instead of applying it.
-Leaving it owes nothing.
+Work is **owed** when the user carves it out, and when this skill surfaces work it must not apply itself — a contradicted spec, plan, or ADR.
+Leaving it owes nothing, and so does a counterpart this skill decided the other side does not need.
 
 ### Fix discipline
 
@@ -65,9 +65,9 @@ Leaving it owes nothing.
   - A calling workflow may name a wider scope.
 - **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files. When the spread reaches past the purpose bound, fix what falls inside it and put the rest to the user under the stop above.
-  - **Falsified claims.** Update the prose the code no longer matches, wherever it lives — docstrings, comments, and documents that *describe* what the code does.
+  - **Falsified claims.** Update a claim that *describes* what the code does, wherever it lives — docstrings, comments, documents.
     - This is breakage the fix caused, not a defect it found, so the purpose bound does not cap it.
-    - A document that *prescribes* the behaviour — a spec, a plan, an ADR — is not updated. The fix contradicts it, so surface that to the user rather than silently rewriting it to match.
+    - A claim that *prescribes* the behaviour, as in a spec, a plan, or an ADR, is not rewritten. The fix contradicts it, so surface that to the user rather than silently making it match.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not. When that other side falls outside the purpose bound, the stop applies before the counterpart edit lands.
 
 ## 3. Reflective checkpoint — suspect a band-aid

@@ -8,7 +8,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Workflow
 
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
-   - Take it from the user; when they have not stated one, infer it from the diff and say so before the first round.
+   - Take it from the user, or from the workflow that invoked this loop; when neither states one, infer it from the diff and say so before the first round.
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
    - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
    - Work that has landed is in-bound for later rounds: an excess the user chose to extend the change with, and a correction `address-finding` landed outside the bound on its own. Later rounds may fix defects in it, and neither licenses a further excursion past the purpose.
@@ -25,7 +25,8 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - every part of a fix the purpose bound held back:
        - carved out by the user, which is owed;
        - left, which owes nothing;
-     - everything `address-finding` surfaced instead of applying.
+     - every contradicted spec, plan, or ADR it surfaced instead of applying, which is owed;
+     - every counterpart it decided the other side does not need, which owes nothing.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
