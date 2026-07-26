@@ -10,15 +10,18 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
    - Take it from the user; when they have not stated one, infer it from the diff and say so before the first round.
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
+   - This statement is `address-finding`'s required purpose statement for every round; it is not restated per round.
    - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not license a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-   - When a fix reaches past the purpose bound, that skill puts the excess to the user. This is the loop's one blocking pause: wait for the answer before continuing the round. Step 1's "do not wait" governs the purpose statement alone.
+   - When a fix reaches past the purpose bound, that skill puts the excess to the user.
+     - This is the loop's one blocking pause: wait for the answer before continuing the round.
+     - Step 1's "do not wait" governs the purpose statement alone.
    - Record what a round knowingly leaves undone, with the disposition the user has already seen:
-     - every valid finding it leaves unfixed;
+     - every valid finding it leaves unfixed, and whether that work is owed;
      - every part of a fix the purpose bound held back, whether the user carved it out, which is owed, or left it, which owes nothing;
      - everything `address-finding` reported as a follow-up rather than applying.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
