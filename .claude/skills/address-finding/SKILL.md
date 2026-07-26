@@ -18,6 +18,8 @@ Take the finding seriously, but do not accept it blindly.
 - **A more fundamental fix?** Reframe holistically: is there a root-cause fix that removes repeated manual work or prevents the whole class of issue (automation/abstraction over ad-hoc edits)?
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
 - **Grounded in actual behavior?** Judge by what the code does, not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
+- **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. What is there was chosen for a reason the reviewer could not see, so answer with that reason and leave it standing.
+- **What does the rewrite cost?** A rewrite is itself unreviewed, and is where the next defect comes from. Spend that only on a finding that shows harm.
 
 Land on one verdict:
 
@@ -82,6 +84,7 @@ Before settling on the fix, look at what it does to the code:
 
 When multiple findings are in play, view them together before fixing.
 Prefer one structural fix that dissolves a cluster of related findings over N independent local patches.
+When findings keep landing on the same mechanism, the mechanism is what is wrong, not its wording — ask what it should do before rewording it again.
 A structural fix can reach further than any of the patches it replaces, and it is what the purpose bound weighs.
 
 ## Anti-patterns
