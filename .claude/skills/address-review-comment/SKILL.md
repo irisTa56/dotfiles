@@ -65,6 +65,17 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 - Read the file and lines the comment refers to.
 - Understand the reviewer's suggestion or concern.
 - Look at surrounding code for broader context if needed.
+- Read the PR's own title and body for what the change is for:
+
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/{number} --jq '{title, body}'
+  ```
+
+  This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
+- When the title and body state no intent, read the change as a whole instead.
+  - `gh pr diff {number} --repo {owner}/{repo} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
+  - Work an earlier invocation landed past the bound may be fixed, but it does not widen a purpose inferred here — otherwise each approved excursion raises the bound for the next comment.
+- State the purpose and which source it came from; that satisfies `address-finding`'s purpose statement, so it is not repeated at Step 5.
 
 ### 4. Evaluate Validity
 
@@ -74,8 +85,20 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the `address-finding` skill: root-cause and minimal scope, its consistency sweep across related sites, and its reflective band-aid checkpoint.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, fed by Step 3 — and under its reflective band-aid checkpoint.
+For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Complete all file edits in this step before proceeding.
+
+The part of a fix the purpose bound stops is the one thing this skill asks about before Step 7.
+Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
+
+- Present the options and your recommendation, and wait.
+- The part of the fix inside the bound lands here whichever option is chosen, and so does any correction the core lands outside it on its own; only the stopped part depends on the answer.
+  - Extend the change: the stopped part lands here too.
+  - Carve it out: it is left, to be done separately.
+  - Leave it: it is left undone.
+- Report the option taken at Step 7.
+- A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply
 
@@ -85,8 +108,10 @@ Compose a reply draft early, before final confirmation:
 - Select tone by reply target type:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
-- If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If no fix will be made: explain the reasoning respectfully.
+- If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If any part did not land, or anything was surfaced rather than fixed: say plainly what was left out and why, and whether it is to be done separately.
+  - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
+- If the comment was declined on the merits: explain the reasoning respectfully.
 
 ### 7. Confirm Fix with User
 
@@ -94,10 +119,14 @@ Present the diff and reasoning to the user as a **single final execution checkpo
 
 Checklist:
 
-- Precondition: if code changes are required, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval.
+- Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land; otherwise, return to Step 5 before asking for approval. Those are:
+  - the part inside the purpose bound, always;
+  - a correction `address-finding` landed outside the bound on its own;
+  - the stopped part, only where the user chose to extend the change.
 - Show what was changed and why.
-- If no change was made, explain why the suggestion was declined or deferred.
-- Show inferred reply target type (`human` or `ai-bot`) and finalize it here together with commit/push confirmation.
+- Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
+- Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
+- Show inferred reply target type (`human` or `ai-bot`) and whether the thread will be resolved, and finalize both here together with commit/push confirmation. Work left for later is a reason to keep the thread open, so say what was left.
 - Ask for override only when the user disagrees or the inference confidence is low.
 - Show the Step 6 draft reply that will be posted after commit/push.
 
@@ -135,8 +164,8 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 
 After posting:
 
-- If reply target type is `human`: do not resolve the thread.
-- If reply target type is `ai-bot`: resolve the thread.
+- If reply target type is `human`: do not resolve the thread, which Step 7 cannot override.
+- If reply target type is `ai-bot`: resolve the thread, unless Step 7 settled otherwise.
 
 Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
@@ -172,8 +201,9 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
 3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
+   - The sole earlier question concerns the part of a fix the purpose bound stopped at Step 5, whose answer decides what Step 7 will show.
 4. **Commit language**: Always English, conventional commit format.
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
 7. **Reply target type**: Infer after reading comment metadata, then finalize at Step 7 (single checkpoint).
-8. **Thread resolution policy**: Resolve only for `ai-bot`; keep open for `human`.
+8. **Thread resolution policy**: Resolve only for `ai-bot`, as confirmed at Step 7; keep open for `human`.
