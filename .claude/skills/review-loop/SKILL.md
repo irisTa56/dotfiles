@@ -8,7 +8,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Workflow
 
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
-   - Take it from the user, or from the workflow that invoked this loop; when neither states one, infer it from the diff and say so before the first round.
+   - Take it from the user, or failing that from the workflow that invoked this loop; when neither states one, infer it from the diff and say so before the first round.
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
    - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
    - Work that has landed is in-bound for later rounds: an excess the user chose to extend the change with, and a correction `address-finding` landed outside the bound on its own. Later rounds may fix defects in it, and neither licenses a further excursion past the purpose.

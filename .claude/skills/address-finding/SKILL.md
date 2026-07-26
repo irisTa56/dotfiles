@@ -68,6 +68,7 @@ Leaving it owes nothing, and so does a counterpart this skill decided the other 
   - **Falsified claims.** Update a claim that *describes* what the code does, wherever it lives — docstrings, comments, documents.
     - This is breakage the fix caused, not a defect it found, so the purpose bound does not cap it.
     - A claim that *prescribes* the behaviour, as in a spec, a plan, or an ADR, is not rewritten. The fix contradicts it, so surface that to the user rather than silently making it match.
+    - A claim that reads both ways is treated as prescribing, and surfaced rather than rewritten.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not. When that other side falls outside the purpose bound, the stop applies before the counterpart edit lands.
 
 ## 3. Reflective checkpoint — suspect a band-aid

@@ -124,7 +124,9 @@ Checklist:
   - the rest, only where the user chose to extend the change.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
-- Explain anything declined or deferred, including a part of the fix the purpose bound held back, whether or not other edits landed.
+- Explain anything declined or deferred, whether or not other edits landed. That covers two things:
+  - a part of the fix the purpose bound held back;
+  - any spec, plan, or ADR the fix contradicts, surfaced rather than rewritten, which is owed.
 - Show inferred reply target type (`human` or `ai-bot`), and say whether the thread will be resolved under Rule 8; finalize both here together with commit/push confirmation.
 - Ask for override only when the user disagrees or the inference confidence is low.
 - Show the Step 6 draft reply that will be posted after commit/push.
