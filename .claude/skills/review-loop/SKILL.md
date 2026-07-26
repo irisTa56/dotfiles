@@ -22,7 +22,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - Judge each such report on its own merits, not from the earlier verdict.
      - That it recurs is not itself evidence against that verdict: a loop spawning uninformed reviewers produces recurrence by design.
      - What carries no weight is the bare repeat of one rejected finding. `address-finding`'s same-mechanism criterion still stands, since distinct findings clustering on one mechanism are signal about the mechanism.
-   - This step has one blocking pause, and everything it puts to the user goes there: wait for the answer before continuing the round.
+   - This step blocks in one place only, and both of the below arrive there: when either arises, wait for the answer before continuing the round. Anything else it tells the user does not block.
      - A fix reaching past the purpose bound, which `address-finding` stops and puts to the user.
      - A valid finding the loop cannot fix.
      - Step 1's "do not wait" governs the purpose statement alone.
