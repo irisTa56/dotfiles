@@ -118,7 +118,10 @@ Present the diff and reasoning to the user as a **single final execution checkpo
 
 Checklist:
 
-- Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land — the part inside the purpose bound always, and the rest only where the user chose to extend the change; otherwise, return to Step 5 before asking for approval.
+- Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land; otherwise, return to Step 5 before asking for approval. Those are:
+  - the part inside the purpose bound, always;
+  - a correction `address-finding` landed outside the bound on its own;
+  - the rest, only where the user chose to extend the change.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, including a part of the fix the purpose bound held back, whether or not other edits landed.

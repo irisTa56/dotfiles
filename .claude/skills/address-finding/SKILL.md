@@ -54,7 +54,7 @@ Put that part to them with the real options, rather than a default to deferral:
 
 Recommend one and say why, then apply what the user decides.
 
-Work is **owed** when the user carves it out, and when a sweep remainder or anything else surfaced is reported as a follow-up.
+Work is **owed** when the user carves it out, and when something this skill surfaced instead of applying is reported as a follow-up.
 Leaving it owes nothing.
 
 ### Fix discipline
@@ -65,7 +65,7 @@ Leaving it owes nothing.
   - A calling workflow may name a wider scope.
 - **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files. When the spread reaches past the purpose bound, fix what falls inside it and put the rest to the user under the stop above.
-  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does, wherever they live — this is breakage the fix caused, not a defect it found, so the purpose bound does not cap it. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
+  - **Falsified claims.** Update the prose the code no longer matches — docstrings, comments, and the documents that describe the behaviour — wherever it lives. This is breakage the fix caused, not a defect it found, so the purpose bound does not cap it. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not. When that other side falls outside the purpose bound, the stop applies before the counterpart edit lands.
 
 ## 3. Reflective checkpoint — suspect a band-aid
