@@ -65,6 +65,13 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 - Read the file and lines the comment refers to.
 - Understand the reviewer's suggestion or concern.
 - Look at surrounding code for broader context if needed.
+- Read the PR's own title and body for what the change is for:
+
+  ```bash
+  gh api repos/{owner}/{repo}/pulls/{number} --jq '{title, body}'
+  ```
+
+  This is the purpose `address-finding` weighs a fix against. The comment sets what to fix; the PR sets how far a fix may reach.
 
 ### 4. Evaluate Validity
 
@@ -74,8 +81,14 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the `address-finding` skill: root-cause and minimal scope, its no-silent-reversal check, its consistency sweep, and its reflective band-aid checkpoint.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section, with the PR's purpose from Step 3 as the bound.
 Complete all file edits in this step before proceeding.
+
+A fix the purpose bound stops is the one thing this skill asks about before Step 7.
+Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
+
+- Present the options and your recommendation, and wait.
+- A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply
 
@@ -172,7 +185,7 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
-3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
+3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence. The one thing that may be asked earlier is a fix the purpose bound stopped at Step 5, since that answer decides what Step 7 will show.
 4. **Commit language**: Always English, conventional commit format.
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
