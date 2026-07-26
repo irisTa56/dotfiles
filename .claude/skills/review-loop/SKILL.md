@@ -15,12 +15,13 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the section below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
-   - The prompt carries the changes and the section below, and nothing else — not the record, not the pinned purpose, not what earlier rounds found or did. Not knowing them is what the reviewer is for.
+   - Beyond that, the prompt carries the changes and the section below, and nothing of this loop's own state — not the record, not the pinned purpose, not what earlier rounds found or did. Not knowing them is what the reviewer is for.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
    - A finding you rejected is not recorded, so a fresh reviewer may report it again.
      - Judge each such report on its own merits, not from the earlier verdict.
      - That it recurs is not itself evidence against that verdict: a loop spawning uninformed reviewers produces recurrence by design.
+     - What carries no weight is the bare repeat of one rejected finding. `address-finding`'s same-mechanism criterion still stands, since distinct findings clustering on one mechanism are signal about the mechanism.
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
@@ -37,7 +38,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## Perspectives for the Review
 
-Hand the reviewer this whole section: the numbered perspectives to weigh on top of the `code-review-expert` defaults, and the bar below that an ambiguity finding must clear.
+Weigh these on top of the `code-review-expert` defaults.
 
 Report an ambiguity only by naming two readings and the different actions they lead to, whatever the finding is raised under.
 An ambiguity that cannot change what the reader does is not a finding, and without that bar a careful reviewer generates them without end.
