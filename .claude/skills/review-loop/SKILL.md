@@ -18,7 +18,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - Keep the record, the pinned purpose, and every earlier round's outcome out of the prompt. Not knowing them is what the reviewer is for.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-   - A finding you rejected is not recorded. When a fresh reviewer reports it again, judge it again: a second independent report is new evidence that the rejection was wrong.
+   - A finding you rejected is not recorded. When a fresh reviewer reports it again, judge it again on its merits rather than from the earlier verdict — and count the repeat as evidence against that verdict only where it argues a harm the first report did not.
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
@@ -35,7 +35,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## Perspectives for the Review
 
-Direct the reviewer to weigh these on top of the `code-review-expert` defaults.
+Hand the reviewer this whole section: the numbered perspectives to weigh on top of the `code-review-expert` defaults, and the bar every finding it reports must clear.
 
 Report an ambiguity only by naming two readings and the different actions they lead to, whatever the finding is raised under.
 One that cannot change what the reader does is not a finding, and without that bar a careful reviewer generates them without end.
