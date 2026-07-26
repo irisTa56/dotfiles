@@ -81,7 +81,7 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section, with the PR's purpose from Step 3 as the bound.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, with the PR's purpose from Step 3 as that bound — and under its reflective band-aid checkpoint.
 Complete all file edits in this step before proceeding.
 
 A fix the purpose bound stops is the one thing this skill asks about before Step 7.
@@ -185,7 +185,8 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
-3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence. The one thing that may be asked earlier is a fix the purpose bound stopped at Step 5, since that answer decides what Step 7 will show.
+3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
+   - The sole earlier question is a fix the purpose bound stopped at Step 5, whose answer decides what Step 7 will show.
 4. **Commit language**: Always English, conventional commit format.
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
