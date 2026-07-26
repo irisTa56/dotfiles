@@ -83,10 +83,10 @@ Land on a verdict before proceeding.
 ### 5. Apply Fix (if needed)
 
 If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, fed by Step 3 — and under its reflective band-aid checkpoint.
+For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Complete all file edits in this step before proceeding.
 
 The part of a fix the purpose bound stops is the one thing this skill asks about before Step 7.
-For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
@@ -101,9 +101,10 @@ Compose a reply draft early, before final confirmation:
 - Select tone by reply target type:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
-- If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-  - If the purpose bound held any of it back: say plainly what was left out and why, and whether it is owed as a follow-up. Without that, a reply reads as covering the whole comment — and when nothing landed at all, keep this and drop the placeholder.
-- If no fix will be made: explain the reasoning respectfully.
+- If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If the purpose bound held part or all of it back: say plainly what was left out and why, and whether it is owed as a follow-up.
+  - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
+- If the comment was declined on the merits: explain the reasoning respectfully.
 
 ### 7. Confirm Fix with User
 
@@ -154,7 +155,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 After posting:
 
 - If reply target type is `human`: do not resolve the thread.
-- If reply target type is `ai-bot`: resolve the thread.
+- If reply target type is `ai-bot` and nothing was carved out as owed: resolve the thread. Keep it open when work is owed, so the follow-up stays visible.
 
 Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
