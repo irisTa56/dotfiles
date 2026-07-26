@@ -88,7 +88,7 @@ A fix the purpose bound stops is the one thing this skill asks about before Step
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
-- Only "fix it here" produces an edit in this step. The other three leave the file unchanged and are reported at Step 7 as a deferral, with the work left to the user as a separate piece.
+- The part of the fix inside the bound lands here whichever option is chosen. Only extending the change adds the rest; the other three leave it out and are reported at Step 7 as a deferral.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply
@@ -108,7 +108,7 @@ Present the diff and reasoning to the user as a **single final execution checkpo
 
 Checklist:
 
-- Precondition: if code changes are required, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval.
+- Precondition: if code changes are required and were not held back at Step 5's purpose bound, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - If no change was made, explain why the suggestion was declined or deferred.

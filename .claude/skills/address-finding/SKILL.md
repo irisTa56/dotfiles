@@ -32,7 +32,7 @@ Land on one verdict:
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
 - **No silent reversal.** Check the fix against every decision already taken in this work — the fixes applied as much as the ones recorded — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
-- **Consistency sweep.** Sweep the axes below so no partial correction remains. When the sweep exposes a systemic spread, fix what is practical within the purpose bound below and report the remainder to the user as a follow-up.
+- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound. When the sweep exposes a spread reaching past that bound, fix what falls inside it and report the rest to the user as a follow-up.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
   - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
@@ -49,14 +49,16 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 A fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
-Weigh the fix that will actually land, including any enlargement the sections below lead you to.
+Work already reported rather than applied — a sweep remainder, a spec contradiction — is not covered: nothing lands, so there is nothing to stop.
 
-- Offer the real options rather than defaulting to deferral:
-  - fix it here;
-  - split the change so the deeper fix lands first;
-  - carve it into a separate change;
-  - leave it.
-- Recommend one of them and say why, then apply what the user decides.
+The part of the fix inside the bound lands either way. Put the part that reaches past it to the user, with the real options rather than a default to deferral:
+
+- extend the change to cover it;
+- split the change so the deeper fix lands first;
+- carve it into a separate change;
+- leave it.
+
+Recommend one and say why, then apply what the user decides.
 
 ## 3. Reflective checkpoint — suspect a band-aid
 
@@ -65,11 +67,13 @@ Before settling on the fix, look at what it does to the code:
 - If it *adds* another branch, guard, flag, or special case onto an existing pile, treat that as a **signal — not a verdict** — that you may be treating a symptom. Step back and look for the root cause, or a consolidation that dissolves the pile.
 - Every addition is a cost, not a neutral act — accept it reluctantly, because the goal cannot be met otherwise, never because the diff still looks acceptable.
 - But do not let that reluctance harden into leanness as a goal in itself: when a valid fix genuinely requires the addition, withholding it to keep the diff small is the failure, not the fix.
+- When stepping back enlarges the fix, weigh the enlarged fix against the purpose bound again before applying it.
 
 ## 4. Handling several findings at once
 
 When multiple findings are in play, view them together before fixing.
 Prefer one structural fix that dissolves a cluster of related findings over N independent local patches.
+That structural fix is larger than any of the patches it replaces, so weigh it against the purpose bound before applying it.
 
 ## Anti-patterns
 

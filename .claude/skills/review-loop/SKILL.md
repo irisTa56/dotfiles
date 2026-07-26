@@ -15,9 +15,9 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - The subagent returns findings only; it makes no edits.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-   - Record every purpose-bound escalation with the user's decision. Carving the work out or leaving it settles the finding even though it stays valid, so a later round that reports it again is answered from that record rather than escalated afresh.
+   - Record every valid finding a round knowingly leaves unfixed, with the disposition the user has seen — an escalation they answered, or a remainder `address-finding` reported as a follow-up. A finding so recorded is settled even though it stays valid, so a later round that reports it again is answered from the record rather than escalated afresh.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
-   - Before spawning, land whatever work the user's answer to an escalation left to do.
+   - Before spawning, land the deeper fix when the user chose to split the change around it.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
 
 ## Perspectives for the Review
