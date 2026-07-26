@@ -22,12 +22,13 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - Judge each such report on its own merits, not from the earlier verdict.
      - That it recurs is not itself evidence against that verdict: a loop spawning uninformed reviewers produces recurrence by design.
      - What carries no weight is the bare repeat of one rejected finding. `address-finding`'s same-mechanism criterion still stands, since distinct findings clustering on one mechanism are signal about the mechanism.
-   - When a fix reaches past the purpose bound, that skill puts the excess to the user.
-     - This is the loop's one blocking pause: wait for the answer before continuing the round.
+   - This step blocks in one place only, and both of the below arrive there: when either arises, wait for the answer before continuing the round. Anything else it tells the user does not block.
+     - A fix reaching past the purpose bound, which `address-finding` stops and puts to the user.
+     - A valid finding the loop cannot fix.
      - Step 1's "do not wait" governs the purpose statement alone.
    - Record what a round knowingly leaves undone: a valid finding the user directed the loop to leave, and every part the purpose bound held back that the user did not have you extend the change to cover, each with their decision.
      - A prescribing claim the fix contradicts, and a spec or plan judged flawed, go in the record whether or not the user answered — `address-finding` is barred from fixing either.
-     - A valid finding the loop cannot fix goes to the user at that same pause, asked as leave it undone or carve it out for separate work, and enters the record with their answer.
+     - A valid finding the loop cannot fix is asked at that pause as leave it undone or carve it out for separate work, and enters the record with their answer.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that step 4 has not settled.
