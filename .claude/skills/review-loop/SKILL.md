@@ -1,6 +1,6 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until no valid finding remains. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the code-review-expert skill and makes no edits."
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until every valid finding is either fixed or settled with the user. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the code-review-expert skill and makes no edits."
 ---
 
 # Review Loop
@@ -9,14 +9,14 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
    - Take it from the user. When they have not stated one, infer it from the diff and say so before the first round, then proceed unless they correct it — the point is that they can, while correcting it is still cheap.
-   - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not licence a further excursion past the purpose.
+   - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not license a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
    - Record every purpose-bound escalation with the user's decision. Carving the work out or leaving it settles the finding even though it stays valid, so a later round that reports it again is answered from that record rather than escalated afresh.
-5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding.
+5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
    - Before spawning, land whatever work the user's answer to an escalation left to do.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
 

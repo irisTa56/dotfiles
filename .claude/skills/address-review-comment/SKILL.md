@@ -88,6 +88,7 @@ A fix the purpose bound stops is the one thing this skill asks about before Step
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
+- Only "fix it here" produces an edit in this step. The other three leave the file unchanged and are reported at Step 7 as a deferral, with the work left to the user as a separate piece.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply

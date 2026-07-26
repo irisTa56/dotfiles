@@ -32,7 +32,7 @@ Land on one verdict:
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
 - **No silent reversal.** Check the fix against every decision already taken in this work — the fixes applied as much as the ones recorded — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
-- **Consistency sweep.** Sweep the axes below so no partial correction remains. When the sweep exposes a systemic spread, fix what is practical within the purpose bound below and put the remainder to the user.
+- **Consistency sweep.** Sweep the axes below so no partial correction remains. When the sweep exposes a systemic spread, fix what is practical within the purpose bound below and report the remainder to the user as a follow-up.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
   - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
@@ -46,9 +46,10 @@ Take it from the first of these that states one:
 - the calling workflow;
 - the diff, read as a whole.
 
-Say which source you used, so the user sees the bound they are judging against.
+State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 A fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
+Weigh the fix that will actually land, including any enlargement the sections below lead you to.
 
 - Offer the real options rather than defaulting to deferral:
   - fix it here;
