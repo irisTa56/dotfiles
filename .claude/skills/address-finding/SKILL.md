@@ -45,7 +45,7 @@ The part of a fix that reaches past that purpose, whatever its shape, stops for 
 Where this skill prescribes surfacing instead of applying — a prescribing claim the fix contradicts, or a spec or plan judged flawed — the stop does not apply: nothing lands, so there is nothing to stop.
 One thing lands outside the bound without stopping: a describing claim the fix itself falsified, for the reason the axis below gives.
 
-The part of the fix inside the bound is kept whichever option is chosen; what the user decides is only the part that reaches past it.
+The part of the fix inside the bound is kept whichever option is chosen, and so is anything this skill lands outside it on its own; what the user decides is only the stopped part.
 Put that part to them with the real options, rather than a default to deferral:
 
 - extend the change to cover it;
@@ -60,7 +60,7 @@ Recommend one and say why, then apply what the user decides.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
-- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied.
+- **Consistency sweep.** Sweep the axes below; each says how far its correction reaches.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files. When the spread reaches past the purpose bound, fix what falls inside it and put the rest to the user under the stop above.
   - **Falsified claims.** Update a claim that *describes* what the code does, wherever it lives — docstrings, comments, documents.
     - This is breakage the fix caused, not a defect it found, so the purpose bound does not cap it.

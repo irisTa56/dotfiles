@@ -92,10 +92,10 @@ The part of a fix the purpose bound stops is the one thing this skill asks about
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
-- The part of the fix inside the bound lands here whichever option is chosen; only the rest depends on the answer.
-  - Extend the change: the rest lands here too.
-  - Carve it out: the rest is left, to be done separately.
-  - Leave it: the rest is left undone.
+- The part of the fix inside the bound lands here whichever option is chosen, and so does any correction the core lands outside it on its own; only the stopped part depends on the answer.
+  - Extend the change: the stopped part lands here too.
+  - Carve it out: it is left, to be done separately.
+  - Leave it: it is left undone.
 - Report the option taken at Step 7.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 

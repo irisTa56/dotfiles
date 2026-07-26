@@ -20,10 +20,12 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
-   - Record what a round knowingly leaves undone: a valid finding the user directed the loop to leave, and every part of a fix the purpose bound held back, each with the user's decision. Anything `address-finding` surfaced rather than fixed goes in the record whether or not the user answered.
+   - Record what a round knowingly leaves undone: a valid finding the user directed the loop to leave, and every part of a fix the purpose bound held back, each with the user's decision.
+     - A prescribing claim the fix contradicts, and a spec or plan judged flawed, go in the record whether or not the user answered — `address-finding` is barred from fixing either.
+     - A valid finding the loop cannot fix goes to the user under the same stop, and enters the record with their decision.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
-5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
+5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that step 4 has not settled.
    - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
    - A fix that the holistic look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
