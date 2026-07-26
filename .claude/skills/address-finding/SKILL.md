@@ -60,6 +60,7 @@ Recommend one and say why, then apply what the user decides.
 
 ### Fix discipline
 
+- **Meet the bar the fix will be judged against.** A calling workflow that reviews the result states what its reviewer weighs — `review-loop`'s "Perspectives for the Review" is one. Read it and hold the fix to it, rather than learning what it asks for from the next round's findings.
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
