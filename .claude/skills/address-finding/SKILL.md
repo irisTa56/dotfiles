@@ -35,7 +35,7 @@ Land on one verdict:
 - **Consistency sweep.** Sweep the axes below so no partial correction remains. When the sweep exposes a systemic spread, fix what is practical within the purpose bound below and put the remainder to the user.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
   - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
-  - **Implied counterpart.** A contract, guard, or invariant the fix establishes that only one side of a pair now honours — decide explicitly whether the other side needs it, and tell the user why when it does not.
+  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
 
 ### The purpose bound
 

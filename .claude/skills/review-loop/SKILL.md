@@ -7,8 +7,8 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## Workflow
 
-1. **Fix the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
-   - Take it from the user. When they have not stated one, infer it from the diff and put that inference to them before the first round, while correcting it is still cheap.
+1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
+   - Take it from the user. When they have not stated one, infer it from the diff and say so before the first round, then proceed unless they correct it — the point is that they can, while correcting it is still cheap.
    - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not licence a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
@@ -18,15 +18,16 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
    - **Keep a ledger.** Record every finding a round does not simply fix, with the decision taken and who took it.
      - This covers two classes:
-       - an escalation the user answered, including one they told you to fix here;
+       - an escalation the user answered, whether by carving the work out, leaving it, or telling you to fix it here;
        - anything `address-finding` surfaces to the user instead of fixing.
+     - A carve-out or a leave-it settles the finding even though it stays valid.
      - A fresh reviewer knows none of this and re-reports those findings.
        - Where the user decided, answer from the ledger.
        - Where you decided alone, a second independent report is new evidence, so judge it again.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding the ledger has not already settled.
    - Before spawning:
      - settle everything you put to the user;
-     - land whatever work the user's answer to an escalation left in the diff.
+     - land whatever work the user's answer to an escalation left to do.
    - When the loop settles:
      - take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches — coherence is the target, not diff size;
      - report every ledgered finding with the decision recorded for it, flagging carved-out work as follow-up that is owed.
