@@ -42,7 +42,7 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
-Work already reported rather than applied — a sweep remainder, a spec contradiction — is not covered: nothing lands, so there is nothing to stop.
+Where this skill already prescribes reporting instead of applying — a sweep remainder, a spec contradiction, both below — the stop does not apply: nothing lands, so there is nothing to stop.
 
 The part of the fix inside the bound lands either way. Put the part that reaches past it to the user, with the real options rather than a default to deferral:
 

@@ -72,7 +72,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
   ```
 
   This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
-- When the title and body state no intent, read the change as a whole instead (`gh pr diff {number} --name-only` alongside the title), and say which of the two you used.
+- When the title and body state no intent, read the change as a whole instead, and say which of the two you used. `gh pr diff {number} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
 
 ### 4. Evaluate Validity
 
@@ -102,7 +102,7 @@ Compose a reply draft early, before final confirmation:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
 - If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If only part of the fix lands: say what landed, say plainly what was left out and why, and state whether it is owed as a follow-up — otherwise the SHA reads as covering the whole comment.
+  - If the purpose bound held any of it back: say plainly what was left out and why, and whether it is owed as a follow-up. Without that, a reply reads as covering the whole comment — and when nothing landed at all, keep this and drop the placeholder.
 - If no fix will be made: explain the reasoning respectfully.
 
 ### 7. Confirm Fix with User
