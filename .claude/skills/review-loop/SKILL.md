@@ -16,14 +16,14 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - The subagent returns findings only; it makes no edits.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-   - Record every valid finding a round knowingly leaves unfixed, with the disposition the user has already seen — an escalation they answered, a remainder reported as a follow-up, or anything else `address-finding` surfaced rather than applied.
+   - Record what a round knowingly leaves undone, with the disposition the user has already seen: every valid finding it leaves unfixed, and every remainder or counterpart `address-finding` reported rather than applied.
    - A finding so recorded is **settled** even though it stays valid, so a later round that reports it again is answered from the record rather than escalated afresh.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
    - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
    - A fix that the holistic look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
-   - When the loop closes, name the findings recorded as owed, so the follow-up does not end with the loop.
+   - When the loop closes, name everything recorded as owed, so the follow-up does not end with the loop.
 
 ## Perspectives for the Review
 

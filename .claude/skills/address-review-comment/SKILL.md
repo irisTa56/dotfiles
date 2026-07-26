@@ -90,7 +90,7 @@ The part of a fix the purpose bound stops is the one thing this skill asks about
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
-- The part of the fix inside the bound lands here whichever option is chosen. Only extending the change adds the rest; the other two leave it out, to be reported at Step 7 as a deferral.
+- The part of the fix inside the bound lands here whichever option is chosen. Only extending the change adds the rest; carving it out leaves it owed, and leaving it owes nothing. Report either at Step 7.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply
@@ -101,7 +101,7 @@ Compose a reply draft early, before final confirmation:
 - Select tone by reply target type:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
-- If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If the whole fix landed and nothing is owed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
 - If part of the fix did not land, or work is owed: say plainly what was left out and why, and whether it is owed as a follow-up.
   - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
 - If the comment was declined on the merits: explain the reasoning respectfully.
@@ -116,7 +116,7 @@ Checklist:
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, including a part of the fix the purpose bound held back, whether or not other edits landed.
-- Show inferred reply target type (`human` or `ai-bot`) and finalize it here together with commit/push confirmation.
+- Show inferred reply target type (`human` or `ai-bot`), and say whether the thread will be resolved under Rule 8; finalize both here together with commit/push confirmation.
 - Ask for override only when the user disagrees or the inference confidence is low.
 - Show the Step 6 draft reply that will be posted after commit/push.
 
