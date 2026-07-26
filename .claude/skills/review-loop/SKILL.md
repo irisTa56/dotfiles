@@ -23,7 +23,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
    - A fix that the holistic look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
-   - When the loop closes, name the findings carved out as owed, so the follow-up does not end with the loop.
+   - When the loop closes, name the findings recorded as owed, so the follow-up does not end with the loop.
 
 ## Perspectives for the Review
 

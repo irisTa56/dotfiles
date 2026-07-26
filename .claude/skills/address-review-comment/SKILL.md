@@ -102,7 +102,7 @@ Compose a reply draft early, before final confirmation:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
 - If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If the purpose bound held part or all of it back: say plainly what was left out and why, and whether it is owed as a follow-up.
+- If part of the fix did not land, or work is owed: say plainly what was left out and why, and whether it is owed as a follow-up.
   - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
 - If the comment was declined on the merits: explain the reasoning respectfully.
 
@@ -155,7 +155,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 After posting:
 
 - If reply target type is `human`: do not resolve the thread.
-- If reply target type is `ai-bot` and nothing was carved out as owed: resolve the thread. Keep it open when work is owed, so the follow-up stays visible.
+- If reply target type is `ai-bot` and nothing is owed: resolve the thread. Work that is owed keeps it open, so the follow-up stays visible.
 
 Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
@@ -196,4 +196,4 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
 7. **Reply target type**: Infer after reading comment metadata, then finalize at Step 7 (single checkpoint).
-8. **Thread resolution policy**: Resolve only for `ai-bot`; keep open for `human`.
+8. **Thread resolution policy**: Resolve only for `ai-bot`, and only when nothing is owed; keep open for `human`.

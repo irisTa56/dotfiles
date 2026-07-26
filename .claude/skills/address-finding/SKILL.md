@@ -44,7 +44,8 @@ State the purpose and the source you took it from, so the user sees the bound th
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
 Where this skill already prescribes reporting instead of applying — a sweep remainder, a spec contradiction, both below — the stop does not apply: nothing lands, so there is nothing to stop.
 
-The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it. Put that part to them with the real options, rather than a default to deferral:
+The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it.
+Put that part to them with the real options, rather than a default to deferral:
 
 - extend the change to cover it;
 - carve it out, recorded as a follow-up that is owed;
@@ -52,10 +53,15 @@ The part of the fix inside the bound is kept either way; what the user decides i
 
 Recommend one and say why, then apply what the user decides.
 
+Work is **owed** when the user carves it out, and when a sweep remainder or anything else surfaced is reported as a follow-up.
+Leaving it owes nothing.
+
 ### Fix discipline
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
-- **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. By default that is the change in hand together with any fixes made on top of it; a calling workflow may name a wider scope. When the fix undoes one of those decisions, say so and argue why the reversal is right rather than letting it land as a fresh fix.
+- **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
+  - By default the piece of work is the change in hand together with any fixes made on top of it.
+  - A calling workflow may name a wider scope.
 - **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound. When the sweep exposes a spread reaching past that bound, fix what falls inside it and report the rest to the user as a follow-up.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
   - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
