@@ -20,20 +20,14 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
-   - Record what a round knowingly leaves undone, with the disposition the user has already seen:
-     - a valid finding the user directed the loop to leave, which owes nothing unless they asked for a follow-up;
-     - every part of a fix the purpose bound held back:
-       - carved out by the user, which is owed;
-       - left, which owes nothing;
-     - every prescribing claim it surfaced instead of rewriting, and every spec or plan it judged flawed, both owed;
-     - every counterpart it decided the other side does not need, which owes nothing.
+   - Record what a round knowingly leaves undone, and what the user decided about it.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
    - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
    - A fix that the holistic look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
-   - When the loop closes, name everything recorded as owed, so the follow-up does not end with the loop.
+   - When the loop closes, report the record, so what was left undone does not end with the loop.
 
 ## Perspectives for the Review
 

@@ -94,8 +94,8 @@ Ask here rather than deferring: the answer decides what gets edited, and Step 7 
 - Present the options and your recommendation, and wait.
 - The part of the fix inside the bound lands here whichever option is chosen; only the rest depends on the answer.
   - Extend the change: the rest lands here too.
-  - Carve it out: the rest is left, and owed.
-  - Leave it: the rest is left, owing nothing.
+  - Carve it out: the rest is left, to be done separately.
+  - Leave it: the rest is left undone.
 - Report the option taken at Step 7.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
@@ -107,8 +107,8 @@ Compose a reply draft early, before final confirmation:
 - Select tone by reply target type:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
-- If the whole fix landed and nothing is owed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If part of the fix did not land, or work is owed: say plainly what was left out and why, and whether it is owed as a follow-up.
+- If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If any part did not land: say plainly what was left out and why, and whether it is to be done separately.
   - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
 - If the comment was declined on the merits: explain the reasoning respectfully.
 
@@ -124,10 +124,8 @@ Checklist:
   - the rest, only where the user chose to extend the change.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
-- Explain anything declined or deferred, whether or not other edits landed. That covers two things:
-  - a part of the fix the purpose bound held back;
-  - any prescribing claim the fix contradicts, or a spec judged flawed, surfaced rather than rewritten, which is owed.
-- Show inferred reply target type (`human` or `ai-bot`), and say whether the thread will be resolved under Rule 8; finalize both here together with commit/push confirmation.
+- Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
+- Show inferred reply target type (`human` or `ai-bot`) and whether the thread will be resolved, and finalize both here together with commit/push confirmation. Work left for later is a reason to keep the thread open, so say what was left.
 - Ask for override only when the user disagrees or the inference confidence is low.
 - Show the Step 6 draft reply that will be posted after commit/push.
 
@@ -166,7 +164,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 After posting:
 
 - If reply target type is `human`: do not resolve the thread.
-- If reply target type is `ai-bot` and nothing is owed: resolve the thread. Work that is owed keeps it open, so the follow-up stays visible.
+- If reply target type is `ai-bot`: resolve the thread, unless Step 7 settled otherwise.
 
 Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
@@ -207,4 +205,4 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
 7. **Reply target type**: Infer after reading comment metadata, then finalize at Step 7 (single checkpoint).
-8. **Thread resolution policy**: Resolve only for `ai-bot`, and only when nothing is owed; keep open for `human`.
+8. **Thread resolution policy**: Resolve only for `ai-bot`, as confirmed at Step 7; keep open for `human`.

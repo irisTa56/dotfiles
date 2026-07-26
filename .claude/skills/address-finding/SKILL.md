@@ -49,13 +49,10 @@ The part of the fix inside the bound is kept either way; what the user decides i
 Put that part to them with the real options, rather than a default to deferral:
 
 - extend the change to cover it;
-- carve it out, recorded as a follow-up that is owed;
-- leave it, owing nothing.
+- carve it out, to be done separately;
+- leave it undone.
 
 Recommend one and say why, then apply what the user decides.
-
-Work is **owed** when the user carves it out, and when this skill surfaces work it must not apply itself — a prescribing claim the fix contradicts, or a spec or plan §1 judged flawed.
-Leaving it owes nothing, and so does a counterpart this skill decided the other side does not need.
 
 ### Fix discipline
 
