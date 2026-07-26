@@ -7,12 +7,16 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## Workflow
 
-1. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
+1. **Fix the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
+   - Take it from the user. When they have not stated one, infer it from the diff and put that inference to them before the first round, while correcting it is still cheap.
+   - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not licence a further excursion past the purpose.
+2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
-2. **Report findings** to the user as the subagent returned them.
-3. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-4. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding.
+3. **Report findings** to the user as the subagent returned them.
+4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
+5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding.
+   - Before spawning, land whatever work the user's answer to an escalation left in the diff.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
 
 ## Perspectives for the Review

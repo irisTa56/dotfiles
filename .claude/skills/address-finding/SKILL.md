@@ -31,7 +31,31 @@ Land on one verdict:
 ## 2. Apply the fix
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
-- **Consistency sweep.** Check related sites (other call sites, sibling functions, similar files) for the same issue and fix them together, so no partial correction remains. If the sweep exposes a systemic spread, fix what is practical here and flag the remainder to the user for a follow-up.
+- **No silent reversal.** Check the fix against every decision already taken in this work — the fixes applied as much as the ones recorded — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
+- **Consistency sweep.** Sweep the axes below so no partial correction remains. When the sweep exposes a systemic spread, fix what is practical within the purpose bound below and put the remainder to the user.
+  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
+  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
+  - **Implied counterpart.** A contract, guard, or invariant the fix establishes that only one side of a pair now honours — decide explicitly whether the other side needs it, and tell the user why when it does not.
+
+### The purpose bound
+
+Establish the purpose of the change in hand before weighing any fix against it.
+Take it from the first of these that states one:
+
+- the user;
+- the calling workflow;
+- the diff, read as a whole.
+
+Say which source you used, so the user sees the bound they are judging against.
+
+A fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
+
+- Offer the real options rather than defaulting to deferral:
+  - fix it here;
+  - split the change so the deeper fix lands first;
+  - carve it into a separate change;
+  - leave it.
+- Recommend one of them and say why, then apply what the user decides.
 
 ## 3. Reflective checkpoint — suspect a band-aid
 

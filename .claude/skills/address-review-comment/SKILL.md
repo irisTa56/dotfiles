@@ -74,7 +74,7 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the `address-finding` skill: root-cause and minimal scope, its consistency sweep across related sites, and its reflective band-aid checkpoint.
+If a fix is warranted, apply it under the `address-finding` skill: root-cause and minimal scope, its no-silent-reversal check, its consistency sweep, and its reflective band-aid checkpoint.
 Complete all file edits in this step before proceeding.
 
 ### 6. Draft Reply
@@ -96,6 +96,7 @@ Checklist:
 
 - Precondition: if code changes are required, confirm the working tree already contains the intended edits; otherwise, return to Step 5 before asking for approval.
 - Show what was changed and why.
+- Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - If no change was made, explain why the suggestion was declined or deferred.
 - Show inferred reply target type (`human` or `ai-bot`) and finalize it here together with commit/push confirmation.
 - Ask for override only when the user disagrees or the inference confidence is low.
