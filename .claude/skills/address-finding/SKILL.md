@@ -30,13 +30,6 @@ Land on one verdict:
 
 ## 2. Apply the fix
 
-- **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
-- **No silent reversal.** Check the fix against every decision already taken in this work — the fixes applied as much as the ones recorded — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
-- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound. When the sweep exposes a spread reaching past that bound, fix what falls inside it and report the rest to the user as a follow-up.
-  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
-  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
-  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
-
 ### The purpose bound
 
 Establish the purpose of the change in hand before weighing any fix against it.
@@ -54,11 +47,19 @@ Work already reported rather than applied — a sweep remainder, a spec contradi
 The part of the fix inside the bound lands either way. Put the part that reaches past it to the user, with the real options rather than a default to deferral:
 
 - extend the change to cover it;
-- split the deeper fix out so it lands ahead of the rest;
 - carve it into a separate change;
 - leave it.
 
 Recommend one and say why, then apply what the user decides.
+
+### Applying it
+
+- **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
+- **No silent reversal.** Check the fix against the decisions already taken in this piece of work — the fixes applied and the record kept within it — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
+- **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound. When the sweep exposes a spread reaching past that bound, fix what falls inside it and report the rest to the user as a follow-up.
+  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
+  - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
+  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
 
 ## 3. Reflective checkpoint — suspect a band-aid
 

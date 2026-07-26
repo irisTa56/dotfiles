@@ -71,7 +71,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
   gh api repos/{owner}/{repo}/pulls/{number} --jq '{title, body}'
   ```
 
-  This is the purpose `address-finding` weighs a fix against. The comment sets what to fix; the PR sets how far a fix may reach.
+  This is what this workflow offers for `address-finding`'s purpose source, used unless the user states a narrower one. The comment sets what to fix; the PR sets how far a fix may reach.
 
 ### 4. Evaluate Validity
 
@@ -81,14 +81,14 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, with the PR's purpose from Step 3 as that bound — and under its reflective band-aid checkpoint.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, fed by Step 3 — and under its reflective band-aid checkpoint.
 Complete all file edits in this step before proceeding.
 
 A fix the purpose bound stops is the one thing this skill asks about before Step 7.
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
-- The part of the fix inside the bound lands here whichever option is chosen. Only extending the change adds the rest; the other three leave it out and are reported at Step 7 as a deferral.
+- The part of the fix inside the bound lands here whichever option is chosen. Only extending the change adds the rest; the other two leave it out, to be reported at Step 7 as a deferral.
 - A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply

@@ -20,7 +20,6 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - a remainder `address-finding` reported as a follow-up.
    - A finding so recorded is **settled** even though it stays valid, so a later round that reports it again is answered from the record rather than escalated afresh.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
-   - Before spawning, land the deeper fix the user chose to split out, as its own commit ahead of the rest so the split they asked for exists.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
 
 ## Perspectives for the Review
