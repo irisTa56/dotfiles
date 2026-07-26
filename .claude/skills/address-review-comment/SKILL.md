@@ -73,8 +73,8 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 
   This is what this workflow offers for `address-finding`'s purpose source, used unless the user states one. The comment sets what to fix; the PR sets how far a fix may reach.
 - When the title and body state no intent, read the change as a whole instead.
-  - Say explicitly which of the two the purpose came from.
   - `gh pr diff {number} --name-only` is the cheap first look; read the patch itself when the file list says too little to bound anything.
+- Say explicitly which source the purpose came from.
 
 ### 4. Evaluate Validity
 

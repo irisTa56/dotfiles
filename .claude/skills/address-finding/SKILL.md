@@ -42,7 +42,8 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
-Where this skill already prescribes reporting instead of applying — a sweep remainder, a spec contradiction, both below — the stop does not apply: nothing lands, so there is nothing to stop.
+Where this skill already prescribes reporting instead of applying — a sibling-site remainder, a spec contradiction, both below — the stop does not apply: nothing lands, so there is nothing to stop.
+One thing lands outside the bound without stopping: a claim the fix itself falsified, because leaving it standing is breakage the fix caused rather than scope it chose.
 
 The part of the fix inside the bound is kept either way; what the user decides is only the part that reaches past it.
 Put that part to them with the real options, rather than a default to deferral:
@@ -65,7 +66,7 @@ Leaving it owes nothing.
 - **Consistency sweep.** Sweep the axes below, and leave no correction half-applied inside the purpose bound.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files. When the spread reaches past the purpose bound, fix what falls inside it and report the rest to the user as a follow-up.
   - **Falsified claims.** Update the docstrings and comments that now describe something the code no longer does, wherever they live — this is breakage the fix caused, not a defect it found, so the purpose bound does not cap it. When the fix contradicts a spec document instead, surface that to the user rather than silently rewriting the spec to match.
-  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not.
+  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it, and tell the user why when it does not. When that other side falls outside the purpose bound, the stop applies before the counterpart edit lands.
 
 ## 3. Reflective checkpoint — suspect a band-aid
 
