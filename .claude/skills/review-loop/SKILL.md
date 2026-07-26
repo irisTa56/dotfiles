@@ -18,8 +18,8 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
    - Record what a round knowingly leaves undone, with the disposition the user has already seen:
      - every valid finding it leaves unfixed;
-     - everything `address-finding` counts as owed, including a part of a fix the user carved out;
-     - every remainder or counterpart it reported rather than applied.
+     - every part of a fix the purpose bound held back, whether the user carved it out or left it;
+     - everything `address-finding` reported as a follow-up rather than applying.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
