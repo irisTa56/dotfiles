@@ -52,7 +52,7 @@ The part of the fix inside the bound lands either way. Put the part that reaches
 
 Recommend one and say why, then apply what the user decides.
 
-### Applying it
+### Fix discipline
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work — the fixes applied and the record kept within it — and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.

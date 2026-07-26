@@ -85,7 +85,8 @@ Land on a verdict before proceeding.
 If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, fed by Step 3 — and under its reflective band-aid checkpoint.
 Complete all file edits in this step before proceeding.
 
-A fix the purpose bound stops is the one thing this skill asks about before Step 7.
+The part of a fix the purpose bound stops is the one thing this skill asks about before Step 7.
+For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
@@ -101,6 +102,7 @@ Compose a reply draft early, before final confirmation:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
 - If a fix is planned or made: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If only part of the fix lands: say what landed, say plainly what was left out and why, and state whether it is owed as a follow-up — otherwise the SHA reads as covering the whole comment.
 - If no fix will be made: explain the reasoning respectfully.
 
 ### 7. Confirm Fix with User
@@ -109,7 +111,7 @@ Present the diff and reasoning to the user as a **single final execution checkpo
 
 Checklist:
 
-- Precondition: confirm the working tree holds every edit that was meant to land — the part inside the purpose bound always, and the rest only where the user chose to extend the change; otherwise, return to Step 5 before asking for approval.
+- Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land — the part inside the purpose bound always, and the rest only where the user chose to extend the change; otherwise, return to Step 5 before asking for approval.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, including a part of the fix the purpose bound held back, whether or not other edits landed.
@@ -188,7 +190,7 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
 3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
-   - The sole earlier question is a fix the purpose bound stopped at Step 5, whose answer decides what Step 7 will show.
+   - The sole earlier question concerns the part of a fix the purpose bound stopped at Step 5, whose answer decides what Step 7 will show.
 4. **Commit language**: Always English, conventional commit format.
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.

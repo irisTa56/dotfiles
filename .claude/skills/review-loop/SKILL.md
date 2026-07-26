@@ -8,7 +8,8 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Workflow
 
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
-   - Take it from the user. When they have not stated one, infer it from the diff and say so before the first round. Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
+   - Take it from the user; when they have not stated one, infer it from the diff and say so before the first round.
+   - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
    - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not license a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
@@ -19,6 +20,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - A finding so recorded is **settled** even though it stays valid, so a later round that reports it again is answered from the record rather than escalated afresh.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
+   - A fix that look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
 
 ## Perspectives for the Review
 
