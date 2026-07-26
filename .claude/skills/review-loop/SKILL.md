@@ -19,6 +19,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - Record every valid finding a round knowingly leaves unfixed, with the disposition the user has already seen — an escalation they answered, a remainder reported as a follow-up, or anything else `address-finding` surfaced rather than applied.
    - A finding so recorded is **settled** even though it stays valid, so a later round that reports it again is answered from the record rather than escalated afresh.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that is not already settled.
+   - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
    - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
    - A fix that look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
 
