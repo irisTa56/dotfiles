@@ -8,29 +8,31 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Workflow
 
 1. **Establish the purpose.** State what this change is for before the first round, and hold every later round to that statement. It is what `address-finding` weighs a fix against, and letting each round re-infer it from a diff the last round grew turns the bound into a ratchet.
-   - Take it from the user. When they have not stated one, infer it from the diff and say so before the first round, then proceed unless they correct it — the point is that they can, while correcting it is still cheap.
-   - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not licence a further excursion past the purpose.
+   - Take it from the user, or failing that from the workflow that invoked this loop; when neither states one, infer it from the diff and say so before the first round.
+   - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
+   - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
+   - Work that has landed is in-bound for later rounds: an excess the user chose to extend the change with, and a correction `address-finding` landed outside the bound on its own. Later rounds may fix defects in it, and neither licenses a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
-   - Keep the ledger, the pinned purpose, and every earlier round's outcome out of the prompt. Not knowing them is what the reviewer is for.
+   - Keep the record, the pinned purpose, and every earlier round's outcome out of the prompt. Not knowing them is what the reviewer is for.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
-   - **Keep a ledger.** Record every finding a round does not simply fix, with the decision taken and who took it.
-     - This covers two classes:
-       - an escalation the user answered, whether by carving the work out, leaving it, or telling you to fix it here;
-       - anything `address-finding` surfaces to the user instead of fixing.
-     - A carve-out or a leave-it settles the finding even though it stays valid.
-     - A fresh reviewer knows none of this and re-reports those findings.
-       - Where the user decided, answer from the ledger.
-       - Where you decided alone, a second independent report is new evidence, so judge it again.
-5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding the ledger has not already settled.
-   - Before spawning:
-     - settle everything you put to the user;
-     - land whatever work the user's answer to an escalation left to do.
-   - When the loop settles:
-     - take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches — coherence is the target, not diff size;
-     - report every ledgered finding with the decision recorded for it, flagging carved-out work as follow-up that is owed.
+   - When a fix reaches past the purpose bound, that skill puts the excess to the user.
+     - This is the loop's one blocking pause: wait for the answer before continuing the round.
+     - Step 1's "do not wait" governs the purpose statement alone.
+   - Record what a round knowingly leaves undone: a valid finding the user directed the loop to leave, and every part the purpose bound held back that the user did not have you extend the change to cover, each with their decision.
+     - A prescribing claim the fix contradicts, and a spec or plan judged flawed, go in the record whether or not the user answered — `address-finding` is barred from fixing either.
+     - A valid finding the loop cannot fix goes to the user at that same pause, asked as leave it undone or carve it out for separate work, and enters the record with their answer.
+   - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
+     - Where the user decided, answer from the record.
+     - Where you decided alone, a second independent report is new evidence, so judge it again.
+   - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
+5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that step 4 has not settled.
+   - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
+   - When the loop settles, take one holistic look that the accumulated fixes read as a coherent whole rather than a stack of independent patches. Coherence is the target — not diff size.
+   - A fix that the holistic look calls for goes through `address-finding` like any finding, purpose bound included, and the loop re-enters at step 2 so the consolidation is itself reviewed.
+   - When the loop closes, report the record, so what was left undone does not end with the loop.
 
 ## Perspectives for the Review
 
