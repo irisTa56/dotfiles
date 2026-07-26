@@ -36,7 +36,9 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Perspectives for the Review
 
 Direct the reviewer to weigh these on top of the `code-review-expert` defaults.
-In any finding it reports, whatever that finding is raised under, hold reported ambiguity to a bar: name two readings and the different actions they lead to, because an ambiguity that cannot change what the reader does is not a finding. Without it, a careful reviewer generates them without end.
+
+Report an ambiguity only by naming two readings and the different actions they lead to, whatever the finding is raised under.
+One that cannot change what the reader does is not a finding, and without that bar a careful reviewer generates them without end.
 
 1. Whether the change is organically integrated into the deliverable as a whole, rather than a surface-level feature implementation — coherent with the existing design and optimized in context, not bolted on.
 2. Whether the automated tests are sound in quality and coverage, and whether they exercise externally observable behavior rather than internal implementation details.
