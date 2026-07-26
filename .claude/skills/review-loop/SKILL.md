@@ -11,7 +11,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - Take it from the user; when they have not stated one, infer it from the diff and say so before the first round.
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
    - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
-   - An escalation the user accepts brings that work into the change, so later rounds may fix defects in it. It does not license a further excursion past the purpose.
+   - Work that has landed is in-bound for later rounds: an excess the user chose to extend the change with, and a correction `address-finding` landed outside the bound on its own. Later rounds may fix defects in it, and neither licenses a further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
