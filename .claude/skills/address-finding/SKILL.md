@@ -19,7 +19,7 @@ Take the finding seriously, but do not accept it blindly.
 - **The same mechanism again?** When findings keep landing on one mechanism, round after round, the mechanism is what is wrong and not its wording. Ask what it should do before rewording it again.
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
 - **Grounded in actual behavior?** Judge by what the code does, not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
-- **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended and the finding stands on its other criteria.
+- **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
 - **What does the rewrite cost?** A rewrite is itself unreviewed, and is where the next defect comes from. Spend that only on a finding that shows harm.
 
 Land on one verdict:
