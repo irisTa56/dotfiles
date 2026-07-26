@@ -12,7 +12,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - Do not wait for a reply: state it and continue, so a correction is available and costs nothing to skip.
    - This statement is `address-finding`'s required purpose statement for every round, so it is not re-announced at the start of one. Restate it when putting an excess to the user, who is judging against it.
    - Work that has landed is in-bound for later rounds: an excess the user chose to extend the change with, and a correction `address-finding` landed outside the bound on its own. Later rounds may fix defects in it, and neither licenses a further excursion past the purpose.
-2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the perspectives below — a clean, independent vantage point that also keeps the main context uncluttered.
+2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the section below — a clean, independent vantage point that also keeps the main context uncluttered.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type` (that call fails).
    - The subagent returns findings only; it makes no edits.
    - Keep the record, the pinned purpose, and every earlier round's outcome out of the prompt. Not knowing them is what the reviewer is for.
@@ -42,7 +42,7 @@ An ambiguity that cannot change what the reader does is not a finding, and witho
 
 1. Whether the change is organically integrated into the deliverable as a whole, rather than a surface-level feature implementation — coherent with the existing design and optimized in context, not bolted on.
 2. Whether the automated tests are sound in quality and coverage, and whether they exercise externally observable behavior rather than internal implementation details.
-   - Where the change alters executable behavior and a suite exists, name as a finding any behavior it introduces or alters that the suite does not pin, whether you established that by reading or by running the code. Leave the test design to the implementation side.
+   - Where the change alters executable behavior and you can see the suite, name as a finding any behavior it introduces or alters that the suite does not pin, whether you established that by reading or by running the code. Name the gap; leave to the implementation side how it is tested.
 3. Whether declarative tooling config (e.g. `pyproject.toml`, `ruff.toml`, `mise.toml`, `.gitignore`) is authored minimally — only deviations from default, with no pre-emptive defense.
    - Flag added lines that:
      - restate a tool's default value, rather than configuring only what a concrete, already-encountered problem requires;
