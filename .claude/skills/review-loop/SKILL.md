@@ -18,6 +18,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
    - Keep the record, the pinned purpose, and every earlier round's outcome out of the prompt. Not knowing them is what the reviewer is for.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones. State which you accept or reject and why.
+   - A finding you rejected is not recorded. When a fresh reviewer reports it again, judge it again: a second independent report is new evidence that the rejection was wrong.
    - When a fix reaches past the purpose bound, that skill puts the excess to the user.
      - This is the loop's one blocking pause: wait for the answer before continuing the round.
      - Step 1's "do not wait" governs the purpose statement alone.
@@ -25,8 +26,6 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
      - A prescribing claim the fix contradicts, and a spec or plan judged flawed, go in the record whether or not the user answered — `address-finding` is barred from fixing either.
      - A valid finding the loop cannot fix goes to the user at that same pause, asked as leave it undone or carve it out for separate work, and enters the record with their answer.
    - Anything so recorded is **settled**, so a later round that reports it again is answered from the record rather than escalated afresh. A valid finding recorded this way stays valid.
-     - Where the user decided, answer from the record.
-     - Where you decided alone, a second independent report is new evidence, so judge it again.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and the record this loop has accumulated — not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a pass returns no valid finding that step 4 has not settled.
    - A round that applied a fix cannot be the last one. That fix is unreviewed, and the loop exists because an unreviewed fix is where a serious defect hides — spawn again even when you expect nothing.
@@ -37,7 +36,7 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 ## Perspectives for the Review
 
 Direct the reviewer to weigh these on top of the `code-review-expert` defaults.
-Across all of them, hold reported ambiguity to a bar: name two readings and the different actions they lead to, because an ambiguity that cannot change what the reader does is not a finding. Without it, a careful reviewer generates them without end.
+In any finding it reports, whatever that finding is raised under, hold reported ambiguity to a bar: name two readings and the different actions they lead to, because an ambiguity that cannot change what the reader does is not a finding. Without it, a careful reviewer generates them without end.
 
 1. Whether the change is organically integrated into the deliverable as a whole, rather than a surface-level feature implementation — coherent with the existing design and optimized in context, not bolted on.
 2. Whether the automated tests are sound in quality and coverage, and whether they exercise externally observable behavior rather than internal implementation details.
