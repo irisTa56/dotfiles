@@ -42,6 +42,7 @@ Take it from the first of these that states one:
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
 The part of a fix that reaches past that purpose, whatever its shape, stops for the user before it is applied.
+Weigh the fix as it will finally be composed, once §3 and §4 have had their say, so the user is asked once.
 Where this skill prescribes surfacing instead of applying — a prescribing claim the fix contradicts, or a spec or plan judged flawed — the stop does not apply: nothing lands, so there is nothing to stop.
 One thing lands outside the bound without stopping: a describing claim the fix itself falsified, for the reason the axis below gives.
 
@@ -57,7 +58,7 @@ Recommend one and say why, then apply what the user decides.
 ### Fix discipline
 
 - **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
-- **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right rather than letting it land as a fresh fix.
+- **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
 - **Consistency sweep.** Sweep the axes below; each says how far its correction reaches.
@@ -75,13 +76,13 @@ Before settling on the fix, look at what it does to the code:
 - If it *adds* another branch, guard, flag, or special case onto an existing pile, treat that as a **signal — not a verdict** — that you may be treating a symptom. Step back and look for the root cause, or a consolidation that dissolves the pile.
 - Every addition is a cost, not a neutral act — accept it reluctantly, because the goal cannot be met otherwise, never because the diff still looks acceptable.
 - But do not let that reluctance harden into leanness as a goal in itself: when a valid fix genuinely requires the addition, withholding it to keep the diff small is the failure, not the fix.
-- When stepping back enlarges the fix, weigh the enlarged fix against the purpose bound again before applying it.
+- When stepping back enlarges the fix, the enlarged fix is what the purpose bound weighs.
 
 ## 4. Handling several findings at once
 
 When multiple findings are in play, view them together before fixing.
 Prefer one structural fix that dissolves a cluster of related findings over N independent local patches.
-A structural fix can reach further than any of the patches it replaces, so weigh it against the purpose bound before applying it.
+A structural fix can reach further than any of the patches it replaces, and it is what the purpose bound weighs.
 
 ## Anti-patterns
 

@@ -121,7 +121,7 @@ Checklist:
 - Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land; otherwise, return to Step 5 before asking for approval. Those are:
   - the part inside the purpose bound, always;
   - a correction `address-finding` landed outside the bound on its own;
-  - the rest, only where the user chose to extend the change.
+  - the stopped part, only where the user chose to extend the change.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
