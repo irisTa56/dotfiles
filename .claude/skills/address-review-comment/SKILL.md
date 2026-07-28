@@ -85,16 +85,17 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section — its purpose bound included, fed by Step 3 — and under its reflective band-aid checkpoint.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section, its purpose bound included, fed by Step 3.
+Weigh its reflective checkpoint on what the fix costs before settling the fix.
 For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Complete all file edits in this step before proceeding.
 
-The part of a fix the purpose bound stops is the one thing this skill asks about before Step 7.
+The part of a fix that reaches past the purpose bound is the one thing this skill asks about before Step 7.
 Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
-- The part of the fix inside the bound lands here whichever option is chosen, and so does any correction the core lands outside it on its own; only the stopped part depends on the answer.
-  - Extend the change: the stopped part lands here too.
+- The part of the fix inside the bound lands here whichever option is chosen, and so does any correction the core lands outside it on its own; only the part past the bound depends on the answer.
+  - Extend the change: that part lands here too.
   - Carve it out: it is left, to be done separately.
   - Leave it: it is left undone.
 - Report the option taken at Step 7.
@@ -122,7 +123,7 @@ Checklist:
 - Precondition: if a fix was warranted, confirm the working tree holds every edit that was meant to land; otherwise, return to Step 5 before asking for approval. Those are:
   - the part inside the purpose bound, always;
   - a correction `address-finding` landed outside the bound on its own;
-  - the stopped part, only where the user chose to extend the change.
+  - the part past the bound, only where the user chose to extend the change.
 - Show what was changed and why.
 - Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
@@ -201,7 +202,7 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **One comment at a time**: Handle a single comment per invocation.
 3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
-   - The sole earlier question concerns the part of a fix the purpose bound stopped at Step 5, whose answer decides what Step 7 will show.
+   - The sole earlier question concerns the part of a fix that reached past the purpose bound at Step 5, whose answer decides what Step 7 will show.
 4. **Commit language**: Always English, conventional commit format.
 5. **Reply language**: Always match the reviewer's comment language.
 6. **Commit hash in reply**: Always include the commit SHA when a fix was made.

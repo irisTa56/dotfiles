@@ -66,7 +66,7 @@ Spend effort here, roughly in priority order, and skip anything a diff bot alrea
 3. **Omissions and ripple effects.** Hunt with `rg`/`grep` across the repo for what the diff *should* have touched but didn't — sibling call sites, related tests, migrations, docs, config, feature-flag counterparts.
    - This is the highest-value, bot-weakest area.
 4. **Repo/team-specific judgment.** Apply conventions and prior decisions invisible in the diff hunk ("we don't do X here", "this boundary is mid-migration", "this pattern was rejected before").
-5. **High-level quality bar.** Beyond in-diff correctness, hold the change to the review perspectives that the `review-loop` skill defines (design integration, test quality, minimal declarative config).
+5. **High-level quality bar.** Beyond in-diff correctness, hold the change to the review perspectives that the `review-loop` skill defines.
    - Read that skill's "Perspectives for the Review" section as the source of truth rather than a copy here.
 6. **Gap-fill against existing comments.** Do not repeat points the existing bot/human comments already make; cover the gaps they left, and where you merely agree with an existing comment, note that instead of restating it.
 
@@ -74,6 +74,8 @@ If you find nothing beyond what the bots already said, say so honestly.
 
 **Mindset.** When judging every finding above, apply the `address-finding` skill's judgment mindset (its validity criteria and anti-patterns) as the source of truth.
 It frames judging findings when you are the one fixing; as a reviewer you hold someone else's PR to the same bar — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
+`review-loop`'s finding bar and the companion rules of its Perspectives section govern everything you raise, whatever item it arose under and however the comment phrases it — the rationale layer names the wrong action or outcome even where the draft is a question, since a comment that clears no bar lands on another author.
+The PR body and its linked intent stand in for the background that bar names; its background exemption does not follow, so an unfounded stated reason is raised only with what rests on it.
 
 **Delegation.** The wide, small-return parts of this step are good candidates to delegate to a subagent that returns only its findings, keeping the main context clean: the `rg`/`grep` ripple-and-omission sweep (item 3), and reading the linked intent documents (Step 1).
 
