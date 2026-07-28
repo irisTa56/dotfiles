@@ -21,7 +21,7 @@ Trim expressions that don't serve the principles above. But do not simplify thro
 
 ## Side-Effect Disciplines
 
-- Always ask the user for permission before any operation that writes to an external system.
+- Always ask the user for permission before any operation that writes to an external system, showing the content that will leave rather than describing it.
 - Don't force-push to a PR's branch after it has been marked ready.
 
 ## Delegation and Effort
