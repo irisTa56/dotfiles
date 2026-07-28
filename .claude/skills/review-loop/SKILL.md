@@ -16,14 +16,14 @@ It has two sections, and the headings are bookkeeping that stays in the file:
 
 - `## Background (sent to the reviewer)` — what is true of the change, covering what only this side knows and the diff does not show:
   - the pinned purpose;
-  - what was decided along the way, and why, marked as the user's or the loop's;
+  - what was decided along the way, and why, marked as the user's, the loop's, or the invoking workflow's;
   - the use the change is built for;
   - the reasoning behind the design choices the change embodies.
 - `## Verdicts (never sent)` — entries grouped by round, each entry holding:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust;
-  - whether the loop or the user decided it.
+  - whether the loop, the user, or the invoking workflow decided it.
 
 Each round's group also notes the fixes it landed and what it added to the background; against the saved baseline, that is enough for a resumed loop to read convergence and the cut confinement.
 
@@ -65,7 +65,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - a valid finding the loop cannot fix, with what became of it and who chose that;
      - a fix that chose between competing options — which option and why goes into the background too, or a later round proposes the reverse to a reviewer never told the choice existed;
      - a fix that departed from what the user asked, with the departure named;
-     - a valid finding the user directed the loop to leave, and every part the purpose bound held back — each decision goes into the background too, as what is true of the change;
+     - a valid finding the user directed the loop to leave, and every part the purpose bound held back — each decided one goes into the background too, as what is true of the change;
      - an objection to a user decision, set aside unjudged, for the close report to pick up; raised again on the same grounds, it is answered from the record.
    - A valid finding against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
      - A reason the user gave is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
@@ -90,6 +90,10 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
        - What earlier rounds added keeps counting from the loop's start.
        - When the condition is met again, hold again.
    - Where the round needs the user, everything it needs them for goes to them together, in one message:
+     - Where the user cannot answer, do what the invoking workflow prescribed for what the message waits on; its answers count under each question's own bounds, as its own and never the user's.
+       - A prescription is entered in the verdict section when first read, so a resumed loop still holds it.
+     - Where no workflow invoked the loop, a waiting hold takes its recommended default, which counts as a continue under the hold's rules, and everything else carries to the close unanswered.
+     - What no prescription covers returns to the workflow: enter the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result; the run that brings the answers resumes from there.
      - A fix reaching past the purpose bound puts one question — extend the change, carve it out, or leave it.
        - Carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
        - Tell the user in the round's message, so they can extend the change instead; a carve-out they only learn about at the close is work that quietly never happens.
@@ -97,6 +101,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
        - Wait where it does not separate cleanly.
      - A valid finding the loop cannot fix is put as carve it out or leave it, and waits for the answer.
      - Wait on a reviewer's objection to the pinned purpose, the first time it is raised — only the user can re-pin it.
+       - Where the user cannot answer, it travels as the round's other questions do — returned, or carried to the close — with the pin standing either way.
        - Their answer goes into the background, and a later round raising it again is answered from there.
        - A re-pin re-frames the round's other questions: re-weigh them against it before acting on their answers.
      - Do not wait on a flawed spec or a contradicted prescribing claim: the loop is barred from fixing either whatever the answer.
@@ -126,8 +131,9 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - what the last round raised and you rejected, since no later pass had a chance to raise it again;
      - every objection to a user decision the rounds set aside, since the decision is theirs to re-take;
      - questions the rounds put to them that are still unanswered, with what each answer would change;
-     - carve-outs and flawed specs, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is.
-   - Close the record by appending `## Closed` as its last line rather than deleting it, which would take the carve-outs and flawed specs with it.
+     - a question answered by anyone but them — who answered, with what, and whether the answer stood;
+     - carve-outs, flawed specs, and the questions above, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is.
+   - Close the record by appending `## Closed` as its last line rather than deleting it, which would take the carve-outs, flawed specs, and unanswered questions with it.
 
 ## Perspectives for the Review
 
