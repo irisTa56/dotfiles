@@ -74,9 +74,21 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed only on what earlier rounds added — in the change or the background — and this round's accepted findings land there again, the loop is refining its own additions: hold the round's edits, put continuing to the user in the round's message, and wait.
      - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
      - Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
-     - Recommend the endgame as the default answer: continue, but applying bug fixes only, defending additive refinement, still taking removals.
+     - Recommend the endgame as the default answer: continue, but applying only bug fixes whose harm is more than minor, defending additive refinement, still taking removals.
+       - Minor is measured by the reviewer's own ranking: its scale's lowest tier.
+       - Under the endgame, `address-finding`'s ambiguity criterion accepts only a misexecution the loop's own probe demonstrated; its argued routes — a literal or cheaper parse — no longer accept one.
+       - Demonstrate by probe: spawn a fresh subagent and give it the text where its reader would meet it and a task the scenario calls for.
+       - Constrain the probe in its prompt: it edits nothing, runs nothing side-effectful, and reads nothing under the common git dir.
+       - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
+       - The wrong act shows in what the probe produces — a draft, a plan, a named next command.
+       - One completed probe settles it for the round: a misexecution accepts the finding, a run without one rejects it, and a re-raise gets a fresh probe.
+       - A probe that did not run or never engaged the task settles nothing; replace it.
+       - A demonstration passes the ambiguity gate only; the endgame's other filters still admit or reject the fix.
      - Their stop voids the round's other answers; the close names what it voided.
-     - Their continue covers the regime, not one round: while the condition merely persists, do not ask again.
+     - Their continue governs every round that follows, restarting the tally rather than retiring the question.
+       - Consecutive rounds are counted afresh from the continue, and a round that only removed does not count.
+       - What earlier rounds added keeps counting from the loop's start.
+       - When the condition is met again, hold again.
    - Where the round needs the user, everything it needs them for goes to them together, in one message:
      - A fix reaching past the purpose bound puts one question — extend the change, carve it out, or leave it.
        - Carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
