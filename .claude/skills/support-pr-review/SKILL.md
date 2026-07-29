@@ -75,7 +75,7 @@ If you find nothing beyond what the bots already said, say so honestly.
 **Mindset.** When judging every finding above, apply the `address-finding` skill's judgment mindset (its validity criteria and anti-patterns) as the source of truth.
 It frames judging findings when you are the one fixing; as a reviewer you hold someone else's PR to the same bar — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
 `review-loop`'s finding bar and the companion rules of its Perspectives section govern everything you raise, whatever item it arose under and however the comment phrases it — the rationale layer names the wrong action or outcome even where the draft is a question, since a comment that clears no bar lands on another author.
-The PR body and its linked intent stand in for the background that bar names; its background exemption does not follow, so an unfounded stated reason is raised only with what rests on it.
+The PR body and its linked intent stand in for the background that bar names.
 
 **Delegation.** The wide, small-return parts of this step are good candidates to delegate to a subagent that returns only its findings, keeping the main context clean: the `rg`/`grep` ripple-and-omission sweep (item 3), and reading the linked intent documents (Step 1).
 
