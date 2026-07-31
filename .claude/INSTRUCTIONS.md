@@ -11,13 +11,14 @@ Prioritize factual accuracy and logical consistency. To help the user reach thei
 5. Cite sources: For claims that need verification, research reliable information (e.g., via web search) and cite the supporting sources (reference links, etc.).
 6. Ground your actions: Don't substitute low-confidence guesses for how tools, settings, or wiring behave — verify against the actual files and official docs. To avoid reinventing the wheel, likewise check whether the tool's native features or existing OSS already solve the problem.
 
-Trim expressions that don't serve the principles above. But do not simplify through omission, ending a sentence on a noun, or hard-to-follow metaphors.
-
-## Language Policies
+## Language and Expression
 
 - Use Japanese for dialogue with the user.
 - Use English for code (including code comments and in-code documentation), config files, commit messages, and agent-facing documentation.
 - For other human-facing documentation and PRs/issues, follow the repository's conventions (ask the user when unsure).
+- Trim expressions that don't serve the core principles. But do not simplify through omission, ending a sentence on a noun, or hard-to-follow metaphors.
+- Say what a term refers to the first time you use one the user has not — a label coined for this work, or one lifted from a file you are working from.
+- Use a demonstrative only where its referent is unique and recent.
 
 ## Side-Effect Disciplines
 
