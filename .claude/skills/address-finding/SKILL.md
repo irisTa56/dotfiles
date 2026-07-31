@@ -20,9 +20,12 @@ Take the finding seriously, but do not accept it blindly.
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
 - **Grounded in actual behavior?** Judge by what the code does, not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
 - **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
+- **A standard already in force?** A violation of a written standard that loads into your own context when you work on the file, such as a rule file or an instruction file, has its harm settled by the standard and owes no separate harm argument.
+  - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
 - **A removal proposal?** Judge it by §3's removal question.
 - **Would the reading actually be taken?** Accept an ambiguity finding when the wrong reading is the literal or the cheaper one, or when readers demonstrably took it; reject one that had to be constructed.
   - Where the wrong reading wins by being cheaper, ask also whether the right procedure simply costs too much — the fix may be to cheapen it, not to reword.
+- **Does the context resolve it?** Where the finding is about prose rather than code, reject an inconsistency that shows up only when a statement is read apart from the context around it, since prose is read in context and picking sentences apart one by one produces conflicts without end.
 - **What does the rewrite cost?** A rewrite is itself unreviewed, and is where the next defect comes from. Spend that only on a finding that shows harm.
 
 Land on one verdict:
@@ -46,6 +49,9 @@ Take it from the first of these that states one:
 - the diff, read as a whole.
 
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
+
+The bound is the outcome, not the file set.
+A fix in a file the change has not touched is inside it where the purpose is not served without that fix, and an edit inside a file the change already touches is past it where it serves some other outcome.
 
 The part of a fix that reaches past that purpose, whatever its shape, lands only on the user's answer.
 Weigh the fix as it will finally be composed, once §3 and §4 have had their say, so the user is asked once.
