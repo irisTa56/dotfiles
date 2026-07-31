@@ -33,6 +33,6 @@ That permission covers step 4's deletion on the remote, which `~/.claude/INSTRUC
    - A tip past that commit is work added after the merge, which no proof covers; keep the branch and say so.
    - A worktree holding the branch blocks the deletion, and removing it is not this command's work.
    - Leave both to `cleanup-merged-branches`, unless the holder is the main working tree, which nothing removes; switch that checkout off the branch instead.
-   - Check the remote before pushing a deletion, because delete-on-merge often removed the branch already.
-   - `git push origin --delete <branch>` only when `git fetch --prune` still shows it there.
+   - Delete-on-merge has often removed the branch already, and the fetch in step 3 prints only changes, so it is no test of what is still there.
+   - `git push origin --delete <branch>` only when `git show-ref --verify --quiet refs/remotes/origin/<branch>` succeeds.
 5. Report what was removed, and what was skipped and why.

@@ -4,9 +4,9 @@
 # deleted without merging, where the local ref is the last place that work exists.
 # So each candidate is confirmed against a merged pull request, and its tip must still be the
 # commit that merged, or work added after the merge would go with it.
-# Anything that cannot be confirmed is kept.
-# Nothing restores a removed worktree's ignored files, which git declines to protect. Naming
-# them is a record of what a bulk run destroyed, not a chance to stop it.
+# Anything that cannot be confirmed is kept, including a branch with no upstream at all,
+# which the gone-upstream filter never offers as a candidate.
+# Removing a worktree deletes the ignored files it holds, and nothing restores them.
 # Usage: cleanup_merged_branches.sh   # acts on the current repository
 set -euo pipefail
 
@@ -38,9 +38,8 @@ git worktree prune
 
 base=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')
 base_worktree=$(worktree_of "$base")
-# Fetching into a branch fails wherever a worktree holds it, not only in this one.
-# Both forms refuse a non-fast-forward, and a base carrying local-only commits is reported
-# rather than rewritten. That does not stop the sweep, which does not depend on it.
+# Which form applies, and why each refusal is git's to make, is set out in the
+# post-merge-cleanup skill. A base that will not move does not stop the sweep.
 if [ -n "$base_worktree" ]; then
   git -C "$base_worktree" merge --ff-only "origin/$base" || echo "skipped $base: not a fast-forward"
 else
@@ -50,8 +49,8 @@ fi
 here=$(git rev-parse --show-toplevel)
 # The first entry `git worktree list` reports is the main working tree.
 main_worktree=$(git worktree list --porcelain | awk '/^worktree /{print substr($0, 10); exit}')
-main_worktree=$(git -C "$main_worktree" rev-parse --show-toplevel)
-gone=$(git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads |
+main_worktree=$(git -C "$main_worktree" rev-parse --show-toplevel 2>/dev/null || true)
+gone=$(git for-each-ref --format='%(refname:lstrip=2) %(upstream:track)' refs/heads |
   awk '$2 == "[gone]" { print $1 }')
 
 while IFS= read -r branch; do
@@ -59,7 +58,7 @@ while IFS= read -r branch; do
   # This is the guard on the destructive step, so each way of failing to confirm keeps the
   # branch, and each says which way it failed rather than asserting a fact about the PR.
   merged=$(gh pr list --head "$branch" --state merged --limit 1 \
-    --json number,headRefOid --jq '.[] | .headRefOid' 2>/dev/null) || {
+    --json headRefOid --jq '.[] | .headRefOid' 2>/dev/null </dev/null) || {
     echo "kept $branch: gh could not answer"
     continue
   }
@@ -67,7 +66,7 @@ while IFS= read -r branch; do
     echo "kept $branch: no merged pull request found for it"
     continue
   fi
-  if [ "$(git rev-parse "$branch")" != "$merged" ]; then
+  if [ "$(git rev-parse "refs/heads/$branch")" != "$merged" ]; then
     echo "kept $branch: it carries commits past the tip that merged"
     continue
   fi
@@ -84,9 +83,6 @@ while IFS= read -r branch; do
     if [ "$worktree" = "$here" ]; then
       echo "kept $branch: rerun from outside $worktree to remove it"
       continue
-    fi
-    if git -C "$worktree" status --porcelain --ignored | grep -q '^!!'; then
-      echo "removing $worktree also deletes the ignored files it holds, which nothing restores"
     fi
     # git states its own reason on stderr, so name the branch here and leave the reason to it.
     if ! git worktree remove "$worktree"; then
