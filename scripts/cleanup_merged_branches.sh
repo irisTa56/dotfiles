@@ -15,11 +15,6 @@ if [ "$#" -gt 0 ]; then
   exit 2
 fi
 
-if ! command -v gh >/dev/null 2>&1; then
-  echo "${0##*/}: gh is required to confirm a branch merged" >&2
-  exit 2
-fi
-
 # Path of the worktree holding $1, empty when no worktree holds it.
 # Inside a submodule the main entry names the gitdir rather than the working tree,
 # so a hit is normalized through rev-parse; elsewhere that is a no-op.
@@ -53,15 +48,17 @@ main_worktree=$(git -C "$main_worktree" rev-parse --show-toplevel 2>/dev/null ||
 gone=$(git for-each-ref --format='%(refname:lstrip=2) %(upstream:track)' refs/heads |
   awk '$2 == "[gone]" { print $1 }')
 
+# One call answers every candidate, so an unreachable GitHub is one outcome rather than one per
+# branch, and a pull request older than the limit is absent and its branch therefore unconfirmed.
+merged_prs=$(gh pr list --state merged --limit 100 \
+  --json headRefName,headRefOid --jq '.[] | "\(.headRefName) \(.headRefOid)"' </dev/null) || {
+  echo "${0##*/}: gh could not answer, so no branch can be confirmed merged" >&2
+  exit 1
+}
+
 while IFS= read -r branch; do
   [ -n "$branch" ] || continue
-  # This is the guard on the destructive step, so each way of failing to confirm keeps the
-  # branch, and each says which way it failed rather than asserting a fact about the PR.
-  merged=$(gh pr list --head "$branch" --state merged --limit 1 \
-    --json headRefOid --jq '.[] | .headRefOid' 2>/dev/null </dev/null) || {
-    echo "kept $branch: gh could not answer"
-    continue
-  }
+  merged=$(printf '%s\n' "$merged_prs" | awk -v b="$branch" '$1 == b { print $2; exit }')
   if [ -z "$merged" ]; then
     echo "kept $branch: no merged pull request found for it"
     continue
