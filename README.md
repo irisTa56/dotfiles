@@ -32,14 +32,12 @@ mise upgrade --before 2024-06-01
 
 ## Agent Instructions
 
-`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the shareable and private parts separately:
-
+- `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
 - `.claude/INSTRUCTIONS.md` — user-scoped principles (shareable), symlinked to `~/.claude/INSTRUCTIONS.md`.
-  - Deliberately not named `CLAUDE.md`, so it never loads as this repo's own project instructions.
 - `~/.claude/RTK.md` — private and machine-local, not managed here (create it separately).
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
 
-Wire them once on a new machine:
+`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts. Wire them once on a new machine:
 
 ```shell
 ln -sf "$PWD/.claude/INSTRUCTIONS.md" ~/.claude/INSTRUCTIONS.md
@@ -114,14 +112,13 @@ mise run skills:sync japanese-tech-writing
 
 Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then run `mise run skills:sync <name>`.
 
-Since the materialized `SKILL.md` is gitignored and `skills:sync` overwrites it Gist→local, the gist is the only durable copy of a skill's content.
-After editing a skill locally, push the change back to its gist, or the next sync silently discards it:
+The gist is the only durable copy of a skill's content, so push a local edit back to it:
 
 ```shell
 mise run skills:push japanese-tech-writing
 ```
 
-This writes to the gist through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
+This goes through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
 
 ### Repo-tracked skills
 
