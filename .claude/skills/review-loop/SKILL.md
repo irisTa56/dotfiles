@@ -55,6 +55,10 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the section below.
    - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
+   - Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
+     - A chain that already delegated to a cheaper model silently checks its own work at that tier, and a run on a premium tier silently pays that premium a second time.
+     - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
+     - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
    - The subagent returns findings only and makes no edits; it skips `code-review-expert`'s closing step that asks which findings to fix, since step 4 decides that.
    - Bar it from reading under the common git dir.
    - Beyond those run constraints, the prompt carries the changes, the section below, and the background section's contents copied whole; never quote the verdict section.
