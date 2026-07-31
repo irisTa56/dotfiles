@@ -46,6 +46,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - a resumed record;
      - the workflow that invoked this loop;
      - the diff, read as a whole.
+   - State the purpose as the outcome the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
    - Do not wait for a reply: state it, with the rest of the background you composed, and carry on — a correction is available and costs nothing to skip.
    - The pinned purpose as the background currently holds it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
      - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to, so a fix that breaks one is caught before it lands rather than in the next round's findings.
@@ -62,9 +63,15 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones, stating which you accept or reject and why.
    - A finding the floor covers is neither judged nor fixed for its own sake: report it at the close.
      - The floor covers the lowest rank of the reviewer's own scale, what it marked optional or left in a bucket it marks non-blocking, and a finding against the background on the same terms unless that finding shows a statement there false.
-     - A removal such a finding proposes is taken in any round that is landing a fix above the floor, since that round is re-reviewed anyway and what it prunes is surface the next round would read.
-     - Anything else it proposes is taken only where such a fix already edits what it names.
-     - Either way the fix that rides in is checked against the purpose, the decisions already taken, and the sites it touches; the finding itself is not settled, so no demonstration is owed for it.
+     - That falsity exception reaches past the background: a finding naming a statement anywhere that the change itself made false or misleading is judged and fixed at whatever rank it carries.
+       - The change caused that one, so leaving it ships an artifact that says something untrue, which no rank makes minor.
+       - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
+     - A removal such a finding proposes is taken in any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway and what it prunes is surface the next round would read.
+     - A violation of a written standard in force over what is under review is taken on a removal's terms, at whatever rank it carries.
+       - The floor keeps the loop from spending judgment on preference, and a standard the user already settled costs none; its rank measures the reviewer's sense of impact rather than whether the standard holds.
+       - Put it through `address-finding`'s standard criterion before it rides, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
+     - Anything else a floored finding proposes is taken only where a fix the floor does not cover already edits what it names.
+     - Whichever way a fix rides in, it is checked against the purpose, the decisions already taken, and the sites it touches; the finding itself is not settled, so no demonstration is owed for it.
    - Enter every outcome in the verdict section:
      - a finding you accepted, with the fix it landed;
      - a finding you rejected, with why it does not hold;
@@ -99,8 +106,12 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
        - One that settles the mechanism and says nothing of going on is a continue under what it settled, narrowed as the message recommended.
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
      - Recommend the endgame as the default answer: continue, with the round narrowed at both ends.
-       - It applies nothing unless a valid finding fixes a defect above the floor, and where one does it applies every such fix with every valid removal the round raised at whatever rank and nothing besides.
-       - Its reviewer is asked to raise, at full scope, only a defect whose outcome does real harm and a removal under its own bar, since a round under the endgame applies nothing else and every weaker finding is bought and discarded.
+       - It applies nothing unless a valid finding fixes a defect the floor does not cover, and where one does it applies every such fix with every valid removal and every valid standard violation the round raised at whatever rank, and nothing besides.
+       - Its reviewer is asked to raise, at full scope, only what such a round can apply, since every weaker finding is bought and discarded:
+         - a defect whose outcome does real harm;
+         - a removal under its own bar;
+         - a violation of a standard in force under its own;
+         - a statement the change itself made false or misleading.
      - Their stop voids the round's other answers; the close names what it voided.
        - A mechanism settlement is not among them: it settles the specification rather than the round, and reaches the background and the close report either way.
      - Their continue governs every round that follows, restarting the tally rather than retiring the question.
@@ -147,6 +158,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
    - When the loop closes, report what the user has to read:
      - what was left unfixed, and why, with what the floor covered reported together rather than one by one, so the rest is not buried in it;
+       - a standard violation among what the floor covered is named on its own, with the standard it cites, since a lump reports the user's own settled rule as a preference;
      - any decision that departed materially from what they asked for, or from a plan they approved;
      - a prescribing claim the fix contradicts;
      - what the last round raised and you rejected, since no later pass had a chance to raise it again;
@@ -164,12 +176,13 @@ The background that comes with the change is under review with it — whether th
 The purpose it states bounds the fix, not the finding: raise a defect wherever the change has one.
 Give the parts it says nothing about their full share of your attention: a well-argued background draws the eye, and a defect hides in the part nobody wrote about.
 
-Raise a finding only by naming the wrong action or outcome that follows from leaving it unfixed, whatever it is raised under; a removal proposal is the exception, meeting its own bar below.
+Raise a finding only by naming the wrong action or outcome that follows from leaving it unfixed, whatever it is raised under; a removal proposal and a violation of a written standard are the exceptions, each meeting its own bar below.
 One that names none argues a preference, and without that bar a careful reviewer generates findings without end.
 
 - For an ambiguity, it is the wrong reading the literal or cheaper parse yields — or one a reader demonstrably took — and what they would do under it; that a second reading can be constructed is not itself the finding.
 - For a behavior the tests do not pin, it is the wrong behavior that would go undetected.
 - For a maintainability finding, it is the future cost — what a later change is made to do twice, or to undo.
+- For a violation of a written standard in force over what is under review, its own bar is the citation: name the standard's file and what it states, so the fixing side checks it rather than takes it on trust.
 - For a reason in the background, it is what the change keeps or omits on the strength of a ground that does not support it — "the surrounding code already does it this way" defends nothing; that the ground is weak is not by itself the finding, and the fix reaches the background only.
 
 Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run; one resting only on how a sentence could be read is the weakest kind.
@@ -177,6 +190,7 @@ Check what you can reach yourself, and raise a finding that turns on how a reade
 
 Where what you are reviewing is prose that a person or an agent executes rather than code a machine runs, it is not underspecified by defect: it leaves to the reader's judgement what the reader can be trusted to judge.
 Raise what would mislead, not what is merely open.
+Reading each statement against the context around it is among what the reader is trusted to do, so a conflict that shows up only when one is read alone is not a finding.
 Where it states a procedure, raise what its goal or its conditions get wrong before what its steps leave rough — the roughness of steps is inexhaustible, and what they leave open is what the reader is trusted to judge.
 
 Where prose argues for a choice, what is under review is the choice, not the wording that defends it; prose that states a checkable fact stays review surface, wherever it sits.
