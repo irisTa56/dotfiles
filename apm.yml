@@ -26,6 +26,7 @@ dependencies:
   - github/awesome-copilot/skills/create-technical-spike
   - github/awesome-copilot/skills/documentation-writer
   - github/awesome-copilot/skills/draw-io-diagram-generator
+  - github/awesome-copilot/skills/drawio
   - github/awesome-copilot/skills/git-commit
   - github/awesome-copilot/skills/memory-merger
   - github/awesome-copilot/skills/prd
