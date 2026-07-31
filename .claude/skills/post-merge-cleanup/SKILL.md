@@ -30,10 +30,11 @@ That permission covers step 4's deletion on the remote, which `~/.claude/INSTRUC
 4. Delete the branch.
    - `git branch -D <branch>` locally, since the squash merge above makes `-d` refuse.
    - `-D` is safe only because step 2 proved the merge, and only while the branch still points at `headRefOid`.
-   - A tip past that commit is work added after the merge, which no proof covers; keep the branch and say so.
+   - A tip that is not that commit is outside what the merge proves, whichever way it differs; keep the branch and say so.
    - Delete-on-merge has often removed the branch already, and the fetch in step 3 prints only changes, so it is no test of what is still there.
    - `git push origin --delete <branch>` only when `git show-ref --verify --quiet refs/remotes/origin/<branch>` succeeds.
    - Do the remote deletion even when a worktree blocks the local one, since it is what leaves the branch for `cleanup-merged-branches` to find.
    - That worktree is not this command's work; leave it and the local branch to `cleanup-merged-branches`, run from outside the worktree.
+   - The sweep only reaches a branch that had an upstream, so one pushed without `-u` stays until it is removed by hand.
    - The exception is a main working tree, which nothing removes: switch that checkout off the branch instead.
 5. Report what was removed, and what was skipped and why.

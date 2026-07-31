@@ -3,7 +3,7 @@
 # A gone upstream only narrows the candidates: it also covers a branch whose remote copy was
 # deleted without merging, where the local ref is the last place that work exists.
 # So each candidate is confirmed against a merged pull request, and its tip must still be the
-# commit that merged, or work added after the merge would go with it.
+# commit that merged, since anything else is outside what the merge proves.
 # Anything that cannot be confirmed is kept, including a branch with no upstream at all,
 # which the gone-upstream filter never offers as a candidate.
 # Removing a worktree deletes the ignored files it holds, and nothing restores them.
@@ -65,7 +65,7 @@ while IFS= read -r branch; do
     continue
   fi
   if [ "$(git rev-parse "refs/heads/$branch")" != "$merged" ]; then
-    echo "kept $branch: it carries commits past the tip that merged"
+    echo "kept $branch: its tip is not the commit that merged"
     continue
   fi
   worktree=$(worktree_of "$branch")
