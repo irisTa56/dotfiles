@@ -23,12 +23,12 @@ worktree_of() {
   hit=$(git worktree list --porcelain | awk -v want="refs/heads/$1" '
     /^worktree / { path = substr($0, 10) }
     /^branch /   { if (substr($0, 8) == want) { print path; exit } }')
-  if [ -n "$hit" ]; then git -C "$hit" rev-parse --show-toplevel; fi
+  if [ -n "$hit" ]; then git -C "$hit" rev-parse --show-toplevel 2>/dev/null || printf '%s\n' "$hit"; fi
 }
 
 git fetch --prune -q
-# Drop admin entries for worktrees whose directory is already gone, so nothing below
-# resolves a path that does not exist. This removes no work of its own.
+# Drop admin entries for worktrees whose directory is already gone. This removes no work of its
+# own, and it leaves a locked entry behind, which is why the lookup above tolerates a bad path.
 git worktree prune
 
 base=$(git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||')
@@ -36,9 +36,9 @@ base_worktree=$(worktree_of "$base")
 # Which form applies, and why each refusal is git's to make, is set out in the
 # post-merge-cleanup skill. A base that will not move does not stop the sweep.
 if [ -n "$base_worktree" ]; then
-  git -C "$base_worktree" merge --ff-only "origin/$base" || echo "skipped $base: not a fast-forward"
+  git -C "$base_worktree" merge --ff-only "origin/$base" || echo "skipped $base"
 else
-  git fetch origin "$base:$base" || echo "skipped $base: not a fast-forward"
+  git fetch origin "$base:$base" || echo "skipped $base"
 fi
 
 here=$(git rev-parse --show-toplevel)
@@ -49,8 +49,9 @@ gone=$(git for-each-ref --format='%(refname:lstrip=2) %(upstream:track)' refs/he
   awk '$2 == "[gone]" { print $1 }')
 
 # One call answers every candidate, so an unreachable GitHub is one outcome rather than one per
-# branch, and a pull request older than the limit is absent and its branch therefore unconfirmed.
-merged_prs=$(gh pr list --state merged --limit 100 \
+# branch. The limit is set past the oldest residue a sweep could meet, since a pull request beyond
+# it is absent from the answer and its branch would be reported as having none.
+merged_prs=$(gh pr list --state merged --limit 1000 \
   --json headRefName,headRefOid --jq '.[] | "\(.headRefName) \(.headRefOid)"' </dev/null) || {
   echo "${0##*/}: gh could not answer, so no branch can be confirmed merged" >&2
   exit 1
