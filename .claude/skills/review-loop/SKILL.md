@@ -9,8 +9,6 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
 It lives at `$(git rev-parse --path-format=absolute --git-common-dir)/review-loop/$(git rev-parse --abbrev-ref HEAD).md` (create the leading directories) — under the common git dir, which linked worktrees share and `git worktree remove` leaves alone, so it never reaches the reviewer through `git status`.
-On a detached HEAD the branch resolves to `HEAD`, which is as much scoping as there is; say so and carry on.
-Alongside it, a fresh loop's step 1 saves the change as it stands — the `git diff HEAD` output with untracked files included, by a means that leaves the index untouched, as `<branch>.base.diff` beside the record — so what the rounds altered stays derivable by comparison; a resumed loop keeps the baseline it finds.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 
@@ -26,7 +24,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the reason, written to be weighed rather than taken on trust;
   - whether the loop, the user, or the invoking workflow decided it.
 
-Each round's group also notes the fixes it landed and what it added to the background; against the saved baseline, that is enough for a resumed loop to read convergence and the cut confinement.
+Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence and the cut confinement.
 
 The line between the sections: "the caller validates this already, so checking it here is deliberately out of scope" is background; "a reviewer raised that and we rejected it" is a verdict.
 Anything worth carrying can be put the first way, and handing a reviewer the second is how it stops looking.
@@ -38,8 +36,6 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
      - A record whose last line is `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
      - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
-       - One they disown is closed and set aside likewise.
-       - One that is this work moved is renamed here, its baseline with it, keeping any occupant beside it.
      - Nothing found means a fresh loop: create the record.
    - Take the purpose from the first of these that states one, and say which source it came from:
      - the user;
@@ -149,7 +145,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - A decision's justification lives in the record, and the loop does not also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a round applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
-   - Review coverage of the loop's own bookkeeping — the record, the baseline, the mechanics of holding and closing — is deliberately subordinated to termination, with the close report as the compensating control.
+   - Review coverage of the loop's own bookkeeping — the record and the mechanics of holding and closing — is deliberately subordinated to termination, with the close report as the compensating control.
      - A finding whose whole content is that this bookkeeping went unreviewed is answered from this decision; a defect in the bookkeeping is judged like any other.
    - What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
      - Verdict writes, background cuts or condensations, and the facts a rejection leaves — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop; a condensation's fidelity is bookkeeping coverage, per the decision above.
