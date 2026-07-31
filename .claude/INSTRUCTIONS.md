@@ -25,6 +25,12 @@ Prioritize factual accuracy and logical consistency. To help the user reach thei
 - Always ask the user for permission before any operation that writes to an external system, showing the content that will leave rather than describing it.
 - Don't force-push to a PR's branch after it has been marked ready.
 
+## Memory
+
+- Keep out of memory anything that would govern work beyond this project, since memory is scoped to one project and never reaches a subagent.
+  - Memory holds what governs the user's own choices, not the agent's procedure.
+  - Where such a rule does go instead, if anywhere, is the file its executor reads.
+
 ## Delegation and Effort
 
 - Delegate to a subagent when the work balloons intermediate context but returns a small result (e.g., broad exploration, mechanical or routine verification, bulk operations).
