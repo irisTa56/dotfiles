@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Fast-forward the default branch, then delete local branches whose upstream is gone.
-# Wherever delete-on-merge is enabled, a gone upstream means the pull request merged.
-# The only other cause is a branch deleted by hand, and `git branch -D` prints the sha, so the
-# reflog restores a branch ref removed in error.
+# Fast-forward the default branch, then delete local branches whose pull request has merged.
+# A gone upstream only narrows the candidates: it also covers a branch whose remote copy was
+# deleted without merging, where the local ref is the last place that work exists.
+# So each candidate is confirmed against a merged pull request before anything is deleted, and
+# an unconfirmable one is kept.
 # Nothing restores a removed worktree's ignored files, which git declines to protect, so each
 # removal says so before it happens.
 # Usage: cleanup_merged_branches.sh   # acts on the current repository
@@ -10,6 +11,11 @@ set -euo pipefail
 
 if [ "$#" -gt 0 ]; then
   echo "usage: ${0##*/}" >&2
+  exit 2
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  echo "${0##*/}: gh is required to confirm a branch merged" >&2
   exit 2
 fi
 
@@ -46,6 +52,12 @@ gone=$(git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads
 
 while IFS= read -r branch; do
   [ -n "$branch" ] || continue
+  # An empty result covers both a branch closed without merging and a `gh` that could not
+  # answer, and either way the branch is kept: this is the guard on the destructive step.
+  if ! gh pr list --head "$branch" --state merged --limit 1 --json number --jq '.[0].number' 2>/dev/null | grep -q .; then
+    echo "kept $branch: no merged pull request found for it"
+    continue
+  fi
   worktree=$(worktree_of "$branch")
   if [ -n "$worktree" ]; then
     # Removing the worktree this run stands in takes the working directory with it, and git
