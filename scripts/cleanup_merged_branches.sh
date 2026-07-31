@@ -2,10 +2,11 @@
 # Fast-forward the default branch, then delete local branches whose pull request has merged.
 # A gone upstream only narrows the candidates: it also covers a branch whose remote copy was
 # deleted without merging, where the local ref is the last place that work exists.
-# So each candidate is confirmed against a merged pull request before anything is deleted, and
-# an unconfirmable one is kept.
-# Nothing restores a removed worktree's ignored files, which git declines to protect, so each
-# removal says so before it happens.
+# So each candidate is confirmed against a merged pull request, and its tip must still be the
+# commit that merged, or work added after the merge would go with it.
+# Anything that cannot be confirmed is kept.
+# Nothing restores a removed worktree's ignored files, which git declines to protect. Naming
+# them is a record of what a bulk run destroyed, not a chance to stop it.
 # Usage: cleanup_merged_branches.sh   # acts on the current repository
 set -euo pipefail
 
@@ -47,23 +48,41 @@ else
 fi
 
 here=$(git rev-parse --show-toplevel)
+# The first entry `git worktree list` reports is the main working tree.
+main_worktree=$(git worktree list --porcelain | awk '/^worktree /{print substr($0, 10); exit}')
+main_worktree=$(git -C "$main_worktree" rev-parse --show-toplevel)
 gone=$(git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads |
   awk '$2 == "[gone]" { print $1 }')
 
 while IFS= read -r branch; do
   [ -n "$branch" ] || continue
-  # An empty result covers both a branch closed without merging and a `gh` that could not
-  # answer, and either way the branch is kept: this is the guard on the destructive step.
-  if ! gh pr list --head "$branch" --state merged --limit 1 --json number --jq '.[0].number' 2>/dev/null | grep -q .; then
+  # This is the guard on the destructive step, so each way of failing to confirm keeps the
+  # branch, and each says which way it failed rather than asserting a fact about the PR.
+  merged=$(gh pr list --head "$branch" --state merged --limit 1 \
+    --json number,headRefOid --jq '.[] | .headRefOid' 2>/dev/null) || {
+    echo "kept $branch: gh could not answer"
+    continue
+  }
+  if [ -z "$merged" ]; then
     echo "kept $branch: no merged pull request found for it"
+    continue
+  fi
+  if [ "$(git rev-parse "$branch")" != "$merged" ]; then
+    echo "kept $branch: it carries commits past the tip that merged"
     continue
   fi
   worktree=$(worktree_of "$branch")
   if [ -n "$worktree" ]; then
+    # git never removes a main working tree, so rerunning from elsewhere cannot help; the way
+    # out is to switch that checkout off the branch.
+    if [ "$worktree" = "$main_worktree" ]; then
+      echo "kept $branch: switch $worktree off it first"
+      continue
+    fi
     # Removing the worktree this run stands in takes the working directory with it, and git
     # does not refuse that, so it is the one refusal this script has to make for itself.
     if [ "$worktree" = "$here" ]; then
-      echo "skipped $branch: rerun from outside $worktree to remove it"
+      echo "kept $branch: rerun from outside $worktree to remove it"
       continue
     fi
     if git -C "$worktree" status --porcelain --ignored | grep -q '^!!'; then
