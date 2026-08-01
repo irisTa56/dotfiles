@@ -13,6 +13,9 @@ rumdl = "latest"
 rust = "latest"
 shellcheck = "latest"
 shfmt = "latest"
+# Its release assets are bare binaries named `<os>-<arch>`, and mise strips the arch suffix
+# from one to name the executable, which leaves `darwin`; `bin` names it instead of that.
+"github:seachicken/gh-poi" = { version = "latest", bin = "gh-poi" }
 "npm:ccusage" = "latest"
 "npm:diff2html-cli" = "latest"
 "pipx:basic-memory" = "latest"
