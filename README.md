@@ -1,5 +1,23 @@
 # dotfiles
 
+## Prerequisites
+
+Homebrew is the one thing nothing here installs, and everything below needs it.
+Install [Homebrew](https://brew.sh), and let it install the rest:
+
+```shell
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew bundle
+```
+
+The above supplies mise, which supplies additional tools and linters.
+[mise refuses to parse a `mise.toml` from a directory it has not been told to trust](https://mise.jdx.dev/cli/trust.html), so trust this one before installing its tools:
+
+```shell
+mise trust
+mise install
+```
+
 ## Initial Setup
 
 Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zprofile`, and `~/.zshenv` (each is overwritten with canonical content):
@@ -19,16 +37,6 @@ The Homebrew environment is split across two files on purpose:
   - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
   - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
   - Setting PATH here would be undone by path_helper, so only the variable is set.
-
-## Tool Versions
-
-Upgrade tools to the newest version released on or before a given date:
-
-```shell
-mise upgrade --before 7d --dry-run
-mise upgrade --before 7d
-mise upgrade --before 2024-06-01
-```
 
 ## Agent Instructions
 
