@@ -140,6 +140,53 @@ A hand-written skill therefore needs one line to unignore it:
 
 Re-including the directory is enough — the exclusion above uses a single `*`, which does not cross `/`, so it never matched the contents in the first place.
 
+## GitHub CLI Extensions
+
+[`gh` has no manifest of its own](https://cli.github.com/manual/gh_extension), so `ghExtensions.txt` declares the extensions this machine expects.
+One entry per line, `owner/repo --pin <tag>`, under a `#` comment on its own line starting at column 0 that says what it is for.
+The pin buys one thing: the version a machine runs is the declared one, and moving it is a reviewable edit.
+A release tag is movable, so unlike `apm.lock.yaml` this is not a content guarantee.
+
+Install what is missing, which is safe to repeat:
+
+```shell
+mise run gh:sync
+```
+
+That neither removes nor moves an extension already installed.
+To drop one, delete its line and the comment above it, then run `gh extension remove <name>`.
+
+To move one, edit its pin, then remove and reinstall it:
+
+```shell
+gh extension remove <name>
+mise run gh:sync
+```
+
+Neither `gh extension upgrade` nor `--force` reads the pin: [upgrade refuses a pinned extension](https://github.com/cli/cli/blob/trunk/pkg/cmd/extension/manager.go), and force installs the latest release and drops the pin.
+Nothing reports a machine that drifted from its pin, or a pin that fell behind, so read three values against each other — what is installed, what `ghExtensions.txt` declares, and what upstream released:
+
+```shell
+gh extension list
+gh release view -R <owner/repo>
+```
+
+Editing the file never touches the machine, so reconcile any difference with the remove-and-reinstall above.
+
+### Cleaning up merged branches
+
+`gh poi` deletes the local branches whose pull request has merged, and [removes the worktrees holding them](https://github.com/seachicken/gh-poi/releases/tag/v0.15.0).
+It leaves some branches alone and prints why, and it asks for no confirmation, so read the plan before acting on it:
+
+```shell
+gh poi --dry-run
+```
+
+Drop the flag once the plan reads right.
+A branch whose pull request was closed without merging is left alone, and [`--state closed`](https://github.com/seachicken/gh-poi) sweeps those too.
+[Neither mode looks at whether the remote branch still exists](https://github.com/seachicken/gh-poi/blob/v0.18.3/cmd/root.go), so a branch still published goes with the rest.
+Nothing is stranded either way: it deletes only a branch whose head is one of the pull request's commits, and [GitHub keeps those at `refs/pull/<n>/head`](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/checking-out-pull-requests-locally) once the branch is gone.
+
 ## MCP Servers
 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.

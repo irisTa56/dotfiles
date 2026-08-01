@@ -77,3 +77,20 @@ usage = 'arg "<pkg>" var=#true help="apm package path(s) to remove, e.g. blader/
 # $usage_pkg is unquoted on purpose: a variadic arg arrives space-joined and must
 # word-split into one positional per package (apm paths have no spaces).
 run = "apm uninstall $usage_pkg"
+
+[tasks."gh:sync"]
+description = "Install the gh extensions declared in ghExtensions.txt"
+# `gh extension install` exits 0 on one already present, so this needs no guard and can repeat.
+# `-L1` passes a whole line, so an entry can carry `--pin`; a trailing blank would join that
+# line to the next, which is why they are stripped first. `-r` is what makes an empty
+# selection a no-op: GNU xargs otherwise runs the command once with no argument, and BSD xargs
+# documents `-r` for compatibility with it.
+# The file is checked separately because an empty selection is then indistinguishable from a
+# manifest that could not be read at all.
+run = '''
+[ -r ghExtensions.txt ] || {
+  echo "ghExtensions.txt is missing or unreadable, so nothing can be installed" >&2
+  exit 1
+}
+grep -v '^#' ghExtensions.txt | sed 's/[[:space:]]*$//' | xargs -r -L1 gh extension install
+'''

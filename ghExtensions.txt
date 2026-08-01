@@ -1,0 +1,2 @@
+# Delete local branches whose pull request has merged, their worktrees included
+seachicken/gh-poi --pin v0.18.3
