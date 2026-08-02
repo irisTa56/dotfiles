@@ -83,6 +83,11 @@ Absent any statement, put it to the user and wait.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
+- **Establish the fix, rather than only arguing it.** §1 grounds the finding in actual behavior, and the fix answering it owes the same before it lands.
+  - **What it takes as true.** Check what the fix asserts or assumes about a command, an API, or a mechanism, since a claim written from memory is unreviewed content that reads as established.
+    - Docs state what a thing is specified to do, which is not always what it does, so a claim about behavior is settled by running it.
+    - Run it where a wrong result costs nothing.
+  - **What it does where it lands.** Read the passage or the path whole with the fix in place, as its reader meets it — a fix argued against one finding can be right about that finding and wrong about what it now governs, or about what its removal leaves uncovered.
 - **Consistency sweep.** Sweep the axes below; each says how far its correction reaches.
   - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
     - When the spread reaches past the purpose bound, fix what falls inside it and surface the rest as the bound above prescribes.
