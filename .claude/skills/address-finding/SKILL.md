@@ -28,18 +28,11 @@ Take the finding seriously, but do not accept it blindly.
 - **Does the context resolve it?** Where the finding is about prose rather than code, reject an inconsistency that shows up only when a statement is read apart from the context around it, since prose is read in context and picking sentences apart one by one produces conflicts without end.
 - **What does the rewrite cost?** A rewrite is itself unreviewed, and is where the next defect comes from. Spend that only on a finding that shows harm.
 
-Land on one verdict:
+Land on one verdict: the finding holds, it does not, or only part of it does.
+The part that holds owes a fix, whose shape §3 settles rather than this section.
+The part that does not owes a respectful explanation of why, and nothing else.
 
-| Verdict | Action |
-|---------|--------|
-| Valid | Apply the fix as suggested, or a better variant addressing the same concern |
-| Valid but not fundamental | Apply a more structural fix; explain why it is safer / lower future cost |
-| Partially valid | Propose a balanced fix and explain the reasoning |
-| Not valid | Prepare a respectful explanation of why |
-
-## 2. Apply the fix
-
-### The purpose bound
+## 2. The purpose bound
 
 Establish the purpose of the change in hand before weighing any fix against it.
 Take it from the first of these that states one:
@@ -54,7 +47,7 @@ The bound is the outcome, not the file set.
 A fix in a file the change has not touched is inside it where the purpose is not served without that fix, and an edit inside a file the change already touches is past it where it serves some other outcome.
 
 The part of a fix that reaches past that purpose, whatever its shape, lands only on the user's answer.
-Weigh the fix as it will finally be composed, once §3 and §4 have had their say, so the user is asked once.
+Weigh the fix as the sections below will finally compose it, the consistency sweep included, so the user is asked once.
 Where this skill prescribes surfacing instead of applying — a prescribing claim the fix contradicts, or a spec or plan judged flawed — this does not add a second surfacing: nothing lands, so there is nothing to hold back.
 One thing lands outside the bound on this skill's own authority: a describing claim the fix itself falsified, for the reason the sweep below gives.
 
@@ -76,10 +69,33 @@ Two things belong to the calling workflow instead, since it is the one that know
 A pre-committed answer still surfaces, and still names the class it covers, so the user can overturn it.
 Absent any statement, put it to the user and wait.
 
+## 3. Choose the fix
+
+Every addition is a cost, counted in what a developer has to hold in mind to work here — not in the size of the diff.
+
+That a finding holds does not settle what to do about it.
+Three questions answer that, and all three are weighed rather than taking the first that comes back non-empty.
+
+- What can be removed, so the problem cannot arise?
+  - Cheapest on the metric above, so ask it first.
+  - Ask of it what the removed thing was there to prevent, and what prevents that now.
+  - Deleting what the finding was about without answering that is not a fix; a removal that answers it is often the best one there is.
+- What can be reshaped, so the problem does not arise here?
+  - A reshape is a rewrite, so §1's rewrite cost applies.
+  - Sometimes an addition is the smaller unreviewed surface.
+- What has to be added?
+  - Where only this answers the finding, it is the fix and not a last resort to be talked out of.
+
+A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
+Adding another branch, guard, flag, or special case onto an existing pile is a signal you may be treating a symptom; step back for the root cause, or for a consolidation that dissolves the pile.
+
+Where several findings are in play, ask the three questions of them together: one structural fix that dissolves a cluster beats N independent local patches.
+
+## 4. Apply the fix
+
 ### Fix discipline
 
 - **Meet the bar the fix will be judged against.** A calling workflow that reviews the result states what its reviewer weighs — `review-loop`'s "Perspectives for the Review" is one. Read it and hold the fix to it, rather than learning what it asks for from the next round's findings.
-- **Root cause, minimal scope.** Fix the underlying cause; do not bundle unrelated refactors.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
@@ -98,33 +114,6 @@ Absent any statement, put it to the user and wait.
   - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it.
     - Tell the user why when it does not.
     - When that other side falls outside the purpose bound, surface it as the bound above prescribes before the counterpart edit lands.
-
-## 3. Reflective checkpoint — what the fix costs
-
-Before settling on the fix, look at what it does to the code.
-
-Every addition is a cost, counted in what a developer has to hold in mind to work here — not in the size of the diff.
-
-That a finding is valid does not settle what to do about it.
-Three questions answer that, and all three are weighed rather than taking the first that comes back non-empty.
-
-- What can be removed, so the problem cannot arise?
-  - Cheapest on the metric above, so ask it first.
-  - Ask of it what the removed thing was there to prevent, and what prevents that now.
-  - Deleting what the finding was about without answering that is not a fix; a removal that answers it is often the best one there is.
-- What can be reshaped, so the problem does not arise here?
-  - A reshape is a rewrite, so §1's rewrite cost applies.
-  - Sometimes an addition is the smaller unreviewed surface.
-- What has to be added?
-  - Where only this answers the finding, it is the fix and not a last resort to be talked out of.
-
-A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
-Adding another branch, guard, flag, or special case onto an existing pile is a signal you may be treating a symptom; step back for the root cause, or for a consolidation that dissolves the pile.
-
-## 4. Handling several findings at once
-
-When multiple findings are in play, view them together before fixing.
-Prefer one structural fix that dissolves a cluster of related findings over N independent local patches.
 
 ## Anti-patterns
 
