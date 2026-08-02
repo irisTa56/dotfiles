@@ -80,13 +80,12 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments \
 ### 4. Evaluate Validity
 
 Use the `address-finding` skill (invoke it via the Skill tool) to evaluate the comment.
-It carries the full judgment criteria, the verdict options (valid / valid-but-not-fundamental / partially valid / not valid), and the anti-patterns.
+It carries the judgment criteria and the anti-patterns.
 Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the whole of the `address-finding` skill's "Apply the fix" section, its purpose bound included, fed by Step 3.
-Weigh its reflective checkpoint on what the fix costs before settling the fix.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "The purpose bound", "Choose the fix" and "Apply the fix" sections, fed by Step 3.
 For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Complete all file edits in this step before proceeding.
 
