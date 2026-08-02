@@ -38,7 +38,7 @@
 
 ## Task-specific policies
 
-### When you need a decision from the user
+### When the user has a decision to make
 
 - Lay out the alternatives neutrally alongside the recommendation only when the decision is hard to reverse and the alternatives would lead to materially different work.
 

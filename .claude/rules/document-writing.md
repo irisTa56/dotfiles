@@ -10,10 +10,6 @@ These rules apply to prose written to a file, and to substantial prose in conver
 
 Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
 
-<!--
-The `japanese-tech-writing` skill restates several of these rules on purpose, because it ships as a standalone gist and cannot point here. Changing a rule that appears in both means editing the skill too and pushing it with `mise run skills:push japanese-tech-writing`; an in-place edit is discarded by the next sync.
--->
-
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
