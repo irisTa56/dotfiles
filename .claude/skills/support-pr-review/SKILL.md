@@ -1,6 +1,6 @@
 ---
 name: support-pr-review
-description: "Draft review comments for a GitHub PR as a reviewer — without posting them — grounded in context a generic diff bot cannot see: the user's stated concern, the change's conformance to its linked intent, cross-repo omissions, and the gaps existing bot/human comments left. Use when the user shares a PR URL and asks for review support or comment drafts. Drafting only; never posts."
+description: "Draft review comments for a GitHub PR as a reviewer — without posting them — grounded in context the diff itself does not show: the user's stated concern, the change's conformance to its linked intent, cross-repo omissions, and the gaps existing bot/human comments left. Use when the user shares a PR URL and asks for review support or comment drafts. Drafting only; never posts."
 disable-model-invocation: true
 ---
 
@@ -9,9 +9,12 @@ disable-model-invocation: true
 ## Purpose and stance
 
 Help the user act as a **reviewer** of someone else's PR — not as its author.
-Generic review bots (Copilot, CodeRabbit, the `code-review-expert` skill) already scan the diff for lint-level nits, generic SOLID/security patterns, and in-diff correctness.
-Re-running that adds nothing but duplication.
-This skill deliberately spends its effort on what those bots structurally **cannot** do: review the change against context that lives *outside* the diff.
+
+Raise only what is worth the author's time to act on.
+A review spends someone else's attention, so a point that would not change what they do costs more than it returns, however correct it is.
+
+That bar is what sends this skill's effort to context living *outside* the diff — the change's fit with its stated intent, the repo's own prior decisions, what it omitted elsewhere — since that is where the points which change a merge decision usually sit.
+A defect inside the diff still counts where it clears the bar; what does not clear it is the lint-level nit, whoever else may or may not also have caught it.
 
 Output is **comment drafts only**. Never post.
 
@@ -34,8 +37,8 @@ One tool, no branching.
 - Never use `fetch_webpage` or browser tools for GitHub URLs (private-repo policy).
 - Useful reads:
   - Metadata plus most comment surfaces in one call: `gh pr view <url> --json title,body,author,baseRefName,headRefName,files,labels,url,comments,reviews,latestReviews,closingIssuesReferences`.
-    - `comments` — issue-level comments, where a CodeRabbit walkthrough lands.
-    - `reviews` / `latestReviews` — review bodies, where a Copilot summary lands.
+    - `comments` — issue-level comments, where a bot's walkthrough lands.
+    - `reviews` / `latestReviews` — review bodies, where a bot's summary lands.
     - `closingIssuesReferences` — issues this PR closes; use as the primary source of linked intent, more reliable than parsing the body.
   - Full patch via `gh pr diff <url>`, or file list via `gh pr diff <url> --name-only`.
   - Inline (file-anchored) review comments, not covered by the JSON above: `gh api repos/{owner}/{repo}/pulls/{number}/comments`.
@@ -56,21 +59,21 @@ Acquire it before reviewing.
 - Consult your **agent memory** for the reviewer's own cross-repo context — prior review decisions, standing preferences, and project constraints not derivable from the code — using whatever memory mechanism this environment provides, without assuming a fixed path or tool.
   - This complements the repo note above: memory is the reviewer's personal, cross-repo context, while the note is team-shared and repo-scoped.
 
-### 2. Review — only where you beat the bots
+### 2. Review — where it is worth the author's time
 
-Spend effort here, roughly in priority order, and skip anything a diff bot already handles well.
+Spend effort here, roughly in priority order.
 
 1. **Verify the stated concern.** Confirm or refute the user's concern with concrete evidence from the code (`file:line`), not hand-waving; if refuted, say why.
-2. **Conformance to intent (code-vs-intent).** Diff the *implementation* against what the linked ticket/plan/spec/ADR/PR-body says it should do — bots check code-vs-code, you check whether the change does what was actually agreed.
+2. **Conformance to intent (code-vs-intent).** Diff the *implementation* against what the linked ticket/plan/spec/ADR/PR-body says it should do — reading the code against itself cannot reach this, since only the intent says what the change was supposed to do.
    - Flag drift, silent scope changes, and claims in the PR body not backed by the diff.
 3. **Omissions and ripple effects.** Hunt with `rg`/`grep` across the repo for what the diff *should* have touched but didn't — sibling call sites, related tests, migrations, docs, config, feature-flag counterparts.
-   - This is the highest-value, bot-weakest area.
+   - This is the highest-value area, and the one reading the diff alone cannot reach.
 4. **Repo/team-specific judgment.** Apply conventions and prior decisions invisible in the diff hunk ("we don't do X here", "this boundary is mid-migration", "this pattern was rejected before").
-5. **High-level quality bar.** Beyond in-diff correctness, hold the change to the review perspectives that the `review-loop` skill defines.
-   - Read that skill's "Perspectives for the Review" section as the source of truth rather than a copy here.
+5. **High-level quality bar.** Hold the change to the review perspectives that the `review-loop` skill defines, and to what `raise-findings` says to raise — a defect inside the diff included, where it clears the bar above.
+   - Read both as the source of truth rather than a copy here: `review-loop`'s "Perspectives for the Review", and `raise-findings`' "What to raise".
 6. **Gap-fill against existing comments.** Do not repeat points the existing bot/human comments already make; cover the gaps they left, and where you merely agree with an existing comment, note that instead of restating it.
 
-If you find nothing beyond what the bots already said, say so honestly.
+If you find nothing beyond what the existing comments already say, say so honestly.
 
 **Mindset.** When judging every finding above, apply the `address-finding` skill's judgment mindset (its validity criteria and anti-patterns) as the source of truth.
 It frames judging findings when you are the one fixing; as a reviewer you hold someone else's PR to the same bar — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
@@ -100,5 +103,5 @@ Present each finding in **two layers with different readers**.
 
 - `review-loop` — the source of truth for the review perspectives this skill reuses; it reviews *your own* changes in a fix-and-re-review loop.
 - `address-finding` — the source of truth for the finding-addressing mindset this skill reuses when judging findings.
+- `raise-findings` — the source of truth for what to raise, which this skill reuses.
 - `address-review-comment` — the posting counterpart: responds to and resolves a single existing review comment.
-- `code-review-expert` — generic diff review; intentionally the layer this skill does not duplicate.

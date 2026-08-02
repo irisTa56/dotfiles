@@ -41,7 +41,6 @@ dependencies:
   - googleworkspace/cli/skills/gws-slides
   - mattpocock/skills/skills/engineering/tdd
   - mattpocock/skills/skills/productivity/handoff
-  - sanyuan0704/sanyuan-skills/skills/code-review-expert
   - teng-lin/notebooklm-py
   mcp: []
 scripts: {}
