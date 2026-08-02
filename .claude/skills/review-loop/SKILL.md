@@ -85,6 +85,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - a valid finding the user directed the loop to leave, and every part the purpose bound held back — each decided one goes into the background too, as what is true of the change;
      - an objection to a user decision, set aside unjudged, for the close report to pick up; raised again on the same grounds, it is answered from the record.
    - A rejection resting on something checkable — what a command returns, what the suite already covers, what a probe produced — puts that fact in the background as well, so the next reviewer reads it rather than deriving it again; the verdict itself stays where it is.
+     - What `address-finding` ran to establish a fix goes there on the same terms, or a later round undoes a true statement it has no record of.
      - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
    - Trying the text on a reader is the loop's to run, not the reviewer's: probe where a finding turns on how a reader would take the text, the argument has not settled it, and the floor does not already cover it.
      - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
