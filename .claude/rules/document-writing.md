@@ -8,11 +8,14 @@ paths:
 
 These rules apply to prose written to a file, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`. Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
+Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
+
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
+- Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 
 ## Sources
 
