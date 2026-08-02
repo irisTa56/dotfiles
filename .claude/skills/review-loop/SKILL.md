@@ -1,6 +1,6 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round applies no fix, reporting at the end what was left undone and why. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the code-review-expert skill and makes no edits."
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round applies no fix, reporting at the end what was left undone and why. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
 ---
 
 # Review Loop
@@ -49,20 +49,21 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - Fill the background section before the first round.
      - Enter inferences as inferences: a guess dressed as a user decision misleads every reviewer and would be shielded from re-judging.
    - Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
-2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `code-review-expert` skill with the section below.
-   - `code-review-expert` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
+2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `raise-findings` skill with the section below.
+   - `raise-findings` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
    - Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
      - A chain that already delegated to a cheaper model silently checks its own work at that tier, and a run on a premium tier silently pays that premium a second time.
      - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
      - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
-   - The subagent returns findings only and makes no edits; it skips `code-review-expert`'s closing step that asks which findings to fix, since step 4 decides that.
+   - The subagent returns findings only and makes no edits.
    - Bar it from reading under the common git dir.
    - Beyond those run constraints, the prompt carries the changes, the section below, and the background section's contents copied whole; never quote the verdict section.
+     - Carrying the changes means the diff baseline to read them against, and whatever no diff reaches, which the skill's own scoping section lists.
    - Compose no review instructions of your own on top, beyond what an endgame in force tightens.
 3. **Report findings** to the user as the subagent returned them.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones, stating which you accept or reject and why.
    - A finding the floor covers is neither judged nor fixed for its own sake: report it at the close.
-     - The floor covers the lowest rank of the reviewer's own scale, what it marked optional or left in a bucket it marks non-blocking, and a finding against the background on the same terms unless that finding shows a statement there false.
+     - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless that finding shows a statement there false.
      - That falsity exception reaches past the background: a finding naming a statement anywhere that the change itself made false or misleading is judged and fixed at whatever rank it carries.
        - The change caused that one, so leaving it ships an artifact that says something untrue, which no rank makes minor.
        - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
@@ -87,6 +88,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - A rejection resting on something checkable — what a command returns, what the suite already covers, what a probe produced — puts that fact in the background as well, so the next reviewer reads it rather than deriving it again; the verdict itself stays where it is.
      - What `address-finding` ran to establish a fix goes there on the same terms, or a later round undoes a true statement it has no record of.
      - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
+       - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
    - Trying the text on a reader is the loop's to run, not the reviewer's: probe where a finding turns on how a reader would take the text, the argument has not settled it, and the floor does not already cover it.
      - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
      - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
@@ -99,10 +101,14 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
        - An objection to the pinned purpose is the exception: it waits, as below.
    - Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings land there again, the loop is refining its own additions: hold the round's edits, put continuing to the user in the round's message, and wait.
      - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
+     - Where every round's findings came from reading the text and none from running it, running it is among the answers the message carries: reading has not converged, and the probe above settles by execution what argument has not.
      - Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
      - The message says how many rounds the loop has run from its start, so a continue is weighed against what it has already taken.
+     - Describe each finding as its own verdict describes it: one you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
      - Reading those groups, name the mechanism the rounds' findings have clustered on under `address-finding`'s same-mechanism signal, or say there is none.
-     - Where one stands, put its own decision rather than continuing alone: the answers the rounds have moved between, what each costs, and which you recommend.
+     - Where one stands, put its own decision rather than continuing alone.
+       - Say what the mechanism is for and whether its current shape serves that, before listing anything — `address-finding`'s signal asks what it should do, and the rounds have only produced wordings of what it already does.
+       - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
        - Their answer goes into the background as theirs, with the reason they gave, and a later round reopening the mechanism is answered from there.
        - One that settles the mechanism and says nothing of going on is a continue under what it settled, narrowed as the message recommended.
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
@@ -171,7 +177,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
 
 ## Perspectives for the Review
 
-Weigh these on top of the `code-review-expert` defaults.
+Weigh these alongside what `raise-findings` asks for.
 
 The background that comes with the change is under review with it — whether the change serves it, and whether it is sound — and is given to be weighed, not obeyed.
 The purpose it states bounds the fix, not the finding: raise a defect wherever the change has one.
@@ -184,6 +190,8 @@ One that names none argues a preference, and without that bar a careful reviewer
 - For a behavior the tests do not pin, it is the wrong behavior that would go undetected.
 - For a maintainability finding, it is the future cost — what a later change is made to do twice, or to undo.
 - For a violation of a written standard in force over what is under review, its own bar is the citation: name the standard's file and what it states, so the fixing side checks it rather than takes it on trust.
+- For a value the change does not produce itself, it is what whoever supplies it can make the code branch on, or make its reader do — text reaching prose an agent executes arrives there as instruction.
+- For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
 - For a reason in the background, it is what the change keeps or omits on the strength of a ground that does not support it — "the surrounding code already does it this way" defends nothing; that the ground is weak is not by itself the finding, and the fix reaches the background only.
 
 Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run; one resting only on how a sentence could be read is the weakest kind.
