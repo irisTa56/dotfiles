@@ -24,7 +24,7 @@ A defect a change introduces often shows at a line the diff leaves untouched, wh
 
 | Rank | What it covers |
 | --- | --- |
-| **P1** | It does the wrong thing: some input, condition, or reading of it produces an outcome that is wrong and not merely worse, whether or not that has happened yet. |
+| **P1** | It does the wrong thing: some input or condition produces an outcome that is wrong and not merely worse, whether or not that has happened yet. |
 | **P2** | It does the right thing, and costs enough to be worth an edit, whether that cost has been paid yet or not. |
 | **P3** | The lowest rank: it costs the same way, and not enough to be worth an edit. |
 
