@@ -61,15 +61,19 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - Carrying the changes means the diff baseline to read them against, and whatever no diff reaches, which the skill's own scoping section lists.
    - Compose no review instructions of your own on top, beyond what an endgame in force tightens.
 3. **Report findings** to the user as the subagent returned them.
+   - Say with them which round this is counting from the loop's start, and the consecutive-round tally as the continue rule below counts it, every round and not only when the hold below fires, so a recurrence cannot pass unremarked.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones, stating which you accept or reject and why.
+   - The judging predicates are that skill's and this step points at them rather than restating one, so a correction lands where all its callers read it.
+     - A narrowing the loop itself needs is not a restatement and stays here, as the probe narrowing below is, since step 4 is what those callers do not read — though the Perspectives section is not, and `support-pr-review` takes its finding bar from there.
+   - What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
+   - What a fix has to clear is `address-finding`'s harm criterion — or, where it rides in as a removal or a standard violation, the own bar each of those has below — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
    - A finding the floor covers is neither judged nor fixed for its own sake: report it at the close.
      - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless that finding shows a statement there false.
-     - That falsity exception reaches past the background: a finding naming a statement anywhere that the change itself made false or misleading is judged and fixed at whatever rank it carries.
-       - The change caused that one, so leaving it ships an artifact that says something untrue, which no rank makes minor.
+     - That falsity exception reaches past the background, and what it overrides is the rank and not the harm criterion: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected with its reason where none does, since deciding that none does is a judgement and the floor is for findings you make none about.
        - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
      - A removal such a finding proposes is taken in any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway and what it prunes is surface the next round would read.
      - A violation of a written standard in force over what is under review is taken on a removal's terms, at whatever rank it carries.
-       - The floor keeps the loop from spending judgment on preference, and a standard the user already settled costs none; its rank measures the reviewer's sense of impact rather than whether the standard holds.
+       - The floor keeps the loop from spending judgment on preference, and a standard the user already settled costs none.
        - Put it through `address-finding`'s standard criterion before it rides, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
      - Anything else a floored finding proposes is taken only where a fix the floor does not cover already edits what it names.
      - Whichever way a fix rides in, it is checked against the purpose, the decisions already taken, and the sites it touches; the finding itself is not settled, so no demonstration is owed for it.
@@ -94,16 +98,21 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
      - A run that never engaged the task shows nothing and is replaced.
      - `address-finding`'s ambiguity criterion accepts an ambiguity finding in any round, and only on a misexecution demonstrated to do real harm — this probe's, a reader's, or a call site's; its argued routes, a literal or cheaper parse, no longer accept one.
-       - Argument alone rejects only by showing the reading is not available in the text; that no reader would take an available one is a claim about readers, which a probe settles.
+       - Argument alone rejects by showing the reading is not available in the text, or on `address-finding`'s context criterion under its own limiter; the probe is for a reading nothing there resolves, where what a reader would do is genuinely open.
    - A valid finding against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
      - A reason the user gave is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
        - Enter it in the verdict section meanwhile; a later round objecting to that reason again is answered from the record.
        - An objection to the pinned purpose is the exception: it waits, as below.
+   - Before the round's fixes land, read each one where its reader meets it and name what it clears against the bar above; where a fix answering a harm-criterion finding clears nothing, separate the two causes.
+     - One that does not reach the harm the finding named goes back to `address-finding` §3 for a different fix, with the finding still standing.
+     - One for which no harm is nameable at all is the bar having slipped, so nothing lands and that finding is rejected with that reason.
+     - A fix the user directed in so many words is outside the gate: that is an instruction rather than an answer to a finding.
+     - It runs before the sweep, before the background entries, and before anything a floored finding rides in on, so a fix that does not land leaves nothing behind to undo.
    - Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings land there again, the loop is refining its own additions: hold the round's edits, put continuing to the user in the round's message, and wait.
      - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
      - Where every round's findings came from reading the text and none from running it, running it is among the answers the message carries: reading has not converged, and the probe above settles by execution what argument has not.
      - Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
-     - The message says how many rounds the loop has run from its start, so a continue is weighed against what it has already taken.
+     - The message carries the counts step 3 reports, so a continue is weighed against what the loop has already taken.
      - Describe each finding as its own verdict describes it: one you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
      - Reading those groups, name the mechanism the rounds' findings have clustered on under `address-finding`'s same-mechanism signal, or say there is none.
      - Where one stands, put its own decision rather than continuing alone.
@@ -115,10 +124,10 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - Recommend the endgame as the default answer: continue, with the round narrowed at both ends.
        - It applies nothing unless a valid finding fixes a defect the floor does not cover, and where one does it applies every such fix with every valid removal and every valid standard violation the round raised at whatever rank, and nothing besides.
        - Its reviewer is asked to raise, at full scope, only what such a round can apply, since every weaker finding is bought and discarded:
-         - a defect whose outcome does real harm;
+         - a defect whose outcome does real harm, a statement the change made false or misleading that a reader acts on included;
          - a removal under its own bar;
-         - a violation of a standard in force under its own;
-         - a statement the change itself made false or misleading.
+         - a violation of a standard in force under its own.
+       - That list bounds what its reviewer may raise and not what the round must fix: a finding in one of those categories goes through the judgement above like any other.
      - Their stop voids the round's other answers; the close names what it voided.
        - A mechanism settlement is not among them: it settles the specification rather than the round, and reaches the background and the close report either way.
      - Their continue governs every round that follows, restarting the tally rather than retiring the question.
@@ -152,6 +161,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - A decision's justification lives in the record, and the loop does not also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a round applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
+   - Termination is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
    - Review coverage of the loop's own bookkeeping — the record and the mechanics of holding and closing — is deliberately subordinated to termination, with the close report as the compensating control.
      - A finding whose whole content is that this bookkeeping went unreviewed is answered from this decision; a defect in the bookkeeping is judged like any other.
    - What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
@@ -174,6 +184,8 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - a question answered by anyone but them — who answered, with what, and whether the answer stood;
      - carve-outs, flawed specs, a mechanism they settled, and the questions above, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is.
    - Close the record by appending `## Closed` as its last line rather than deleting it, which would take the carve-outs, flawed specs, and unanswered questions with it.
+   - No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a floored finding re-judged, a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
+     - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
 ## Perspectives for the Review
 
