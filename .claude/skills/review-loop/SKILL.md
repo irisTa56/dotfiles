@@ -106,7 +106,7 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
    - Before the round's fixes land, read each one where its reader meets it and name what it clears against the bar above; where a fix answering a harm-criterion finding clears nothing, separate the two causes.
      - One that does not reach the harm the finding named goes back to `address-finding` §3 for a different fix, with the finding still standing.
      - One for which no harm is nameable at all is the bar having slipped, so nothing lands and that finding is rejected with that reason.
-     - This gate reaches neither a removal, nor a standard violation, nor a fix the user directed in so many words: the first two clear their own bars and the third is an instruction, and none of the three owes a harm argument.
+     - A fix the user directed in so many words is outside the gate: that is an instruction rather than an answer to a finding.
      - It runs before the sweep, before the background entries, and before anything a floored finding rides in on, so a fix that does not land leaves nothing behind to undo.
    - Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings land there again, the loop is refining its own additions: hold the round's edits, put continuing to the user in the round's message, and wait.
      - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
