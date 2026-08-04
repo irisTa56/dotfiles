@@ -22,7 +22,6 @@ Take the finding seriously, but do not accept it blindly.
 - **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
   - What has to be nameable, by you where the finding left it out, is the input or condition and the wrong outcome it produces; where what is under review is prose instead, it is who reads the thing, what they do wrong under it, and what that costs them.
   - A cheap fix is not a free one: cheapness answers what it costs to write and says nothing about whether anything went wrong without it.
-  - That a statement can be read more than one way is not itself a finding, and neither is that one reading is the literal or the cheaper one. The finding is the wrong act a reader takes and what it costs them; the reading is at most how they come to take it.
 - **A standard already in force?** A violation of a written standard that loads into your own context when you work on the file, such as a rule file or an instruction file, has its harm settled by the standard and owes no separate harm argument.
   - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
 - **A removal proposal?** Judge it by §3's removal question.

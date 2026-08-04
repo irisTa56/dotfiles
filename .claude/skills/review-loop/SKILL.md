@@ -27,8 +27,7 @@ Each round's group also notes the fixes it landed and what it added to the backg
 
 The line between the sections: the background holds what is true of the change, and the verdicts hold why anyone chose it.
 "The caller validates this already, so checking it here is deliberately out of scope" is background; the argument that settled a finding, and the reasoning behind a design choice, are verdicts.
-A reason a reviewer is handed is answered by a finding against the reason, and a fix answering that edits the background rather than the deliverable, so the round it costs buys nothing that ships.
-What a reviewer does need from a settled finding travels instead in the settled list step 2 derives, so the verdict section is not sent whole and is never quoted.
+The verdict section is never sent whole or quoted; what a reviewer needs from it travels in the settled list step 2 derives.
 
 ## Workflow
 
@@ -61,10 +60,9 @@ What a reviewer does need from a settled finding travels instead in the settled 
    - Beyond those run constraints, the prompt carries the changes, the section below, the background section's contents copied whole, and the settled list; nothing else out of the verdict section.
      - Carrying the changes means the diff baseline to read them against, and whatever no diff reaches, which the skill's own scoping section lists.
      - The settled list is one line per finding the loop settled without landing a fix — rejected, left to the floor, carved out, left on the user's word, or surfaced as a flawed spec — giving what was raised and the ground it was settled on.
-       - A finding joins the list once a second round has raised it, so round one sends none: blindness is surrendered only where it has already cost a round, and a finding raised once and never again costs the list nothing.
-       - Write each line as what happened, not as a verdict to honour — "raised in round 2, settled on X" rather than "X is not a problem" — so the reviewer weighs the ground instead of taking the outcome.
+       - A finding joins it once a second round has raised it, so round one sends none.
+       - Write each line as what happened rather than as a verdict to honour: "raised in round 2, settled on X", not "X is not a problem".
        - Head the list with its one condition: raise one of these again only with evidence the list does not already answer.
-       - A line is a line; the reasoning that produced the verdict stays in the record.
    - Compose no review instructions of your own on top, beyond what an endgame in force tightens.
 3. **Report findings** to the user as the subagent returned them.
    - Say with them which round this is counting from the loop's start, and the consecutive-round tally as the continue rule below counts it, every round and not only when the hold below fires, so a recurrence cannot pass unremarked.
@@ -91,10 +89,10 @@ What a reviewer does need from a settled finding travels instead in the settled 
      - a probe's task and what it produced, whichever way it settled the finding, so a later round can tell what was tested;
      - a spec or plan judged flawed, and a prescribing claim the fix contradicts — `address-finding` is barred from fixing either;
      - a valid finding the loop cannot fix, with what became of it and who chose that;
-     - a fix that chose between competing options, with which option and why, so a round proposing the reverse is answered from here and meets the choice in the settled list once it has raised it twice;
+     - a fix that chose between competing options, with which option and why;
      - a fix that departed from what the user asked, with the departure named;
      - a valid finding the user directed the loop to leave, and every part the purpose bound held back — what the change therefore does not cover goes into the background as what is true of it, and the reason stays here;
-     - an objection to a user decision, set aside unjudged, for the close report to pick up; raised again on the same grounds, it is answered from the record.
+     - an objection to a user decision, set aside unjudged, for the close report to pick up.
    - A fact a round established — what a command returns, what the suite already covers, what a probe produced, what `address-finding` ran to settle a fix — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
      - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
      - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
@@ -106,7 +104,7 @@ What a reviewer does need from a settled finding travels instead in the settled 
      - What it produced is an established fact under the rule above, so a probe that refuted a finding is paid for once rather than once a round.
    - A valid finding against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
      - What the user stated in their own words — the purpose, a constraint, a mechanism they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
-       - Enter it in the verdict section meanwhile; a later round objecting to that reason again is answered from the record.
+       - Enter it in the verdict section meanwhile.
        - An objection to the pinned purpose is the exception: it waits, as below.
    - Before the round's fixes land, read each one where its reader meets it and name what it clears against the bar above; where a fix answering a harm-criterion finding clears nothing, separate the two causes.
      - One that does not reach the harm the finding named goes back to `address-finding` §3 for a different fix, with the finding still standing.
@@ -123,7 +121,7 @@ What a reviewer does need from a settled finding travels instead in the settled 
      - Where one stands, put its own decision rather than continuing alone.
        - Say what the mechanism is for and whether its current shape serves that, before listing anything — `address-finding`'s signal asks what it should do, and the rounds have only produced wordings of what it already does.
        - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-       - What their answer settled goes into the background as theirs, as a constraint on what the change may be; the reason they gave stays in the verdict section, and a later round reopening the mechanism is answered from the record.
+       - What their answer settled goes into the background as theirs, as a constraint on what the change may be; the reason they gave stays in the verdict section.
        - One that settles the mechanism and says nothing of going on is a continue under what it settled, narrowed as the message recommended.
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
      - Recommend the endgame as the default answer: continue, with the round narrowed at both ends.
@@ -154,16 +152,14 @@ What a reviewer does need from a settled finding travels instead in the settled 
      - A valid finding the loop cannot fix is put as carve it out or leave it, and waits for the answer.
      - Wait on a reviewer's objection to the pinned purpose, the first time it is raised — only the user can re-pin it.
        - Where the user cannot answer, it travels as the round's other questions do — returned, or carried to the close — with the pin standing either way.
-       - Their answer goes into the background, and a later round raising it again is answered from there.
+       - Their answer goes into the background.
        - A re-pin re-frames the round's other questions: re-weigh them against it before acting on their answers.
      - Do not wait on a flawed spec or a contradicted prescribing claim: the loop is barred from fixing either whatever the answer.
-       - Surface each once; a later round raising it again is answered from the record.
-   - A finding a later round raises again is judged again on its merits, from the record's reasoning rather than its verdict, and joins the settled list step 2 sends.
-     - Recurrence is not evidence against the verdict: a reviewer the list had not yet reached could not know the finding was settled.
-     - Once it is on the list, one raised again without evidence the list does not answer is answered from the record and costs the round no judgement; one raised with such evidence is judged like any other finding.
+       - Surface each once.
+   - Anything the record settled and a later round raises again — a finding, a carve-out, a reason the loop refuted, a mechanism the user closed — is answered from the record where it comes back with no evidence the record does not already answer, and judged afresh on its merits where it does, from the record's reasoning rather than its verdict.
+     - It joins the settled list step 2 sends, and until the list has reached a reviewer its recurrence is not evidence against the verdict: that reviewer could not know.
      - Distinct findings clustering on one mechanism are `address-finding`'s same-mechanism signal, not recurrence.
      - A decision the user gave in so many words — an instruction, or their answer to a question put to them — is not re-judged; one read from their context is an inference and stays review surface.
-     - A carve-out the loop already made and told them of is answered from the record.
    - A decision's justification lives in the record, and the loop does not also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a round applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
@@ -172,7 +168,6 @@ What a reviewer does need from a settled finding travels instead in the settled 
      - A finding whose whole content is that this bookkeeping went unreviewed is answered from this decision; a defect in the bookkeeping is judged like any other.
    - What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
      - Verdict writes, background cuts or condensations, and the facts a round established — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop; a condensation's fidelity is bookkeeping coverage, per the decision above.
-       - A settled-list line never extends the loop either: it reports what a round already decided and changes nothing a reviewer reads the change against.
        - Correcting the background likewise, where the correction leaves what a later reviewer would look into unchanged; one that moves it either way extends the loop, since no reviewer has read the change under it.
    - Close every round by looking at the change whole before deciding whether to spawn, on the last round as much as any other — though a stop-close reports rather than cuts:
      - whether the fixes so far read as one coherent thing rather than a stack of patches;
@@ -200,7 +195,6 @@ Weigh these alongside what `raise-findings` asks for.
 
 The background that comes with the change is under review with it — whether the change serves it, and whether it is sound — and is given to be weighed, not obeyed.
 The purpose it states bounds the fix, not the finding: raise a defect wherever the change has one.
-Give the parts it says nothing about their full share of your attention: a well-argued background draws the eye, and a defect hides in the part nobody wrote about.
 
 Raise a finding only by naming the wrong action or outcome that follows from leaving it unfixed, whatever it is raised under; a removal proposal and a violation of a written standard are the exceptions, each meeting its own bar below.
 One that names none argues a preference, and without that bar a careful reviewer generates findings without end.
@@ -211,10 +205,9 @@ One that names none argues a preference, and without that bar a careful reviewer
 - For a value the change does not produce itself, it is what whoever supplies it can make the code branch on, or make its reader do — text reaching prose an agent executes arrives there as instruction.
 - For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
 
-That a statement can be read more than one way is not a finding, and neither is that one reading is the literal or the cheaper one.
-Where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs; say what the reading is as the route to it, and never in its place.
+That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
 
-Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run; one resting only on how a sentence could be read is the weakest kind.
+Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run.
 Check what you can reach yourself, and raise a finding that turns on how a reader would take the text without trying it on a fresh reader — that trial belongs to whoever fixes.
 
 Where what you are reviewing is prose that a person or an agent executes rather than code a machine runs, it is not underspecified by defect: it leaves to the reader's judgement what the reader can be trusted to judge.
