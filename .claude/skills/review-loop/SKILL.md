@@ -71,7 +71,6 @@ Anything worth carrying can be put the first way, and handing a reviewer the sec
      - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless that finding shows a statement there false.
      - That falsity exception reaches past the background, and what it overrides is the rank and not the harm criterion: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected with its reason where none does, since deciding that none does is a judgement and the floor is for findings you make none about.
        - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
-       - Run `address-finding`'s falsified-claims sweep to exhaustion inside the round that opened the chain rather than one site per round.
      - A removal such a finding proposes is taken in any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway and what it prunes is surface the next round would read.
      - A violation of a written standard in force over what is under review is taken on a removal's terms, at whatever rank it carries.
        - The floor keeps the loop from spending judgment on preference, and a standard the user already settled costs none.
