@@ -60,7 +60,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Beyond those run constraints, the prompt carries the changes, the section below, the background section's contents copied whole, and the settled list; nothing else out of the verdict section.
      - Carrying the changes means the diff baseline to read them against, and whatever no diff reaches, which the skill's own scoping section lists.
      - The settled list is what this round derives from the verdict section: a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on — an objection set aside unjudged among them, whose ground is the setting aside.
-       - Judge what belongs on it rather than reading it off a category: a ground a later decision of the user's voided is no longer a ground, and a finding the floor covered was never settled at all.
+       - Judge what belongs on it rather than reading it off a category: a finding the floor covered was never settled at all.
        - A finding joins it once a second round has raised it.
        - Write each line as what happened rather than as a verdict to honour: "raised in round 2, settled on X", not "X is not a problem".
        - Head the list with its one condition: raise one of these again only with evidence the list does not already answer.
