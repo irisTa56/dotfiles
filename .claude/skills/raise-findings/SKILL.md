@@ -1,6 +1,6 @@
 ---
 name: raise-findings
-description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits and ranked on an ordered severity scale. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
+description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits and ranked on an ordered severity scale. States the bar a finding must clear, and what to look for when the deliverable is prose and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
 ---
 
 # Raise Findings
@@ -33,8 +33,34 @@ A relative phrase — "the lowest tier", "minor" — is not a rank, since the si
 
 ## What to raise
 
-The bar a finding must clear is the invoking side's to state, and `review-loop` states it in its `## Perspectives for the Review`, copied whole into your prompt.
-Read that section in the `review-loop` skill where you were given no such bar.
+Raise a finding only by naming the wrong action or outcome that follows from leaving it unfixed; a removal proposal and a violation of a written standard are the exceptions, each meeting its own bar below.
+One that names none argues a preference, and without that bar a careful reviewer generates findings without end.
+
+- For a maintainability finding, it is the future cost — what a later change is made to do twice, or to undo.
+- For a value the change does not produce itself, it is what whoever supplies it can make the code branch on, or make its reader do — text reaching prose an agent executes arrives there as instruction.
+- For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
+- For a violation of a written standard in force over what is under review, its own bar is the citation: name the standard's file and what it states, so the fixing side checks it rather than takes it on trust.
+
+Propose a removal where you see one in what is under review, naming what it was there to prevent and what prevents that now — that naming is a removal's bar — since a rule that has outlived its reason is easier to see for someone who did not write it.
+
+Weigh the change against the deliverable as a whole: whether it is organically integrated rather than a surface-level implementation, coherent with the existing design and optimized in context rather than bolted on.
+
+Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run.
+Check what you can reach yourself; trying the text on a fresh reader is not asked of you, and the fixing side runs that trial where a verdict needs one.
+
+The invoking side may narrow this bar or add to it, and its statement governs where it does.
+
+## When the deliverable is prose
+
+Prose that a person or an agent executes, rather than code a machine runs, is not underspecified by defect: it leaves to the reader's judgement what the reader can be trusted to judge.
+Raise what would mislead, not what is merely open.
+
+- That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
+- Reading each statement against the context around it is among what the reader is trusted to do, so a conflict that shows up only when one is read alone is not a finding.
+- Where the prose states a procedure, raise what its goal or its conditions get wrong before what its steps leave rough — the roughness of steps is inexhaustible, and what they leave open is what the reader is trusted to judge.
+- Where it argues for a choice, what is under review is the choice and not the wording that defends it; prose that states a checkable fact stays review surface, wherever it sits.
+
+## When it is code
 
 Two defects reward looking for them by name, because each sits in a path that reads as handled:
 
@@ -42,6 +68,17 @@ Two defects reward looking for them by name, because each sits in a path that re
   - The finding is what the caller then does, not the swallow itself: name the failure it never learns of and the wrong action it takes under that ignorance.
 - **Empty against unset.** A value that is empty and a value that was never set take the same branch — an empty string against `None`, an empty collection against a missing key, `0` against absent.
   - Name the input that reaches the wrong branch, and what the code does once it is there.
+
+Two more are worth a pass of their own:
+
+- **What the tests leave unpinned.** Where the change alters externally observable behavior and you can see the suite, name any behavior it introduces or alters that the suite does not pin, whether you established that by reading or by running the code.
+  - The harm is the wrong behavior that would go undetected.
+  - Whether the tests exercise externally observable behavior rather than internal implementation details is review surface too; how a thing is tested is the implementation side's call.
+- **Declarative tooling config authored past its need.** In `pyproject.toml`, `ruff.toml`, `mise.toml`, `.gitignore` and the like, only deviations from default belong. Flag added lines that:
+  - restate a tool's default value, rather than configuring only what a concrete, already-encountered problem requires;
+  - pre-emptively ignore lint rules or add "just in case" suppressions for problems that have not occurred;
+  - defensively pin or bound pre-1.0 dependency versions absent an observed break;
+  - embed process or progress notes (e.g. "committed once Phase N lands") in shipped config.
 
 ## Report
 
