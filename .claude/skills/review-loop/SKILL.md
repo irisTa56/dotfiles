@@ -208,7 +208,6 @@ One that names none argues a preference, and without that bar a careful reviewer
 - For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
 
 That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
-Such a finding names what makes the act wrong — the text's own stated goal, a standard or specification outside it, or a fact the reading gets wrong — since without that there is no wrong to name.
 
 Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run.
 Check what you can reach yourself; trying the text on a fresh reader is not asked of you, and the fixing side runs that trial where a verdict needs one.

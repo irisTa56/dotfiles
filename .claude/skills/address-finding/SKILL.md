@@ -26,7 +26,6 @@ Take the finding seriously, but do not accept it blindly.
 - **A standard already in force?** A violation of a written standard that loads into your own context when you work on the file, such as a rule file or an instruction file, has its harm settled by the standard and owes no separate harm argument.
   - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
 - **A removal proposal?** Judge it by §3's removal question.
-- **What makes the act wrong?** Where a finding's whole harm is that a reader would act wrongly under the text, it names what makes the act wrong — the text's own stated goal, a standard or specification outside it, or a fact the reading gets wrong — and is rejected where it names none, since a wrong nothing defines is not one there is a fix for.
 - **Does the context resolve it?** The statement a reader meets is the one the context around it carries, so where the finding is about prose rather than code, reject what only stands when it is read apart from that — an inconsistency, or a harmful parse the next clause or the step before rules out — by naming what resolves it.
   - Prose is read in context, so that naming answers the finding; picking sentences apart one by one produces conflicts without end.
   - A misreading a reader or a call site demonstrably made is not answered this way, since the demonstration is what naming the context would have to overturn.
