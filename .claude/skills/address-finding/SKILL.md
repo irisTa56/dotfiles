@@ -19,11 +19,12 @@ Take the finding seriously, but do not accept it blindly.
 - **The same mechanism again?** When findings keep landing on one mechanism, round after round, the mechanism is what is wrong and not its wording. Ask what it should do before rewording it again.
   - One finding can carry that signal on its own: where what it calls a contradiction sits between two parts of the change itself, ask whether a decision is missing before asking which side is wrong, since two parts answering one question differently is what an unsettled specification looks like and picking a side buries it.
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
-- **Grounded in actual behavior?** Judge by what the code does, not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
-- **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
-  - What has to be nameable, by you where the finding left it out, is the input or condition and the wrong outcome it produces; where what is under review is prose instead, it is who reads the thing, what they do wrong under it, and what that costs them.
+- **Grounded in actual behavior?** Judge by what the deliverable does — the code when run, the prose when read — not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
+- **Does it show harm?** Weigh it against the bar the `finding-bar` skill states, naming for yourself what the finding left out.
+  - One that does not clear it argues a preference rather than a defect: answer it with the reason what is there was chosen, and leave it standing.
+  - Name a reason you can point to; where there is none the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
   - A cheap fix is not a free one: cheapness answers what it costs to write and says nothing about whether anything went wrong without it.
-- **A standard already in force?** A violation of a written standard that loads into your own context when you work on the file, such as a rule file or an instruction file, has its harm settled by the standard and owes no separate harm argument.
+- **A standard already in force?** A violation of one clears the bar on its own terms, per `finding-bar`.
   - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
 - **A removal proposal?** Judge it by §3's removal question.
 - **Does the context resolve it?** The statement a reader meets is the one the context around it carries, so where the finding is about prose rather than code, reject what only stands when it is read apart from that — an inconsistency, or a harmful parse the next clause or the step before rules out — by naming what resolves it.
@@ -81,7 +82,7 @@ Three questions answer that, and all three are weighed rather than taking the fi
 
 - What can be removed, so the problem cannot arise?
   - Cheapest on the metric above, so ask it first.
-  - Ask of it what the removed thing was there to prevent, and what prevents that now.
+  - Hold it to `finding-bar`'s removal bar.
   - Deleting what the finding was about without answering that is not a fix; a removal that answers it is often the best one there is.
 - What can be reshaped, so the problem does not arise here?
   - A reshape is a rewrite, so §1's rewrite cost applies.
