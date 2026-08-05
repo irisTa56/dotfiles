@@ -1,6 +1,6 @@
 ---
 name: raise-findings
-description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits and ranked on an ordered severity scale. Takes the bar a finding must clear from the `finding-bar` skill, and states what to look for when the deliverable is prose and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
+description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits and ranked on an ordered severity scale. Takes the bar a finding must clear from the `finding-bar` skill, and states what to look for when the deliverable is prose someone executes and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
 ---
 
 # Raise Findings
@@ -35,21 +35,21 @@ A relative phrase — "the lowest tier", "minor" — is not a rank, since the si
 
 Raise only what clears the bar the `finding-bar` skill states.
 Without it a careful reviewer generates findings without end.
+A round where nothing clears it returns nothing, which is a correct result rather than a review that failed to do its job.
 
-Propose a removal where you see one in what is under review, under that bar's own terms, since a rule that has outlived its reason is easier to see for someone who did not write it.
+Propose a removal where you see one in what is under review, under the removal bar `finding-bar` states in place of that one, since a rule that has outlived its reason is easier to see for someone who did not write it.
 
 Weigh the change against the deliverable as a whole: whether it is organically integrated rather than a surface-level implementation, coherent with the existing design and optimized in context rather than bolted on.
 
-Declarative tooling config sits beside a deliverable of either kind, so hold it to the same bar wherever it appears: in `pyproject.toml`, `ruff.toml`, `mise.toml`, `.gitignore` and the like, only deviations from default belong.
+Declarative tooling config sits beside a deliverable of either kind, so hold it to the same bar wherever it appears: in `pyproject.toml`, `mise.toml`, `.gitignore` and the like, only deviations from default belong.
 Flag added lines that:
 
-- restate a tool's default value, rather than configuring only what a concrete, already-encountered problem requires;
 - pre-emptively ignore lint rules or add "just in case" suppressions for problems that have not occurred;
 - defensively pin or bound pre-1.0 dependency versions absent an observed break;
 - embed process or progress notes (e.g. "committed once Phase N lands") in shipped config.
 
-Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run.
-Check what you can reach yourself; trying the text on a fresh reader is not asked of you.
+Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run — and check what you can reach yourself.
+Trying the text on a reader is not asked of you, whatever the medium.
 
 The account the invoking side gave — the background, where it names one — is under review with the change: whether the change serves it, and whether it is itself sound, and it is given to be weighed rather than obeyed.
 Give the parts it says nothing about their full share of your attention: what arrives already worked over draws the eye, and a defect hides in the part nobody wrote about.
@@ -61,9 +61,9 @@ The invoking side may narrow this bar or add to it, and its statement governs wh
 
 The two sections below each govern the part of the change they fit, so a change spanning both takes both rather than being classed as one.
 
-## When the deliverable is prose
+## When the deliverable is prose someone executes
 
-Prose that a person or an agent executes, rather than code a machine runs, is not underspecified by defect: it leaves to the reader's judgement what the reader can be trusted to judge.
+Such prose, rather than code a machine runs, is not underspecified by defect: it leaves to the reader's judgement what the reader can be trusted to judge.
 Raise what would mislead, not what is merely open.
 
 - Reading each statement against the context around it is among what the reader is trusted to do, so a conflict that shows up only when one is read alone is not a finding.

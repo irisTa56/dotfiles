@@ -73,7 +73,7 @@ Spend effort here, roughly in priority order.
    - Read these as the source of truth rather than a copy here:
      - `finding-bar`, for the bar itself;
      - `raise-findings`' "What to raise";
-     - whichever of `raise-findings`' "When the deliverable is prose" and "When it is code" the PR's own parts call for.
+     - whichever of `raise-findings`' two medium-specific sections the PR's own parts call for.
 6. **Gap-fill against existing comments.** Do not repeat points the existing bot/human comments already make; cover the gaps they left, and where you merely agree with an existing comment, note that instead of restating it.
 
 If you find nothing beyond what the existing comments already say, say so honestly.
