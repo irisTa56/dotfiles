@@ -17,6 +17,7 @@ Take the finding seriously, but do not accept it blindly.
 - **Proportionate?** Judge whether the proposed approach is appropriately scoped; a simpler, more targeted fix may resolve the same concern. This weighs the *how*, not the *whether* — the underlying problem should still be addressed.
 - **A more fundamental fix?** Reframe holistically: is there a root-cause fix that removes repeated manual work or prevents the whole class of issue (automation/abstraction over ad-hoc edits)?
 - **The same mechanism again?** When findings keep landing on one mechanism, round after round, the mechanism is what is wrong and not its wording. Ask what it should do before rewording it again.
+  - One finding can carry that signal on its own: where what it calls a contradiction sits between two parts of the change itself, ask whether a decision is missing before asking which side is wrong, since two parts answering one question differently is what an unsettled specification looks like and picking a side buries it.
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
 - **Grounded in actual behavior?** Judge by what the code does, not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
 - **Does it show harm?** A finding that names no wrong action or outcome argues a preference, not a defect. Answer it with the reason what is there was chosen, and leave it standing — but name a reason you can point to, and when there is none, the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
@@ -25,9 +26,7 @@ Take the finding seriously, but do not accept it blindly.
 - **A standard already in force?** A violation of a written standard that loads into your own context when you work on the file, such as a rule file or an instruction file, has its harm settled by the standard and owes no separate harm argument.
   - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
 - **A removal proposal?** Judge it by §3's removal question.
-- **Would the reading actually be taken?** Accept an ambiguity finding when the wrong reading is the literal or the cheaper one, or when readers demonstrably took it; reject one that had to be constructed.
-  - Where the wrong reading wins by being cheaper, ask also whether the right procedure simply costs too much — the fix may be to cheapen it, not to reword.
-- **Does the context resolve it?** The reading the criterion above weighs is the one the statement carries in the context around it, so where the finding is about prose rather than code, reject what only stands when it is read apart from that — an inconsistency, or a harmful parse the next clause or the step before rules out — by naming what resolves it.
+- **Does the context resolve it?** The statement a reader meets is the one the context around it carries, so where the finding is about prose rather than code, reject what only stands when it is read apart from that — an inconsistency, or a harmful parse the next clause or the step before rules out — by naming what resolves it.
   - Prose is read in context, so that naming answers the finding; picking sentences apart one by one produces conflicts without end.
   - A misreading a reader or a call site demonstrably made is not answered this way, since the demonstration is what naming the context would have to overturn.
 - **What does the rewrite cost?** A rewrite is itself unreviewed, and is where the next defect comes from. Spend that only on a finding that shows harm.
