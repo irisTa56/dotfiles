@@ -70,15 +70,18 @@ Spend effort here, roughly in priority order.
    - This is the highest-value area, and the one reading the diff alone cannot reach.
 4. **Repo/team-specific judgment.** Apply conventions and prior decisions invisible in the diff hunk ("we don't do X here", "this boundary is mid-migration", "this pattern was rejected before").
 5. **High-level quality bar.** Hold the change to what `raise-findings` says to raise — a defect inside the diff included, where it clears the bar above.
-   - Read that skill as the source of truth rather than a copy here: its "What to raise", and whichever of "When the deliverable is prose" and "When it is code" this PR calls for.
+   - Read these as the source of truth rather than a copy here:
+     - `finding-bar`, for the bar itself;
+     - `raise-findings`' "What to raise";
+     - whichever of `raise-findings`' "When the deliverable is prose" and "When it is code" the PR's own parts call for.
 6. **Gap-fill against existing comments.** Do not repeat points the existing bot/human comments already make; cover the gaps they left, and where you merely agree with an existing comment, note that instead of restating it.
 
 If you find nothing beyond what the existing comments already say, say so honestly.
 
 **Mindset.** When judging every finding above, apply the `address-finding` skill's judgment mindset (its validity criteria and anti-patterns) as the source of truth.
 It frames judging findings when you are the one fixing; as a reviewer you hold someone else's PR to the same bar — respect the author, but draft a change request when the bar isn't met, because merging low-quality work is worse for the whole than the friction of a comment.
-`raise-findings`' finding bar governs everything you raise, whatever item it arose under and however the comment phrases it — the rationale layer names the wrong action or outcome even where the draft is a question, since a comment that clears no bar lands on another author.
-The PR body and its linked intent stand in for what the fixing side would otherwise state as the change's purpose and constraints.
+`finding-bar`'s bar governs everything you raise, whatever item it arose under and however the comment phrases it — the rationale layer names the wrong action or outcome even where the draft is a question, since a comment that clears no bar lands on another author.
+The PR body and its linked intent stand in for the account an invoking side would otherwise give.
 
 **Delegation.** The wide, small-return parts of this step are good candidates to delegate to a subagent that returns only its findings, keeping the main context clean: the `rg`/`grep` ripple-and-omission sweep (item 3), and reading the linked intent documents (Step 1).
 
@@ -101,7 +104,8 @@ Present each finding in **two layers with different readers**.
 
 ## Related
 
-- `raise-findings` — the source of truth for the finding bar and the review perspectives this skill reuses.
+- `finding-bar` — the source of truth for the bar a finding must clear.
+- `raise-findings` — the source of truth for the review perspectives this skill reuses.
 - `address-finding` — the source of truth for the finding-addressing mindset this skill reuses when judging findings.
-- `review-loop` — reviews *your own* changes in a fix-and-re-review loop; it adds its own perspectives on top of `raise-findings`, and those are loop-specific rather than shared with this skill.
+- `review-loop` — reviews *your own* changes in a fix-and-re-review loop; what it adds for its reviewer has no counterpart in a PR review.
 - `address-review-comment` — the posting counterpart: responds to and resolves a single existing review comment.

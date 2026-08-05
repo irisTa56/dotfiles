@@ -21,7 +21,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust;
-  - whether the loop, the user, or the invoking workflow decided it.
+  - whether the loop or the user decided it.
 
 Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence and the cut confinement.
 
@@ -49,7 +49,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Fill the background section before the first round.
      - Enter inferences as inferences: a guess dressed as a user decision misleads every reviewer and would be shielded from re-judging.
    - Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
-2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `raise-findings` skill with the section below.
+2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `raise-findings` skill.
    - `raise-findings` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
    - Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
      - A chain that already delegated to a cheaper model silently checks its own work at that tier, and a run on a premium tier silently pays that premium a second time.
@@ -57,13 +57,15 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
    - The subagent returns findings only and makes no edits.
    - Bar it from reading under the common git dir.
-   - Beyond those run constraints, the prompt carries the changes, the section below, the background section's contents copied whole, and the settled list; nothing else out of the verdict section.
-     - Carrying the changes means the diff baseline to read them against, and whatever no diff reaches, which the skill's own scoping section lists.
-     - The settled list is what this round derives from the verdict section: a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on — an objection set aside unjudged among them, whose ground is the setting aside.
+   - Beyond those run constraints the prompt carries four things, and nothing else out of the verdict section:
+     - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
+     - the background section's contents, copied whole;
+     - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on — an objection set aside unjudged among them, whose ground is the setting aside;
        - Judge what belongs on it rather than reading it off a category: a finding the floor covered was never settled at all.
        - A finding joins it once a second round has raised it.
        - Write each line as what happened rather than as a verdict to honour: "raised in round 2, settled on X", not "X is not a problem".
        - Head the list with its one condition: raise one of these again only with evidence the list does not already answer.
+     - what this loop adds to what `raise-findings` asks for: the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one.
    - Compose no review instructions of your own on top.
 3. **Report findings** to the user as the subagent returned them.
    - Say with them which round this is counting from the loop's start, and the consecutive-round tally as the continue rule below counts it, every round and not only when the hold below fires, so a recurrence cannot pass unremarked.
@@ -71,17 +73,17 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - The judging predicates are that skill's and this step points at them rather than restating one, so a correction lands where all its callers read it.
      - A narrowing the loop itself needs is not a restatement and stays here, as the settled list's re-raise condition below is, since step 4 is what those callers do not read.
    - What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
-   - What a fix has to clear is `address-finding`'s harm criterion — or, where it rides in as a removal or a standard violation, the own bar each of those has in `raise-findings` — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
+   - What a fix has to clear is `address-finding`'s harm criterion — or, where it rides in as a removal or a standard violation, that skill's removal question and standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
    - A finding the floor covers is neither judged nor fixed for its own sake: report it at the close.
      - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless it shows a statement there false.
-     - That falsity exception is not confined to the background, and overrides the rank rather than the harm criterion: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected with that reason where none does.
+     - That falsity exception is not confined to the background, and overrides the rank rather than the harm criterion: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
        - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
-     - A removal the finding proposes, and a violation of a written standard at whatever rank it carries, ride into any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway and what they prune is surface the next round would read.
+     - A removal such a finding proposes, and a violation of a written standard it names at whatever rank, ride into any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway.
        - Put the standard violation through `address-finding`'s standard criterion before it rides, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
-     - Anything else the finding proposes rides only where such a fix already edits what it names.
+     - Anything else such a finding proposes rides only where a fix the floor does not cover already edits what it names.
      - What rides is checked against the purpose, the decisions already taken, and the sites it touches; the finding itself is not settled, so no demonstration is owed for it.
    - Enter every outcome in the verdict section:
-     - a finding you accepted, with the fix it landed;
+     - a finding you accepted, with the fix it landed, and what that fix's consistency sweep reached or that it reached nothing;
      - a finding you rejected, with why it does not hold;
      - a finding the floor left unfixed, with the rank it carried or none, so the close still reaches it;
      - an answer to a hold, with what the continue narrows the round to, so a resumed loop still holds both;
@@ -123,9 +125,8 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - What their answer settled goes into the background as theirs, as a constraint on what the change may be; the reason they gave stays in the verdict section.
        - One that settles the mechanism and says nothing of going on is a continue under what it settled, narrowed as the message recommended.
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
-     - Recommend the endgame as the default answer: continue, with a gate on what the round may apply.
+     - Recommend the endgame as the answer: continue, with a gate on what the round may apply.
        - It applies nothing unless a valid finding fixes a defect the floor does not cover, and where one does it applies every such fix with every valid removal and every valid standard violation the round raised at whatever rank, and nothing besides.
-       - It asks the reviewer for nothing different: the bar it raises under is the one every round raises under, and what the endgame changes is whether the round spends a fix.
      - Their stop voids the round's other answers; the close names what it voided.
        - A mechanism settlement is not among them: it settles the specification rather than the round, and reaches the background and the close report either way.
      - Their continue governs every round that follows, restarting the tally rather than retiring the question.
@@ -133,9 +134,8 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - What earlier rounds added keeps counting from the loop's start.
        - When the condition is met again, hold again.
    - Where the round needs the user, everything it needs them for goes to them together, in one message:
-     - Nothing answers one of these in the user's place, the loop itself included.
-       - Where an answer the message waits on does not come, enter the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
-       - A subagent's last message reaches whoever spawned it, so a loop running under an orchestrator hands its questions up by ending; the run that brings the answers resumes from the record.
+     - An answer this message waits on comes from the user and no one else, the loop included; the one thing it may take as given is the continue the hold above reads out of a mechanism settlement.
+       - Where one does not come, enter the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
        - A user who continues without settling a mechanism the hold put has left it, and it carries to the close as their unanswered question does.
      - A fix reaching past the purpose bound puts one question — extend the change, carve it out, or leave it.
        - Carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
@@ -165,7 +165,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - whether the fixes so far read as one coherent thing rather than a stack of patches;
      - whether the rounds have piled up more than a developer should have to hold in mind — cut what they piled up before it becomes what the next round reviews;
      - the background and the settled list likewise, since both are sent to every reviewer and grow every round.
-   - A cut this look makes is confined to what the rounds themselves put there, under the removal bar `raise-findings` sets; a decision entry step 4 requires may be condensed, never dropped.
+   - A cut this look makes is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry step 4 requires may be condensed, never dropped.
    - A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
    - When the loop closes, report what the user has to read:
      - what was left unfixed, and why, with what the floor covered reported together rather than one by one, so the rest is not buried in it;
@@ -175,18 +175,8 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - what the last round raised and you rejected, since no later pass had a chance to raise it again;
      - every objection to a user decision the rounds set aside, since the decision is theirs to re-take;
      - questions the rounds put to them that are still unanswered, with what each answer would change;
+     - a continue the loop read out of a mechanism settlement rather than one they stated, since continuing was theirs to decide;
      - carve-outs, flawed specs, a mechanism they settled, and the questions above, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is.
    - Close the record by appending `## Closed` as its last line rather than deleting it, which would take the carve-outs, flawed specs, and unanswered questions with it.
    - No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a floored finding re-judged, a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
      - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
-
-## Perspectives for the Review
-
-`raise-findings` states the bar and what to look for; these are what this loop adds to it.
-
-The background that comes with the change is under review with it — whether the change serves it, and whether it is sound — and is given to be weighed, not obeyed.
-The purpose it states bounds the fix, not the finding: raise a defect wherever the change has one.
-Give the parts it says nothing about their full share of your attention: what arrives already worked over draws the eye, and a defect hides in the part nobody wrote about.
-
-This loop fixes nothing at the lowest rank of your own scale: what you rank there is reported and left, so rank a finding there only where you would not have it fixed, and spend your attention above it.
-A removal proposal and a violation of a written standard are outside that, and are taken at whatever rank they carry.
