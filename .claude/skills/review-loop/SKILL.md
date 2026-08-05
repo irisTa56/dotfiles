@@ -99,7 +99,6 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
    - Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
      - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
-       - One exception, which is the user's standing decision: a finding whose whole harm is that a reader would act wrongly under the text names what makes the act wrong — the text's own stated goal, a standard or specification outside it, or a fact the reading gets wrong — and is rejected where it names none, since a wrong that nothing defines cannot be demonstrated either.
      - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
      - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
      - A run that never engaged the task shows nothing and is replaced.
@@ -209,7 +208,7 @@ One that names none argues a preference, and without that bar a careful reviewer
 - For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
 
 That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
-Such a finding is settled by a demonstrated misexecution — a call site, a reader's actual behaviour, or a trial the fixing side runs — so name which of those you can point to, and say plainly where you can point to none and are predicting.
+Such a finding names what makes the act wrong — the text's own stated goal, a standard or specification outside it, or a fact the reading gets wrong — since without that there is no wrong to name.
 
 Ground a finding in something checkable wherever you can — what a command returns, what another file states, what the code does when run.
 Check what you can reach yourself; trying the text on a fresh reader is not asked of you, and the fixing side runs that trial where a verdict needs one.
