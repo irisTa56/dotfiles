@@ -73,10 +73,10 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - The judging predicates are that skill's and this step points at them rather than restating one, so a correction lands where all its callers read it.
      - A narrowing the loop itself needs is not a restatement and stays here, as the settled list's re-raise condition below is, since step 4 is what those callers do not read.
    - What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
-   - What a fix has to clear is `address-finding`'s harm criterion — or, where it rides in as a removal or a standard violation, that skill's removal question and standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
+   - What a fix has to clear is `finding-bar`'s bar — or, where it rides in as a removal, `finding-bar`'s removal bar, and where it rides in as a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
    - A finding the floor covers is neither judged nor fixed for its own sake: report it at the close.
      - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless it shows a statement there false.
-     - That falsity exception is not confined to the background, and overrides the rank rather than the harm criterion: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
+     - That falsity exception is not confined to the background, and overrides the rank rather than the bar above: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
        - Check what the statement said before the change; one already wrong is a defect the change found rather than one it caused, and stays on the floor.
      - A removal such a finding proposes, and a violation of a written standard it names at whatever rank, ride into any round that is landing a fix the floor does not cover, since that round is re-reviewed anyway.
        - Put the standard violation through `address-finding`'s standard criterion before it rides, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
@@ -107,16 +107,11 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - What the user stated in their own words — the purpose, a constraint, a mechanism they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
        - Enter it in the verdict section meanwhile.
        - An objection to the pinned purpose is the exception: it waits, as below.
-   - Before the round's fixes land, read each one where its reader meets it and name what it clears against the bar above; where a fix answering a harm-criterion finding clears nothing, separate the two causes.
-     - One that does not reach the harm the finding named goes back to `address-finding` §3 for a different fix, with the finding still standing.
-     - One for which no harm is nameable at all is the bar having slipped, so nothing lands and that finding is rejected with that reason.
-     - A fix the user directed in so many words is outside the gate: that is an instruction rather than an answer to a finding.
-     - It runs before the sweep, before the background entries, and before anything a floored finding rides in on, so a fix that does not land leaves nothing behind to undo.
    - Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings land there again, the loop is refining its own additions: hold the round's edits, put continuing to the user in the round's message, and wait.
      - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
      - Where every round's findings came from reading the text and none from running it, running it is among the answers the message carries: reading has not converged, and the probe above settles by execution what argument has not.
      - Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
-     - The message carries the counts step 3 reports, so a continue is weighed against what the loop has already taken.
+     - The message carries the counts step 3 reports and what the rounds they count landed, so a continue is weighed against what the loop has taken rather than against how long it has run.
      - Describe each finding as its own verdict describes it: one you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
      - Reading those groups, name the mechanism the rounds' findings have clustered on under `address-finding`'s same-mechanism signal, or say there is none.
      - Where one stands, put its own decision rather than continuing alone.
@@ -127,6 +122,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
      - Recommend the endgame as the answer: continue, with a gate on what the round may apply.
        - It applies nothing unless a valid finding fixes a defect the floor does not cover, and where one does it applies every such fix with every valid removal and every valid standard violation the round raised at whatever rank, and nothing besides.
+       - A fix the user directed in so many words is outside it: that is an instruction rather than an answer to a finding.
      - Their stop voids the round's other answers; the close names what it voided.
        - A mechanism settlement is not among them: it settles the specification rather than the round, and reaches the background and the close report either way.
      - Their continue governs every round that follows, restarting the tally rather than retiring the question.

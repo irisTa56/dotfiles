@@ -11,7 +11,6 @@ Given a review finding or comment, decide the response and — when a fix is war
 
 Take the finding seriously, but do not accept it blindly.
 
-- **Technically correct?** Does it fix a real bug, correctness gap, or genuine concern?
 - **Improves quality?** Readability, maintainability, or performance.
 - **Trade-offs?** Consider what the finding may have missed.
 - **Proportionate?** Judge whether the proposed approach is appropriately scoped; a simpler, more targeted fix may resolve the same concern. This weighs the *how*, not the *whether* — the underlying problem should still be addressed.
@@ -99,7 +98,9 @@ Where several findings are in play, ask the three questions of them together: on
 
 ### Fix discipline
 
-- **Meet the bar the fix will be judged against.** A calling workflow that reviews the result states what its reviewer weighs. Read that statement and hold the fix to it, rather than learning what it asks for from the next review's findings.
+- **Meet the bar the fix will be judged against.** It is `finding-bar`'s, which the reviewer of a calling workflow weighs too, together with whatever that workflow states alongside it.
+  - That is a narrowing of the bar, an addition to it, or a constraint the fix must keep.
+  - Read that statement and hold the fix to the result, rather than learning what it asks for from the next review's findings.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
