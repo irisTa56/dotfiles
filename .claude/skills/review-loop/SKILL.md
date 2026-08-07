@@ -83,7 +83,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - Anything else such a finding proposes rides only where a fix the floor does not cover already edits what it names.
      - What rides is checked against the purpose, the decisions already taken, and the sites it touches; the finding itself is not settled, so no demonstration is owed for it.
    - Enter every outcome in the verdict section:
-     - a finding you accepted, with the fix it landed, and what that fix's consistency sweep reached or that it reached nothing;
+     - a finding you accepted, with the fix it landed, and what each axis of that fix's consistency sweep reached, or that the axis reached nothing;
      - a finding you rejected, with why it does not hold;
      - a finding the floor left unfixed, with the rank it carried or none, so the close still reaches it;
      - an answer to a hold, with what the continue narrows the round to, so a resumed loop still holds both;
