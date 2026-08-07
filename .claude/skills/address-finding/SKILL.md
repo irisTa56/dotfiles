@@ -109,19 +109,24 @@ Where several findings are in play, ask the three questions of them together: on
     - Docs state what a thing is specified to do, which is not always what it does, so a claim about behavior is settled by running it.
     - Run it where a wrong result costs nothing.
   - **What it does where it lands.** Read the passage or the path whole with the fix in place, as its reader meets it — a fix argued against one finding can be right about that finding and wrong about what it now governs, or about what its removal leaves uncovered.
-- **Consistency sweep.** Sweep the axes below; each says how far its correction reaches.
-  - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
-    - When the spread reaches past the purpose bound, fix what falls inside it and surface the rest as the bound above prescribes.
-  - **Falsified claims.** Update a claim that *describes* what the code does, wherever it lives — docstrings, comments, documents.
-    - This is breakage the fix caused, not a defect it found, so the purpose bound does not cap it.
-    - Run the axis again over the corrections themselves, until a pass finds nothing: a corrected claim falsifies the claims that described *it*, and where cross-references are dense that chain runs several sites deep.
-    - Where the same class of claim keeps needing this, the reference structure is the defect rather than the staleness it produces: ask §1's same-mechanism question of the references themselves, and weigh §3's removal for them, since a fix that adds a reference makes the next chain longer.
-      - Restructuring is not a falsified claim, so it is weighed under §3 like any other fix shape, and where it reaches past the purpose bound it is surfaced under §2 with the carve-out recommended, since the corrections already made stand without it.
-    - A claim that *prescribes* the behaviour, as in a spec, a plan, or an ADR, is not rewritten. The fix contradicts it, so surface that to the user rather than silently making it match.
-    - A claim that reads both ways is treated as prescribing, and surfaced rather than rewritten.
-  - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it.
-    - Tell the user why when it does not.
-    - When that other side falls outside the purpose bound, surface it as the bound above prescribes before the counterpart edit lands.
+- **Consistency sweep.** Sweep the axes below.
+  - **What holds for every axis.**
+    - The purpose bound caps every correction the sweep makes but one — a describing claim the fix falsified, for the reason "Falsified claims" gives — so fix what falls inside it and surface the rest as the bound above prescribes.
+    - Run them again over their own corrections, until a pass finds nothing: a correction falsifies the claims that described it and can break what cites it, and where cross-references are dense that chain runs several sites deep.
+    - A claim that *prescribes* the behaviour, as in a spec, a plan, or an ADR, is not rewritten where the fix contradicts it, whichever axis reached it.
+      - Surface that contradiction to the user rather than silently making the claim match.
+    - A claim that reads both ways is treated as prescribing.
+    - Where the same sites, or the same class of them, keep needing correction, the reference structure is the defect rather than what it produces: ask §1's same-mechanism question of the references themselves, and weigh §3's removal for them, since a fix that adds a reference makes the next chain longer.
+      - Restructuring is not one of these corrections, so it is weighed under §3 like any other fix shape, and where it reaches past the purpose bound it is surfaced under §2 with the carve-out recommended, since the corrections already made stand without it.
+  - **The axes.**
+    - **Dependent sites.** Follow what calls or cites the fixed site, and repair what no longer lands where it did.
+      - What breaks is whatever relied on the scope the site had, so a removal is the limiting case rather than an exception.
+      - Ask of each site you reach whether it still lands rather than whether it still resolves.
+    - **Sibling sites.** Fix the same defect wherever else it appears — other call sites, sibling functions, similar files.
+    - **Falsified claims.** Update a claim that *describes* what the code does, wherever it lives — docstrings, comments, documents.
+      - Staleness the fix caused is not a defect it found.
+    - **Implied counterpart.** When the fix establishes a contract, guard, or invariant that only one side of a pair now honours, decide explicitly whether the other side needs it.
+      - Tell the user why when it does not.
 
 ## Anti-patterns
 
