@@ -51,12 +51,22 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
 2. **Review in a subagent.** Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `raise-findings` skill.
    - `raise-findings` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
+   - However you spawn, the reviewer reads a working tree no one may move, since an edit landing under it attaches the round's findings and verdicts to a state that no longer exists: before this run's first spawn, tell a user you can reach not to move it until this run ends.
+     - Note into the round's verdict group a digest of what the reviewer reads when you spawn, rather than a description of it, re-noting it after anything of your own writes there once you have judged.
+     - Confirm that it still matches before you report the round's findings, before you judge them, and on any answer to a wait; where it does not, say so and discard them to spawn afresh, or report the mismatch with them where that answer was to stop.
+     - Where you ended the turn on the spawn: resume on the notification from the reviewer you spawned last, discarding one from a reviewer you replaced rather than polling for either.
+     - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, an instruction goes into the round's verdict group, which the close reports where the loop left it undone, and what any of it settles goes into the background as theirs.
+       - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
+       - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
+   - Where a later turn of yours can receive the completion notification, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
+   - Where no later turn can receive it, pass `run_in_background: false` and hold the turn: a loop hosted in a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
+   - Spawn afresh inside the round, however you spawned, where the reviewer reports a failure, a stop you did not order, or a return that never did the review.
    - Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
      - A chain that already delegated to a cheaper model silently checks its own work at that tier, and a run on a premium tier silently pays that premium a second time.
      - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
      - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
-   - The subagent returns findings only and makes no edits.
-   - Bar it from reading under the common git dir.
+   - The subagent returns findings only, makes no edits, and runs nothing that writes the change under review.
+   - Bar it from touching the common git dir.
    - Beyond those run constraints the prompt carries four things, and nothing else out of the verdict section:
      - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
      - the background section's contents, copied whole;
@@ -101,7 +111,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
    - Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
      - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
-     - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
+     - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
      - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
      - A run that never engaged the task shows nothing and is replaced.
      - What it produced is an established fact under the rule above, so a probe that refuted a finding is paid for once rather than once a round.
@@ -166,12 +176,16 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - When the loop closes, report what the user has to read:
      - a valid finding outside the floor left unfixed, and why;
      - any decision that departed materially from what they asked for, or from a plan they approved;
-     - a prescribing claim the fix contradicts;
      - what the last round raised outside the floor and you rejected;
      - every objection to a user decision the rounds set aside;
      - every question put to them that no answer came for, with what each answer would change;
      - a continue the loop read out of a settlement rather than one they stated;
-     - carve-outs, flawed specs, what they settled, and the questions above, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is.
-   - Close the record by appending `## Closed` as its last line rather than deleting it, which would take the carve-outs, flawed specs, and unanswered questions with it.
+     - these, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is:
+       - carve-outs;
+       - flawed specs, and a prescribing claim the fix contradicts;
+       - what they settled;
+       - an instruction of theirs the loop left undone;
+       - the questions above.
+   - Close the record by appending `## Closed` as its last line rather than deleting it, which would take everything the close reports as outliving the loop with it.
    - No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
      - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
