@@ -1,6 +1,6 @@
 ---
 name: pr-description
-description: Principles for writing or revising a pull request description so it serves the human reviewer. Use when drafting a PR body, rewriting one, or critiquing a change summary before submitting. Repository-agnostic and template-free — it governs what to say and what to cut, not section layout. When the PR is written in Japanese, compose with the japanese-tech-writing skill.
+description: Principles for writing or revising a pull request description so it serves the human reviewer. Use when drafting a PR body, rewriting one, or critiquing a change summary before submitting. Repository-agnostic and template-free — it governs what to say and what to cut, not a fixed section layout. When the PR is written in Japanese, compose with the japanese-tech-writing skill.
 ---
 
 # Writing a PR description
@@ -8,6 +8,8 @@ description: Principles for writing or revising a pull request description so it
 A PR description is written first for the human reviewer who must judge the change now, not as an exhaustive archive. Every line must help them decide whether the change is correct and where to look. Cut anything that does not.
 
 Apply these when drafting, rewriting, or critiquing a PR body. They are about substance, not a fixed section layout — adapt to whatever template (or no template) the repository uses.
+Give the body an outline in headings or bullets: unbroken prose makes the reader read the whole body to find the shape of the change.
+Take that outline from what the change actually has to say.
 
 ## Honor the repository's required conventions first
 
@@ -68,6 +70,7 @@ Apply these when drafting, rewriting, or critiquing a PR body. They are about su
 Re-read the draft and check:
 
 - Does the draft satisfy every section and checklist item the repository requires?
+- Can a reviewer see the shape of the change without reading the whole body?
 - Would a reviewer who cannot open the linked ticket still understand the change?
 - Does every change bullet describe an actual change, with no non-changes or self-inflicted caveats?
 - Is each exception framed against the rule it breaks, so it does not look arbitrary?
