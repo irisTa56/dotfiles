@@ -16,6 +16,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the pinned purpose;
   - the use the change is built for;
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
+  - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
 - `## Verdicts` — entries grouped by round, each entry holding:
   - what was raised;
@@ -70,11 +71,10 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Beyond those run constraints the prompt carries four things, and nothing else out of the verdict section:
      - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
      - the background section's contents, copied whole;
-     - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on — an objection set aside unjudged among them, whose ground is the setting aside;
-       - Judge what belongs on it rather than reading it off a category: a finding the floor covered was not settled unless the round judged it.
-       - A finding joins it once a second round has raised it.
-       - Write each line as what happened rather than as a verdict to honour: "raised in round 2, settled on X", not "X is not a problem".
-       - Head the list with its one condition: raise one of these again only with evidence the list does not already answer.
+     - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
+       - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
+       - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor as the reviewer's lowest rank", not "X is not a problem".
+       - Head the list with its one condition: raise one of these again only with evidence the ground it went on does not already answer.
      - what this loop adds to what `raise-findings` asks for:
        - the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one;
        - where a finding is against a statement in the background, which of the reviewer's other findings rest on that statement, or that none do.
@@ -83,7 +83,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Say with them which round this is counting from the loop's start, and the consecutive-round tally as the continue rule below counts it, every round and not only when the hold below fires, so a recurrence cannot pass unremarked.
 4. **Judge and fix with `address-finding`.** Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity and fix the valid ones, stating which you accept or reject and why.
    - The judging predicates are that skill's and this step points at them rather than restating one, so a correction lands where all its callers read it.
-     - A narrowing the loop itself needs is not a restatement and stays here, as the settled list's re-raise condition below is, since step 4 is what those callers do not read.
+     - A narrowing the loop itself needs is not a restatement and stays here, as the re-raise handling below is, since step 4 is what those callers do not read.
    - What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
    - What a fix has to clear is `finding-bar`'s bar — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
    - A finding the floor covers is not fixed for its own sake.
@@ -94,18 +94,11 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - Put the standard violation through `address-finding`'s standard criterion first, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
      - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
      - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
-   - Enter every outcome in the verdict section:
-     - a finding you accepted, with the fix it landed, and what each axis of that fix's consistency sweep reached, or that the axis reached nothing;
-     - a finding you rejected, with why it does not hold;
-     - a finding at the floor's rank, the verdict it took, and what took it out of the floor or let a fix through where one landed;
-     - an answer to a hold, with what the continue narrows the round to, so a resumed loop still holds both;
-     - a probe's task and what it produced, whichever way it settled the finding, so a later round can tell what was tested;
-     - a spec or plan judged flawed, and a prescribing claim the fix contradicts — `address-finding` is barred from fixing either;
-     - a valid finding outside the floor that the loop cannot fix, with what became of it and who chose that;
-     - a fix that chose between competing options — which option it took goes into the background as what is true of the change, and why it beat the others stays here;
-     - a fix that departed from what the user asked, with the departure named;
-     - a valid finding outside the floor that the user directed the loop to leave, and every part the purpose bound held back — what the change therefore does not cover goes into the background as what is true of it, and the reason stays here;
-     - an objection to a user decision, set aside unjudged, for the close report to pick up.
+   - Enter every outcome in the verdict section, in the shape the record section states.
+     - An outcome is anything the round disposed of or decided, whatever verdict it took and whether or not a finding forced it.
+     - An entry has to be actable without redoing the round:
+       - what each axis of a consistency sweep reached, or that the axis reached nothing;
+       - what a continue narrowed the round to.
    - A fact a round established rather than argued — `address-finding`'s work to settle a fix included — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
      - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
      - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
@@ -149,15 +142,16 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
          - Their extend pulls the carved-out part back into the round's work.
        - Wait where it does not separate cleanly.
      - A valid finding outside the floor that the loop cannot fix is put as carve it out or leave it, and waits for the answer.
+     - What stays outside the change, whichever question left it there, goes into the background as what it does not cover.
      - Wait on a reviewer's objection to the pinned purpose, the first time it is raised — only the user can re-pin it.
        - Their answer goes into the background.
        - A re-pin re-frames the round's other questions: re-weigh them against it before acting on their answers.
      - Do not wait on a flawed spec or a contradicted prescribing claim: the loop is barred from fixing either whatever the answer.
        - Surface each once.
    - Anything the record disposed of and a later round raises again is answered from the record where it comes back with no evidence the record does not already answer, and judged afresh on its merits where it does, from the record's reasoning rather than its verdict.
-     - It joins the settled list step 2 sends, and a loop spawning fresh reviewers produces recurrence by design, so recurrence is not evidence against the verdict whether or not the list had reached that reviewer.
+     - A loop spawning fresh reviewers produces recurrence by design, so recurrence is not evidence against the verdict.
      - Distinct findings clustering on one mechanism are `address-finding`'s same-mechanism signal, not recurrence.
-     - A decision the user gave in so many words — an instruction, or their answer to a question put to them — is not re-judged; one read from their context is an inference and stays review surface.
+   - A decision the user gave in so many words — an instruction, or their answer to a question put to them — is not re-judged, so an objection to the choice itself is set aside unjudged; one read from their context is an inference and stays review surface.
    - A decision's justification lives in the record, and the loop does not also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
    - For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
 5. **Loop.** Spawn a fresh review subagent and repeat until a round applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
@@ -170,22 +164,16 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Close every round by looking at the change whole before deciding whether to spawn, on the last round as much as any other — though a stop-close reports rather than cuts:
      - whether the fixes so far read as one coherent thing rather than a stack of patches;
      - whether the rounds have piled up more than a developer should have to hold in mind — cut what they piled up before it becomes what the next round reviews;
-     - the background and the settled list likewise, since both are sent to every reviewer and grow every round.
+     - the background likewise, and the verdict entries the settled list derives from, since both feed what every reviewer reads and grow every round.
    - A cut this look makes is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry step 4 requires may be condensed, never dropped.
    - A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
-   - When the loop closes, report what the user has to read:
-     - a valid finding outside the floor left unfixed, and why;
-     - any decision that departed materially from what they asked for, or from a plan they approved;
-     - what the last round raised outside the floor and you rejected;
-     - every objection to a user decision the rounds set aside;
-     - every question put to them that no answer came for, with what each answer would change;
-     - a continue the loop read out of a settlement rather than one they stated;
-     - these, which outlive the loop — the record holds them but is no lasting home, so say so and let the user move them somewhere that is:
-       - carve-outs;
-       - flawed specs, and a prescribing claim the fix contradicts;
-       - what they settled;
-       - an instruction of theirs the loop left undone;
-       - the questions above.
+   - When the loop closes, report what the user has to read, which these criteria select:
+     - a defect outside the floor the loop judged real and left in the deliverable;
+     - what was theirs to settle and the loop settled or set aside;
+     - what the last round rejected outside the floor, which no reviewer after it has seen;
+     - what outlives the loop.
+   - Report each with what acting on it takes: why it stands as it does, and what an answer of theirs would change.
+   - Say of anything outliving the loop that the record is no lasting home for it, whichever criterion put it in the report, so the user moves it somewhere that is.
    - Close the record by appending `## Closed` as its last line rather than deleting it, which would take everything the close reports as outliving the loop with it.
    - No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
      - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
