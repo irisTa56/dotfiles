@@ -44,13 +44,14 @@ The base is not always the default branch, since a stacked pull request merges i
 Name the remote rather than leaving it out, since [`git fetch` without one follows the current branch's upstream](https://git-scm.com/docs/git-fetch) and the base need not share it.
 Where a command stops for a reason this step does not answer below, report what git says rather than working around it.
 
-Where a worktree does hold the base, that same command refuses and names the worktree in the refusal:
+Where a worktree does hold the base, that same command refuses and the refusal carries a path:
 
 ```text
 fatal: refusing to fetch into branch 'refs/heads/main' checked out at '<path>'
 ```
 
-Take the path from there rather than from `git worktree list`, which inside a submodule names the gitdir instead of the working tree.
+Take that path as the refusal gives it, rather than resolving it to a checkout first.
+Where a submodule's main worktree holds the base it is the gitdir and not the working tree, and `git -C` still reaches the working tree from there through [`core.worktree`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-coreworktree).
 Then fast-forward that checkout, fetching first because the refused command left the remote-tracking ref untouched:
 
 - `git fetch origin <base>`
