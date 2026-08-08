@@ -65,7 +65,9 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - A finding joins it once a second round has raised it.
        - Write each line as what happened rather than as a verdict to honour: "raised in round 2, settled on X", not "X is not a problem".
        - Head the list with its one condition: raise one of these again only with evidence the list does not already answer.
-     - what this loop adds to what `raise-findings` asks for: the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one.
+     - what this loop adds to what `raise-findings` asks for:
+       - the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one;
+       - where a finding is against a statement in the background, which of the reviewer's other findings rest on that statement, or that none do.
    - Compose no review instructions of your own on top.
 3. **Report findings** to the user as the subagent returned them.
    - Say with them which round this is counting from the loop's start, and the consecutive-round tally as the continue rule below counts it, every round and not only when the hold below fires, so a recurrence cannot pass unremarked.
@@ -152,7 +154,9 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Termination is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
    - What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
      - Verdict writes, background cuts or condensations, and the facts a round established — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop.
-       - Correcting the background likewise, where the correction leaves what a later reviewer would look into unchanged; one that moves it either way extends the loop, since no reviewer has read the change under it.
+       - Correcting the background likewise, where one of the two below holds.
+         - The correction leaves what a later reviewer would look into unchanged.
+         - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
    - Close every round by looking at the change whole before deciding whether to spawn, on the last round as much as any other — though a stop-close reports rather than cuts:
      - whether the fixes so far read as one coherent thing rather than a stack of patches;
      - whether the rounds have piled up more than a developer should have to hold in mind — cut what they piled up before it becomes what the next round reviews;
