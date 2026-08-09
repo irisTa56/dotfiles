@@ -8,7 +8,7 @@
 - Only the skill directories that `.gitignore` unignores are tracked here, so an edit to any other exists on this machine alone and no clone carries it.
   - A gist-sourced skill lives in its gist, so send an edit back with `mise run skills:push <name>`, an external write, before the next `mise run skills:sync` overwrites it.
   - Search them with `grep -r`; `rg` comes back empty here through more than one mechanism, and an empty result reads as an answer rather than as a failure.
-- Checks: `mise run pre-commit` from this repository's root; the parent workspace defines a smaller task of the same name.
+- Checks: `mise run pre-commit` from this repository's root.
   - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci && npm test` there when its scripts, fixtures, or dependencies change.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
 - PR bodies are English prose, and there is no template to fill in.
