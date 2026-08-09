@@ -60,8 +60,9 @@ Concept notes are titled by the concept, so a title-shaped query usually beats a
 
 Then cross-check lexically with `search_type="text"`, **one term per call**.
 Unlike the semantic default it does return nothing for a term the base does not contain, which is what makes absence observable rather than inferred.
-But it ANDs its terms, so a multi-term query also comes back empty when the terms simply never co-occur in one note.
-Hand it the phrase from the search above and it will report silence on concepts the base covers in depth.
+Hand it the phrase from the search above instead, and it fails in whichever direction you are not braced for.
+At two terms it ANDs, so it reports silence on concepts the base covers in depth whenever the terms never co-occur in one note.
+At three or more terms — none quoted, none a bare number — it retries the empty result as an OR, so what comes back may share a single term with the query and reads as coverage the base does not have.
 Only a single-term miss is evidence of absence.
 
 The semantic side offers an independent confirmation: re-run the original query with `min_similarity=0.7`, which does come back empty when everything sits at the noise floor.
@@ -152,7 +153,7 @@ Where the notes are richer or sharper than the generic answer — a concrete num
 The claims above about how the tools behave were checked against Basic Memory 0.22.1 on 2026-07-22:
 
 - semantic search being the default;
-- `search_type="text"` being a case-insensitive prefix match, conjunctive across terms;
+- `search_type="text"` being a case-insensitive prefix match, conjunctive across terms, and its relaxed-OR retry at three or more terms (re-checked 2026-08-09);
 - the `min_similarity=0.7` noise floor;
 - `build_context`'s `7d` window, its one-year ceiling, and its fallback on an unresolvable URL;
 - the wording of the unregistered-project error;
