@@ -24,6 +24,7 @@ lychee .
 rumdl check
 shellcheck scripts/*.sh
 shfmt -i 2 -d scripts/*.sh
+mix format --check-formatted scripts/*.exs
 '''
 
 [tasks."setup:dotfiles"]
