@@ -12,7 +12,7 @@ It lives at `$(git rev-parse --path-format=absolute --git-common-dir)/review-loo
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 
-- `## Background (sent to the reviewer)` — what is true of the change, covering what only this side knows and the diff does not show:
+- `## Background (sent to the reviewer)` — what is true of the change and why it has this shape, each reason carrying whose it is, covering what only this side knows and the diff does not show:
   - the pinned purpose;
   - the use the change is built for;
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
@@ -26,8 +26,8 @@ It has two sections, and the headings are bookkeeping that stays in the file:
 
 Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence.
 
-The line between the sections: the background holds what is true of the change, and the verdicts hold why anyone chose it.
-"The caller validates this already, so checking it here is deliberately out of scope" is background; the argument that settled a finding, and the reasoning behind a design choice, are verdicts.
+The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
+"The caller validates this already, so checking it here is deliberately out of scope" is background; the verdicts hold the alternatives a design choice was chosen over, and the argument that settled a finding.
 The verdict section is never sent whole or quoted; what a reviewer needs from it travels in the settled list step 2 derives.
 
 ## Workflow
@@ -101,7 +101,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
        - what a continue narrowed the round to.
    - A fact a round established rather than argued — `address-finding`'s work to settle a fix included — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
      - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
-     - A reviewer's argument is not one of those: establish it yourself before entering it — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
+     - A reviewer's argument is not one of those: establish it yourself before entering it as one — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
    - Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
      - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
      - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
@@ -121,7 +121,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - Put to them what only they can settle; where nothing is left for them, put continuing alone.
        - Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
        - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-       - What their answer settled goes into the background as theirs, as a constraint on what the change may be; the reason they gave stays in the verdict section.
+       - What their answer settled goes into the background as theirs, as a constraint on what the change may be.
        - Read continuing out of their answer where they did not say it: one that settles the question and says nothing of going on is a continue under what it settled, narrowed as the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
        - A settlement re-frames the round's held edits: re-weigh them against it before applying.
      - Recommend the endgame as the answer: continue, with a gate on what the round may apply.
