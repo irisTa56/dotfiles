@@ -47,6 +47,10 @@
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
 - When the meaning a document conveys — its substance, claims, or reasoning — has changed, don't stop at a line-level diff or a list of wording fixes; state what changed and why (the intent behind the change).
 
+### When counting occurrences
+
+- A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
+
 ## Writing prose
 
 When writing prose to a file, always follow `~/.claude/rules/document-writing.md`. In conversation, follow it only for substantial prose — a summary of research or analysis, not a short reply. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
