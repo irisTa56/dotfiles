@@ -24,7 +24,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the reason, written to be weighed rather than taken on trust;
   - whether the loop or the user decided it.
 
-Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence and the cut confinement.
+Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence.
 
 The line between the sections: the background holds what is true of the change, and the verdicts hold why anyone chose it.
 "The caller validates this already, so checking it here is deliberately out of scope" is background; the argument that settled a finding, and the reasoning behind a design choice, are verdicts.
@@ -59,8 +59,8 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
      - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, an instruction goes into the round's verdict group, which the close reports where the loop left it undone, and what any of it settles goes into the background as theirs.
        - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
        - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
-   - Where a later turn of yours can receive the completion notification, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
-   - Where no later turn can receive it, pass `run_in_background: false` and hold the turn: a loop hosted in a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
+   - Where this loop runs in a session of its own, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
+   - Where a subagent hosts it instead, pass `run_in_background: false` and hold the turn: a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
    - Spawn afresh inside the round, however you spawned, where the reviewer reports a failure, a stop you did not order, or a return that never did the review.
    - Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
      - A chain that already delegated to a cheaper model silently checks its own work at that tier, and a run on a premium tier silently pays that premium a second time.
@@ -163,9 +163,10 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
          - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
    - Close every round by looking at the change whole before deciding whether to spawn, on the last round as much as any other — though a stop-close reports rather than cuts:
      - whether the fixes so far read as one coherent thing rather than a stack of patches;
-     - whether the rounds have piled up more than a developer should have to hold in mind — cut what they piled up before it becomes what the next round reviews;
+     - whether the change has piled up more than a developer should have to hold in mind — cut what piled up before it becomes what the next round reviews;
+       - Read its net line change against the baseline, counting whatever no diff reaches, before judging that by eye, since the question is the total a developer holds and the eye only ever meets one round's addition.
      - the background likewise, and the verdict entries the settled list derives from, since both feed what every reviewer reads and grow every round.
-   - A cut this look makes is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry step 4 requires may be condensed, never dropped.
+   - A cut this look makes to the background or the verdict entries is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry step 4 requires may be condensed, never dropped.
    - A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
    - When the loop closes, report what the user has to read, which these criteria select:
      - a defect outside the floor the loop judged real and left in the deliverable;
