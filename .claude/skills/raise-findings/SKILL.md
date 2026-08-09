@@ -83,7 +83,7 @@ Two more are worth a pass of their own:
 - **What the tests leave unpinned.** Where the change alters externally observable behavior and you can see the suite, name any behavior it introduces or alters that the suite does not pin, whether you established that by reading or by running the code.
   - A test passes against the bug it is named for where every exemplar it uses gives the same result under the old code and the new; name an input whose result the change alters and the test does not use.
   - Whether the tests exercise externally observable behavior rather than internal implementation details is review surface too; how a thing is tested is the implementation side's call.
-- **A predicate narrower than what its producer emits.** A guard, a match, or a branch condition whose accepted set covers the cases someone had in hand, and not the range the producer actually writes.
+- **A predicate that sends part of its producer's range the wrong way.** A guard, a match, or a branch condition that takes some value the thing writing it can produce down a branch that is wrong for that value.
   - Enumerate that range from whatever writes the value: a library's documented variants, an editor's output under each of its settings, what an earlier version or a second writer left behind.
   - Name which of them reach the wrong branch, running them where a wrong result costs nothing and reading the predicate against them where it does not.
 
