@@ -7,6 +7,8 @@
   - A worktree of this repository is not what those symlinks point at, so a skill edited there is not the skill running.
 - Only the skill directories that `.gitignore` unignores are tracked here, so an edit to any other exists on this machine alone and no clone carries it.
   - A gist-sourced skill lives in its gist, so send an edit back with `mise run skills:push <name>`, an external write, before the next `mise run skills:sync` overwrites it.
+  - An APM-sourced skill is upstream's text restored from the `apm.lock.yaml` pin on every install, so correcting one means dropping it from `apm.yml` rather than editing the file.
+  - A Copilot-authored one prints `.github/skills/<name>/…` paths that resolve nowhere here; its companion files sit beside the `SKILL.md` under `~/.claude/skills/<name>/`, and the wrong path text is knowingly left as it stands.
   - Search them with `grep -r`; `rg` comes back empty here through more than one mechanism, and an empty result reads as an answer rather than as a failure.
 - Checks: `mise run pre-commit` from this repository's root.
   - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci && npm test` there when its scripts, fixtures, or dependencies change.
