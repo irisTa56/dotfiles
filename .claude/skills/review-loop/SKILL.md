@@ -70,6 +70,7 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
    - Bar it from touching the common git dir.
    - Beyond those run constraints the prompt carries four things, and nothing else out of the verdict section:
      - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
+       - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
      - the background section's contents, copied whole;
      - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
        - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
