@@ -1,9 +1,4 @@
 [tools]
-# `mix format` runs in the pre-commit task, and Elixir runs on the Erlang VM.
-# Both mirror the versions `.config/mise/config.toml` pins, so a checkout that
-# has the global config symlinked into place resolves the same builds.
-erlang = "29"
-elixir = "1.20"
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
