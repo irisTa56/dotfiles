@@ -129,7 +129,6 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
-  - What it produced is an established fact under "Fixing"'s rule, so a probe that refuted a finding is paid for once rather than once a round.
 - A valid finding outside the floor and against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
   - What the user stated in their own words — the purpose, a constraint, a question they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
     - Enter it in the verdict section meanwhile.
