@@ -59,9 +59,9 @@ State what this change is for before the first round, and hold every later round
   - the workflow that invoked this loop;
   - the diff, read as a whole.
 - State the purpose as the outcome the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
-- Do not wait for a reply: state it, with the rest of the background you composed, and carry on — a correction is available and costs nothing to skip.
+- Do not wait for a reply: state it, with the rest of the background you composed, and carry on.
 - The pinned purpose as the background currently holds it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
-  - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to, so a fix that breaks one is caught before it lands rather than in the next round's findings.
+  - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
 - Fill the background section before the first round.
   - Enter inferences as inferences: a guess dressed as a user decision misleads every reviewer and would be shielded from re-judging.
 - Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
