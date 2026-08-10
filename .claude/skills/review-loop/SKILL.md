@@ -143,7 +143,7 @@ Look at the change whole before deciding which of the three the round takes, on 
 - whether the fixes so far read as one coherent thing rather than a stack of patches;
 - whether the change has piled up more than a developer should have to hold in mind — cut what piled up before it becomes what the next round reviews;
   - Read its net line change against the baseline, counting whatever no diff reaches, before judging that by eye, since the question is the total a developer holds and the eye only ever meets one round's addition.
-- the background likewise, and the verdict entries the settled list derives from, since both feed what every reviewer reads and grow every round.
+- the background likewise, and the verdict entries the settled list derives from.
 
 A cut this look makes to the background or the verdict entries is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry the record requires may be condensed, never dropped.
 A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
