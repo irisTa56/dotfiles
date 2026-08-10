@@ -43,7 +43,7 @@ What a round enters, and how the record ends:
   - An entry has to be actable without redoing the round:
     - what each axis of a consistency sweep reached, or that the axis reached nothing;
     - what a continue narrowed the round to.
-- Close the record by appending `## Closed` as its last line rather than deleting it, which would take everything the close reports as outliving the loop with it.
+- Close the record by appending `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
 - No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
@@ -170,13 +170,7 @@ The loop closes on a round that applies no fix (putting in the reviewer's own pr
     - Correcting the background likewise, where one of the two below holds.
       - The correction leaves what a later reviewer would look into unchanged.
       - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
-- When the loop closes, report what the user has to read, which these criteria select:
-  - a defect outside the floor the loop judged real and left in the deliverable;
-  - what was theirs to settle and the loop settled or set aside;
-  - what the last round rejected outside the floor, which no reviewer after it has seen;
-  - what outlives the loop.
-- Report each with what acting on it takes: why it stands as it does, and what an answer of theirs would change.
-- Say of anything outliving the loop that the record is no lasting home for it, whichever criterion put it in the report, so the user moves it somewhere that is.
+- When the loop closes, report what the user has to act on — the behaviour the rounds added, altered or removed, and what the loop proposes to carry over.
 
 ### Waiting on the user
 
