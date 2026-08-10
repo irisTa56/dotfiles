@@ -35,36 +35,36 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
 
 What a round enters, and how the record ends:
 
-- Enter every outcome of the round in the verdict section.
+- **Every outcome.** Enter it in the verdict section.
   - An outcome is anything the round disposed of or decided, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round:
     - what each axis of a consistency sweep reached, or that the axis reached nothing;
     - what a continue narrowed the round to.
-- Close the record by appending `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
-- No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
+- **Closing the record.** Append `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
+- **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
 ## Before the first round
 
 State what this change is for before the first round, and hold every later round to that statement — re-inferring it from a diff the rounds grew turns the bound into a ratchet.
 
-- Find this work's record before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of `review-loop/`, at every depth, for an unmarked record whose content matches.
+- **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of `review-loop/`, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
   - A record whose last line is `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
-- Take the purpose from the first of these that states one, and say which source it came from:
+- **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
   - the workflow that invoked this loop;
   - the diff, read as a whole.
-- State the purpose as the outcome the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
-- Do not wait for a reply: state it, with the rest of the background you composed, and carry on.
-- The pinned purpose as the background currently holds it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
+- **State it as an outcome**, the one the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
+- **Do not wait for a reply.** State it, with the rest of the background you composed, and carry on.
+- **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
-- Fill the background section before the first round.
+- **Fill the background** before the first round.
   - Enter inferences as inferences: a guess dressed as a user decision misleads every reviewer and would be shielded from re-judging.
-- Work that has landed is in-bound for later rounds, and licenses no further excursion past the purpose.
+- **Work already landed** is in-bound for later rounds, and licenses no further excursion past the purpose.
 
 ## The round
 
@@ -73,22 +73,22 @@ State what this change is for before the first round, and hold every later round
 Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct it to review the current changes by running the `raise-findings` skill.
 
 - `raise-findings` is a Skill, not an agent type — do NOT pass it as `subagent_type`, since that call fails.
-- However you spawn, the reviewer reads a working tree no one may move, since an edit landing under it attaches the round's findings and verdicts to a state that no longer exists: before this run's first spawn, tell a user you can reach not to move it until this run ends.
+- **The tree may not move.** However you spawn, the reviewer reads a working tree no one may move, since an edit landing under it attaches the round's findings and verdicts to a state that no longer exists: before this run's first spawn, tell a user you can reach not to move it until this run ends.
   - Note into the round's verdict group a digest of what the reviewer reads when you spawn, rather than a description of it, re-noting it after anything of your own writes there once you have judged.
   - Confirm that it still matches before you report the round's findings, before you judge them, and on any answer to a wait; where it does not, say so and discard them to spawn afresh, or report the mismatch with them where that answer was to stop.
   - Where you ended the turn on the spawn: resume on the notification from the reviewer you spawned last, discarding one from a reviewer you replaced rather than polling for either.
   - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, and an instruction goes into the round's verdict group, which the close reports where the loop left it undone.
     - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
     - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
-- Where this loop runs in a session of its own, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
-- Where a subagent hosts it instead, pass `run_in_background: false` and hold the turn: a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
-- A reviewer that returns without having done the review is replaced: spawn afresh inside the round.
-- Choose the reviewer's model rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
+- **In its own session**, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
+- **Inside a subagent**, pass `run_in_background: false` and hold the turn: a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
+- **A reviewer that did not review** is replaced: spawn afresh inside the round.
+- **The reviewer's model.** Choose it rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
   - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
   - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
-- The subagent returns findings only, makes no edits, and runs nothing that writes the change under review.
-- Bar it from touching the common git dir.
-- Beyond those run constraints the prompt carries four things, and nothing else out of the verdict section:
+- **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
+- **The common git dir.** Bar it from touching that.
+- **What the prompt carries.** Beyond those run constraints it carries four things, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
   - the background section's contents, copied whole;
@@ -99,21 +99,21 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - what this loop adds to what `raise-findings` asks for:
     - the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one;
     - where a finding is against a statement in the background, which of the reviewer's other findings rest on that statement, or that none do.
-- Compose no review instructions of your own on top.
+- **Nothing of your own.** Compose no review instructions on top.
 
 Report the findings to the user as the subagent returned them.
 
-- Say with them which round this is counting from the loop's start, and the consecutive-round tally as "Waiting on the user" counts it, every round and not only when the hold fires, so a recurrence cannot pass unremarked.
+- **What goes with the findings.** Say which round this is, counting from the loop's start, and the consecutive-round tally as "Waiting on the user" counts it, every round and not only when the hold fires, so a recurrence cannot pass unremarked.
 
 ### Judging the findings
 
 Apply the `address-finding` skill (invoke it via the Skill tool) to judge each finding's validity, stating which you accept or reject and why.
 
-- The judging predicates are that skill's and this section points at them rather than restating one, so a correction lands where all its callers read it.
+- **Whose predicates.** They are that skill's, and this section points at them rather than restating one, so a correction lands where all its callers read it.
   - A narrowing the loop itself needs is not a restatement and stays here, as the re-raise handling below is, since this section is what those callers do not read.
-- What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
-- What a fix has to clear is `finding-bar`'s bar — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
-- A finding the floor covers is not fixed for its own sake.
+- **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
+- **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
+- **The floor.** A finding it covers is not fixed for its own sake.
   - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless it shows a statement there false.
   - That falsity exception is not confined to the background, and puts the finding outside the floor rather than past the bar above: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
     - Read what the statement said before the change: one already wrong is a defect the change found rather than one it caused, so it leaves the floor under the purpose bound rather than past it.
@@ -121,20 +121,20 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
     - Put the standard violation through `address-finding`'s standard criterion first, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
-- Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
+- **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
   - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
-- A valid finding outside the floor and against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
+- **A finding against the background.** A valid one outside the floor, against the background rather than the change, is answered by correcting the background; never edit the change to make an argument come out right.
   - What the user stated in their own words — the purpose, a constraint, a question they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
     - Enter it in the verdict section meanwhile.
     - An objection to the pinned purpose is the exception: it waits, as "Waiting on the user" says.
-- Anything the record disposed of and a later round raises again is answered from the record where it comes back with no evidence the record does not already answer, and judged afresh on its merits where it does, from the record's reasoning rather than its verdict.
+- **Re-raising.** Anything the record disposed of and a later round raises again is answered from the record where it comes back with no evidence the record does not already answer, and judged afresh on its merits where it does, from the record's reasoning rather than its verdict.
   - A loop spawning fresh reviewers produces recurrence by design, so recurrence is not evidence against the verdict.
   - Distinct findings clustering on one mechanism are `address-finding`'s same-mechanism signal, not recurrence.
-- A decision the user gave in so many words — an instruction, or their answer to a question put to them — is not re-judged, so an objection to the choice itself is set aside unjudged; one read from their context is an inference and stays review surface.
-- For `address-finding`'s no-silent-reversal check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
+- **The user's own decisions.** One given in so many words — an instruction, or their answer to a question put to them — is not re-judged, so an objection to the choice itself is set aside unjudged; one read from their context is an inference and stays review surface.
+- **The scope of no-silent-reversal.** For `address-finding`'s check, the piece of work is the change under review together with the fixes and record this loop has accumulated, not the current round alone.
 
 ### Choosing what the round does
 
@@ -152,22 +152,22 @@ A cut to the change, or a consolidation, goes through `address-finding` like any
 
 Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run the next round.
 
-- A fact a round established rather than argued — `address-finding`'s work to settle a fix included — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
+- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
   - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
   - A reviewer's argument is not one of those: establish it yourself before entering it as one — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
-- A decision's justification lives in the record, and the loop does not also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
+- **Justification.** A decision's justification lives in the record, and the loop MUST NOT also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
 
 ### Closing
 
 The loop closes on a round that applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
 
-- Termination is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
-- What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
+- **What termination is.** It is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
+- **The gate.** What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
   - Verdict writes, background cuts or condensations, and the facts a round established — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop.
     - Correcting the background likewise, where one of the two below holds.
       - The correction leaves what a later reviewer would look into unchanged.
       - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
-- When the loop closes, report what the user has to act on — the behaviour the rounds added, altered or removed, and what the loop proposes to carry over.
+- **The report.** When the loop closes, report what the user has to act on — the behaviour the rounds added, altered or removed, and what the loop proposes to carry over.
 
 ### Waiting on the user
 
