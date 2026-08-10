@@ -165,6 +165,8 @@ Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run t
 The loop closes on a round that applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
 
 - Termination is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
+- The loop does not close over a finding it established rather than argued that names loss no one can undo — data destroyed, a green report over a failure, something published that cannot be withdrawn. The floor does not reach it, whatever its rank.
+  - Running the mechanism establishes that it works, not that its situation arises; where the situation is what is in doubt, that is the user's to say rather than yours to settle.
 - What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
   - Verdict writes, background cuts or condensations, and the facts a round established — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop.
     - Correcting the background likewise, where one of the two below holds.
