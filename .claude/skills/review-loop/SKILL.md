@@ -204,6 +204,8 @@ What else the round waits on, or surfaces without waiting:
     - Their extend pulls the carved-out part back into the round's work.
   - Wait where it does not separate cleanly.
 - **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
+- **A fix whose worth turns on whether its situation arises** is not yours to settle: leave it, and surface it so they can say otherwise.
+  - Running the mechanism establishes that it works, never that anyone reaches it, and the deployment is theirs to know.
 - **What stays outside the change**, whichever question left it there, goes into the background as what it does not cover.
 - **An objection to the pinned purpose** waits, the first time it is raised — only the user can re-pin it.
 - **A flawed spec, or a prescribing claim the fix contradicts**, waits on nothing: the loop is barred from fixing either whatever the answer. Surface each once.
