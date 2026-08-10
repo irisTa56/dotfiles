@@ -1,6 +1,6 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round applies no fix, reporting at the end what was left undone and why. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round applies no fix, reporting at the end what the user has to act on. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
 ---
 
 # Review Loop
@@ -41,7 +41,7 @@ What a round enters, and how the record ends:
     - what each axis of a consistency sweep reached, or that the axis reached nothing;
     - what a continue narrowed the round to.
 - **Closing the record.** Append `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
-- **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as — a rejection the user pushes back on, a question they answer late: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
+- **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
 ## Before the first round
@@ -112,7 +112,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **Whose predicates.** They are that skill's, and this section points at them rather than restating one, so a correction lands where all its callers read it.
   - A narrowing the loop itself needs is not a restatement and stays here, as the re-raise handling below is, since this section is what those callers do not read.
 - **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
-- **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent; applying nothing is a round's correct outcome where nothing clears its bar.
+- **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A finding it covers is not fixed for its own sake.
   - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless it shows a statement there false.
   - That falsity exception is not confined to the background, and puts the finding outside the floor rather than past the bar above: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
@@ -175,12 +175,12 @@ Where the round needs the user, everything it needs them for goes to them togeth
 
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
   - **Where none comes**, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
-- **What a settlement of theirs does**, whichever question put it to them. It reaches the background in their own words, as a constraint on what the change may be, and it reaches the close.
+- **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
   - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
 
 The hold, which stops a round that is refining the loop's own work:
 
-- **The trigger.** Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings outside the floor land there again, the loop is refining its own additions: hold the round's edits, put the round's open question to the user in the round's message, and wait.
+- **The trigger.** Before applying any edit you MUST read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings outside the floor land there again, the loop is refining its own additions: hold the round's edits, put the round's open question to the user in the round's message, and wait.
 - **What the two answers mean.** Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
 - **What the message carries.** The counts "Opening the round" reports and what the rounds they count landed, so a continue is weighed against what the loop has taken rather than against how long it has run.
   - **Describe each finding as its own verdict describes it.** One you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
@@ -201,8 +201,8 @@ What else the round waits on, or surfaces without waiting:
     - Their extend pulls the carved-out part back into the round's work.
   - Wait where it does not separate cleanly.
 - **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
-- **A fix whose worth turns on whether its situation arises** is not yours to settle: leave it, and surface it so they can say otherwise.
+- **A fix whose worth turns on whether its situation arises** is NEVER yours to settle: leave it, and surface it in the round's message so they can say otherwise.
   - Running the mechanism establishes that it works, never that anyone reaches it, and the deployment is theirs to know.
-- **What stays outside the change**, whichever question left it there, goes into the background as what it does not cover.
+- **What stays outside the change**, whatever left it there, goes into the background as what it does not cover.
 - **An objection to the pinned purpose** waits, the first time it is raised — only the user can re-pin it.
 - **A flawed spec, or a prescribing claim the fix contradicts**, waits on nothing: the loop is barred from fixing either whatever the answer. Surface each once.
