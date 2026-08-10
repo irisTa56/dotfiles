@@ -24,16 +24,13 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
-- `## Verdicts` — entries grouped by round, each entry holding:
+- `## Verdicts` — entries grouped by round, the group noting the fixes the round landed and what it added to the background, and each entry holding:
   - what was raised;
   - what was decided;
-  - the reason, written to be weighed rather than taken on trust;
+  - the reason, written to be weighed rather than taken on trust, and the alternatives a design choice was chosen over;
   - whether the loop or the user decided it.
 
-Each round's group also notes the fixes it landed and what it added to the background, which is enough for a resumed loop to read convergence.
-
 The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
-"The caller validates this already, so checking it here is deliberately out of scope" is background; the verdicts hold the alternatives a design choice was chosen over, and the argument that settled a finding.
 The verdict section is never sent whole or quoted; what a reviewer needs from it travels in the settled list "Opening the round" derives.
 
 What a round enters, and how the record ends:
