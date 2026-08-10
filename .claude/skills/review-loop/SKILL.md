@@ -184,44 +184,34 @@ The loop closes on a round that applies no fix (putting in the reviewer's own pr
 
 Where the round needs the user, everything it needs them for goes to them together, in one message.
 
-- An answer this message waits on comes from the user and no one else, the loop included; the one thing it may take as given is the continue the hold below reads out of a settlement.
-  - Where an answer the round cannot go on without does not come, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
+- **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
+  - **Where none comes**, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
+- **What a settlement of theirs does**, whichever question put it to them. It reaches the background in their own words, as a constraint on what the change may be, and it reaches the close.
+  - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
 
 The hold, which stops a round that is refining the loop's own work:
 
-- Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings outside the floor land there again, the loop is refining its own additions: hold the round's edits, put the round's open question to the user in the round's message, and wait.
-  - Expect this on rule-bearing prose, where a fix is often a new rule and each rule adds surface for the next round to review.
-  - Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
-  - The message carries the counts "Opening the round" reports and what the rounds they count landed, so a continue is weighed against what the loop has taken rather than against how long it has run.
-  - Describe each finding as its own verdict describes it: one you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
-  - Reading those groups, name what the rounds could not settle for themselves and what would settle it, or say there is nothing.
-  - Put to them what only they can settle; where nothing is left for them, put continuing alone.
-    - Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
+- **The trigger.** Before applying any edit, read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings outside the floor land there again, the loop is refining its own additions: hold the round's edits, put the round's open question to the user in the round's message, and wait.
+- **What the two answers mean.** Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
+- **What the message carries.** The counts "Opening the round" reports and what the rounds they count landed, so a continue is weighed against what the loop has taken rather than against how long it has run.
+  - **Describe each finding as its own verdict describes it.** One you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
+  - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
+  - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
     - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-    - What their answer settled goes into the background as theirs, as a constraint on what the change may be.
-    - Read continuing out of their answer where they did not say it: one that settles the question and says nothing of going on is a continue under what it settled, narrowed as the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
-    - A settlement re-frames the round's held edits: re-weigh them against it before applying.
-  - Recommend the endgame as the answer: continue, with a gate on what the round may apply.
-    - It applies every fix a valid finding outside the floor lands, and nothing besides.
-    - A fix the user directed in so many words is outside it: that is an instruction rather than an answer to a finding.
-  - Their stop voids the round's other answers; the close names what it voided.
-    - What they settled is not among them: it settles what the change may be rather than the round, and reaches the background and the close report either way.
-  - Their continue governs every round that follows, restarting the tally rather than retiring the question.
-    - Consecutive rounds are counted afresh from the continue.
-    - What earlier rounds added keeps counting from the loop's start.
-    - When the condition is met again, hold again.
+    - Recommend the endgame: continue, with a gate that applies every fix a valid finding outside the floor lands, and nothing besides.
+      - A fix the user directed in so many words is outside it: that is an instruction rather than an answer to a finding.
+- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled, narrowed as the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
+  - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
+  - Their continue governs every round that follows, restarting the tally rather than retiring the question, though what earlier rounds added keeps counting from the loop's start.
 
 What else the round waits on, or surfaces without waiting:
 
-- A fix reaching past the purpose bound puts one question — extend the change, carve it out, or leave it.
+- **A fix reaching past the purpose bound** puts one question — extend the change, carve it out, or leave it.
   - Carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
   - Tell the user in the round's message, so they can extend the change instead; a carve-out they only learn about at the close is work that quietly never happens.
     - Their extend pulls the carved-out part back into the round's work.
   - Wait where it does not separate cleanly.
-- A valid finding outside the floor that the loop cannot fix is put as carve it out or leave it, and waits for the answer.
-- What stays outside the change, whichever question left it there, goes into the background as what it does not cover.
-- Wait on a reviewer's objection to the pinned purpose, the first time it is raised — only the user can re-pin it.
-  - Their answer goes into the background.
-  - A re-pin re-frames the round's other questions: re-weigh them against it before acting on their answers.
-- Do not wait on a flawed spec or a contradicted prescribing claim: the loop is barred from fixing either whatever the answer.
-  - Surface each once.
+- **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
+- **What stays outside the change**, whichever question left it there, goes into the background as what it does not cover.
+- **An objection to the pinned purpose** waits, the first time it is raised — only the user can re-pin it.
+- **A flawed spec, or a prescribing claim the fix contradicts**, waits on nothing: the loop is barred from fixing either whatever the answer. Surface each once.
