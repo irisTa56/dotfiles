@@ -140,8 +140,8 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 
 Look at the change whole before deciding which of the three the round takes, on the last round as much as any other — though a stop-close reports rather than cuts:
 
-- whether the fixes so far read as one coherent thing rather than a stack of patches;
-- whether the change has piled up more than a developer should have to hold in mind — cut what piled up before it becomes what the next round reviews;
+- whether the fixes so far are one coherent thing rather than a stack of patches, which `address-finding`'s symptom-treating signals decide and not how the result reads;
+- whether the change has piled up more than a developer should have to hold in mind — you MUST cut what piled up before it becomes what the next round reviews;
   - Read its net line change against the baseline, counting whatever no diff reaches, before judging that by eye, since the question is the total a developer holds and the eye only ever meets one round's addition.
 - the background likewise, and the verdict entries the settled list derives from.
 
@@ -152,7 +152,7 @@ A cut to the change, or a consolidation, goes through `address-finding` like any
 
 Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run the next round.
 
-- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — goes into the background, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
+- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — MUST go into the background in the record, and not only into the prompt that copies it, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
   - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
   - A reviewer's argument is not one of those: establish it yourself before entering it as one — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
 - **Justification.** A decision's justification lives in the record, and the loop MUST NOT also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
@@ -203,6 +203,6 @@ What else the round waits on, or surfaces without waiting:
 - **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
 - **A fix whose worth turns on whether its situation arises** is NEVER yours to settle: leave it, and surface it in the round's message so they can say otherwise.
   - Running the mechanism establishes that it works, never that anyone reaches it, and the deployment is theirs to know.
-- **What stays outside the change**, whatever left it there, goes into the background as what it does not cover.
+- **What stays outside the change**, whatever left it there, MUST go into the background as what it does not cover.
 - **An objection to the pinned purpose** waits, the first time it is raised — only the user can re-pin it.
 - **A flawed spec, or a prescribing claim the fix contradicts**, waits on nothing: the loop is barred from fixing either whatever the answer. Surface each once.
