@@ -122,7 +122,7 @@ Checklist:
   - a correction `address-finding` landed outside the bound on its own;
   - the part past the bound, only where the user chose to extend the change.
 - Show what was changed and why.
-- Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
+- Call out anything the fix reached beyond what the comment asked for, or took a different shape from what it proposed, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
 - Show inferred reply target type (`human` or `ai-bot`) and whether the thread will be resolved, and finalize both here together with commit/push confirmation. Work left for later is a reason to keep the thread open, so say what was left.
 - Ask for override only when the user disagrees or the inference confidence is low.
@@ -194,8 +194,7 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
 ## Important Rules
 
-Every rule this skill has is in the steps above.
-These three are repeated because breaking one commits an act outside this machine that no later step can take back, and nothing else belongs here.
+These three are repeated from the steps above, and nothing else belongs here: breaking one commits an act outside this machine that no later step can take back.
 
 1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
 2. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
