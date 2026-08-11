@@ -67,7 +67,7 @@ Such prose, rather than code a machine runs, is not underspecified by defect: it
 Raise what would mislead, not what is merely open.
 
 - Reading each statement against the context around it is among what the reader is trusted to do, so a conflict that shows up only when one is read alone is not a finding.
-- Where the prose states a procedure, raise what its goal or its conditions get wrong before what its steps leave rough — the roughness of steps is inexhaustible, and what they leave open is what the reader is trusted to judge.
+- Where the prose states a procedure, raise what its goal or its conditions get wrong before what its steps leave rough — the roughness of steps is inexhaustible.
 
 ## When it is code
 
