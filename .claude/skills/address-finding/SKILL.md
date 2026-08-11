@@ -51,7 +51,7 @@ A fix in a file the change has not touched is inside it where the purpose is not
 
 ## 3. Putting the excess to the user
 
-The part of a fix that reaches past the bound, whatever its shape, lands only on the user's answer.
+The part of a fix that reaches past the bound, whatever its shape, lands only on an answer — the user's, or one pre-committed.
 Weigh the fix as the sections below will finally compose it, the consistency sweep included, so the user is asked once.
 Where this skill prescribes surfacing instead of applying — a prescribing claim the fix contradicts, or a spec or plan judged flawed — this does not add a second surfacing: nothing lands, so there is nothing to hold back.
 One thing lands outside the bound on this skill's own authority: a describing claim the fix falsified, at whatever remove down the chain the sweep below follows, for the reason that sweep gives.
@@ -69,7 +69,7 @@ What this skill owes is that surfacing.
 Two things belong to the calling workflow instead, since it is the one that knows what stopping costs, and are for it to state:
 
 - whether work waits for the answer;
-- whether it has pre-committed an answer for a named class of excess — an answer that lands nothing, carve out or leave.
+- whether it has pre-committed an answer for a named class of excess — one that lands nothing, or one whose undoing costs the user less than answering would have.
 
 A pre-committed answer still surfaces, and still names the class it covers, so the user can overturn it.
 Absent any statement, put it to the user and wait.
