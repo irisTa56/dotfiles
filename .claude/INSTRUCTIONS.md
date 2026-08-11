@@ -53,4 +53,4 @@
 
 ## Writing prose
 
-When writing prose to a file, always follow `~/.claude/rules/document-writing.md`. In conversation, follow it only for substantial prose — a summary of research or analysis, not a short reply. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
+When writing prose, always follow `~/.claude/rules/document-writing.md`, unless the destination has a written convention of its own. In conversation, follow it only for substantial prose — a summary of research or analysis, not a short reply. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
