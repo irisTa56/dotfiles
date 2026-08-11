@@ -85,7 +85,7 @@ Land on a verdict before proceeding.
 
 ### 5. Apply Fix (if needed)
 
-If a fix is warranted, apply it under the whole of the `address-finding` skill's "The purpose bound", "Choose the fix" and "Apply the fix" sections, fed by Step 3.
+If a fix is warranted, apply it under the whole of the `address-finding` skill's "The purpose bound", "Putting the excess to the user", "Choose the fix" and "Apply the fix" sections, fed by Step 3.
 For that skill's no-silent-reversal check, the piece of work is this PR branch: check the fix against the commits already on it.
 Complete all file edits in this step before proceeding.
 
