@@ -197,8 +197,9 @@ The hold, which stops a round that is refining the loop's own work:
 What else the round waits on, or surfaces without waiting:
 
 - **A fix reaching past the purpose bound** puts one question — extend the change, carve it out, or leave it.
-  - Carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
-  - Tell the user in the round's message, so they can extend the change instead; a carve-out they only learn about at the close is work that quietly never happens.
+  - Apply it yourself, without waiting, where it is one edit: undoing one edit costs them less than answering for it.
+  - Otherwise carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
+  - Tell the user in the round's message which of these you took, and recommend extending where the excess costs less to do than to carry.
     - Their extend pulls the carved-out part back into the round's work.
   - Wait where it does not separate cleanly.
 - **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
