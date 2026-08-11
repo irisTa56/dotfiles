@@ -17,6 +17,8 @@ A GitHub PR review comment URL, e.g.:
 
 ## Procedure
 
+**Every GitHub read and write below goes through the `gh` CLI, not through `fetch_webpage` or a browser tool.**
+
 ### 1. Parse the URL
 
 Extract from the comment link:
@@ -25,8 +27,6 @@ Extract from the comment link:
 - `comment_id` from the URL fragment (`#discussion_r{id}` or `#r{id}`)
 
 ### 2. Read the Comment
-
-**NEVER use `fetch_webpage` or browser tools for GitHub URLs.**
 
 Use `gh` CLI to fetch the specific review comment:
 
@@ -90,7 +90,6 @@ For that skill's no-silent-reversal check, the piece of work is this PR branch: 
 Complete all file edits in this step before proceeding.
 
 The part of a fix that reaches past the purpose bound is the one thing this skill asks about before Step 7.
-Ask here rather than deferring: the answer decides what gets edited, and Step 7 exists to approve edits that already exist.
 
 - Present the options and your recommendation, and wait.
 - The part of the fix inside the bound lands here whichever option is chosen, and so does any correction the core lands outside it on its own; only the part past the bound depends on the answer.
@@ -98,7 +97,6 @@ Ask here rather than deferring: the answer decides what gets edited, and Step 7 
   - Carve it out: it is left, to be done separately.
   - Leave it: it is left undone.
 - Report the option taken at Step 7.
-- A fix within the bound needs none of this. It lands here and the user sees it in the Step 7 diff.
 
 ### 6. Draft Reply
 
@@ -108,8 +106,8 @@ Compose a reply draft early, before final confirmation:
 - Select tone by reply target type:
   - `human`: concise, professional, and courteous (brief appreciation is allowed).
   - `ai-bot`: concise, professional, and factual (avoid unnecessary pleasantries).
-- If the whole fix landed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
-- If any part did not land, or anything was surfaced rather than fixed: say plainly what was left out and why, and whether it is to be done separately.
+- If the whole fix landed as the comment proposed: acknowledge and briefly describe the change, then include a placeholder on a new line (e.g., `\n\nFixed in <commit_sha>.`).
+- If any part did not land, anything was surfaced rather than fixed, or a fix of another shape answered the comment: say plainly what was left out or taken instead and why, and whether anything is to be done separately.
   - Describe what did land and keep the placeholder; when nothing landed at all, drop the placeholder.
 - If the comment was declined on the merits: explain the reasoning respectfully.
 
@@ -124,7 +122,7 @@ Checklist:
   - a correction `address-finding` landed outside the bound on its own;
   - the part past the bound, only where the user chose to extend the change.
 - Show what was changed and why.
-- Call out anything the fix reached beyond what the comment asked for, so the user does not have to spot it in the diff.
+- Call out anything the fix reached beyond what the comment asked for, or took a different shape from what it proposed, so the user does not have to spot it in the diff.
 - Explain anything declined or deferred, whether or not other edits landed — a part the purpose bound held back, and anything surfaced rather than fixed.
 - Show inferred reply target type (`human` or `ai-bot`) and whether the thread will be resolved, and finalize both here together with commit/push confirmation. Work left for later is a reason to keep the thread open, so say what was left.
 - Ask for override only when the user disagrees or the inference confidence is low.
@@ -144,7 +142,6 @@ git commit -m "<type>: <concise description>"
 git push
 ```
 
-- Choose the appropriate type: `fix`, `refactor`, `style`, `docs`, `perf`, etc.
 - Keep the description under 72 characters.
 - Stage only the files related to this review comment.
 - Push to the current branch so the commit is visible on the PR.
@@ -160,7 +157,6 @@ gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
 ```
 
 - Replace `<commit_sha>` in the body with the actual SHA from Step 8 when a fix was made, before writing the file.
-- Do not inline the body with `-f body="..."`: reply text often quotes code, which the shell would expand or mangle.
 
 After posting:
 
@@ -198,12 +194,9 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
 ## Important Rules
 
-1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
-2. **One comment at a time**: Handle a single comment per invocation.
-3. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
+These two are repeated from the steps above, and nothing else belongs here: breaking one commits an act outside this machine that no later step can take back.
+Routing every GitHub read and write through the `gh` CLI is the third of that kind and is not repeated: the Procedure lead carries it ahead of every step, which is the most prominent place this file has.
+
+1. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
    - The sole earlier question concerns the part of a fix that reached past the purpose bound at Step 5, whose answer decides what Step 7 will show.
-4. **Commit language**: Always English, conventional commit format.
-5. **Reply language**: Always match the reviewer's comment language.
-6. **Commit hash in reply**: Always include the commit SHA when a fix was made.
-7. **Reply target type**: Infer after reading comment metadata, then finalize at Step 7 (single checkpoint).
-8. **Thread resolution policy**: Resolve only for `ai-bot`, as confirmed at Step 7; keep open for `human`.
+2. **Thread resolution policy**: Resolve only for `ai-bot`, unless Step 7 settled otherwise; keep open for `human`, which Step 7 cannot override.
