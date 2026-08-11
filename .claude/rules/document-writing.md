@@ -6,7 +6,7 @@ paths:
 
 # Writing Prose
 
-These rules apply to prose written to a file, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`. Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
+These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`. Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
 Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
 
