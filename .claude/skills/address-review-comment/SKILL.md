@@ -17,6 +17,8 @@ A GitHub PR review comment URL, e.g.:
 
 ## Procedure
 
+**Every GitHub read and write below goes through the `gh` CLI, not through `fetch_webpage` or a browser tool.**
+
 ### 1. Parse the URL
 
 Extract from the comment link:
@@ -25,8 +27,6 @@ Extract from the comment link:
 - `comment_id` from the URL fragment (`#discussion_r{id}` or `#r{id}`)
 
 ### 2. Read the Comment
-
-**NEVER use `fetch_webpage` or browser tools for GitHub URLs.**
 
 Use `gh` CLI to fetch the specific review comment:
 
@@ -194,9 +194,9 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
 
 ## Important Rules
 
-These three are repeated from the steps above, and nothing else belongs here: breaking one commits an act outside this machine that no later step can take back.
+These two are repeated from the steps above, and nothing else belongs here: breaking one commits an act outside this machine that no later step can take back.
+Routing every GitHub read and write through the `gh` CLI is the third of that kind and is not repeated: the Procedure lead carries it ahead of every step, which is the most prominent place this file has.
 
-1. **GitHub Private Repo Policy**: NEVER use `fetch_webpage` or browser tools for GitHub URLs. Always use the `gh` CLI.
-2. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
+1. **Single final checkpoint**: Ask once at Step 7, then run commit/push and posting in sequence.
    - The sole earlier question concerns the part of a fix that reached past the purpose bound at Step 5, whose answer decides what Step 7 will show.
-3. **Thread resolution policy**: Resolve only for `ai-bot`, unless Step 7 settled otherwise; keep open for `human`, which Step 7 cannot override.
+2. **Thread resolution policy**: Resolve only for `ai-bot`, unless Step 7 settled otherwise; keep open for `human`, which Step 7 cannot override.
