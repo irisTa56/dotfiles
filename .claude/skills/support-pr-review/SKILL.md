@@ -32,7 +32,6 @@ Output is **comment drafts only**. Never post.
 
 Use the `gh` CLI for every GitHub read; do **not** mix in GitHub MCP here.
 Every operation is read-only, and MCP's advantage (structured review-thread objects with node IDs / `canResolve`) only pays off when posting or resolving, which this skill never does.
-One tool, no branching.
 
 - Never use `fetch_webpage` or browser tools for GitHub URLs (private-repo policy).
 - Useful reads:
@@ -48,8 +47,7 @@ One tool, no branching.
 
 ### 1. Gather context — this is what makes it *your* review
 
-The differentiator exists only if the agent actually holds the user's context.
-Acquire it before reviewing.
+Acquire this context before reviewing.
 
 - Read the PR body and the diff.
 - Read the **user's stated concern** and treat it as the top prior.
@@ -67,9 +65,8 @@ Spend effort here, roughly in priority order.
 2. **Conformance to intent (code-vs-intent).** Diff the *implementation* against what the linked ticket/plan/spec/ADR/PR-body says it should do — reading the code against itself cannot reach this, since only the intent says what the change was supposed to do.
    - Flag drift, silent scope changes, and claims in the PR body not backed by the diff.
 3. **Omissions and ripple effects.** Hunt with `rg`/`grep` across the repo for what the diff *should* have touched but didn't — sibling call sites, related tests, migrations, docs, config, feature-flag counterparts.
-   - This is the highest-value area, and the one reading the diff alone cannot reach.
 4. **Repo/team-specific judgment.** Apply conventions and prior decisions invisible in the diff hunk ("we don't do X here", "this boundary is mid-migration", "this pattern was rejected before").
-5. **High-level quality bar.** Hold the change to what `raise-findings` says to raise — a defect inside the diff included, where it clears the bar above.
+5. **High-level quality bar.** Hold the change to what `raise-findings` says to raise.
    - Read these as the source of truth rather than a copy here:
      - `finding-bar`, for the bar itself;
      - `raise-findings`' "What to raise".
@@ -98,8 +95,7 @@ Present each finding in **two layers with different readers**.
 
 ### 4. Hand off
 
-- Present the drafts and stop. Do not post.
-- If the user then wants to post, that is the user's action — this skill ends at drafts.
+Present the drafts and stop. Do not post.
 
 ## Related
 
