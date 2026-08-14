@@ -78,7 +78,7 @@ Two defects reward looking for them by name, because each sits in a path that re
 - **Empty against unset.** A value that is empty and a value that was never set take the same branch — an empty string against `None`, an empty collection against a missing key, `0` against absent.
   - Name the input that reaches the wrong branch, and what the code does once it is there.
 
-Two more are worth a pass of their own:
+Others are worth a pass of their own:
 
 - **What the tests leave unpinned.** Where the change alters externally observable behavior and you can see the suite, name any behavior it introduces or alters that the suite does not pin.
   - "The suite does not pin this" is a claim about what the suite would do against a different implementation, so reading the suite cannot settle it.
