@@ -28,15 +28,10 @@ cat <<'EOF' >~/.zshenv
 # uv
 export PATH="$HOME/.local/bin:$PATH"
 
-# Export HOMEBREW_PREFIX (the variable only, NOT `brew shellenv`) so non-login
-# tool shells, which skip .zprofile, can still resolve $HOMEBREW_PREFIX-expanding
-# aliases like the `ls` alias in zshrc_fragment.sh. PATH precedence stays in
-# .zprofile; see the dotfiles README ("Shell startup: .zprofile vs .zshenv").
+# For the tool shells that skip .zprofile; see the dotfiles README
+# ("Shell startup: .zprofile vs .zshenv").
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
-# An agent's shell tool runs a non-interactive zsh, where an unmatched glob in an
-# argument (say `--include=*.md`) aborts the whole command before it runs. The
-# commands such a tool is given are written for bash, which passes one through
-# literally. Interactive shells are left on zsh's default.
+# An unmatched glob is fatal in zsh and inert in bash, which agent commands assume.
 [[ -o interactive ]] || setopt nonomatch
 EOF
