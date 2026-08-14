@@ -57,6 +57,9 @@ Give the parts it says nothing about their full share of your attention: what ar
 That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
 Where prose argues for a choice, what is under review is the choice and not the wording that defends it; prose that states a checkable fact stays review surface, wherever it sits.
 
+Where the change enumerates conditions, rules, or cases it cannot exhaust, what keeps the list honest is a statement of what governs them all, with the entries standing as examples of it.
+Raise one written without that statement, since its reader takes the entries for the whole set and stops looking; the repair is the governing statement, not the entry that went missing.
+
 The invoking side may narrow this bar or add to it, and its statement governs where it does.
 
 The two sections below each govern the part of the change they fit, so a change spanning both takes both rather than being classed as one.
