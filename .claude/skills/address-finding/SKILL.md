@@ -88,6 +88,7 @@ Three questions answer that, and all three are weighed rather than taking the fi
 - What can be reshaped, so the problem does not arise here?
   - A reshape is a rewrite, so §1's rewrite cost applies.
 - What has to be added?
+  - Read the text that already governs the failure first: where it covered the failure, what happened was non-compliance rather than a gap, so a second statement of the rule fixes nothing and gives it two homes.
   - Where only this answers the finding, it is the fix and not a last resort to be talked out of.
 
 A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
