@@ -40,9 +40,13 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Do not insert a line break inside a sentence. Line breaks are allowed only at sentence boundaries (period `.`, 句点 `。`, or bullet boundaries).
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Do not mimic the wrap width of surrounding hard-wrapped prose; apply the one-sentence-per-line rule regardless of how the neighboring lines happen to wrap. Pattern-matching the local line width is a classic misjudgment.
-- A long or multi-clause bullet is a structural problem. Fix the structure; do not paper over it with a line break. If a bullet carries two or more clauses, take one of the following:
-  - Rewrite them into a single sentence (paraphrasing or joining with `;`).
-  - Nest them as child bullets (parent-child).
-  - Separate them as sibling bullets.
+
+## Give a list the shape its content has
+
+- A list's shape is itself a claim: siblings assert the items are peers, and a child asserts it belongs to its parent. Write the shape the content has, not the flattest one that parses.
+  - Where an item qualifies, elaborates, or is a case of another, nest it under that one. Leaving it a sibling asserts they are peers, which is false.
+  - Where one bullet holds two things that are not one thought, they are two bullets. Where they are one thought, they are one sentence.
+- A flat list of short one-sentence bullets can still be wrong, so clause count is not the check. Ask of every list what nesting or splitting would say about it, and take that shape wherever it is the true one.
+- A long or multi-clause bullet is that mismatch surfacing. Fix the structure; never paper over it with a line break.
 - Restructuring may reach beyond the offending bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
