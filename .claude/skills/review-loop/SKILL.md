@@ -177,6 +177,7 @@ Where the round needs the user, everything it needs them for goes to them togeth
   - **Where none comes**, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
   - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
+  - **Sweep what it moves.** One that extends or narrows the change falsifies the background's own account of what the change does not cover, so correct that account in the same round: left standing, it tells every later reviewer that a live part of the diff is out of scope.
 
 The hold, which stops a round that is refining the loop's own work:
 
