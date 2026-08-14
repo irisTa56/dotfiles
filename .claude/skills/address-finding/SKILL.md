@@ -89,7 +89,7 @@ Three questions answer that, and all three are weighed rather than taking the fi
   - A reshape is a rewrite, so §1's rewrite cost applies.
 - What has to be added?
   - Where only this answers the finding, it is the fix and not a last resort to be talked out of.
-    - What settles "only this" is whatever already covers the failure — a rule, a guard, a helper: where one did, it went unhonoured or unreached rather than missing, so a second of it fixes nothing and leaves one job in two places.
+    - Anything that already covers the failure — a rule, a guard, a helper — overturns "only this": where one did, it went unhonoured or unreached rather than missing, so a second of it fixes nothing and leaves one job in two places.
 
 A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
 Adding another branch, guard, flag, or special case onto an existing pile is a signal you may be treating a symptom; you MUST step back for the root cause, or for a consolidation that dissolves the pile.
