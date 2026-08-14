@@ -109,6 +109,7 @@ Where several findings are in play, you MUST ask the three questions of them tog
   - Docs state what a thing is specified to do, which is not always what it does, so a claim about behavior is settled by running it.
   - Run it where a wrong result costs nothing.
 - **Read it whole where it lands.** You MUST read the passage or the path whole with the fix in place, as its reader meets it — a fix argued against one finding can be right about that finding and wrong about what it now governs, or about what its removal leaves uncovered.
+  - Check the site sits on the route its actor travels — name the reader or caller and trace from where they enter, not from the site the finding named — since a correct fix placed off that route changes nothing.
   - Where the fix changes a predicate, a gate, or a probe, enumerate the inputs it now answers for and say what each one gets, rather than reading for them: the one case that raised the finding is not what the fix governs.
 - **Consistency sweep.** Sweep the axes below.
   - **What holds for every axis.**
