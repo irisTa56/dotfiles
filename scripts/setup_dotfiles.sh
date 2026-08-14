@@ -28,9 +28,9 @@ cat <<'EOF' >~/.zshenv
 # uv
 export PATH="$HOME/.local/bin:$PATH"
 
-# Export HOMEBREW_PREFIX (the variable only, NOT `brew shellenv`) so non-login
-# tool shells, which skip .zprofile, can still resolve $HOMEBREW_PREFIX-expanding
-# aliases like the `ls` alias in zshrc_fragment.sh. PATH precedence stays in
-# .zprofile; see the dotfiles README ("Shell startup: .zprofile vs .zshenv").
+# Non-login shells skip .zprofile, where brew shellenv sets this; path_helper would undo PATH here.
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
+
+# Non-interactive shells here run commands written for bash, where an unmatched glob is inert.
+[[ -o interactive ]] || setopt nonomatch
 EOF
