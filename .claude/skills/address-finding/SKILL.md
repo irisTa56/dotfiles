@@ -66,7 +66,7 @@ Put that part to them with the real options, rather than a default to deferral:
 Recommend one and say why, then carry out what they choose.
 
 What this skill owes is that surfacing.
-Two things belong to the calling workflow instead, since it is the one that knows what stopping costs, and are for it to state:
+What belongs to the calling workflow instead, since it is the one that knows what stopping costs, is for it to state:
 
 - whether work waits for the answer;
 - whether it has pre-committed an answer for a named class of excess — one that lands nothing, or one whose undoing costs the user less than answering would have.
