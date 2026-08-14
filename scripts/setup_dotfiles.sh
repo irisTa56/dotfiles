@@ -28,10 +28,9 @@ cat <<'EOF' >~/.zshenv
 # uv
 export PATH="$HOME/.local/bin:$PATH"
 
-# For the tool shells that skip .zprofile; see the dotfiles README
-# ("Shell startup: .zprofile vs .zshenv").
+# Non-login shells skip .zprofile, where brew shellenv sets this; path_helper would undo PATH here.
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
-# An unmatched glob is fatal in zsh and inert in bash, which agent commands assume.
+# Non-interactive shells here run commands written for bash, where an unmatched glob is inert.
 [[ -o interactive ]] || setopt nonomatch
 EOF
