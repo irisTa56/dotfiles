@@ -80,7 +80,9 @@ Two defects reward looking for them by name, because each sits in a path that re
 
 Two more are worth a pass of their own:
 
-- **What the tests leave unpinned.** Where the change alters externally observable behavior and you can see the suite, name any behavior it introduces or alters that the suite does not pin, whether you established that by reading or by running the code.
+- **What the tests leave unpinned.** Where the change alters externally observable behavior and you can see the suite, name any behavior it introduces or alters that the suite does not pin.
+  - "The suite does not pin this" is a claim about what the suite would do against a different implementation, so reading the suite cannot settle it.
+  - Break the behavior where an outside caller can see the difference — remove the guard, invert the filter, rename the constant — and run the suite against that; one that stays green has pinned nothing.
   - A test passes against the bug it is named for where every exemplar it uses gives the same result under the old code and the new; name an input whose result the change alters and the test does not use.
   - Whether the tests exercise externally observable behavior rather than internal implementation details is review surface too; how a thing is tested is the implementation side's call.
 - **A predicate that sends part of its producer's range the wrong way.** A guard, a match, or a branch condition that takes some value the thing writing it can produce down a branch that is wrong for that value.
