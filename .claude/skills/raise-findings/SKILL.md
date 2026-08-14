@@ -68,6 +68,7 @@ Raise what would mislead, not what is merely open.
 
 - Reading each statement against the context around it is among what the reader is trusted to do, so a conflict that shows up only when one is read alone is not a finding.
 - Where the prose states a procedure, raise what its goal or its conditions get wrong before what its steps leave rough — the roughness of steps is inexhaustible.
+- Where it branches on a condition, check the reader can observe that condition when they must decide: one keyed on provenance, intent, or a state only its author holds either never fires or fires on a guess, and the finding is which of the two and what the reader does under it.
 
 ## When it is code
 
