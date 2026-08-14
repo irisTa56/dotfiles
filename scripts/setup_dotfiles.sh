@@ -33,4 +33,10 @@ export PATH="$HOME/.local/bin:$PATH"
 # aliases like the `ls` alias in zshrc_fragment.sh. PATH precedence stays in
 # .zprofile; see the dotfiles README ("Shell startup: .zprofile vs .zshenv").
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
+
+# An agent's shell tool runs a non-interactive zsh, where an unmatched glob in an
+# argument (say `--include=*.md`) aborts the whole command before it runs. The
+# commands such a tool is given are written for bash, which passes one through
+# literally. Interactive shells are left on zsh's default.
+[[ -o interactive ]] || setopt nonomatch
 EOF

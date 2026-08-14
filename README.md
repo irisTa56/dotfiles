@@ -58,10 +58,11 @@ The Homebrew environment is split across two files on purpose:
 - `.zprofile` runs `brew shellenv` to put `/opt/homebrew/bin` ahead of `/usr/bin` on PATH.
   - It must live in a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes `/opt/homebrew/bin` to the end.
   - Only a `brew shellenv` running *after* path_helper re-prepends Homebrew, which is why it belongs here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
-- `.zshenv` only exports `HOMEBREW_PREFIX` and never touches PATH.
+- `.zshenv` exports `HOMEBREW_PREFIX` and never touches PATH.
   - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
   - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
   - Setting PATH here would be undone by path_helper, so only the variable is set.
+  - It also turns `nomatch` off for those same non-interactive shells, since an agent's shell tool runs one and the commands it is given are written for bash. `zshrc_fragment.sh` cannot carry that: a non-interactive shell never reads `.zshrc`, and the agent's shell snapshot restores functions and aliases but not options.
 
 ## Agent Instructions
 
