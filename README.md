@@ -51,20 +51,26 @@ EOF
 Add a directory only where mise's own sharing does not reach it, which `mise trust --show` from a fresh worktree tells you, and never a repository root or a directory a new clone lands in.
 What is granted here is granted to every config file below, including a branch's own `mise.toml`, whose `[hooks]` mise then runs unprompted, and a `mise.local.toml` that `~/.config/git/ignore` keeps out of every diff.
 
-### Shell startup: `.zprofile` vs `.zshenv`
+### Shell startup: `.zprofile`, `.zshenv`, and `.zshrc`
 
-The environment is split across two files on purpose:
+What decides where a PATH entry can go is `path_helper`.
+A login shell runs macOS `/etc/zprofile`, which calls `/usr/libexec/path_helper` to rebuild PATH from `/etc/paths`, demoting everything set earlier to the end.
+`.zshenv` runs before that; `.zprofile` and `.zshrc` run after it, so only those two can put something in front and keep it there.
+See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 
-- `.zprofile` carries the PATH prepends that have to survive path_helper: `brew shellenv` for `/opt/homebrew/bin`, and `$HOME/.local/bin` for the Pythons uv installs.
-  - A login shell runs macOS `/etc/zprofile`, which calls `/usr/libexec/path_helper` to rebuild PATH from `/etc/paths`, demoting everything set earlier to the end.
-    - Only a prepend running *after* path_helper survives it, which is why both belong here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
-  - `brew shellenv` comes second, so Homebrew keeps precedence over uv's Pythons; swapping the two changes which `python3.12` a bare command resolves to.
-  - These two are not what decides precedence in a shell you type into: `zshrc_fragment.sh` prepends the GNU coreutils directories and mise's installed tool directories on top. It is sourced from `.zshrc`, which runs for interactive shells only, and after `/etc/zprofile` where both run — which is why neither entry needs a login-shell file. mise's `activate` belongs there for its own reason: it installs `precmd` and `chpwd` hooks, which only ever fire in an interactive shell.
-- `.zshenv` exports `HOMEBREW_PREFIX` and does not touch PATH.
-  - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
-  - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
-  - A PATH prepend here would reach them, since path_helper never runs for such a shell, but the same prepend is demoted in a login shell. PATH is kept in one place rather than both, so a non-login shell reaches `$HOME/.local/bin` only by inheriting a login shell's PATH.
-  - It also turns `nomatch` off for those shells, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
+- `.zprofile` holds both of this machine's own prepends, in the order the file writes them.
+  - `$HOME/.local/bin` first, for the Pythons uv installs.
+  - `brew shellenv` second, so Homebrew keeps precedence over uv's Pythons.
+    - Swapping the two changes which `python3.12` a bare command resolves to.
+  - `brew shellenv` has nowhere else it could go; `$HOME/.local/bin` is here by choice, so that PATH is defined in one place.
+- `.zshenv` runs for every shell, including the non-login ones that tools spawn without a login environment, and sets no PATH.
+  - It exports `HOMEBREW_PREFIX`, without which the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127` in such a shell.
+  - It turns `nomatch` off for them, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
+  - A PATH prepend here would reach them, since `path_helper` never runs for a non-login shell, but the same prepend would be demoted in a login shell.
+    - With PATH kept in `.zprofile` alone, such a shell reaches `$HOME/.local/bin` only by inheriting a login shell's PATH.
+- `.zshrc` sources `zshrc_fragment.sh`, which prepends the GNU coreutils directories and mise's installed tool directories on top of both entries above.
+  - So those two are not what decides precedence in a shell you type into.
+  - It runs for interactive shells only, which is what `mise activate` needs: it installs `precmd` and `chpwd` hooks, and those fire only in a prompt loop.
 
 ## Agent Instructions
 

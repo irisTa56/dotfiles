@@ -29,7 +29,7 @@ eval $(/opt/homebrew/bin/brew shellenv)
 EOF
 
 cat <<'EOF' >~/.zshenv
-# Non-login shells skip .zprofile, where brew shellenv sets this; a login shell's path_helper would demote a PATH set here.
+# Non-login shells skip .zprofile, where brew shellenv sets this.
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
 # Non-interactive shells here run commands written for bash, where an unmatched glob is inert.
