@@ -53,15 +53,16 @@ What is granted here is granted to every config file below, including a branch's
 
 ### Shell startup: `.zprofile` vs `.zshenv`
 
-The Homebrew environment is split across two files on purpose:
+The environment is split across two files on purpose:
 
-- `.zprofile` runs `brew shellenv` to put `/opt/homebrew/bin` ahead of `/usr/bin` on PATH.
-  - It must live in a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes `/opt/homebrew/bin` to the end.
-  - Only a `brew shellenv` running *after* path_helper re-prepends Homebrew, which is why it belongs here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- `.zprofile` is where every PATH prepend goes: `brew shellenv` for `/opt/homebrew/bin`, and `$HOME/.local/bin` for the Pythons uv installs.
+  - PATH must be set from a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes anything set earlier to the end.
+  - Only a prepend running *after* path_helper survives, which is why both belong here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+  - `brew shellenv` comes second, so Homebrew keeps precedence over uv's Pythons; swapping the two changes which `python3.12` a bare command resolves to.
 - `.zshenv` exports `HOMEBREW_PREFIX` and never touches PATH.
   - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
   - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
-  - Setting PATH here would be undone by path_helper, so only the variable is set.
+  - PATH is the one thing it cannot supply them, for the reason above, so such a shell reaches `$HOME/.local/bin` only by inheriting a PATH a login shell already built.
   - It also turns `nomatch` off for those shells, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
 
 ## Agent Instructions
