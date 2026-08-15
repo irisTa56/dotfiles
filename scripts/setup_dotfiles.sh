@@ -21,7 +21,7 @@ mise.local.toml
 EOF
 
 cat <<'EOF' >~/.zprofile
-# uv installs its managed Pythons here; a prepend in .zshenv runs before path_helper and gets demoted.
+# uv installs its managed Pythons here; in a login shell a prepend in .zshenv runs before path_helper and gets demoted.
 export PATH="$HOME/.local/bin:$PATH"
 
 # After the line above, so Homebrew keeps precedence over uv's Pythons.
@@ -29,7 +29,7 @@ eval $(/opt/homebrew/bin/brew shellenv)
 EOF
 
 cat <<'EOF' >~/.zshenv
-# Non-login shells skip .zprofile, where brew shellenv sets this; path_helper would undo PATH here.
+# Non-login shells skip .zprofile, where brew shellenv sets this; a login shell's path_helper would demote a PATH set here.
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
 # Non-interactive shells here run commands written for bash, where an unmatched glob is inert.

@@ -55,14 +55,15 @@ What is granted here is granted to every config file below, including a branch's
 
 The environment is split across two files on purpose:
 
-- `.zprofile` is where every PATH prepend goes: `brew shellenv` for `/opt/homebrew/bin`, and `$HOME/.local/bin` for the Pythons uv installs.
-  - PATH must be set from a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes anything set earlier to the end.
-  - Only a prepend running *after* path_helper survives, which is why both belong here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- `.zprofile` carries the PATH prepends that have to survive path_helper: `brew shellenv` for `/opt/homebrew/bin`, and `$HOME/.local/bin` for the Pythons uv installs.
+  - A login shell runs macOS `/etc/zprofile`, which calls `/usr/libexec/path_helper` to rebuild PATH from `/etc/paths`, demoting everything set earlier to the end.
+    - Only a prepend running *after* path_helper survives it, which is why both belong here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
   - `brew shellenv` comes second, so Homebrew keeps precedence over uv's Pythons; swapping the two changes which `python3.12` a bare command resolves to.
-- `.zshenv` exports `HOMEBREW_PREFIX` and never touches PATH.
+  - These two are not what decides precedence in a shell you type into: `zshrc_fragment.sh` prepends the GNU coreutils directories and mise's installed tool directories on top. It is sourced from `.zshrc`, which runs for interactive shells only, and after `/etc/zprofile` where both run — which is why neither entry needs a login-shell file. mise's `activate` belongs there for its own reason: it installs `precmd` and `chpwd` hooks, which only ever fire in an interactive shell.
+- `.zshenv` exports `HOMEBREW_PREFIX` and does not touch PATH.
   - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
   - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
-  - PATH is the one thing it cannot supply them, for the reason above, so such a shell reaches `$HOME/.local/bin` only by inheriting a PATH a login shell already built.
+  - A PATH prepend here would reach them, since path_helper never runs for such a shell, but the same prepend is demoted in a login shell. PATH is kept in one place rather than both, so a non-login shell reaches `$HOME/.local/bin` only by inheriting a login shell's PATH.
   - It also turns `nomatch` off for those shells, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
 
 ## Agent Instructions
