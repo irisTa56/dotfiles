@@ -24,7 +24,7 @@ cat <<'EOF' >~/.zprofile
 # Login-shell file, because /etc/zprofile runs path_helper first and it would demote Homebrew: https://github.com/orgs/Homebrew/discussions/1127
 eval $(/opt/homebrew/bin/brew shellenv)
 
-# uv installs its managed Pythons here, and `uv tool install` lands here too. Last, so neither path_helper run — /etc/zprofile's and the one brew shellenv above emits — demotes it.
+# uv installs its managed Pythons here, and `uv tool install` lands here too. Not .zshenv, whose PATH /etc/zprofile's path_helper demotes; after brew shellenv, which prepends /opt/homebrew/bin ahead of whatever PATH holds, so above it python3.12 would answer from Homebrew's.
 export PATH="$HOME/.local/bin:$PATH"
 EOF
 
