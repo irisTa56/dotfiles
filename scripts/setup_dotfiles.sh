@@ -25,6 +25,7 @@ cat <<'EOF' >~/.zprofile
 export PATH="$HOME/.local/bin:$PATH"
 
 # After the line above, so Homebrew keeps precedence over uv's Pythons.
+# It re-runs path_helper rooted at the Homebrew prefix, which is what leaves that line's prepend in front.
 eval $(/opt/homebrew/bin/brew shellenv)
 EOF
 

@@ -53,10 +53,10 @@ What is granted here is granted to every config file below, including a branch's
 
 ### Shell startup: `.zprofile` vs `.zshenv`
 
-`scripts/setup_dotfiles.sh` writes both files, and each line there carries its own reason. What the split is for is the part those reasons do not add up to:
+`scripts/setup_dotfiles.sh` writes both files and each line there says why it is where it is. What decides the split is which shells read which file:
 
-- PATH goes in `.zprofile` because a login shell runs `/usr/libexec/path_helper` from macOS's `/etc/zprofile` first, and it demotes whatever was set before it. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
-- Everything in `.zshenv` is there for the non-login shells that tools spawn, which never read `.zprofile`. Without `HOMEBREW_PREFIX` the `ls` alias in `zshrc_fragment.sh` fails with `exit 127` in one.
+- `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- `.zshenv` is read by all of them, which is what `HOMEBREW_PREFIX` needs: an interactive shell that is not a login shell reaches `zshrc_fragment.sh` without having read `.zprofile`, and the `ls` alias there fails with `exit 127` when the variable is unset.
 
 ## Agent Instructions
 
