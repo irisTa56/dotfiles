@@ -48,6 +48,6 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - Where one bullet holds two things that are not one thought, they are two bullets.
 - A flat list of short one-sentence bullets can still be wrong, so clause count is not the check. Ask of every list what nesting or splitting would say about it, and take that shape wherever it is the true one.
 - A bullet that has grown long is the one signal you can see without asking, so read it as the prompt to re-examine the list's shape rather than as one bullet to shorten.
+  - Fix the structure, and NEVER paper over it with a line break.
   - Restructuring may reach beyond that bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
-- Fix the structure, and NEVER paper over it with a line break.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
