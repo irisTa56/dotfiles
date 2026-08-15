@@ -32,6 +32,6 @@ cat <<'EOF' >~/.zshenv
 # Non-login shells skip .zprofile, where brew shellenv sets this.
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
-# Non-interactive shells here run commands written for bash, where an unmatched glob is inert.
+# Not .zprofile (login-only) or .zshrc (interactive-only): a tool's shell is neither, and it runs commands written for bash, where an unmatched glob is inert.
 [[ -o interactive ]] || setopt nonomatch
 EOF
