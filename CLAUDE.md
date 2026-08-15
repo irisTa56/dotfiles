@@ -9,7 +9,8 @@
   - A gist-sourced skill lives in its gist, so send an edit back with `mise run skills:push <name>`, an external write, before the next `mise run skills:sync` overwrites it.
   - An APM-sourced skill is upstream's text restored from the `apm.lock.yaml` pin on every install, so correcting one means dropping it from `apm.yml` rather than editing the file.
   - A Copilot-authored one prints `.github/skills/<name>/…` paths that resolve nowhere here; its companion files sit beside the `SKILL.md` under `~/.claude/skills/<name>/`, and the wrong path text is knowingly left as it stands.
-  - Search them with `grep -r`; `rg` comes back empty here through more than one mechanism, and an empty result reads as an answer rather than as a failure.
+  - Search them with `command grep -r --exclude-dir=worktrees`; bare `grep` here is a harness wrapper around `ugrep --ignore-files`, so it shares `rg`'s blind spot and sees only the tracked ones, and a short result reads as an answer rather than as a failure.
+    - Neither honors `.git/info/exclude`, which is where `.claude/worktrees/` is excluded, so its copy of every skill and rule comes back as hits unless the search drops that directory.
 - Checks: `mise run pre-commit` from this repository's root.
   - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci && npm test` there when its scripts, fixtures, or dependencies change.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
