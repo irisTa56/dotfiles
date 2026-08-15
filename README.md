@@ -53,16 +53,10 @@ What is granted here is granted to every config file below, including a branch's
 
 ### Shell startup: `.zprofile` vs `.zshenv`
 
-The Homebrew environment is split across two files on purpose:
+`scripts/setup_dotfiles.sh` writes both files and each line there says why it is where it is.
 
-- `.zprofile` runs `brew shellenv` to put `/opt/homebrew/bin` ahead of `/usr/bin` on PATH.
-  - It must live in a login-shell file, because macOS `/etc/zprofile` runs `/usr/libexec/path_helper`, which rebuilds PATH from `/etc/paths` and demotes `/opt/homebrew/bin` to the end.
-  - Only a `brew shellenv` running *after* path_helper re-prepends Homebrew, which is why it belongs here. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
-- `.zshenv` exports `HOMEBREW_PREFIX` and never touches PATH.
-  - It runs for every shell, including non-login shells spawned by tools that do not inherit a login environment.
-  - Such shells skip `.zprofile`, so without this they lack `HOMEBREW_PREFIX`, and the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127`.
-  - Setting PATH here would be undone by path_helper, so only the variable is set.
-  - It also turns `nomatch` off for those shells, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
+- `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
 
 ## Agent Instructions
 
