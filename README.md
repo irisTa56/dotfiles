@@ -51,26 +51,12 @@ EOF
 Add a directory only where mise's own sharing does not reach it, which `mise trust --show` from a fresh worktree tells you, and never a repository root or a directory a new clone lands in.
 What is granted here is granted to every config file below, including a branch's own `mise.toml`, whose `[hooks]` mise then runs unprompted, and a `mise.local.toml` that `~/.config/git/ignore` keeps out of every diff.
 
-### Shell startup: `.zprofile`, `.zshenv`, and `.zshrc`
+### Shell startup: `.zprofile` vs `.zshenv`
 
-What decides where a PATH entry can go is `path_helper`.
-A login shell runs macOS `/etc/zprofile`, which calls `/usr/libexec/path_helper` to rebuild PATH from `/etc/paths`, demoting everything set earlier to the end.
-`.zshenv` runs before that; `.zprofile` and `.zshrc` run after it, so only those two can put something in front and keep it there.
-See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+`scripts/setup_dotfiles.sh` writes both files, and each line there carries its own reason. What the split is for is the part those reasons do not add up to:
 
-- `.zprofile` holds both of this machine's own prepends, in the order the file writes them.
-  - `$HOME/.local/bin` first, for the Pythons uv installs.
-  - `brew shellenv` second, so Homebrew keeps precedence over uv's Pythons.
-    - Swapping the two changes which `python3.12` a bare command resolves to.
-  - `brew shellenv` has nowhere else it could go; `$HOME/.local/bin` is here by choice, so that PATH is defined in one place.
-- `.zshenv` runs for every shell, including the non-login ones that tools spawn without a login environment, and sets no PATH.
-  - It exports `HOMEBREW_PREFIX`, without which the `$HOMEBREW_PREFIX`-expanding `ls` alias in `zshrc_fragment.sh` fails with `exit 127` in such a shell.
-  - It turns `nomatch` off for them, since the commands an agent's shell tool is given are written for bash, where an unmatched glob is passed through rather than fatal.
-  - A PATH prepend here would reach them, since `path_helper` never runs for a non-login shell, but the same prepend would be demoted in a login shell.
-    - With PATH kept in `.zprofile` alone, such a shell reaches `$HOME/.local/bin` only by inheriting a login shell's PATH.
-- `.zshrc` sources `zshrc_fragment.sh`, which prepends the GNU coreutils directories and mise's installed tool directories on top of both entries above.
-  - So those two are not what decides precedence in a shell you type into.
-  - It runs for interactive shells only, which is what `mise activate` needs: it installs `precmd` and `chpwd` hooks, and those fire only in a prompt loop.
+- PATH goes in `.zprofile` because a login shell runs `/usr/libexec/path_helper` from macOS's `/etc/zprofile` first, and it demotes whatever was set before it. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
+- Everything in `.zshenv` is there for the non-login shells that tools spawn, which never read `.zprofile`. Without `HOMEBREW_PREFIX` the `ls` alias in `zshrc_fragment.sh` fails with `exit 127` in one.
 
 ## Agent Instructions
 
