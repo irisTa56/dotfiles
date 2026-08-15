@@ -21,12 +21,10 @@ mise.local.toml
 EOF
 
 cat <<'EOF' >~/.zprofile
-# uv installs its managed Pythons here; in a login shell a prepend in .zshenv runs before path_helper and gets demoted.
-export PATH="$HOME/.local/bin:$PATH"
-
-# After the line above, so Homebrew keeps precedence over uv's Pythons.
-# It re-runs path_helper rooted at the Homebrew prefix, which is what leaves that line's prepend in front.
 eval $(/opt/homebrew/bin/brew shellenv)
+
+# uv installs its managed Pythons here. Last, because every path_helper run demotes what came before it — /etc/zprofile's, which is why this is not in .zshenv, and brew shellenv's own.
+export PATH="$HOME/.local/bin:$PATH"
 EOF
 
 cat <<'EOF' >~/.zshenv
