@@ -21,9 +21,10 @@ mise.local.toml
 EOF
 
 cat <<'EOF' >~/.zprofile
+# Login-shell file, because /etc/zprofile runs path_helper first and it would demote Homebrew: https://github.com/orgs/Homebrew/discussions/1127
 eval $(/opt/homebrew/bin/brew shellenv)
 
-# uv installs its managed Pythons here. Last, because every path_helper run demotes what came before it — /etc/zprofile's, which is why this is not in .zshenv, and brew shellenv's own.
+# uv installs its managed Pythons here, and `uv tool install` lands here too. Last, so neither path_helper run above demotes it; PATH is set here and nowhere else.
 export PATH="$HOME/.local/bin:$PATH"
 EOF
 
