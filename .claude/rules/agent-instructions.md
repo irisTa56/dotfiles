@@ -9,7 +9,7 @@ paths:
 
 # Agent Instruction Files
 
-Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and the rule files beside them — anything that loads into a session's context rather than being read on demand.
+Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and the rule files beside them — anything the harness loads into a session's context on its own, rather than something read on demand or handed to the session as its own assignment.
 
 ## Core principle
 
@@ -28,8 +28,7 @@ Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and the rul
 - Generic best practices the agent already follows by default (e.g. "write clean code", "add tests").
 - Facts the agent can derive on demand — directory contents from a listing, build and test commands from the project's task config — unless a one-line pointer saves repeated rediscovery.
 - Rules a linter, formatter, or config file already enforces; let the toolchain carry them.
-- Content that is authoritative elsewhere. Link to it instead of restating; a duplicated copy drifts out of sync.
-- Near-identical wording in two places. Say it once, in the most relevant section.
+- Content another file maintains. Point at it (see `document-writing.md`) — a file that loads on its own has a reader who can open the source, so a copy buys them nothing.
 - Historical narrative — how a convention evolved, migration backstory, or changelog-style entries. State the current rule; let git history carry the past.
 - Anything pointing the same direction as the harness's own defaults. An instruction earns its place by overriding a default, not by agreeing with one.
 - Either side of a contradiction between two instruction files. Cut the one whose scope fits worse; [two files giving different guidance leave Claude picking one arbitrarily](https://code.claude.com/docs/en/memory).
