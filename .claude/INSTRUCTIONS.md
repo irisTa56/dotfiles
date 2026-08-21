@@ -51,6 +51,11 @@
 
 - A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
 
+### When a conclusion rests on a command's output
+
+- The `rtk` hook rewrites many Bash commands, and the command you wrote does not tell you whether yours is one of them. What comes back is then the substitute's result rather than the command's own, and it does not always say so.
+- Where a conclusion rests on the command's own result rather than a summary of it, run that command through `rtk proxy`.
+
 ## Writing prose
 
 When writing prose, always follow `~/.claude/rules/document-writing.md`, unless the destination has a written convention of its own. In conversation, follow it only for substantial prose — a summary of research or analysis, not a short reply. If the prose is in Japanese, also use the `japanese-tech-writing` skill.
