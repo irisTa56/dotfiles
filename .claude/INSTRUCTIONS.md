@@ -25,6 +25,8 @@
 ## Side-Effect Disciplines
 
 - Always ask the user for permission before any operation that writes to an external system, showing the content that will leave rather than describing it.
+- A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
+  - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
 - Don't force-push to a PR's branch after it has been marked ready.
 
 ## Memory
