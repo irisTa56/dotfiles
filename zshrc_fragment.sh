@@ -39,6 +39,18 @@ function show-modified-homebrew-formula() {
   )
 }
 
+function git-sync-base() {
+  local branch="$1"
+  if [[ -z "$branch" ]]; then
+    git remote set-head origin --auto >/dev/null || return
+    branch="$(git symbolic-ref --short refs/remotes/origin/HEAD)" || return
+  fi
+  branch="${branch#origin/}"
+  git fetch origin || return
+  git switch "$branch" || return
+  git merge --ff-only "origin/$branch"
+}
+
 # settings
 
 export LC_CTYPE=ja_JP.UTF-8
