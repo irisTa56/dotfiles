@@ -46,8 +46,10 @@ Take it from the first of these that states one:
 
 State the purpose and the source you took it from, so the user sees the bound they are judging against.
 
-The bound is the outcome, not the file set.
+The bound is the outcome, not the file set, and not the mechanism chosen to reach that outcome.
 A fix in a file the change has not touched is inside it where the purpose is not served without that fix, and an edit inside a file the change already touches is past it where it serves some other outcome.
+A purpose worded as its mechanism — "cache the result" — draws the bound around the mechanism alone, so a fix the outcome needs but the mechanism does not touch reads as past the bound.
+State the purpose as the outcome, and let the mechanism sit under it.
 
 ## 3. Putting the excess to the user
 
