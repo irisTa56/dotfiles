@@ -34,6 +34,14 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Detailed explanation at each relevant point is fine as long as it fits the local context.
 - Avoid near-identical wording appearing in multiple places — if two passages read almost the same, trim one of them.
 - Where detailed elaboration is not the focus of the current passage, keep the mention brief so it does not interrupt the reader's flow.
+- Where another file owns some content and keeps it updated, do not restate that content; carry a pointer and whatever yours adds.
+  - Attributing a claim of your own is `## Sources` above, not a restatement this bars; reproducing what the other file maintains as its content is.
+  - The copy is what goes wrong, not the extra words: it stops matching, and a reader with it in front of them acts on it instead of going to the source.
+    - Declaring that the source takes precedence does not prevent this.
+  - Carry the content as well as the pointer wherever the pointer alone would leave the reader worse off than a copy.
+    - The reader cannot open the source — you are writing a prompt for an agent barred from reading it.
+    - Opening the source would hand them more than they should act on — you are briefing a subagent to execute one slice of a parent prompt.
+    - The destination's own convention requires the gist in the text, as a PR body's does (`pr-description`).
 
 ## Keep lines short and scannable
 
