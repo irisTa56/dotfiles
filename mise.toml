@@ -22,8 +22,8 @@ run = '''
 gitleaks protect -v --staged
 lychee .
 rumdl check
-shellcheck scripts/*.sh
-shfmt -i 2 -d scripts/*.sh
+shellcheck scripts/*.sh zshrc_fragment.sh
+shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh
 mix format --check-formatted scripts/*.exs
 '''
 
