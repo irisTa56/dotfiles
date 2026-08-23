@@ -21,6 +21,6 @@ Some shapes of finding reach that only through a form of their own:
 Some proposals carry a bar of their own in place of that one.
 
 - **A removal.** Name what the removed thing was there to prevent, and what prevents that now.
-- **A violation of a written standard** — a rule file or an instruction file that loads for the paths under review. Name the standard's file and what it states, and its harm is settled by the standard rather than argued.
+- **A violation of a written standard** — any written rule the work under review is subject to, the usual carriers being a rule or instruction file that loads for its paths and a skill that governs the kind of work. Name the standard's file and what it states, and its harm is settled by the standard rather than argued.
 
 Each side of a review does something different with a finding that clears this, and each states that for itself.

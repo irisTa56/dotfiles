@@ -24,7 +24,7 @@ Take the finding seriously, but do not accept it blindly.
   - Name a reason you can point to; where there is none the choice is undefended, so judge whether the other criteria establish the harm the finding left unargued.
   - A cheap fix is not a free one: cheapness answers what it costs to write and says nothing about whether anything went wrong without it.
 - **A standard already in force?** A violation of one clears the bar on its own terms, per `finding-bar`.
-  - Verify the standard says what the finding claims and that its scope reaches the file; one that fails that check argues a preference.
+  - Verify the standard says what the finding claims and that it applies to what is under review; one that fails either check argues a preference.
 - **A removal proposal?** Judge it by §4's removal question.
 - **Does the context resolve it?** The statement a reader meets is the one the context around it carries, so where the finding is about prose rather than code, reject what only stands when it is read apart from that — an inconsistency, or a harmful parse the next clause or the step before rules out — by naming what resolves it.
   - Prose is read in context, so that naming answers the finding; picking sentences apart one by one produces conflicts without end.
