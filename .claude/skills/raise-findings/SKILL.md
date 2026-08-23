@@ -24,11 +24,20 @@ A defect a change introduces often shows at a line the diff leaves untouched, wh
 
 | Rank | What it covers |
 | --- | --- |
-| **P1** | It does the wrong thing: some input or condition produces an outcome that is wrong and not merely worse, whether or not that has happened yet. |
-| **P2** | It does the right thing, and costs enough to be worth an edit, whether that cost has been paid yet or not. |
-| **P3** | The lowest rank: it costs the same way, and not enough to be worth an edit. |
+| **P1** | It leaves the system exposed to a risk. |
+| **P2** | It costs enough to be worth an edit, whether that cost has been paid yet or not; a violation of a written standard ranks no lower than this. |
+| **P3** | The lowest rank: it costs the same way, and not enough to be worth an edit — where the deliverable is prose, the polishing of wording sits here. |
 
-Every finding carries one of these, including one raised under instructions that narrowed the round.
+Where the project writes down what it treats as a risk, that governs.
+Where it does not, a risk is what the exposure costs together with what it takes to reach.
+
+Look along three axes to find one:
+
+- security: what should not be reachable becomes reachable;
+- data: what is stored stops being right, or stops being there;
+- operational: a failure or an anomaly goes unreported, or the state it leaves cannot be seen or recovered.
+
+Every finding carries one of these ranks, the highest that fits, including one raised under instructions that narrowed the round.
 A relative phrase — "the lowest tier", "minor" — is not a rank, since the side reading your output has no scale of its own to resolve it against.
 
 ## What to raise

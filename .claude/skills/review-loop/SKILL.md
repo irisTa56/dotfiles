@@ -31,7 +31,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - whether the loop or the user decided it.
 
 The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
-The verdict section is never sent whole or quoted; what a reviewer needs from it travels in the settled list "Opening the round" derives.
+The verdict section is never sent whole or quoted; what a reviewer needs from it travels in what "Opening the round" derives.
 
 What a round enters, and how the record ends:
 
@@ -39,7 +39,7 @@ What a round enters, and how the record ends:
   - An outcome is anything the round disposed of or decided, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round:
     - what each axis of a consistency sweep reached, or that the axis reached nothing;
-    - what a continue narrowed the round to.
+    - that a continue put the round in the endgame.
 - **Closing the record.** Append `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
@@ -91,6 +91,8 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
 - **What the prompt carries.** Beyond those run constraints it carries four things, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
+    - Where a continue put the round in the endgame, name the edits the last round landed; the reviewer reads the change whole as any other round's does, and the naming says where to look first.
+      - Outside the endgame it is withheld: a reviewer told where the loop has been working no longer meets the rest of the change cold, and a continue is where the user has chosen focus over that.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
@@ -114,13 +116,15 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A finding it covers is not fixed for its own sake.
-  - The floor covers the lowest rank of the reviewer's own scale, and a finding against the background on the same terms unless it shows a statement there false.
-  - That falsity exception is not confined to the background, and puts the finding outside the floor rather than past the bar above: a statement the change made false or misleading is fixed at whatever rank it carries where a reader acts on it, and rejected where none does.
-    - Read what the statement said before the change: one already wrong is a defect the change found rather than one it caused, so it leaves the floor under the purpose bound rather than past it.
-  - A finding proposing a removal, or naming a violation of a written standard at whatever rank, sits outside the floor: judge and fix it for its own sake, whatever else the round lands.
-    - Put the standard violation through `address-finding`'s standard criterion first, and reject the finding where it fails there, or a preference dressed as a rule buys its way past the floor.
+  - The floor covers the reviewer's lowest rank, which `raise-findings` defines as no edit being warranted, and a finding against the background on the same terms unless it shows a statement there false.
+  - Your judgement moves a finding one way only: into the floor, where the use the change is built for makes it excessive, and never out of it.
+    - Name in the round's message every finding you floored that way and the use you weighed it against, so the user can say otherwise.
+    - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.
+    - A higher-ranked finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
+  - No rank floors a finding proposing a removal: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
+  - A floored finding no round applied is not among what the close reports the user has to act on, unless you floored it yourself under the rule above, which the close names.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
   - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
@@ -187,9 +191,8 @@ The hold, which stops a round that is refining the loop's own work:
   - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
   - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
     - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-    - Recommend the endgame: continue, with a gate that applies every fix a valid finding outside the floor lands, and nothing besides.
-      - A fix the user directed in so many words is outside it: that is an instruction rather than an answer to a finding.
-- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled, narrowed as the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
+    - Recommend the endgame: continue, with the reviewer pointed at the part of the diff no reviewer has read.
+- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled, in the endgame the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
   - **What you read out of it is yours.** Quote them where you tell them what they decided, and NEVER give your reading of it back to them as their words.
   - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
   - Their continue governs every round that follows, restarting the tally rather than retiring the question, though what earlier rounds added keeps counting from the loop's start.
