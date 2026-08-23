@@ -116,7 +116,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A finding it covers is not fixed for its own sake.
-  - The floor covers the reviewer's lowest rank, which `raise-findings` defines as no edit being warranted, and a finding against the background on the same terms unless it shows a statement there false.
+  - The floor covers the reviewer's lowest rank as `raise-findings` defines it, and a finding against the background on the same terms unless it shows a statement there false.
   - Your judgement moves a finding one way only: into the floor, where the use the change is built for makes it excessive, and never out of it.
     - Name in the round's message every finding you floored that way and the use you weighed it against, so the user can say otherwise.
     - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.

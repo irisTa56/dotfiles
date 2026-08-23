@@ -24,9 +24,9 @@ A defect a change introduces often shows at a line the diff leaves untouched, wh
 
 | Rank | What it covers |
 | --- | --- |
-| **P1** | It leaves the system exposed to a risk. |
-| **P2** | It costs enough to be worth an edit, whether that cost has been paid yet or not; a violation of a written standard ranks no lower than this. |
-| **P3** | The lowest rank: it costs the same way, and not enough to be worth an edit — where the deliverable is prose, the polishing of wording sits here. |
+| **P1** | The harm it names leaves the system exposed to a risk. |
+| **P2** | The harm it names costs something beyond the reading of the text, whether that cost has been paid yet or not. A violation of a written standard ranks no lower than this. |
+| **P3** | The lowest rank: the harm it names costs nothing beyond the reading — where the deliverable is prose, the polishing of wording sits here. |
 
 Where the project writes down what it treats as a risk, that governs.
 Where it does not, a risk is what the exposure costs together with what it takes to reach.
