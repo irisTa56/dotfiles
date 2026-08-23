@@ -124,7 +124,6 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - No rank floors a finding proposing a removal: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
-  - A floored finding no round applied is not among what the close reports the user has to act on, unless you floored it yourself under the rule above, which the close names.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it at your discretion, where argument has not settled the claim and the floor does not already cover it; no verdict waits on a probe, and a finding is accepted or rejected on argument where argument settles it.
   - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
@@ -172,6 +171,7 @@ The loop closes on a round that applies no fix (putting in the reviewer's own pr
       - The correction leaves what a later reviewer would look into unchanged.
       - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
 - **The report.** When the loop closes, report what the user has to act on — the behaviour the rounds added, altered or removed, and what the loop proposes to carry over.
+  - **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
 
 ### Waiting on the user
 
