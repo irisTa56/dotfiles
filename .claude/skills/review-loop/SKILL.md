@@ -96,7 +96,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
-    - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor as the reviewer's lowest rank", not "X is not a problem".
+    - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
     - Head the list with its one condition: raise one of these again only with evidence the ground it went on does not already answer.
   - what this loop adds to what `raise-findings` asks for:
     - the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one;
@@ -113,14 +113,11 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 
 - **Whose predicates.** They are that skill's, and this section points at them rather than restating one, so a correction lands where all its callers read it.
   - A narrowing the loop itself needs is not a restatement and stays here, as the re-raise handling below is, since this section is what those callers do not read.
-- **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
-- **The floor.** A finding it covers is not fixed for its own sake.
-  - The floor covers the reviewer's lowest rank as `raise-findings` defines it.
-  - Your judgement moves a finding one way only: into the floor, where the use the change is built for makes it excessive, and never out of it.
-    - Name in the round's message every finding you floored that way and the use you weighed it against, so the user can say otherwise.
-    - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.
-    - A higher-ranked finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
+- **The floor.** A valid finding is not fixed for its own sake where the use the change is built for makes it excessive; that judgement is yours.
+  - Name in the round's message every finding you floored and the use you weighed it against, so the user can say otherwise.
+  - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.
+  - A finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
   - Nothing floors a finding proposing a removal, or one against the background: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
