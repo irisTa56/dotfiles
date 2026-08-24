@@ -1,6 +1,6 @@
 ---
 name: raise-findings
-description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits and ranked on an ordered severity scale. Takes the bar a finding must clear from the `finding-bar` skill, and states what to look for when the deliverable is prose someone executes and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
+description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits. Takes the bar a finding must clear from the `finding-bar` skill, and states what to look for when the deliverable is prose someone executes and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
 ---
 
 # Raise Findings
@@ -20,26 +20,6 @@ Where the two together still do not settle what changed, say what you could not 
 Read past the diff into what surrounds it: what the change calls or cites, and what calls or cites the change.
 A defect a change introduces often shows at a line the diff leaves untouched, which is exactly the line the diff cannot show you.
 
-## Rank every finding
-
-| Rank | What it covers |
-| --- | --- |
-| **P1** | The harm it names leaves the system exposed to a risk. |
-| **P2** | The harm it names costs something beyond the reading of the text, whether that cost has been paid yet or not. A violation of a written standard ranks no lower than this. |
-| **P3** | The lowest rank: the harm it names costs nothing beyond the reading — where the deliverable is prose, the polishing of wording sits here. |
-
-Where the project writes down what it treats as a risk, that governs.
-Where it does not, a risk is what the exposure costs together with what it takes to reach.
-
-Look along three axes to find one:
-
-- security: what should not be reachable becomes reachable;
-- data: what is stored stops being right, or stops being there;
-- operational: a failure or an anomaly goes unreported, or the state it leaves cannot be seen or recovered.
-
-Every finding carries one of these ranks, the highest that fits, including one raised under instructions that narrowed the round.
-A relative phrase — "the lowest tier", "minor" — is not a rank, since the side reading your output has no scale of its own to resolve it against.
-
 ## What to raise
 
 Raise only what clears the bar the `finding-bar` skill states.
@@ -47,6 +27,8 @@ Without it a careful reviewer generates findings without end.
 A round where nothing clears it returns nothing, which is a correct result rather than a review that failed to do its job.
 
 Propose a removal where you see one in what is under review, under the removal bar `finding-bar` states in place of that one, since a rule that has outlived its reason is easier to see for someone who did not write it.
+
+Hunt by name for a defect a diff never shows as a wrong answer: what should not be reachable becoming reachable, and what is stored ceasing to be right or to be there, are two of those rather than the whole of it.
 
 Weigh the change against the deliverable as a whole: whether it is organically integrated rather than a surface-level implementation, coherent with the existing design and optimized in context rather than bolted on.
 
@@ -63,13 +45,23 @@ Trying the text on a reader is not asked of you, whatever the medium.
 The account the invoking side gave — the background, where it names one — is under review with the change: whether the change serves it, and whether it is itself sound, and it is given to be weighed rather than obeyed.
 Give the parts it says nothing about their full share of your attention: what arrives already worked over draws the eye, and a defect hides in the part nobody wrote about.
 
-That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
-Where prose argues for a choice, what is under review is the choice and not the wording that defends it; prose that states a checkable fact stays review surface, wherever it sits.
-
 Where the change enumerates conditions, rules, or cases it cannot exhaust, what keeps the list honest is a statement of what governs them all, with the entries standing as examples of it.
 Raise one written without that statement, since its reader takes the entries for the whole set and stops looking; the repair is the governing statement, not the entry that went missing.
 
 The invoking side may narrow this bar or add to it, and its statement governs where it does.
+
+## What not to raise
+
+Each of these turns the review onto something other than what the change decided and what that does; they are examples of that rather than the whole of it.
+
+A proposal to grow the deliverable — more capability, more configuration, more prose — is not a finding.
+A defect whose answer is growth is still a defect: raise it, and propose the growth as you would any fix — the shape is the invoking side's to settle.
+
+An issue outside what is under review is not one either, however real: this review is not what settles it.
+
+That a statement can be read more than one way is not a finding: where a reading is what makes a reader act wrongly, the finding is the wrong act and what it costs, and the reading is the route to it rather than a finding in its place.
+
+Where prose argues for a choice, what is under review is the choice and not the wording that defends it; prose that states a checkable fact stays review surface, wherever it sits.
 
 The two sections below each govern the part of the change they fit, so a change spanning both takes both rather than being classed as one.
 
@@ -103,11 +95,12 @@ Others are worth a pass of their own:
 
 ## Report
 
-Give each finding, ordered by rank:
+Give each finding:
 
 - where it sits: the file and line, or the part of the background it answers;
-- its rank;
 - the harm you raised it for;
 - what you would do about it.
+
+Do not qualify a finding to make it weigh less — "minor", "a nit", "a matter of wording": whether one is excessive is the invoking side's call and not yours.
 
 Then say what you did not cover — a path you could not reach, a suite you did not run.

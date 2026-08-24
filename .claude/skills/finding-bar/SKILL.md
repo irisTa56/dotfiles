@@ -7,6 +7,7 @@ description: "The bar a review finding must clear to hold, and the proposals tha
 
 A finding holds by naming the wrong action or outcome that follows from leaving it unfixed.
 One that names none argues a preference rather than a defect.
+Its size does not enter: a named outcome is a finding however small.
 
 What has to be nameable is the input or condition and the wrong outcome it produces.
 Where what is under review is prose instead, it is who reads the thing, what they do wrong under it, and what that costs them.
