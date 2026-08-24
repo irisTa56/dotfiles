@@ -116,12 +116,12 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **Rank and verdict.** What a finding is ranked is the reviewer's, and the verdict is yours: a rank orders the round and never answers whether the finding holds.
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A finding it covers is not fixed for its own sake.
-  - The floor covers the reviewer's lowest rank as `raise-findings` defines it, and a finding against the background on the same terms unless it shows a statement there false.
+  - The floor covers the reviewer's lowest rank as `raise-findings` defines it.
   - Your judgement moves a finding one way only: into the floor, where the use the change is built for makes it excessive, and never out of it.
     - Name in the round's message every finding you floored that way and the use you weighed it against, so the user can say otherwise.
     - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.
     - A higher-ranked finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
-  - No rank floors a finding proposing a removal: judge and fix it for its own sake, whatever else the round lands.
+  - Nothing floors a finding proposing a removal, or one against the background: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
@@ -129,7 +129,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
-- **A finding against the background.** A valid one outside the floor, against the background rather than the change, is answered by correcting the background; never edit the change to make an argument come out right.
+- **A finding against the background.** A valid one against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
   - What the user stated in their own words — the purpose, a constraint, a question they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
     - Enter it in the verdict section meanwhile.
     - An objection to the pinned purpose is the exception: it waits, as "Waiting on the user" says.
