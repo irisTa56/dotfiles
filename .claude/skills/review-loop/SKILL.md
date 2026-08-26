@@ -36,10 +36,8 @@ The verdict section is never sent whole or quoted; what a reviewer needs from it
 What a round enters, and how the record ends:
 
 - **Every outcome.** Enter it in the verdict section.
-  - An outcome is anything the round disposed of or decided, whatever verdict it took and whether or not a finding forced it.
-  - An entry has to be actable without redoing the round:
-    - what each axis of a consistency sweep reached, or that the axis reached nothing;
-    - that a continue put the round in the endgame.
+  - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
+  - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
@@ -95,8 +93,6 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
 - **What the prompt carries.** Beyond those run constraints it carries four things, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
-    - Where a continue put the round in the endgame, name the edits the last round landed; the reviewer reads the change whole as any other round's does, and the naming says where to look first.
-      - Outside the endgame it is withheld: a reviewer told where the loop has been working no longer meets the rest of the change cold, and a continue is where the user has chosen focus over that.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
@@ -191,8 +187,7 @@ The hold, which stops a round that is refining the loop's own work:
   - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
   - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
     - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-    - Recommend the endgame: continue, with the reviewer pointed at the part of the diff no reviewer has read.
-- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled, in the endgame the message recommended; one that continues and settles nothing is a continue too, and the question it left goes to the close.
+- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled; one that continues and settles nothing is a continue too, and the question it left goes to the close.
   - **What you read out of it is yours.** Quote them where you tell them what they decided, and NEVER give your reading of it back to them as their words.
   - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
   - Their continue governs every round that follows, restarting the tally rather than retiring the question, though what earlier rounds added keeps counting from the loop's start.
