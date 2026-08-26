@@ -1,13 +1,13 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round applies no fix, reporting at the end what the user has to act on. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
+description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round leaves the change untouched, and put the close to the user with what they have to act on. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
 ---
 
 # Review Loop
 
 ## The loop
 
-A loop runs rounds of one shape: a fresh reviewer reads the change, the loop judges what it returned, and the round then does one of three things — it applies fixes, it closes, or it stops to ask the user.
+A loop runs rounds of one shape: a fresh reviewer reads the change, the loop judges what it returned, and the round then does one of three things — it applies fixes, it proposes the close, or it stops to ask the user. The last two both go to the user, and "Waiting on the user" governs both.
 "The round" below is that shape, and its last three parts are those three outcomes.
 "The record" is what carries the loop across rounds and across a lost context; "Before the first round" is what has to be true before any of it runs.
 
@@ -24,7 +24,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
-- `## Verdicts` — the title the change would go up under, and entries grouped by round, the group noting the fixes the round landed and what it added to the background, and each entry holding:
+- `## Verdicts` — the title the change would go up under, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust, and the alternatives a design choice was chosen over;
@@ -102,9 +102,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
     - Head the list with its one condition: raise one of these again only with evidence the ground it went on does not already answer.
-  - what this loop adds to what `raise-findings` asks for:
-    - the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one;
-    - where a finding is against a statement in the background, which of the reviewer's other findings rest on that statement, or that none do.
+  - what this loop adds to what `raise-findings` asks for: the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one.
 - **Nothing of your own.** Compose no review instructions on top.
 
 Report the findings to the user as the subagent returned them.
@@ -165,23 +163,21 @@ Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run t
 
 ### Closing
 
-The loop closes on a round that applies no fix (putting in the reviewer's own proposal unaltered is a fix); a round can return findings and still be the last, so long as it changed nothing.
+The loop closes on a round that left the change untouched; it can return findings and still be the last, and what it did to the record does not enter. The loop proposes that close and the user makes it.
 
-- **What termination is.** It is defined by applying no fix, so a loose fix bar puts it out of reach; a finding that would loosen the stopping rule rather than inspect the bar is answered from this decision.
-- **The gate.** What gates the close is what reviewers see: a round that edited the change (cuts included) or added to or corrected the background cannot be the last, since no reviewer has read the result.
-  - Verdict writes, background cuts or condensations, and the facts a round established — each carrying what established it, so a reviewer checks rather than trusts it — never extend the loop.
-    - Correcting the background likewise, where one of the two below holds.
-      - The correction leaves what a later reviewer would look into unchanged.
-      - The round's reviewer is what raised the problem, the correction is not the user's own words but the loop's answer to that finding and no more, and the reviewer reported that none of its other findings rests on the statement it struck.
-- **The report.** When the loop closes, report what the user has to act on — the behaviour the rounds added, altered or removed, and what the loop proposes to carry over.
-  - **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
+- **The stopping rule.** A loose fix bar puts termination out of reach, so a finding that would loosen the rule rather than inspect the bar is answered from this decision.
+- **What the close carries.** What the user has to act on, reaching them with the close and not after it:
+  - the behaviour the rounds added, altered or removed;
+  - what the last round did to the record, which no reviewer read;
+  - what the loop proposes to carry over.
+- **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
 
 ### Waiting on the user
 
 Where the round needs the user, everything it needs them for goes to them together, in one message.
 
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
-  - **Where none comes**, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
+  - **Where none comes**, record the held state — what was put to them, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the held state as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
   - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
   - Where the settlement re-pins the purpose, the title is written afresh under `## Before the first round` before the round goes on.
