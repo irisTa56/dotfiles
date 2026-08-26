@@ -24,7 +24,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
-- `## Verdicts` — entries grouped by round, the group noting the fixes the round landed and what it added to the background, and each entry holding:
+- `## Verdicts` — the title the change would go up under, and entries grouped by round, the group noting the fixes the round landed and what it added to the background, and each entry holding:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust, and the alternatives a design choice was chosen over;
@@ -59,7 +59,11 @@ State what this change is for before the first round, and hold every later round
   - the workflow that invoked this loop;
   - the diff, read as a whole.
 - **State it as an outcome**, the one the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
-- **Do not wait for a reply.** State it, with the rest of the background you composed, and carry on.
+- **Write the title the change would go up under** from the pinned purpose, in the form this repository's convention takes.
+  - The record holds a title written from the purpose currently pinned and stated to the user; a resumed record's stands where that is the one it was written from.
+  - Note it in the verdict section rather than the background: it is the loop's own bookkeeping, and nothing a reviewer does turns on it.
+  - It names what the change does at the grain the purpose does, since one that would equally name a change the purpose does not reach never stops fitting.
+- **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
 - **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
 - **Fill the background** before the first round.
@@ -138,15 +142,17 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 
 ### Choosing what the round does
 
-Look at the change whole before deciding which of the three the round takes, on the last round as much as any other — though a stop-close reports rather than cuts:
+Look at the change whole before deciding which of the three the round takes, on the last round as much as any other — though a stop-close reports rather than acts on the change:
 
 - whether the fixes so far are one coherent thing rather than a stack of patches, which `address-finding`'s symptom-treating signals decide and not how the result reads;
-- whether the change has piled up more than a developer should have to hold in mind — you MUST cut what piled up before it becomes what the next round reviews;
-  - Read its net line change against the baseline, counting whatever no diff reaches, before judging that by eye, since the question is the total a developer holds and the eye only ever meets one round's addition.
-- the background likewise, and the verdict entries the settled list derives from.
+- whether what the rounds have added has taken the change past the title the record holds;
+  - What naming it now would need a clause for is past what the change is for: carve that out where it separates cleanly, saying so in the round's message, and where it does not, put it to them and wait.
+  - What the rounds have grown past the title is what to re-decide the shape for: what they have established since is what the change did not have when it took its shape, so ask what shape it would take decided now, knowing that. Cutting alone leaves the design the parts sat in untouched.
+- the background and the verdict entries the settled list derives from, on whether they still hold only what their reader needs.
 
+Where a question of this look's reaches a decision of the user's own, what it would have asked goes to them at once and the round waits, as an unfixable finding's does, in the terms the look asked it in rather than being set aside unjudged.
 A cut this look makes to the background or the verdict entries is confined to what the rounds themselves put there, under `address-finding`'s removal question; a decision entry the record requires may be condensed, never dropped.
-A cut to the change, or a consolidation, goes through `address-finding` like any finding, purpose bound included.
+A cut to the change, a consolidation, or a reshape goes through `address-finding` like any finding, purpose bound included.
 
 ### Fixing
 
@@ -178,6 +184,7 @@ Where the round needs the user, everything it needs them for goes to them togeth
   - **Where none comes**, record the held state — the questions, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the questions as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
   - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
+  - Where the settlement re-pins the purpose, the title is written afresh under `## Before the first round` before the round goes on.
 
 The hold, which stops a round that is refining the loop's own work:
 
