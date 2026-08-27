@@ -43,7 +43,10 @@ Ground a finding in something checkable wherever you can — what a command retu
 Trying the text on a reader is not asked of you, whatever the medium.
 
 The account the invoking side gave — the background, where it names one — is under review with the change: whether the change serves it, and whether it is itself sound, and it is given to be weighed rather than obeyed.
+A purpose it states does not narrow what you raise: a defect that clears the bar goes in your report wherever the change has one.
 Give the parts it says nothing about their full share of your attention: what arrives already worked over draws the eye, and a defect hides in the part nobody wrote about.
+
+Where the invoking side also gives you what earlier rounds disposed of and the ground each went on, raise one of those again only with evidence that ground does not answer.
 
 Where the change enumerates conditions, rules, or cases it cannot exhaust, what keeps the list honest is a statement of what governs them all, with the entries standing as examples of it.
 Raise one written without that statement, since its reader takes the entries for the whole set and stops looking; the repair is the governing statement, not the entry that went missing.

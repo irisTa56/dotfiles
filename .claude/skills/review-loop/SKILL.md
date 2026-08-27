@@ -90,16 +90,14 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
 - **The common git dir.** Bar it from touching that.
-- **What the prompt carries.** Beyond those run constraints it carries four things, and nothing else out of the verdict section:
+- **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
-    - Head the list with its one condition: raise one of these again only with evidence the ground it went on does not already answer.
-  - what this loop adds to what `raise-findings` asks for: the purpose the background states bounds the fix and not the finding, so a defect is raised wherever the change has one.
-- **Nothing of your own.** Compose no review instructions on top.
+- **Nothing of your own.** Compose no review instructions on top, and put none on that list.
 
 Report the findings to the user as the subagent returned them.
 
