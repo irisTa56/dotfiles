@@ -29,10 +29,11 @@
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
 - Don't force-push to a PR's branch after it has been marked ready.
 
-## Memory
+## Auto-memory
 
-- Memory is scoped to one project and never reaches a subagent, so keep out anything that would govern work beyond this project.
-- Memory holds what governs the user's own choices; a rule governing the agent's procedure belongs in the file its executor reads.
+- Keep out of memory anything that would govern work beyond this project.
+- Make an index line's hook say what a reader who only has that line must act on; where it will not fit, the memory is the wrong carrier.
+- Memory holds what drives the user's own choices; a rule governing the agent's procedure belongs in the file its executor reads.
 
 ## Delegation
 
