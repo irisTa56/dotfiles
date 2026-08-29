@@ -49,9 +49,10 @@
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
 - When the meaning a document conveys — its substance, claims, or reasoning — has changed, don't stop at a line-level diff or a list of wording fixes; state what changed and why (the intent behind the change).
 
-### When counting occurrences
+### When a search is the evidence
 
 - A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
+- An absence you assert rests on the case you ran, or on reading everything that could hold it — a query bounds the candidates to its own words, so what you looked for may sit there under another name, or reach the mechanism without citing it.
 
 ### When a conclusion rests on a command's output
 
