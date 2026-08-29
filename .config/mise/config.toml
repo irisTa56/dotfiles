@@ -17,15 +17,10 @@ shfmt = "latest"
 # from one to name the executable, which leaves `darwin`; `bin` names it instead of that.
 "github:seachicken/gh-poi" = { version = "latest", bin = "gh-poi" }
 "npm:ccusage" = "latest"
-"npm:claude-mem" = "latest"
 "npm:diff2html-cli" = "latest"
 "pipx:basic-memory" = "latest"
 
 [env]
-# claude-mem sends anonymous usage events to PostHog unless told not to.
-# The env var beats its own settings file, and this file is the only mise scope
-# that reaches every repository, which is where its hooks run.
-CLAUDE_MEM_TELEMETRY = "0"
 ERL_AFLAGS = "-kernel shell_history enabled"
 
 [settings]
