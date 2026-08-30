@@ -45,10 +45,13 @@
 
 - Lay out the alternatives neutrally alongside the recommendation only when the decision is hard to reverse and the alternatives would lead to materially different work.
 
-### When the user asks how something changed
+### Showing a change
 
+- Apply an edit that is not mechanical with the edit tool rather than through a script; the tool puts the change where the user is reading.
+- Where the work is in a repository, commit each step — a review round, or the work of one instruction — so the step has a diff of its own and a state to return to.
+- An explanation of a change says what is different now, and why: what the thing as a whole now does, or asserts, that it did not. Which lines moved is not that, and neither is a list of the wording fixes.
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
-- When the meaning a document conveys — its substance, claims, or reasoning — has changed, don't stop at a line-level diff or a list of wording fixes; state what changed and why (the intent behind the change).
+  - Where the user asks to comment on the diff, open it in `crit` against that baseline — `--base-branch` takes a commit and keeps uncommitted work in view — rather than rendering one yourself.
 
 ### When a search is the evidence
 
