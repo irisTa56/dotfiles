@@ -51,19 +51,19 @@ State what this change is for before the first round, and hold every later round
   - A record whose last line is `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
+- **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
+  - A round that commits its fixes moves `HEAD`, so a baseline re-derived later — by a resumed loop, or by a reviewer given none — takes one round's patch for the whole change.
+  - A resumed record's baseline stands: take the one it holds rather than deriving another, and where it holds none, ask the user rather than guessing.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
   - the workflow that invoked this loop;
-  - the diff, read as a whole.
+  - the diff against that baseline, read as a whole.
 - **State it as an outcome**, the one the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
 - **Write the title the change would go up under** from the pinned purpose, in the form this repository's convention takes.
   - The record holds a title written from the purpose currently pinned and stated to the user; a resumed record's stands where that is the one it was written from.
   - Note it in the verdict section rather than the background: it is the loop's own bookkeeping, and nothing a reviewer does turns on it.
   - It names what the change does at the grain the purpose does, since one that would equally name a change the purpose does not reach never stops fitting.
-- **Pin the diff baseline** to the state the change started from, and note it in the verdict section beside the title, as the commit it names rather than as a branch or `HEAD`.
-  - A round that commits its fixes moves `HEAD`, so a baseline re-derived later — by a resumed loop, or by a reviewer given none — takes one round's patch for the whole change, and the spawn check below passes against it.
-  - A resumed record's baseline stands: take the one it holds rather than deriving another.
 - **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
 - **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
@@ -97,6 +97,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
     - Send the baseline the record pinned, whatever the rounds have committed since.
+    - Where that check fails, the pin is what to fix, and only before a round has run against it: once one has, moving it re-scopes what that round judged, so it goes to the user instead.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
