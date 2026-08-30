@@ -53,8 +53,7 @@ State what this change is for before the first round, and hold every later round
   - Nothing found means a fresh loop: create the record.
 - **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
   - A baseline re-derived after a round has committed its fixes takes that round's patch for the whole change, which is what pinning it once prevents.
-  - Where a closed loop's record sits on this branch, its change is behind you: pin at the commit that closed it rather than at the branch point, since a purpose read off the diff would otherwise take both changes for one and no later check could tell.
-  - A resumed record's baseline stands: take the one it holds rather than deriving another. Where it holds none, pin one as a fresh loop would if no round has run yet, and ask the user otherwise.
+  - A resumed record's baseline stands: take the one it holds rather than deriving another, and where it holds none, pin one as a fresh loop would.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
@@ -98,8 +97,6 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
     - Send the baseline the record pinned, whatever the rounds have committed since.
-    - Where that check fails on the diff's span, the pin is what to fix, and only before a round has run against it: once one has, moving it re-scopes what that round judged, so it goes to the user and the round waits.
-    - Where it fails on what no diff reaches, name that in the prompt instead, since no baseline excludes it.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
