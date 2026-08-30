@@ -6,8 +6,6 @@ brew "cmake"
 brew "colima"
 # GNU File, Shell, and Text utilities
 brew "coreutils"
-# Your feedback loop with the agent: review plans and code locally
-brew "crit"
 # Pack, ship and run any application as a lightweight container
 brew "docker"
 # Docker CLI plugin for extended build capabilities with BuildKit
