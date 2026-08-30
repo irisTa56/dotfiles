@@ -61,7 +61,7 @@ State what this change is for before the first round, and hold every later round
   - Derive it from what the branch shows, taking the first of these that fits and asking the user where neither does:
     - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
     - the point the branch left the default branch.
-  - Where you have reason to doubt the one you pinned, put it to the user as an objection to the pinned purpose, since a baseline pinned too wide widens a purpose read off it.
+  - Where you have reason to doubt the one you pinned, put it to the user, since moving it re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
