@@ -27,7 +27,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - OK: `The library [uses epoll internally](https://docs.example.com/internals#event-loop).`
 - If you fetched or consulted a URL while composing the text, cite it — omitting it is the most common violation of this rule.
 - When multiple statements draw from the same source, a single link on first mention is sufficient.
-- When citing a place in a file the same work is still editing, anchor on the quoted text, or on a line number the citation pins to a commit; the edit that writes the citation is usually the edit that moves the line.
+- When citing a place in a file the same work is still editing, anchor on the quoted text rather than a line number; the edit that writes the citation is usually the edit that moves the line.
 
 ## Say it once, in the right place
 

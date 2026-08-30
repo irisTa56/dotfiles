@@ -51,7 +51,7 @@
 - Where the work is in a repository, commit each step — a review round, or the work of one instruction — so the step has a diff of its own and a state to return to.
 - An explanation of a change says what is different now, and why: what the thing as a whole now does, or asserts, that it did not. Which lines moved is not that, and neither is a list of the wording fixes.
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
-- When answering a comment the user left on a line in conversation, name the commit the working tree is at — `<sha> <path>:<line>` — since the comment carries no commit of its own and the next edit moves the line. Quote the line instead where that path has uncommitted edits, which leave no commit holding it at that number.
+- Restate a comment the user leaves on a line before acting on it, with its text and `<sha> <path>:<line>` read off the commit the working tree is then at, since the edits that answer it move the line. Leave the `<sha>` out where that path has uncommitted edits, which no commit holds.
 
 ### When a search is the evidence
 
