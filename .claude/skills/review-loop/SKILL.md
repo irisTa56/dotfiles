@@ -39,7 +39,7 @@ What a round enters, and how the record ends:
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append `## Closed`, with the commit the branch stood at, as its last line rather than deleting it, which would take everything the close reports as carried over with it.
-  - The next loop on this branch reads that commit as where its own change starts, so where any of the change was left uncommitted, say that in place of a commit: nothing then separates that part from what follows.
+  - The next loop on this branch reads that commit as where its own change starts, so note beside it whatever of the change was left uncommitted: that part sits in the tree, where nothing separates it from what follows.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
@@ -61,7 +61,7 @@ State what this change is for before the first round, and hold every later round
   - Derive it, where none of those named one, from what the branch shows, taking the first of these that fits and asking the user where neither does:
     - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
     - the point the branch left the default branch.
-  - Where you have reason to doubt the one you pinned, say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
+  - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
