@@ -38,7 +38,8 @@ What a round enters, and how the record ends:
 - **Every outcome.** Enter it in the verdict section.
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
-- **Closing the record.** Append `## Closed` as its last line rather than deleting it, which would take everything the close reports as carried over with it.
+- **Closing the record.** Append one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
+  - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
@@ -48,12 +49,19 @@ State what this change is for before the first round, and hold every later round
 
 - **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of `review-loop/`, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
-  - A record whose last line is `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
+  - A record whose last line opens `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
 - **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
-  - A baseline re-derived after a round has committed its fixes takes that round's patch for the whole change, which is what pinning it once prevents.
-  - A resumed record's baseline stands: take the one it holds rather than deriving another, and where it holds none, pin one as a fresh loop would.
+  - Take it from the first of these that names one, in the order the purpose is taken:
+    - the user;
+    - a resumed record;
+    - the workflow that invoked this loop;
+    - your own derivation.
+  - Derive it, where none of those named one, from what the branch shows, taking the first of these that describes where this change starts and asking the user where neither does:
+    - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
+    - the point the branch left the default branch.
+  - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
   - a resumed record;
