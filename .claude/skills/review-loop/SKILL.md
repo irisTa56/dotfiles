@@ -39,7 +39,7 @@ What a round enters, and how the record ends:
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append `## Closed`, with the commit the branch stood at, as its last line rather than deleting it, which would take everything the close reports as carried over with it.
-  - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits in the tree, ahead of that commit and inseparable from what follows.
+  - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit, wherever it has since landed.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
