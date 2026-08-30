@@ -24,7 +24,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
-- `## Verdicts` — the title the change would go up under, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
+- `## Verdicts` — the title the change would go up under, the baseline the rounds read the change against, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust, and the alternatives a design choice was chosen over;
@@ -61,6 +61,8 @@ State what this change is for before the first round, and hold every later round
   - The record holds a title written from the purpose currently pinned and stated to the user; a resumed record's stands where that is the one it was written from.
   - Note it in the verdict section rather than the background: it is the loop's own bookkeeping, and nothing a reviewer does turns on it.
   - It names what the change does at the grain the purpose does, since one that would equally name a change the purpose does not reach never stops fitting.
+- **Pin the diff baseline** to the state the change started from, and note it in the verdict section beside the title, as the commit it names rather than as a branch or `HEAD`.
+  - A round that commits its fixes moves `HEAD`, so a baseline re-derived later — by a resumed loop, or by a reviewer given none — takes one round's patch for the whole change, and the spawn check below passes against it.
 - **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
 - **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
@@ -93,7 +95,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
 - **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
-    - Pin that baseline to the state the change started from, and hold it there for every later round: a round that commits its fixes moves `HEAD`, so a baseline left to default hands the next reviewer one round's patch as the whole change.
+    - Send the baseline the record pinned, and no other, however many rounds have committed since.
   - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
