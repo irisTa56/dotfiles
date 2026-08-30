@@ -60,7 +60,7 @@ State what this change is for before the first round, and hold every later round
     - your own derivation.
   - Derive it, where none of those named one, from what the branch shows, taking the first of these that fits and asking the user where neither does:
     - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
-    - the point the branch left the default branch.
+    - the point the branch left the default branch, where no closed loop's change sits between that point and this one.
   - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
