@@ -58,7 +58,9 @@ State what this change is for before the first round, and hold every later round
     - a resumed record;
     - the workflow that invoked this loop;
     - your own derivation.
-  - Derive it from what the branch shows rather than from what the change is for, which is not settled yet: the commit a closed loop's record notes at its close, looked for under the name it was set aside as, and otherwise the point the branch left the default branch. Ask the user where such a record notes no commit, or where neither case fits.
+  - Derive it from what the branch shows rather than from what the change is for, which is not settled yet, taking the first of these that fits and asking the user where neither does:
+    - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
+    - the point the branch left the default branch.
   - Where you have reason to doubt the one you pinned, put it to the user as an objection to the pinned purpose, since a baseline pinned too wide widens the purpose that was read off it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
