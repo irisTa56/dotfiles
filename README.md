@@ -29,28 +29,6 @@ Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zp
 mise run setup:dotfiles
 ```
 
-### Trusting agent worktrees
-
-mise trusts a config file by path, and [it shares that trust with a repository's linked worktrees](https://mise.jdx.dev/cli/trust.html), so an ordinary repository needs nothing here.
-That sharing does not reach this one.
-mise resolves a linked worktree to its main checkout through the shared git directory, which it expects to be a `.git` sitting in that checkout; `dotfiles` is a submodule of `my-foam`, so its shared git directory is `my-foam/.git/modules/dotfiles`, which is no checkout's `.git`.
-A fresh worktree under `.claude/worktrees/` is therefore an untrusted path where `mise run pre-commit` refuses to run until someone trusts it by hand.
-[`trusted_config_paths`](https://mise.jdx.dev/configuration/settings.html#trusted_config_paths) trusts everything under the directories it lists, which covers each new worktree as it appears.
-
-Its entries are absolute paths, and trusting one is a decision about this machine rather than about the repository, so they belong in `~/.config/mise/config.local.toml`, [a user-local override](https://mise.jdx.dev/configuration.html) no repository tracks.
-Write it on a new machine, from the clone:
-
-```shell
-cat >~/.config/mise/config.local.toml <<EOF
-# Machine-local mise settings; see the dotfiles README ("Trusting agent worktrees").
-[settings]
-trusted_config_paths = ["$PWD/.claude/worktrees"]
-EOF
-```
-
-Add a directory only where mise's own sharing does not reach it, which `mise trust --show` from a fresh worktree tells you, and never a repository root or a directory a new clone lands in.
-What is granted here is granted to every config file below, including a branch's own `mise.toml`, whose `[hooks]` mise then runs unprompted, and a `mise.local.toml` that `~/.config/git/ignore` keeps out of every diff.
-
 ### Shell startup: `.zprofile` vs `.zshenv`
 
 `scripts/setup_dotfiles.sh` writes both files and each line there says why it is where it is.

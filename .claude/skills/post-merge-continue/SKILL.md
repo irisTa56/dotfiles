@@ -51,7 +51,6 @@ fatal: refusing to fetch into branch 'refs/heads/main' checked out at '<path>'
 ```
 
 Take that path as the refusal gives it, rather than resolving it to a checkout first.
-Where a submodule's main worktree holds the base it is the gitdir and not the working tree, and `git -C` still reaches the working tree from there through [`core.worktree`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-coreworktree).
 Then fast-forward that checkout, fetching first because the refused command left the remote-tracking ref untouched:
 
 - `git fetch origin <base>`
