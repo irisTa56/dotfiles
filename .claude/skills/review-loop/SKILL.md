@@ -39,7 +39,7 @@ What a round enters, and how the record ends:
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append `## Closed`, with the commit the branch stood at, as its last line rather than deleting it, which would take everything the close reports as carried over with it.
-  - The next loop on this branch reads that commit as where its own change starts, so where the change was never committed, say that in place of one: nothing then separates it from what follows.
+  - The next loop on this branch reads that commit as where its own change starts, so where any of the change was left uncommitted, say that in place of a commit: nothing then separates that part from what follows.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
@@ -53,7 +53,7 @@ State what this change is for before the first round, and hold every later round
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
 - **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
-  - Take it from the first of these that names one, as the purpose is taken:
+  - Take it from the first of these that names one, in the order the purpose is taken:
     - the user;
     - a resumed record;
     - the workflow that invoked this loop;
