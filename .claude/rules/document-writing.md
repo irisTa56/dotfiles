@@ -46,19 +46,11 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- Do not insert a line break inside a sentence. Breaks are allowed only where one sentence ends and the next begins, or at a bullet boundary.
-  - A terminator that does not end a sentence is not a boundary: the period in a run-in label like `**Delegation.**`, or in `e.g.`.
+- Do not insert a line break inside a sentence. Breaks are allowed only where a sentence ends, or at a bullet boundary.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
-  - The rule above says where a break may go; this says where one must.
   - What it buys is a one-line diff in a file, and a line the eye takes whole anywhere else.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
-  - Never break where the enclosing syntax reads the newline as something other than prose flow — a table cell, or a YAML frontmatter scalar.
-    - A newline at column 0 inside a `description:` breaks the frontmatter whether or not the scalar is quoted, and the skill then silently stops loading.
-  - A bullet's own text is not a paragraph, however the renderer flows it.
-    - Where one carries two sentences, `## Give a list the shape its content has` decides whether it becomes two bullets; a break inside it is what that section forbids.
-- Do not mimic the wrap width of surrounding hard-wrapped prose. Pattern-matching the local line width is a classic misjudgment.
-  - The allowance above is discretion over joining short sentences, not a licence to join them up to whatever width the neighbours happen to have.
 
 ## Give a list the shape its content has
 
