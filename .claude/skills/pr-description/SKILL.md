@@ -5,9 +5,12 @@ description: Principles for writing or revising a pull request description so it
 
 # Writing a PR description
 
-A PR description is written first for the human reviewer who must judge the change now, not as an exhaustive archive. Every line must help them decide whether the change is correct and where to look. Cut anything that does not.
+A PR description is written first for the human reviewer who must judge the change now, not as an exhaustive archive.
+Every line must help them decide whether the change is correct and where to look.
+Cut anything that does not.
 
-Apply these when drafting, rewriting, or critiquing a PR body. They are about substance, not a fixed section layout — adapt to whatever template (or no template) the repository uses.
+Apply these when drafting, rewriting, or critiquing a PR body.
+They are about substance, not a fixed section layout — adapt to whatever template (or no template) the repository uses.
 Give the body an outline in headings or bullets: unbroken prose makes the reader read the whole body to find the shape of the change.
 Take that outline from what the change actually has to say.
 
