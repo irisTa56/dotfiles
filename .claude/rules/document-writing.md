@@ -52,7 +52,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - The rule above says where a break may go; this says where one must.
   - What it buys is the diff: a one-sentence edit is a one-line change, so a reviewer sees which sentence moved rather than a re-flowed paragraph.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50. On a line that short, "this line changed" tells the reviewer as much as "this sentence changed" would, so the diff argument does not bite.
-  - A bullet is not a paragraph. Where one carries two sentences, `## Give a list the shape its content has` decides whether it becomes two bullets; adding a line break inside the bullet instead is what that section forbids.
+  - A paragraph is what the renderer flows into one block, where a newline reads as a space; this rule reaches nothing else. A bullet, a table cell and a YAML frontmatter scalar are not paragraphs, and a break inside one changes what it is rather than how it wraps — a newline at column 0 inside a `description:` stops the frontmatter parsing whether or not it is quoted, so the skill silently stops loading.
+    - Where a bullet carries two sentences, `## Give a list the shape its content has` decides whether it becomes two bullets; adding a line break inside it is what that section forbids.
 - Do not mimic the wrap width of surrounding hard-wrapped prose; apply the sentence-boundary rules above regardless of how the neighboring lines happen to wrap. Pattern-matching the local line width is a classic misjudgment.
 
 ## Give a list the shape its content has
