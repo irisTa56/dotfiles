@@ -49,7 +49,6 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Do not insert a line break inside a sentence. Breaks are allowed only where a sentence ends, or at a bullet boundary.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
-  - What it buys is a one-line diff in a file, and a line the eye takes whole anywhere else.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
 
 ## Give a list the shape its content has
