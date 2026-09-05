@@ -16,7 +16,7 @@ Some shapes of finding reach that only through a form of their own:
 
 - For a behavior the tests do not pin, it is the wrong behavior that would go undetected, where the behavior is one the work under review must protect: a test pinning anything else is what the next correct change undoes.
 - For a maintainability finding, it is the future cost — what a later change is made to do twice, or to undo.
-- For a statement that is false, it is what whoever writes or copies from it next does: context around it can keep a reader from acting on it, which does not make the statement true.
+- For a statement that is false, it is what a reader does under it, where the statement is met without the context that would correct them.
 - For a value the change takes in rather than produces, it is what supplying that value settles: what the code, a person or an agent does with the value.
 - For a report, exit code, preview or alert, it is the look its reader does not take: a signal can be wrong by staying quiet, and one that is right per item can still be wrong in aggregate.
 
