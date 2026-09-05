@@ -56,8 +56,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - A list's shape is itself a claim: siblings assert the items are peers, and a child asserts it belongs to its parent. Write the shape the content has, not the flattest one that parses.
   - Where an item qualifies, elaborates, or is a case of another, nest it under that one. Leaving it a sibling asserts they are peers, which is false.
   - Where one bullet holds two things that are not one thought, they are two bullets.
-- Where a list names a set, its lead claims whether the items are the whole of it or examples. Write the lead the set has.
-  - Naming the category the items belong to does not open an exclusive lead.
+- A lead that introduces a set claims whether the members are the whole of it or examples, whether they follow inline or in bullets. Write the lead the set has.
+  - Naming the category the members belong to does not take a whole-set claim back.
 - A flat list of short one-sentence bullets can still be wrong, so clause count is not the check. Ask of every list what nesting or splitting would say about it, and take that shape wherever it is the true one.
 - A bullet that has grown long is the one signal you can see without asking, so read it as the prompt to re-examine the list's shape rather than as one bullet to shorten.
   - Fix the structure, and NEVER paper over it with a line break.

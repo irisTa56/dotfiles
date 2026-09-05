@@ -48,7 +48,7 @@ Give the parts it says nothing about their full share of your attention: what ar
 
 Where the invoking side also gives you what earlier rounds disposed of and the ground each went on, raise one of those again only with evidence that ground does not answer.
 
-Where the change enumerates conditions, rules, or cases it cannot exhaust, raise a list whose lead takes the entries for the whole set, since its reader stops looking.
+Where the change enumerates conditions, rules, or cases it cannot exhaust, raise a list whose lead takes the entries for the whole set, since its reader stops looking; the repair is the lead, which `document-writing.md` governs.
 
 The invoking side may narrow this bar or add to it, and its statement governs where it does.
 
