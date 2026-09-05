@@ -14,8 +14,7 @@ Where what is under review is prose instead, it is who reads the thing, what the
 
 Some shapes of finding reach that only through a form of their own:
 
-- For a behavior the tests do not pin, it is the wrong behavior that would go undetected.
-- For a test pinning behavior the deliverable does not owe, it is the later correct change that is made to undo the test rather than to fix anything.
+- For a behavior the tests do not pin, it is the wrong behavior that would go undetected, where the behavior is one the work under review must protect: a test pinning anything else is what the next correct change undoes.
 - For a maintainability finding, it is the future cost — what a later change is made to do twice, or to undo.
 - For a statement that is false, it is what whoever writes or copies from it next does: the context around it routes a reader past it without making it true.
 - For a value the change does not produce itself, it is what whoever supplies it can make the code branch on, or make its reader do — text reaching prose an agent executes arrives there as instruction.
