@@ -47,7 +47,10 @@ for page_num in range(len(doc)):
 
 ### 2. Detect Regions by Drawing Primitives
 
-Web-page-capture PDFs render visual elements (code blocks, diagrams, tables) as vector drawing primitives rather than embedded raster images. This means standard image extraction (`get_images()`) misses them entirely. However, these elements typically have a distinct background fill color that differs from the page background — code blocks share one dark fill, tables another, etc. By cataloging fill colors and their rectangles, you can automatically identify and locate these elements with pixel-perfect accuracy.
+Web-page-capture PDFs render visual elements (code blocks, diagrams, tables) as vector drawing primitives rather than embedded raster images.
+This means standard image extraction (`get_images()`) misses them entirely.
+However, these elements typically have a distinct background fill color that differs from the page background — code blocks share one dark fill, tables another, etc.
+By cataloging fill colors and their rectangles, you can automatically identify and locate these elements with pixel-perfect accuracy.
 
 ```python
 for d in drawings:
@@ -109,7 +112,8 @@ img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
 img.save("/tmp/section_preview.png")
 ```
 
-Use the Read tool on the saved preview to visually confirm element boundaries. This step is critical for figures/diagrams where the bounding box cannot be fully determined from drawing primitives alone.
+Use the Read tool on the saved preview to visually confirm element boundaries.
+This step is critical for figures/diagrams where the bounding box cannot be fully determined from drawing primitives alone.
 
 ### 5. Crop and Save
 

@@ -6,7 +6,8 @@ paths:
 
 # Writing Prose
 
-These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`. Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
+These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in `~/.claude/INSTRUCTIONS.md`.
+Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
 Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
 
@@ -45,9 +46,10 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- Do not insert a line break inside a sentence. Line breaks are allowed only at sentence boundaries (period `.`, 句点 `。`, or bullet boundaries).
+- Do not insert a line break inside a sentence. Breaks are allowed only where a sentence ends, or at a bullet boundary.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
-- Do not mimic the wrap width of surrounding hard-wrapped prose; apply the sentence-boundary rule above regardless of how the neighboring lines happen to wrap. Pattern-matching the local line width is a classic misjudgment.
+- Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
+  - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
 
 ## Give a list the shape its content has
 

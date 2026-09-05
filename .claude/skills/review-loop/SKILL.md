@@ -7,7 +7,8 @@ description: "Orchestrate an iterate-until-clean review of code you just changed
 
 ## The loop
 
-A loop runs rounds of one shape: a fresh reviewer reads the change, the loop judges what it returned, and the round then does one of three things — it applies fixes, it proposes the close, or it stops to ask the user. The last two both go to the user, and "Waiting on the user" governs both.
+A loop runs rounds of one shape: a fresh reviewer reads the change, the loop judges what it returned, and the round then does one of three things — it applies fixes, it proposes the close, or it stops to ask the user.
+The last two both go to the user, and "Waiting on the user" governs both.
 "The round" below is that shape, and its last three parts are those three outcomes.
 "The record" is what carries the loop across rounds and across a lost context; "Before the first round" is what has to be true before any of it runs.
 
@@ -169,7 +170,8 @@ Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run t
 
 ### Closing
 
-The loop closes on a round that left the change untouched; it can return findings and still be the last, and what it did to the record does not enter. The loop proposes that close and the user makes it.
+The loop closes on a round that left the change untouched; it can return findings and still be the last, and what it did to the record does not enter.
+The loop proposes that close and the user makes it.
 
 - **The stopping rule.** A loose fix bar puts termination out of reach, so a finding that would loosen the rule rather than inspect the bar is answered from this decision.
 - **What the close carries.** What the user has to act on, reaching them with the close and not after it:

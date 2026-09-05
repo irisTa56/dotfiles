@@ -43,7 +43,8 @@ mise run setup:dotfiles
 - `~/.claude/RTK.md` — private and machine-local, not managed here; the block below writes it.
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
 
-`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts. Wire them, and the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes, once on a new machine:
+`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
+Wire them, and the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes, once on a new machine:
 
 ```shell
 ln -sf "$PWD/.claude/INSTRUCTIONS.md" ~/.claude/INSTRUCTIONS.md
