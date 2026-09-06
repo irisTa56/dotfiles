@@ -66,4 +66,4 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Use a table only to compare or to look up
 
 - A table is for rows the reader will compare, or look one up among; an enumeration serving neither is a list.
-- A cell the reader has to read rather than scan defeats the comparison or lookup the table is for, so keep the cell short and the detail beside the table in prose.
+- A cell the reader has to read rather than scan defeats the comparison or lookup the table is for, so keep the cell short and the detail beside the table.
