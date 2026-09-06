@@ -92,7 +92,7 @@ Three questions answer that, and all three are weighed rather than taking the fi
 - What has to be added?
   - Where only this answers the finding, it is the fix and not a last resort to be talked out of.
     - Anything that already covers the failure — a rule, a guard, a helper — overturns "only this": where one did, it went unhonoured or unreached rather than missing, so a second of it fixes nothing and leaves one job in two places.
-  - Where the addition is prose telling a reader to do or avoid something, name why the code cannot do it or check it, before writing the prose.
+  - Where the addition is prose telling a reader to do or avoid something, name why nothing that runs can do it or check it, and where you cannot, changing what runs is the fix.
 
 A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
 Adding another branch, guard, flag, or special case onto an existing pile is a signal you may be treating a symptom; you MUST step back for the root cause, or for a consolidation that dissolves the pile.
