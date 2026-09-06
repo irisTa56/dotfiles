@@ -45,8 +45,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- A line carries one unit of meaning — a sentence in a paragraph, an item in a list, a row in a table. Where the material outgrows that unit, make more units or move the detail out.
-- Do not insert a line break inside a sentence, nor inside a list item — a sentence's end is a break in a paragraph, not in an item.
+- Do not insert a line break inside a unit of meaning — a sentence in a paragraph, an item's prose in a list, a row in a table.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
