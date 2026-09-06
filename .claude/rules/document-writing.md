@@ -46,12 +46,14 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
+- A line carries one unit of meaning — a sentence in a paragraph, an item in a list, a row in a table. Where the material outgrows that unit, make more units or move the detail out.
 - Do not insert a line break inside a sentence, nor inside a list item — a sentence's end is a break in a paragraph, not in an item.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
+- A table is for rows that line up across shared columns, so the reader can compare them or find one among many, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to line up, or with sentences for cells, is a list.
 
-## Give a list or table the shape its content has
+## Give a list the shape its content has
 
 - A list's shape is itself a claim: siblings assert the items are peers, and a child asserts it belongs to its parent. Write the shape the content has, not the flattest one that parses.
   - Where an item qualifies, elaborates, or is a case of another, nest it under that one. Leaving it a sibling asserts they are peers, which is false.
@@ -62,4 +64,3 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - Fix the structure, and NEVER paper over it with a line break.
   - Restructuring may reach beyond that bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
-- A table is for rows that line up across shared columns, so the reader can compare them or find one among many, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to line up, or with sentences for cells, is a list.
