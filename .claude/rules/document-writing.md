@@ -51,7 +51,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
 
-## Give a list the shape its content has
+## Give a list or table the shape its content has
 
 - A list's shape is itself a claim: siblings assert the items are peers, and a child asserts it belongs to its parent. Write the shape the content has, not the flattest one that parses.
   - Where an item qualifies, elaborates, or is a case of another, nest it under that one. Leaving it a sibling asserts they are peers, which is false.
