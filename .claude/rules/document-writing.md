@@ -49,7 +49,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
-- A table is for rows that line up across shared columns, so the reader can compare them or find one among many, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to line up, or with sentences for cells, is a list.
+- A table is for rows that line up across shared columns, so the reader can compare them or find one among many; an enumeration with nothing to line up is a list.
+- A table row cannot be broken, so each cell holds a value or a phrase and the detail sits beside the table in prose; a row carrying sentences is a list that took a table's shape.
 
 ## Give a list the shape its content has
 
