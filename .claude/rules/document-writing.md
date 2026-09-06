@@ -17,7 +17,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
-- When explaining software, write the intent and the interface. Do not walk the reader through the internals, unless understanding them is what they asked for.
+- When explaining software you are developing, write the intent and the interface. Do not walk the reader through the internals, unless understanding them is what they asked for.
 
 ## Sources
 
