@@ -112,7 +112,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
 - **Nothing of your own.** Compose no review instructions on top, and put none on that list.
 
-Report the findings to the user as the subagent returned them.
+Report the findings to the user as the subagent returned them, and take the round on to its outcome in the same turn.
 
 - **What goes with the findings.** Say which round this is, counting from the loop's start, and the consecutive-round tally as "Waiting on the user" counts it, every round and not only when the hold fires, so a recurrence cannot pass unremarked.
 
