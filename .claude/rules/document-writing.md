@@ -46,7 +46,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- Do not insert a line break inside a sentence, nor inside a list item: an item's text is one line however long it runs, and a sentence's end is not a break there as it is in a paragraph.
+- Do not insert a line break inside a sentence, nor inside a list item — a sentence's end is a break in a paragraph, not in an item.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
