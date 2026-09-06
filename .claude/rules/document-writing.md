@@ -46,7 +46,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- Do not insert a line break inside a sentence. Breaks are allowed only where a sentence ends, or at a bullet boundary.
+- Do not insert a line break inside a sentence, nor inside a list item: an item's text is one line however long it runs, and a sentence's end is not a break there as it is in a paragraph.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
@@ -62,3 +62,4 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - Fix the structure, and NEVER paper over it with a line break.
   - Restructuring may reach beyond that bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
+- A table is for rows the reader compares across shared columns, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to compare, or with sentences for cells, is a list.
