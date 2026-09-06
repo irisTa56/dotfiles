@@ -62,4 +62,4 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - Fix the structure, and NEVER paper over it with a line break.
   - Restructuring may reach beyond that bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
-- A table is for rows the reader compares across shared columns, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to compare, or with sentences for cells, is a list.
+- A table is for rows that line up across shared columns, so the reader can compare them or find one among many, each cell a value or a phrase and the detail beside it in prose; an enumeration with nothing to line up, or with sentences for cells, is a list.
