@@ -23,8 +23,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - When a statement relies on information that is not common knowledge, link the relevant phrase to a primary or authoritative source.
   - Common knowledge (no link): widely known facts, basic language/framework features documented in every tutorial.
   - Non-obvious (link needed): specific API behavior, numeric claims (benchmarks, statistics, thresholds), design rationale behind a tool, changes introduced in a particular version, conclusions from a paper or blog post.
-  - If you fetched or consulted a URL while composing the text, cite it — omitting it is the most common violation of this rule.
   - When multiple statements draw from the same source, a single link on first mention is sufficient.
+- If you fetched or consulted a URL while composing the text, cite it — omitting it is the most common violation of this rule.
 - Use inline markdown links — link the relevant phrase rather than appending a bare URL.
   - NG: `The library uses epoll internally.`
   - OK: `The library [uses epoll internally](https://docs.example.com/internals#event-loop).`
@@ -46,6 +46,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Keep lines short and scannable
 
 - Do not insert a line break inside a unit of meaning — a sentence in a paragraph, an item's prose in a list, a row in a table.
+  - A lead and the sentence it introduces share the item's line, however far past 100 columns it runs.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
   - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
