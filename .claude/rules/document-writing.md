@@ -45,12 +45,13 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep lines short and scannable
 
-- Do not insert a line break inside a unit of meaning — a sentence in a paragraph, an item's prose in a list, a row in a table.
+- Do not insert a line break inside a unit of meaning — a sentence in a paragraph, an item's prose in a list.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
-- Sentences may share a line: several in a paragraph where together they fit within 100 half-width characters, a full-width character counting as two, so Japanese prose reaches the limit at 50; an item's prose entire, whatever that runs to.
+- Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
+- An item's prose shares one line however far past that it runs.
 - A table is for rows the reader will compare, or look one up among; an enumeration serving neither is a list.
-- A table row cannot be broken, so each cell holds a value or a phrase and the detail sits beside the table in prose.
+- A table row cannot be broken, so a cell stays short and the detail sits beside the table in prose.
 
 ## Give a list the shape its content has
 
