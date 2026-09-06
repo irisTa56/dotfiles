@@ -50,7 +50,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
 - Sentences may share a line: several in a paragraph where together they fit within 100 half-width characters, a full-width character counting as two, so Japanese prose reaches the limit at 50; an item's prose entire, whatever that runs to.
 - A table is for rows the reader will compare, or look one up among; an enumeration serving neither is a list.
-- A table row cannot be broken, so each cell holds a value or a phrase and the detail sits beside the table in prose; a row carrying sentences is a list that took a table's shape.
+- A table row cannot be broken, so each cell holds a value or a phrase and the detail sits beside the table in prose.
 
 ## Give a list the shape its content has
 
