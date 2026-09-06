@@ -47,12 +47,8 @@ It is also the easy mistake, because the results arrive looking like an answer.
 
 Two things tell the cases apart:
 
-- **Judge relevance by reading, not by rank.**
-  - Ask whether the note is about the question at all.
-  - This is what settles it, and it is what gets skipped when the ranking looks confident.
-- **Read the shape of the distribution, never a threshold.**
-  - A genuine hit stands clear of the tail behind it, while unrelated results arrive as a flat cluster with nothing rising above it.
-  - Do not turn that into a cutoff: the on-topic tail sits only a little above the noise, and both bands move with the embedding model.
+- **Judge relevance by reading, not by rank.** Ask whether the note is about the question at all. This is what settles it, and it is what gets skipped when the ranking looks confident.
+- **Read the shape of the distribution, never a threshold.** A genuine hit stands clear of the tail behind it, while unrelated results arrive as a flat cluster with nothing rising above it. Do not turn that into a cutoff: the on-topic tail sits only a little above the noise, and both bands move with the embedding model.
 
 Before concluding the base is silent, work at it.
 Try the obvious alternates — the expanded form and the acronym, the vendor or library name, the adjacent concept.
@@ -108,8 +104,7 @@ Answer the question, using the notes as the primary source, in the language the 
 Read observation tags as evidence strength, because they record where a claim came from:
 
 - `#grounded` — the source supported it, so treat it as the reader's verified material.
-- `#dialogue` — surfaced in reading-time conversation, verified at distillation but not taken straight from the source.
-  - It is still usable, and worth attributing when it carries the answer, since the reader will recognise it as their own reasoning.
+- `#dialogue` — surfaced in reading-time conversation, verified at distillation but not taken straight from the source. It is still usable, and worth attributing when it carries the answer, since the reader will recognise it as their own reasoning.
 
 Only those two speak to evidence.
 An observation may carry further tags on the same line, and a note's frontmatter carries its own set, but those categorise the subject and say nothing about how well-supported the claim is.
@@ -133,18 +128,10 @@ Falling through to the silent branch would tell the reader their base lacks a to
 
 When the base did answer, place it in one of these:
 
-- **The base answers.**
-  - Answer from it, cite the notes, and add general knowledge only as clearly-marked context.
-- **The base is silent.**
-  - Say so in a sentence, then answer from general knowledge, marked as such.
-  - Left unmarked, this becomes the failure named in step 1 arriving from the other side: an answer that came from nowhere in the base still leaves the base looking broader than it is.
-- **The base is partial.**
-  - Name which part it covers and which part it does not.
-  - This is the common case and the most useful one, because it shows the reader exactly where their next source should go.
-- **The base and general knowledge disagree.**
-  - Surface the conflict rather than picking a winner silently.
-  - Either the base is stale, or the general knowledge is wrong or coarser, and only the reader can settle which.
-  - Give them the two positions and your read of why they differ.
+- **The base answers.** Answer from it, cite the notes, and add general knowledge only as clearly-marked context.
+- **The base is silent.** Say so in a sentence, then answer from general knowledge, marked as such. Left unmarked, this becomes the failure named in step 1 arriving from the other side: an answer that came from nowhere in the base still leaves the base looking broader than it is.
+- **The base is partial.** Name which part it covers and which part it does not. This is the common case and the most useful one, because it shows the reader exactly where their next source should go.
+- **The base and general knowledge disagree.** Surface the conflict rather than picking a winner silently. Either the base is stale, or the general knowledge is wrong or coarser, and only the reader can settle which. Give them the two positions and your read of why they differ.
 
 Where the notes are richer or sharper than the generic answer — a concrete number, a measured trade-off, an implementation detail — lead with that.
 
