@@ -17,7 +17,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
-- Write the intent, not a trace of the mechanism. Do not restate what the reader derives from the code or the config, such as a name said again as prose. Only two things survive the cut: why it is this way, and a fact reading would not yield.
+- Write the intent, not a trace of the mechanism. Do not restate what the reader derives from the code or the config, such as walking them through a computation the code already performs.
 
 ## Sources
 
