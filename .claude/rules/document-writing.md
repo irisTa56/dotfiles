@@ -50,8 +50,6 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
 - Sentences may share a line where together they fit within 100 half-width characters, however many they are. A full-width character counts as two, so Japanese prose reaches the limit at 50.
 - An item's prose shares one line however far past that it runs.
-- A table is for rows the reader will compare, or look one up among; an enumeration serving neither is a list.
-- A table row cannot be broken, so a cell stays short and the detail sits beside the table in prose.
 
 ## Give a list the shape its content has
 
@@ -63,3 +61,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - A bullet that has grown long is the one signal you can see without asking, so read it as the prompt to re-examine the list's shape rather than as one bullet to shorten.
   - Restructuring may reach beyond that bullet: promote, demote, or regroup neighboring bullets so the hierarchy reflects the actual structure. Reorganizing the surrounding list is expected — do not settle for a local edit that leaves the surrounding hierarchy wrong.
 - Do not write a long inline enumeration. Expand `A, B, C, D` into a vertical list of sub-bullets.
+
+## Use a table only to compare or to look up
+
+- A table is for rows the reader will compare, or look one up among; an enumeration serving neither is a list.
+- A table row cannot be broken, so a cell stays short and the detail sits beside the table in prose.
