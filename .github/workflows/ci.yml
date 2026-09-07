@@ -27,6 +27,6 @@ jobs:
           cache: npm
           cache-dependency-path: .claude/skills/md-to-docx/package-lock.json
 
-      - run: npm ci --ignore-scripts
+      - run: npm ci --strict-allow-scripts
 
       - run: npm test
