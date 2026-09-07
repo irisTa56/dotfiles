@@ -23,7 +23,6 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the pinned purpose;
   - the use the change is built for;
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
-  - the narrowing the user put on what the rounds raise, where they put one;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
 - `## Verdicts` — the title the change would go up under, the baseline the rounds read the change against, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
