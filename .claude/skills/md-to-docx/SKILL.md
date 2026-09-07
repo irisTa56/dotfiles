@@ -22,7 +22,7 @@ The defaults reproduce a polished bilingual (Japanese / English) report style wi
 Dependencies are managed via `package.json` in the skill directory. Install once:
 
 ```bash
-cd ~/.claude/skills/md-to-docx && npm ci
+cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts
 ```
 
 All packages (docx, marked, katex, fast-xml-parser) are pinned in `package-lock.json`.
@@ -109,12 +109,12 @@ node build_docx.js report.md report.docx --resource-path "../assets:../../shared
 
 ## Troubleshooting
 
-- **`Cannot find module 'docx'`** — run `cd ~/.claude/skills/md-to-docx && npm ci`.
-- **Math equations are Unicode text instead of native Word equations** — `katex` and `fast-xml-parser` are included in `package.json`; ensure `npm ci` completed without errors.
+- **`Cannot find module 'docx'`** — run `cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts`.
+- **Math equations are Unicode text instead of native Word equations** — `katex` and `fast-xml-parser` are included in `package.json`; ensure the install completed without errors.
 - **CJK characters appear as boxes** — the chosen font is missing on the system. Try `--font "Hiragino Sans"` (macOS), `--font "MS Gothic"` (Windows), or `--font "Noto Sans CJK JP"` (Linux).
 - **A table column is still too narrow** — check whether the header text is much shorter than the body cells. The width heuristic uses `max(header, body)` but caps at 40 chars per cell to allow wrapping; if a body cell is much wider than the header, the column gets proportionally more space already.
 - **Image not found** — pass `--resource-path` with the directory containing the image, or fix the relative path in the markdown.
-- **Math is not rendered as a Word equation** — run `cd ~/.claude/skills/md-to-docx && npm ci` and ensure `--math-engine` is `auto` (default) or `katex`. If KaTeX fails on a specific expression, the builtin Unicode fallback is used for that expression.
+- **Math is not rendered as a Word equation** — run `cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts` and ensure `--math-engine` is `auto` (default) or `katex`. If KaTeX fails on a specific expression, the builtin Unicode fallback is used for that expression.
 - **Output looks different from the reference report** — verify that no flags were passed; defaults reproduce the reference exactly. If flags were passed, only the flagged values change; everything else stays at the defaults.
 
 ## Verification checklist
