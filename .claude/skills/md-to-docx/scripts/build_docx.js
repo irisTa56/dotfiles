@@ -6,7 +6,7 @@
  *   node build_docx.js <input.md> <output.docx> [options]
  *
  * Prerequisites:
- *   cd ~/.claude/skills/md-to-docx && npm ci
+ *   cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts
  *
  * Run with --help for the full option list. All options have defaults that
  * reproduce the reference style exactly.
@@ -28,8 +28,9 @@ try {
   marked = skillRequire('marked').marked;
   docx = skillRequire('docx');
 } catch (e) {
-  console.error('Error: missing dependency. Run:');
-  console.error('  cd ~/.claude/skills/md-to-docx && npm ci');
+  console.error(`Error: could not load a dependency: ${e.message}`);
+  console.error('If it is not installed, run:');
+  console.error('  cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts');
   process.exit(1);
 }
 
@@ -102,7 +103,7 @@ Usage:
   node build_docx.js <input.md> <output.docx> [options]
 
 Prerequisites:
-  cd ~/.claude/skills/md-to-docx && npm ci
+  cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts
 
 Options:
   --font <name>            Body font (default: "Yu Gothic")
@@ -147,7 +148,7 @@ if (!['auto', 'katex', 'builtin'].includes(MATH_ENGINE)) {
 const USE_KATEX = MATH_ENGINE === 'katex' || (MATH_ENGINE === 'auto' && !!katex);
 if (MATH_ENGINE === 'katex' && !katex) {
   console.error('Error: --math-engine katex requires katex and fast-xml-parser.');
-  console.error('  cd ~/.claude/skills/md-to-docx && npm ci');
+  console.error('  cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts');
   process.exit(1);
 }
 
