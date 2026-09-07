@@ -180,9 +180,9 @@ The loop proposes that close and the user makes it.
   - what the last round did to the record, which no reviewer read;
   - the carry-over, which the selection below settles rather than the loop.
 - **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
-- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier, and give it the record whole.
-  - **Its candidates.** The rounds' settled list, less what the loop rejected or floored, and what the background records the change does not cover. Shorten neither that nor the answer it returns.
-  - **Its brief.** This section's scope and `finding-bar`, and nothing you compose. It opens no file, runs nothing and edits nothing, so everything it weighs is in the prompt — which is what keeps the wait at seconds.
+- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier, and give it the record whole; shorten neither what you hand it nor what it returns.
+  - **Its candidates.** Derived afresh from the verdict section, with what the background records the change does not cover: what the rounds left open and no decision of the loop's or the user's has already placed.
+  - **Its brief**, and nothing of your own: what the user has to act on, and `finding-bar` copied whole into its prompt. Bar it there from opening a file or running anything, so everything it weighs is in the prompt — which keeps the wait at seconds.
 
 ### Waiting on the user
 
