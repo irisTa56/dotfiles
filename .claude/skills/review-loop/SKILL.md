@@ -179,11 +179,12 @@ The loop proposes that close and the user makes it.
   - the behaviour the rounds added, altered or removed;
   - what the last round did to the record, which no reviewer read;
   - the carry-over, which the selection below settles rather than the loop.
-- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier, barred from opening a file or running anything, so everything it weighs is in the prompt — which keeps the wait at seconds.
+- **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then. Drop it from the selector's answer, which is otherwise carried as it came.
+- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier.
+  - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
   - **What it gets**: the record whole and `finding-bar` copied in whole, and no candidates of yours — it derives the carry-over as well as selects it.
   - **Its brief**, and nothing else of yours: what the user has to act on, out of the verdict section and what the background records the change does not cover.
-  - **What clears that**: what the rounds left open, that neither they nor the loop has already placed, and that this change or its use waits on rather than any later one.
-  - **What you may drop** from its answer: only a finding the loop itself rejected or floored, which the round that decided it reported then.
+    - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
 
 ### Waiting on the user
 
