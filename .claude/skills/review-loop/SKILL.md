@@ -199,6 +199,7 @@ The hold, which stops a round that is refining the loop's own work:
   - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
   - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
     - Then give the answers, what each costs, and which you recommend, including at least one no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
+    - Carry among them a continue that narrows what the later rounds raise, for them to state in their own words, since composing that narrowing is not yours.
 - **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled; one that continues and settles nothing is a continue too, and the question it left goes to the close.
   - **What you read out of it is yours.** Quote them where you tell them what they decided, and NEVER give your reading of it back to them as their words.
   - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
