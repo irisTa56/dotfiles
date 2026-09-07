@@ -12,7 +12,7 @@
   - Search them with `command grep -r --exclude-dir=worktrees`; bare `grep` here is a harness wrapper around `ugrep --ignore-files`, so it shares `rg`'s blind spot and sees only the tracked ones, and a short result reads as an answer rather than as a failure.
     - Neither honors `.git/info/exclude`, which is where `.claude/worktrees/` is excluded, so its copy of every skill and rule comes back as hits unless the search drops that directory.
 - Checks: `mise run pre-commit` from this repository's root.
-  - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci && npm test` there when its scripts, fixtures, or dependencies change.
+  - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci --ignore-scripts && npm test` there when its scripts, fixtures, or dependencies change.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
 - PR bodies are English prose, and there is no template to fill in.
 - The squashed subject on `main` is the commit's when the PR has one commit and the PR title when it has more, so write both as Conventional Commits.

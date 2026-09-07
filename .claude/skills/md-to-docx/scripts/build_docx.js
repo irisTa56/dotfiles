@@ -28,7 +28,8 @@ try {
   marked = skillRequire('marked').marked;
   docx = skillRequire('docx');
 } catch (e) {
-  console.error('Error: missing dependency. Run:');
+  console.error(`Error: could not load a dependency: ${e.message}`);
+  console.error('If it is not installed, run:');
   console.error('  cd ~/.claude/skills/md-to-docx && npm ci --ignore-scripts');
   process.exit(1);
 }
