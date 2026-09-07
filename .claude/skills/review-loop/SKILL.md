@@ -32,7 +32,8 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - whether the loop or the user decided it.
 
 The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
-The verdict section is never sent whole or quoted; what a reviewer needs from it travels in what "Opening the round" derives.
+The verdict section is never sent whole or quoted to a reviewer; what one needs from it travels in what "Opening the round" derives.
+The close's selector, below, is the one reader that gets it whole.
 
 What a round enters, and how the record ends:
 
@@ -177,8 +178,11 @@ The loop proposes that close and the user makes it.
 - **What the close carries.** What the user has to act on, reaching them with the close and not after it:
   - the behaviour the rounds added, altered or removed;
   - what the last round did to the record, which no reviewer read;
-  - what the loop proposes to carry over.
+  - the carry-over, which the selection below settles rather than the loop.
 - **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
+- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier, and give it the record whole; shorten neither what you hand it nor what it returns.
+  - **Its candidates.** Derived afresh from the verdict section, with what the background records the change does not cover: what the rounds left open and no decision of the loop's or the user's has already placed.
+  - **Its brief**, and nothing of your own: what the user has to act on, and `finding-bar` copied whole into its prompt. Bar it there from opening a file or running anything, so everything it weighs is in the prompt — which keeps the wait at seconds.
 
 ### Waiting on the user
 
