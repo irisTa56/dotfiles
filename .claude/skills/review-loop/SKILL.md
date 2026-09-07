@@ -187,7 +187,6 @@ Where the round needs the user, everything it needs them for goes to them togeth
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
   - **Where none comes**, record the held state — what was put to them, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the held state as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
-  - One narrowing what the rounds raise constrains the review instead: it reaches the background the same way, as the invoking side's statement of the bar.
   - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
   - Where the settlement re-pins the purpose, the title is written afresh under `## Before the first round` before the round goes on.
 
