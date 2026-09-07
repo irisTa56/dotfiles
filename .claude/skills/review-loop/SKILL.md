@@ -182,7 +182,7 @@ The loop proposes that close and the user makes it.
 - **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then. Drop it from the selector's answer, which is otherwise carried as it came.
 - **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier.
   - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
-  - **What it gets**, and nothing else of yours: the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
+  - **What it gets**, and nothing else of yours: the record copied whole into its prompt, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
       - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
 
