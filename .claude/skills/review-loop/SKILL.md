@@ -23,6 +23,7 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - the pinned purpose;
   - the use the change is built for;
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
+  - the narrowing the user put on what the rounds raise, where they put one;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
 - `## Verdicts` — the title the change would go up under, the baseline the rounds read the change against, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
@@ -199,7 +200,7 @@ The hold, which stops a round that is refining the loop's own work:
   - **Describe each finding as its own verdict describes it.** One you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
   - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
   - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
-    - Then give the answers, what each costs, and which you recommend, including a continue that narrows what the later rounds raise and at least one other no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
+    - Then give the answers, what each costs, and which you recommend, including a continue that asks them what to narrow the later rounds' raising to, and at least one other no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
 - **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled; one that continues and settles nothing is a continue too, and the question it left goes to the close.
   - **What you read out of it is yours.** Quote them where you tell them what they decided, and NEVER give your reading of it back to them as their words.
   - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
