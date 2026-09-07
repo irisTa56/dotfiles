@@ -32,7 +32,8 @@ It has two sections, and the headings are bookkeeping that stays in the file:
   - whether the loop or the user decided it.
 
 The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
-The verdict section is never sent whole or quoted to a reviewer; what one needs from it travels in what "Opening the round" derives. The close's selector, below, is the one reader that gets it whole.
+The verdict section is never sent whole or quoted to a reviewer; what one needs from it travels in what "Opening the round" derives.
+The close's selector, below, is the one reader that gets it whole.
 
 What a round enters, and how the record ends:
 
@@ -177,10 +178,10 @@ The loop proposes that close and the user makes it.
 - **What the close carries.** What the user has to act on, reaching them with the close and not after it:
   - the behaviour the rounds added, altered or removed;
   - what the last round did to the record, which no reviewer read;
-  - what the loop proposes to carry over.
+  - the carry-over, which the selection below settles rather than the loop.
 - **What the close does not name.** A finding the loop itself rejected or floored is not named again: the round that decided it reported it then.
-- **Who selects the carry-over.** The loop wrote the change, so it does not select: spawn a fresh subagent synchronously on the reviewer's tier, give it the record whole, and name as its candidates every finding a round disposed of without landing a fix and everything the background records the change does not cover. Shortening that list before it sees it is the selection, and that is not yours.
-  - Its brief is this section's scope and `finding-bar`, with nothing composed on top. Bar it from editing, from running anything, and from reading under the common git dir: answering from the prompt alone is what keeps the wait at seconds rather than a review's minutes.
+- **Who selects the carry-over.** The loop wrote the change, so it does not select: spawn a fresh subagent synchronously on the reviewer's tier, give it the record whole, and name as its candidates everything the background records the change does not cover and every finding a round disposed of without landing a fix, short of one it rejected or floored. Neither the list you hand over nor the answer that comes back is yours to shorten.
+  - Its brief is this section's scope and `finding-bar`, with nothing composed on top. Bar it from editing, from running anything, and from opening any file: everything it weighs is in the prompt, which is what keeps the wait at seconds rather than a review's minutes.
 
 ### Waiting on the user
 
