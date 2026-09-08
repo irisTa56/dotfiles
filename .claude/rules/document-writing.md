@@ -39,7 +39,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
   - Write the pointer as a relative markdown link wherever its target is a file this repository tracks, carrying the anchor where it names one section of that file — a link checker then catches it once the target moves.
     - A section of the file you are in takes the anchor alone, which also survives the file being renamed.
     - The link text may keep the path the reader knows the file by, as `[~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md)` does, so long as the target stays relative.
-    - A skill's name stays in backticks even where the skill is tracked here, since the reader reaches a skill by invoking it, and most of the skills these files name are not carried here.
+    - A skill's name stays in backticks even where its file is tracked, since a skill is reached by invoking the name rather than by opening the file.
   - Attributing a claim of your own is [Sources](#sources), not a restatement this bars; reproducing what the other file maintains as its content is.
   - The copy is what goes wrong, not the extra words: it stops matching, and a reader with it in front of them acts on it instead of going to the source.
     - Declaring that the source takes precedence does not prevent this.
