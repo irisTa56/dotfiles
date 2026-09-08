@@ -36,13 +36,20 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Detailed explanation at each relevant point is fine, sized to the passage: where the detail is not its focus, keep the mention brief so it does not interrupt the reader's flow.
 - Avoid near-identical wording appearing in multiple places — if two passages read almost the same, trim one of them.
 - Where another file owns some content and keeps it updated, do not restate that content; carry a pointer and whatever yours adds.
-  - Attributing a claim of your own is `## Sources` above, not a restatement this bars; reproducing what the other file maintains as its content is.
+  - Attributing a claim of your own is [Sources](#sources), not a restatement this bars; reproducing what the other file maintains as its content is.
   - The copy is what goes wrong, not the extra words: it stops matching, and a reader with it in front of them acts on it instead of going to the source.
     - Declaring that the source takes precedence does not prevent this.
   - Carry the content as well as the pointer wherever the pointer alone would leave the reader worse off than a copy.
     - The reader cannot open the source — you are writing a prompt for an agent barred from reading it.
     - Opening the source would hand them more than they should act on — you are briefing a subagent to execute one slice of a parent prompt.
     - The destination's own convention requires the gist in the text, as a PR body's does (`pr-description`).
+
+## Keep each level of a hierarchy whole
+
+The levels are sections within a document, and files under the one that indexes them.
+
+- A level may send detail below it and point there instead. It keeps enough that its own reader reaches what the level is for without opening anything below.
+- The level below may take the one above as given, and does not restate it, where the two reach the reader together, as sections of one document do. Where it arrives on its own, [Say it once, in the right place](#say-it-once-in-the-right-place) says what to carry.
 
 ## Keep lines short and scannable
 
