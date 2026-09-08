@@ -28,7 +28,7 @@ Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and the rul
 - Generic best practices the agent already follows by default (e.g. "write clean code", "add tests").
 - Facts the agent can derive on demand — directory contents from a listing, build and test commands from the project's task config — unless a one-line pointer saves repeated rediscovery.
 - Rules a linter, formatter, or config file already enforces; let the toolchain carry them.
-- Content another file maintains. Point at it (see [document-writing.md](document-writing.md)) — a file that loads on its own has a reader who can open the source, so a copy buys them nothing.
+- Content another file maintains. Point at it (see [document-writing.md](document-writing.md#say-it-once-in-the-right-place)) — a file that loads on its own has a reader who can open the source, so a copy buys them nothing.
 - Historical narrative — how a convention evolved, migration backstory, or changelog-style entries. State the current rule; let git history carry the past.
 - Anything pointing the same direction as the harness's own defaults. An instruction earns its place by overriding a default, not by agreeing with one.
 - Either side of a contradiction between two instruction files. Cut the one whose scope fits worse; [two files giving different guidance leave Claude picking one arbitrarily](https://code.claude.com/docs/en/memory).
@@ -37,7 +37,7 @@ Follow these rules when writing or editing `CLAUDE.md`, `AGENTS.md`, and the rul
 
 - Write concrete, verifiable instructions over vague ones — "use 2-space indentation" beats "format code properly". This bans the uncheckable, not the general.
 - Keep an always-loaded file at the level of the rule, and let a path-scoped rule or a skill carry the specifics. Piling on detail for robustness is how such a file turns redundant.
-- Keep each instruction to a single scannable bullet (see [document-writing.md](document-writing.md)).
+- Keep each instruction to a single scannable bullet (see [document-writing.md](document-writing.md#keep-lines-short-and-scannable)).
 - Prefer describing where things live and the shape of the project over an exhaustive structure dump; let the agent discover specifics on demand.
 - Keep each file small. [Anthropic targets under ~200 lines per file](https://code.claude.com/docs/en/memory); when one grows past that, split by path scope using `paths` frontmatter rather than appending.
 

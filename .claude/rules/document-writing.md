@@ -6,7 +6,7 @@ paths:
 
 # Writing Prose
 
-These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in [~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md).
+These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in [~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md#writing-prose).
 Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
 Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
@@ -36,8 +36,12 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Detailed explanation at each relevant point is fine, sized to the passage: where the detail is not its focus, keep the mention brief so it does not interrupt the reader's flow.
 - Avoid near-identical wording appearing in multiple places — if two passages read almost the same, trim one of them.
 - Where another file owns some content and keeps it updated, do not restate that content; carry a pointer and whatever yours adds.
-  - Write the pointer as a relative markdown link when it names a file in the same repository, and as an anchor link when it names a section of the file you are in — a link checker then catches either one once the target moves.
-    - Keep a path outside the repository, and a skill's name, in backticks: as a link either one would resolve against this file's own directory and break.
+  - Write the pointer as a relative markdown link wherever its target is a file in this repository, carrying the anchor where it names a section — of that file, or of the one you are in — so a link checker catches it once the target moves.
+    - The link text may keep the path the reader knows the file by, as `[~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md)` does, so long as the target stays relative.
+    - What is not such a target stays in backticks.
+      - A path that resolves only outside the repository.
+      - A skill's name — what you invoke, rather than a file to read.
+      - A file name standing for a kind of file rather than for one file, as `CLAUDE.md` and `AGENTS.md` do.
   - Attributing a claim of your own is [Sources](#sources), not a restatement this bars; reproducing what the other file maintains as its content is.
   - The copy is what goes wrong, not the extra words: it stops matching, and a reader with it in front of them acts on it instead of going to the source.
     - Declaring that the source takes precedence does not prevent this.
