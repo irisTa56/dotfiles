@@ -46,7 +46,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Keep each level of a hierarchy whole
 
-The levels are sections within a document, and files under the one that indexes them.
+Sections within a document are levels, and so are files under the one that indexes them.
 
 - A level may send detail below it and point there instead. It keeps enough that its own reader reaches what the level is for without opening anything below.
 - The level below may take the one above as given, and does not restate it, where the two reach the reader together, as sections of one document do. Where it arrives on its own, [Say it once, in the right place](#say-it-once-in-the-right-place) says what to carry.
