@@ -78,7 +78,7 @@ State what this change is for before the first round, and hold every later round
 - **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
 - **Fill the background** before the first round.
-  - Enter inferences as inferences: a guess dressed as a user decision misleads every reviewer and would be shielded from re-judging.
+  - Enter a user's decision in their own words, quoted — an option they picked counts as the option's text — and anything you composed beyond them as the loop's inference: a paraphrase dressed as a user decision misleads every reviewer and would be shielded from re-judging.
 - **Work already landed** is in-bound for later rounds, and licenses no further excursion past the purpose.
 
 ## The round
