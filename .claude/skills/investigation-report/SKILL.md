@@ -30,6 +30,7 @@ Writing them is not the problem; a report whose records stand alone, or come bef
 - Place the records after the story, one section per claim, each reachable by a link from the story.
 - Record the course of the work wherever it helps someone repeat it.
 - Record a pitfall or an alternative set aside when it bears on the main line or on the reader, and finding it out takes time or could lead to rework.
+- Keep a result that runs against the story in the records, and point to it from the story rather than leaving it out.
 
 ## Separate what is established from what is not
 
@@ -37,6 +38,8 @@ A reader cannot tell a finding from a guess unless the report tells them.
 
 - Where the mechanism is not established, state hypotheses rather than stopping at observations.
 - For each hypothesis, give what supports it, what does not fit, and whether it has been verified.
+- Say so when a hypothesis was formed after seeing the observations it explains.
+- Give the number of runs behind each result, and say so where variation across runs was not measured.
 - State a limitation as the question it leaves open, not as a bare fact about the measurement.
 
 ## Make it self-contained
