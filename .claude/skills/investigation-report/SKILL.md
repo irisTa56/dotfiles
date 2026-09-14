@@ -47,6 +47,13 @@ The report reaches readers without the workspace it was written in.
 - Define each term the reader may not know at its first use.
 - Add a glossary only when it is limited to specialized terms central to the story.
 
+## Keep out what is not to be shared
+
+A report gets passed on beyond the reader it was written for.
+
+- Where the work touched something not to be shared, such as a private project or dataset, keep even hints of it out of the report and the bundled files.
+- Drop a result obtained only there, and where the point matters, say the report has no result on it rather than that it was never tried.
+
 ## Ship the evidence with the report
 
 This applies when the investigation produced scripts or raw data.
@@ -61,3 +68,4 @@ With them in hand, the reader can verify a number without asking you.
 - Read the story alone, and confirm it makes sense without the records.
 - Confirm every number matches the output it came from.
 - Confirm every section link and relative link resolves.
+- Search everything handed over for tokens, personal names, IP addresses, and names of anything kept out.
