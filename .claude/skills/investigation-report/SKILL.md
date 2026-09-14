@@ -72,4 +72,9 @@ With them in hand, the reader can verify a number without asking you.
 - Read the story alone, and confirm it makes sense without the records.
 - Confirm every number matches the output it came from.
 - Confirm every section link and relative link resolves.
-- Search everything handed over for tokens, personal names, IP addresses, and names of anything kept out.
+- Search everything handed over, scripts and logs included, for anything that should not leave with it, such as:
+  - tokens and other credentials
+  - personal names and user names
+  - absolute local paths
+  - host names, IP addresses, and internal URLs
+  - names of anything kept out
