@@ -10,7 +10,7 @@ The reader did not follow the work.
 They know neither the dead ends, nor the labels coined along the way, nor the files the work left behind.
 A report that only someone who worked alongside you can read has failed that reader, however accurate it is.
 
-When the report is in Japanese, compose it with the `japanese-tech-writing` skill.
+Write its prose by [document-writing.md](../../rules/document-writing.md), and when the report is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Answer the reader's questions, not the history
 
@@ -39,7 +39,12 @@ When the report is in Japanese, compose it with the `japanese-tech-writing` skil
 Give the body three top-level parts, in this order.
 
 1. **Overview**: the story from cause to observed effect, in prose.
-   - Walk it as a chain: what happened, what caused it, how the cause produces the effect, the scope in which it occurs, and what to do about it.
+   - Walk it as a chain, in this order:
+     - what happened
+     - what caused it
+     - how the cause produces the effect
+     - the scope in which it occurs
+     - what to do about it
    - Keep identifiers, source links, and numbers to what the story needs.
    - Close each paragraph that makes a claim with a link to the detailed section that backs it.
    - State in the overview what is not yet established, linking to where its status is recorded.
@@ -68,4 +73,8 @@ Give the body three top-level parts, in this order.
 - Every number in the body matches the bundled output it came from.
 - Every section link resolves to an existing heading, and every relative link to an existing file.
 - The aggregation commands in the reproduction part, rerun on a copy, regenerate the bundled aggregates.
-- A search of the whole directory finds no tokens, personal names, IP addresses, or names of anything kept out under [Make it self-contained](#make-it-self-contained).
+- A search of the whole directory finds none of the following:
+  - tokens
+  - personal names
+  - IP addresses
+  - names of anything kept out under [Make it self-contained](#make-it-self-contained)
