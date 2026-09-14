@@ -1,6 +1,7 @@
 ---
 name: investigation-report
-description: Write up a technical investigation or experiment as a self-contained report for a reader who did not work alongside you — a story-first overview linked to detailed records, shipped as one directory with the scripts and results behind every number. Use when asked for an investigation or experiment report (調査レポート, 実験レポート), or to turn findings from debugging or measurement work into something handed to others. When the report is in Japanese, compose with the japanese-tech-writing skill.
+description: Write up a technical investigation or experiment as a self-contained report for a reader who did not work alongside you — a story-first overview linked to detailed records, shipped as one directory with the scripts and results behind every number.
+disable-model-invocation: true
 ---
 
 # Writing an investigation report
@@ -8,6 +9,8 @@ description: Write up a technical investigation or experiment as a self-containe
 The reader did not follow the work.
 They know neither the dead ends, nor the labels coined along the way, nor the files the work left behind.
 A report that only someone who worked alongside you can read has failed that reader, however accurate it is.
+
+When the report is in Japanese, compose it with the `japanese-tech-writing` skill.
 
 ## Answer the reader's questions, not the history
 
