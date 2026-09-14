@@ -17,7 +17,8 @@ Details mean little to a reader who does not yet know what they establish.
 So the report opens with a story the reader can follow, and the details come after it.
 
 - Build the story around the questions the requester wants answered.
-- Run a single thread from those questions to the conclusion, as far as one thread can carry it without losing what is true.
+- Give the story one message, running from those questions to the conclusion.
+- Do not flatten the facts to fit that message; they are rarely simple, and where their complexity is itself informative, show it and say how it bears on the message.
 - Keep the story abstract, bringing in identifiers, numbers, and source links only where the thread needs them.
 - Close each paragraph that makes a claim with a link to the record that backs it.
 
