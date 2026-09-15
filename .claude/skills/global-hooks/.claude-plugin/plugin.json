@@ -1,0 +1,5 @@
+{
+  "name": "global-hooks",
+  "version": "1.0.0",
+  "description": "User-global Claude Code hooks, loaded in place as global-hooks@skills-dir through the ~/.claude/skills symlink"
+}
