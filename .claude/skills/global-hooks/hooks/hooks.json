@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '%s\\n' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Reply to the user in Japanese in every message, including progress updates, summaries and questions. Code, code comments, commit messages and config files stay in English.\"}}'"
+            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/context/reply-language.txt\""
           }
         ]
       }
