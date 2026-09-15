@@ -69,7 +69,8 @@ With them in hand, the reader can verify a number without asking you.
 
 ## Check before handing over
 
-- Read the story alone, and confirm it makes sense without the records.
+- Have a reader without the work's context, such as a fresh subagent, read the story alone, and fix whatever it could not follow.
+  - Reading it yourself does not test this, since your memory of the work fills the gaps.
 - Confirm every number matches the output it came from.
 - Confirm every section link and relative link resolves.
 - Search everything handed over, scripts and logs included, for anything that should not leave with it, such as:
