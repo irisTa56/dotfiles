@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # Render a ccusage report in a Quick Look popup (monospace, full table).
-# Usage: ccusage_popup.sh <daily|weekly>
+# Usage: ccusage_popup.sh <daily|weekly|monthly> [--by-repo]
+#   --by-repo shows cost per repository (ccusage_by_repo.sh) instead of the
+#   ccusage table.
 set -euo pipefail
+
+usage() {
+  echo "usage: ${0##*/} <daily|weekly|monthly> [--by-repo]" >&2
+  exit 2
+}
 
 granularity="${1:-}"
 case "$granularity" in
@@ -9,14 +16,23 @@ case "$granularity" in
 # GNU date rejects -v outright (clean non-zero exit), then fall back to GNU.
 daily) since="$(date -v-2w +%Y%m%d 2>/dev/null || date -d '2 weeks ago' +%Y%m%d)" ;;
 weekly) since="$(date -v-2m +%Y%m%d 2>/dev/null || date -d '2 months ago' +%Y%m%d)" ;;
-*)
-  echo "usage: ${0##*/} <daily|weekly>" >&2
-  exit 2
-  ;;
+# Start on the 1st so the oldest of the 12 months is not a partial one.
+monthly) since="$(date -v1d -v-11m +%Y%m%d 2>/dev/null || date -d "$(date +%Y-%m-01) 11 months ago" +%Y%m%d)" ;;
+*) usage ;;
+esac
+
+case "${2:-}" in
+"") by_repo=false ;;
+--by-repo) by_repo=true ;;
+*) usage ;;
 esac
 
 # Capture the report without ANSI colors so it embeds cleanly as plain text.
-out="$(ccusage claude "$granularity" --since "$since" --no-color)"
+if "$by_repo"; then
+  out="$("$(dirname "$0")/ccusage_by_repo.sh" "$granularity" --since "$since")"
+else
+  out="$(ccusage claude "$granularity" --since "$since" --no-color)"
+fi
 
 # Quick Look renders HTML via WebKit, guaranteeing a monospace font and exact
 # box-drawing alignment that a proportional AppleScript dialog would mangle.
