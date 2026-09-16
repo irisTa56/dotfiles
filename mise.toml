@@ -45,15 +45,15 @@ run = "shfmt -i 2 -w scripts/*.sh"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
-run = 'scripts/ccusage_popup.sh daily'
+run = 'scripts/ccusage_popup.exs daily'
 
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
-run = 'scripts/ccusage_popup.sh weekly'
+run = 'scripts/ccusage_popup.exs weekly'
 
 [tasks."ccusage:monthly"]
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
-run = 'scripts/ccusage_popup.sh monthly'
+run = 'scripts/ccusage_popup.exs monthly'
 
 [tasks."skills:list"]
 description = "List gist-sourced skills declared in gistSkills.json"
