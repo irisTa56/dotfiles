@@ -33,7 +33,9 @@ esac
 if "$by_repo"; then
   out="$("$(dirname "$0")/ccusage_by_repo.sh" "$granularity" --since "$since")"
 else
-  out="$(ccusage claude "$granularity" --since "$since" --no-color)"
+  # Without a terminal ccusage assumes a narrow width and truncates cells
+  # (weekly dates render as "2026-07-…"); at 160 columns the table fits in full.
+  out="$(COLUMNS=200 ccusage claude "$granularity" --since "$since" --no-color)"
 fi
 
 # Quick Look renders HTML via WebKit, guaranteeing a monospace font and exact
