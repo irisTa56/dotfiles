@@ -117,19 +117,38 @@ defmodule CcusagePopup do
     name |> String.replace_prefix("claude-", "") |> String.replace(~r/-\d{8}$/, "")
   end
 
-  # ccusage reads the same locations: CLAUDE_CONFIG_DIR (comma-separated) when
-  # set, otherwise both the XDG and the legacy directory.
-  defp config_dirs do
-    case System.get_env("CLAUDE_CONFIG_DIR", "") do
-      "" -> Enum.map([".config/claude", ".claude"], &Path.join(System.user_home!(), &1))
-      dirs -> String.split(dirs, ",", trim: true)
+  # The projects directories ccusage reads. Each comma-separated
+  # CLAUDE_CONFIG_DIR entry counts when it holds projects/ or is itself named
+  # projects. Without the variable, ccusage reads projects/ under
+  # $XDG_CONFIG_HOME/claude (~/.config/claude when that is unset) and under
+  # ~/.claude.
+  defp projects_dirs do
+    home = System.user_home!()
+
+    case System.get_env("CLAUDE_CONFIG_DIR") do
+      nil ->
+        xdg = System.get_env("XDG_CONFIG_HOME") || Path.join(home, ".config")
+        [Path.join([xdg, "claude", "projects"]), Path.join([home, ".claude", "projects"])]
+
+      entries ->
+        entries
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.flat_map(fn dir ->
+          cond do
+            File.dir?(Path.join(dir, "projects")) -> [Path.join(dir, "projects")]
+            Path.basename(dir) == "projects" -> [dir]
+            true -> []
+          end
+        end)
     end
   end
 
   # The cwd recorded in the first session log of a project that has one.
   defp project_cwd(project) do
-    for root <- config_dirs(),
-        log <- Path.wildcard(Path.join([root, "projects", project, "*.jsonl"])) do
+    for dir <- projects_dirs(),
+        log <- Path.wildcard(Path.join([dir, project, "*.jsonl"])) do
       log
     end
     |> Enum.find_value(fn log -> log |> File.stream!() |> Enum.find_value(&line_cwd/1) end)
