@@ -44,20 +44,16 @@ description = "Format shell scripts"
 run = "shfmt -i 2 -w scripts/*.sh"
 
 [tasks."ccusage:daily"]
-description = "Show ccusage daily report (last 2 weeks) in a Quick Look popup"
-usage = 'flag "--by-repo" help="Show cost per repository instead of the ccusage table"'
-# An absent flag leaves $usage_by_repo unset, so the expansion adds no argument.
-run = 'scripts/ccusage_popup.sh daily ${usage_by_repo:+--by-repo}'
+description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
+run = 'scripts/ccusage_popup.sh daily'
 
 [tasks."ccusage:weekly"]
-description = "Show ccusage weekly report (last 9 weeks) in a Quick Look popup"
-usage = 'flag "--by-repo" help="Show cost per repository instead of the ccusage table"'
-run = 'scripts/ccusage_popup.sh weekly ${usage_by_repo:+--by-repo}'
+description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
+run = 'scripts/ccusage_popup.sh weekly'
 
 [tasks."ccusage:monthly"]
-description = "Show ccusage monthly report (last 12 months) in a Quick Look popup"
-usage = 'flag "--by-repo" help="Show cost per repository instead of the ccusage table"'
-run = 'scripts/ccusage_popup.sh monthly ${usage_by_repo:+--by-repo}'
+description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
+run = 'scripts/ccusage_popup.sh monthly'
 
 [tasks."skills:list"]
 description = "List gist-sourced skills declared in gistSkills.json"
