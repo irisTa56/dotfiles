@@ -44,12 +44,16 @@ description = "Format shell scripts"
 run = "shfmt -i 2 -w scripts/*.sh"
 
 [tasks."ccusage:daily"]
-description = "Show ccusage daily report (last 2 weeks) in a Quick Look popup"
-run = 'scripts/ccusage_popup.sh daily'
+description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
+run = 'scripts/ccusage_popup.exs daily'
 
 [tasks."ccusage:weekly"]
-description = "Show ccusage weekly report (last 2 months) in a Quick Look popup"
-run = 'scripts/ccusage_popup.sh weekly'
+description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
+run = 'scripts/ccusage_popup.exs weekly'
+
+[tasks."ccusage:monthly"]
+description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
+run = 'scripts/ccusage_popup.exs monthly'
 
 [tasks."skills:list"]
 description = "List gist-sourced skills declared in gistSkills.json"
