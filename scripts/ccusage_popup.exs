@@ -162,12 +162,13 @@ defmodule CcusagePopup do
           do: "other",
           else: Path.basename(dir)
 
-      # The common dir is <repo>/.git for the main checkout, its subdirectories
-      # and any linked worktree alike.
+      # The common dir is shared by a checkout, its subdirectories and its linked
+      # worktrees: <repo>/.git normally, <repo>.git for a bare repository, and
+      # .git/modules/<repo> for a submodule.
       common = git(dir, ["--path-format=absolute", "--git-common-dir"]) ->
-        if String.ends_with?(common, "/.git"),
+        if Path.basename(common) == ".git",
           do: common |> Path.dirname() |> Path.basename(),
-          else: dir |> git(["--show-toplevel"]) |> Path.basename()
+          else: Path.basename(common, ".git")
 
       true ->
         "other"
@@ -292,8 +293,12 @@ defmodule CcusagePopup do
   # Quick Look renders HTML via WebKit, guaranteeing a monospace font and exact
   # column alignment that a proportional AppleScript dialog would mangle.
   defp popup(report) do
-    dir = Path.join(System.tmp_dir!(), "ccusage.#{System.unique_integer([:positive])}")
-    File.mkdir_p!(dir)
+    # Each run is its own VM, so the name has to be unique across processes;
+    # mkdir! rather than mkdir_p! so a clash fails instead of sharing the file.
+    dir =
+      Path.join(System.tmp_dir!(), "ccusage." <> Base.url_encode64(:crypto.strong_rand_bytes(9)))
+
+    File.mkdir!(dir)
     html = Path.join(dir, "report.html")
 
     body =
