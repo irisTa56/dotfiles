@@ -15,7 +15,9 @@ case "$granularity" in
 # BSD date (macOS) uses -v; GNU date (coreutils) uses -d. Try BSD first since
 # GNU date rejects -v outright (clean non-zero exit), then fall back to GNU.
 daily) since="$(date -v-2w +%Y%m%d 2>/dev/null || date -d '2 weeks ago' +%Y%m%d)" ;;
-weekly) since="$(date -v-2m +%Y%m%d 2>/dev/null || date -d '2 months ago' +%Y%m%d)" ;;
+# Start on a Sunday (ccusage's default week start) so the oldest of the 9 weeks
+# is not a partial one.
+weekly) since="$(date -v-sun -v-8w +%Y%m%d 2>/dev/null || date -d "$(date +%w) days ago 8 weeks ago" +%Y%m%d)" ;;
 # Start on the 1st so the oldest of the 12 months is not a partial one.
 monthly) since="$(date -v1d -v-11m +%Y%m%d 2>/dev/null || date -d "$(date +%Y-%m-01) 11 months ago" +%Y%m%d)" ;;
 *) usage ;;

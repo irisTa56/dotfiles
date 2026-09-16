@@ -50,7 +50,7 @@ usage = 'flag "--by-repo" help="Show cost per repository instead of the ccusage 
 run = 'scripts/ccusage_popup.sh daily ${usage_by_repo:+--by-repo}'
 
 [tasks."ccusage:weekly"]
-description = "Show ccusage weekly report (last 2 months) in a Quick Look popup"
+description = "Show ccusage weekly report (last 9 weeks) in a Quick Look popup"
 usage = 'flag "--by-repo" help="Show cost per repository instead of the ccusage table"'
 run = 'scripts/ccusage_popup.sh weekly ${usage_by_repo:+--by-repo}'
 
