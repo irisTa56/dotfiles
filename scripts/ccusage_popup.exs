@@ -48,7 +48,12 @@ defmodule CcusagePopup do
         Calendar.strftime(since, "%Y%m%d")
       ])
       |> JSON.decode!()
-      |> Map.get("projects", %{})
+      |> case do
+        %{"projects" => projects} -> projects
+        # ccusage omits "projects" when the range holds no usage at all.
+        %{"totals" => %{"totalTokens" => 0}} -> %{}
+        _ -> die("ccusage output has no per-project breakdown (\"projects\" key)", 1)
+      end
 
     entries =
       for {project, days} <- projects,
