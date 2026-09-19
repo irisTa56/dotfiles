@@ -1,2 +1,5 @@
 [global]
 disable = ["MD013"]
+
+[per-file-ignores]
+".claude/skills/global-hooks/context/reply-language.md" = ["MD041"]
