@@ -1,2 +1,6 @@
 hidden = true
 include_fragments = "full"
+# Links that passed within max_cache_age (1d) are not requested again, so a
+# commit waits on a third-party host only for links it has not seen pass lately.
+# Failures are never written to the cache, so a failing link is always rechecked.
+cache = true
