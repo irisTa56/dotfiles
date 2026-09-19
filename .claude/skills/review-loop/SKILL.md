@@ -15,8 +15,8 @@ The last two both go to the user, and "Waiting on the user" governs both.
 ## The record
 
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
-It lives at `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/$(git rev-parse --abbrev-ref HEAD).md` (create the leading directories); its directory is "the record directory" below.
-It is keyed by the common git dir, which linked worktrees share, and outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent, which is refused writes under the common git dir, can still write it.
+It lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
+The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent, which is refused writes under the common git dir, can still write it.
 Records from before this location sit under `$(git rev-parse --path-format=absolute --git-common-dir)/review-loop/`, and the search below reads there too:
 
 - a record resumed from there is copied here with its source path on a first line of its own;
@@ -58,6 +58,7 @@ State what this change is for before the first round, and hold every later round
 - **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
   - A record whose last line opens `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
+  - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
 - **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
