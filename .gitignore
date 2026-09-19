@@ -17,3 +17,6 @@
 
 # APM dependencies
 apm_modules/
+
+# lychee request cache
+.lycheecache
