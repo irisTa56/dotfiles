@@ -19,7 +19,7 @@ It lives at `$(git rev-parse --path-format=absolute --git-common-dir)/review-loo
 Where a write there is refused, as it is for a worktree-isolated agent, the record lives at `review-loop/<branch>.md` under the session scratchpad: that is its place, not a departure to note in it.
 Its search for a record then also covers the common git dir and the scratchpads of this project's other sessions, beside this one's session directory: it resumes an unmarked record found elsewhere from a copy at its own path, the most recently modified where several copies of one loop turn up, and leaves a closed one where it is.
 Every bar below on the common git dir covers every scratchpad's `review-loop/` too.
-Its close gives the move under the common git dir as a command, setting aside a closed record already at the destination as below, to the orchestrator that delegated the loop or, where none did, to the user.
+Its close gives the move under the common git dir as one command that appends the closing line below, sets aside a closed record already at the destination as below, and moves the record, to the orchestrator that delegated the loop or, where none did, to the user.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 
