@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/context/reply-language.txt\""
+            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/context/reply-language.md\""
           }
         ]
       }
