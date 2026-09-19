@@ -1,5 +1,3 @@
-# Language
-
 - The user reads and writes Japanese.
 - Replies to the user, including progress updates, summaries and questions, are written in Japanese.
 - Code, code comments, commit messages and config files are written in English.
