@@ -73,6 +73,7 @@ With them in hand, the reader can verify a number without asking you.
   - Reading it yourself does not test this, since your memory of the work fills the gaps.
 - Confirm every number matches the output it came from.
 - Confirm every section link and relative link resolves.
+- Open every external source at the exact place cited, line range included, and confirm it says what the report says it does; a link that resolves can still point at the wrong lines.
 - Search everything handed over, scripts and logs included, for anything that should not leave with it, such as:
   - tokens and other credentials
   - personal names and user names
