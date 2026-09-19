@@ -15,7 +15,8 @@ The last two both go to the user, and "Waiting on the user" governs both.
 ## The record
 
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
-It lives at `$(git rev-parse --path-format=absolute --git-common-dir)/review-loop/$(git rev-parse --abbrev-ref HEAD).md` (create the leading directories) — under the common git dir, which linked worktrees share and `git worktree remove` leaves alone, so it never reaches the reviewer through `git status`.
+It lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
+The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent, which is refused writes under the common git dir, can still write it.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 
@@ -49,9 +50,10 @@ What a round enters, and how the record ends:
 
 State what this change is for before the first round, and hold every later round to that statement — re-inferring it from a diff the rounds grew turns the bound into a ratchet.
 
-- **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of `review-loop/`, at every depth, for an unmarked record whose content matches.
+- **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
   - A record whose last line opens `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
+  - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
 - **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
@@ -102,7 +104,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
   - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
-- **The common git dir.** Bar it from touching that.
+- **The common git dir and the record directory.** Bar it from touching either.
 - **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
@@ -133,7 +135,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it before accepting a finding whose harm is a reader act nothing has yet produced; establishing the mechanism that would make the act possible is not producing the act, nor is the reviewer's own reading of the text. Two things exit it: the floor already covering the finding, and a reader you cannot put the text to.
-  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, and read the wrong act off what it produces.
+  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir or the record directory, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
 - **A finding against the background.** A valid one against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
