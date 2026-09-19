@@ -16,9 +16,9 @@ The last two both go to the user, and "Waiting on the user" governs both.
 
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
 It lives at `$(git rev-parse --path-format=absolute --git-common-dir)/review-loop/$(git rev-parse --abbrev-ref HEAD).md` (create the leading directories) — under the common git dir, which linked worktrees share and `git worktree remove` leaves alone, so it never reaches the reviewer through `git status`.
-A worktree-isolated agent is refused writes there, so its record lives at `review-loop/<branch>.md` under the session scratchpad: that is its place, not a departure to note in it.
-Its search for a record covers both directories: it resumes an unmarked record found under the common git dir from a copy at its own path, and leaves a closed one there where it is.
-Every bar below on the common git dir covers the scratchpad's `review-loop/` too.
+Where a write there is refused, as it is for a worktree-isolated agent, the record lives at `review-loop/<branch>.md` under the session scratchpad: that is its place, not a departure to note in it.
+Its search for a record then also covers the common git dir and the scratchpads of this project's other sessions, beside this one's session directory: it resumes an unmarked record found elsewhere from a copy at its own path, the most recently modified where several copies of one loop turn up, and leaves a closed one where it is.
+Every bar below on the common git dir covers every scratchpad's `review-loop/` too.
 Its close gives the move under the common git dir as a command, setting aside a closed record already at the destination as below, to the orchestrator that delegated the loop or, where none did, to the user.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
