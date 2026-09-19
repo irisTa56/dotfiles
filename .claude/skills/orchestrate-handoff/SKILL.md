@@ -21,6 +21,7 @@ You are the orchestrator for this batch:
   - A subagent has no channel to reach the user, and you do.
   - Have each subagent return whatever those writes need from it, then make them once you have shown the user what will leave and they have said to go ahead.
   - Everything else a subagent owes the user travels the same way, its review loop's close report included; carry that to them with the issue's result.
+  - Once the user closes that loop, move its record from the scratchpad path the close names to `review-loop/<the branch name you chose>.md` under the common git dir, and append the closing line the `review-loop` skill specifies.
 - Do not write code yourself.
   - Work that belongs to an issue belongs to that issue's subagent, however small it looks from here.
 - Go to the user when a decision is needed and carry the answer back; you are the intermediary rather than the decider.
