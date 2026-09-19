@@ -18,9 +18,12 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
+# `lychee --cache` skips links that passed within the last day, so a commit waits
+# on a third-party host only for links it has not seen pass lately. lychee never
+# caches a failure. link-check leaves the cache off and requests every link.
 run = '''
 gitleaks protect -v --staged
-lychee .
+lychee --cache .
 rumdl check
 claude plugin validate .claude/skills
 shellcheck scripts/*.sh zshrc_fragment.sh
