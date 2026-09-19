@@ -17,11 +17,6 @@ The last two both go to the user, and "Waiting on the user" governs both.
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
 It lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
 The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent, which is refused writes under the common git dir, can still write it.
-Records from before this location sit under `$(git rev-parse --path-format=absolute --git-common-dir)/review-loop/`, and the search below reads there too:
-
-- a record resumed from there is copied here with its source path on a first line of its own;
-- a record there that one here names as its source counts as that one;
-- a closed record there is read where it stands rather than set aside.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 

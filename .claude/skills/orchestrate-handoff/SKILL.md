@@ -20,7 +20,7 @@ You are the orchestrator for this batch:
 - Keep every write that leaves this machine — the branch push and the pull request — with yourself, under a branch name you chose rather than the one a worktree subagent was handed.
   - A subagent has no channel to reach the user, and you do.
   - Have each subagent return whatever those writes need from it, then make them once you have shown the user what will leave and they have said to go ahead.
-  - Everything else a subagent owes the user travels the same way, its review loop's close report included; carry that to them with the issue's result.
+  - Everything else a subagent owes the user travels the same way, its review loop's close report and record path included; carry that to them with the issue's result.
 - When you delegate further work on an issue that already has a review loop, give the subagent that loop's record path, since its own branch name will not lead it there.
 - Do not write code yourself.
   - Work that belongs to an issue belongs to that issue's subagent, however small it looks from here.
