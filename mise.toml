@@ -18,24 +18,34 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 
 # tasks/ holds the task definitions this repository shares with others (see README).
 # Naming it here replaces the default file-task directories, which this repository
-# does not use.
+# does not use. This repository loads the shared tasks the same way a consumer does,
+# so a break in them shows up here rather than in whichever repository pulls them next.
 [task_config]
 includes = ["tasks"]
 
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-# Each `{ task = … }` step finishes before the next starts, so the checks keep the order
-# they ran in when they were one script. The first three come from tasks/checks.toml;
-# the rest are specific to this repository.
+# `lychee --cache` skips links that passed within the last day, so a commit waits
+# on a third-party host only for links it has not seen pass lately. lychee never
+# caches a failure. links:check leaves the cache off and requests every link.
+# Each step finishes before the next starts; only the first is a shared task.
 run = [
   { task = "secrets:scan" },
-  { task = "links:check", args = ["--cache"] },
-  { task = "md:check" },
+  "lychee --cache .",
+  "rumdl check",
   "claude plugin validate .claude/skills",
-  "shellcheck scripts/*.sh zshrc_fragment.sh",
-  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh",
+  "shellcheck scripts/*.sh zshrc_fragment.sh tasks/*/*",
+  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh tasks/*/*",
   "mix format --check-formatted scripts/*.exs",
 ]
+
+[tasks."links:check"]
+description = "Check if links are valid, showing redirects"
+run = "lychee -v ."
+
+[tasks."md:format"]
+description = "Format markdown files"
+run = "rumdl check --fix"
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
@@ -43,7 +53,7 @@ run = "scripts/setup_dotfiles.sh"
 
 [tasks."sh:format"]
 description = "Format shell scripts"
-run = "shfmt -i 2 -w scripts/*.sh"
+run = "shfmt -i 2 -w scripts/*.sh tasks/*/*"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"

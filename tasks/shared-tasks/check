@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-# Report whether the shared tasks a repository is running are the ones on dotfiles main.
+#MISE description="Check whether the shared tasks in use are the ones on dotfiles main"
 #
-# A `git::` include is pinned by `?ref=`, and mise caches the clone under
-# MISE_CACHE_DIR/remote-git-tasks-cache keyed on the URL and that ref alone: once a ref
-# is cached it is reused without fetching, so a branch ref never picks up new commits.
-# Pinning `?ref=<sha>` instead makes each bump a new cache key, and this check is what
-# tells the consuming repository that a bump is due.
+# No comment line below may begin with "MISE", because mise reads the comment block that
+# follows the header above as more of the header and fails to parse it as a usage spec.
 #
-# MISE_TASK_DIR points at the directory the task was loaded from, which for a consumer is
-# inside that cached clone, so the commit in use is readable straight from it.
+# A `git::` include is pinned by `?ref=`, and mise caches the clone in its own cache
+# directory keyed on the URL and that ref alone: once a ref is cached it is reused without
+# fetching, so a branch ref never picks up new commits. Pinning `?ref=<sha>` instead makes
+# each bump a new cache key, and this check is what tells the consuming repository that a
+# bump is due.
 #
-# Exit codes: 0 nothing to act on, 1 the pin is behind, 2 the check could not be made.
+# The task directory, which mise reports in the environment variable read below, is this
+# directory wherever the task was loaded from; for a consumer it is inside that cached
+# clone, so the commit in use is readable straight from it.
+#
+# Exit codes: 0 nothing to act on, 1 the pin differs from main, 2 the check could not be made.
 set -euo pipefail
 
 remote_url="https://github.com/irisTa56/dotfiles.git"
@@ -24,7 +28,7 @@ fi
 # Establish that the tasks came from a clone of this repository before reading a commit
 # out of it. git walks up from $tasks_dir to whatever repository encloses it, so a copy
 # vendored into some other repository would otherwise report that repository's HEAD as a
-# dotfiles commit and name it in the advice below.
+# dotfiles commit.
 if ! origin=$(git -C "$tasks_dir" remote get-url origin 2>/dev/null); then
   echo "[fail] $tasks_dir is not inside a git clone with an 'origin' remote" >&2
   exit 2

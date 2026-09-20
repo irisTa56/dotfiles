@@ -38,7 +38,7 @@ mise run setup:dotfiles
 
 ## Shared mise Tasks
 
-`tasks/` holds the repository-agnostic tasks this repository runs on itself and lends to others.
+`tasks/` holds the repository-agnostic tasks this repository lends to others: `secrets:scan`, which gates a commit here too, and `shared-tasks:check` below.
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 Beyond that the library assumes git and bash.
 
@@ -64,7 +64,7 @@ It names both commits and stops there: the one in use can be ahead of `main` as 
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.
-[tasks/checks.toml](tasks/checks.toml) states those constraints for whoever adds the next task.
+[tasks/README.md](tasks/README.md) states those constraints for whoever adds the next task.
 
 ## Agent Instructions
 
