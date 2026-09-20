@@ -64,4 +64,5 @@ Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of 
 Neither mistake shows up in this repository's own `mise run pre-commit`: it runs one of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
-[`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library, at the directory the task was loaded from — the working tree here, or a cached clone of this repository in a consumer.
+[`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
+It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
