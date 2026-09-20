@@ -26,7 +26,7 @@ includes = ["tasks"]
 description = "Run pre-commit checks"
 # `lychee --cache` skips links that passed within the last day, so a commit waits
 # on a third-party host only for links it has not seen pass lately. lychee never
-# caches a failure. links:check leaves the cache off and requests every link.
+# caches a failure. link-check leaves the cache off and requests every link.
 # Each step finishes before the next starts; only the first is a shared task.
 run = [
   { task = "secrets:scan" },
@@ -47,15 +47,15 @@ run = [
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
 run = "scripts/setup_dotfiles.sh"
 
-[tasks."links:check"]
+[tasks.link-check]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
 
-[tasks."md:format"]
+[tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
 
-[tasks."sh:format"]
+[tasks.format-sh]
 description = "Format shell scripts"
 # The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
 run = "shfmt -i 2 -w scripts/*.sh zshrc_fragment.sh tasks"
