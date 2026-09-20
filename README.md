@@ -55,10 +55,10 @@ Of two entries defining the same task the later wins, and an inline `[tasks.<nam
 
 Pin `ref` to a commit, not a branch.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/main/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
-`mise run shared-tasks:status` reports the commit in use against the tip of `main` and prints the `ref` to move to.
+`mise run shared-tasks:check` reports the commit in use against the tip of `main` and prints the `ref` to move to.
 
 A shared task runs in the consuming repository, not this one: `dir`, the paths inside `run`, and a relative `file` all resolve against that repository's root.
-Reaching a file shipped alongside the tasks therefore goes through `MISE_TASK_DIR`, which points at `tasks/` wherever it was loaded from — as `shared-tasks:status` does to run `scripts/check_shared_tasks.sh`.
+Reaching a file shipped alongside the tasks therefore goes through `MISE_TASK_DIR`, which points at `tasks/` wherever it was loaded from — as `shared-tasks:check` does to run `scripts/check_shared_tasks.sh`.
 
 ## Agent Instructions
 

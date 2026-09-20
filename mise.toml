@@ -28,9 +28,9 @@ description = "Run pre-commit checks"
 # they ran in when they were one script. The first three come from tasks/checks.toml;
 # the rest are specific to this repository.
 run = [
-  { task = "secret-scan" },
-  { task = "link-check", args = ["--cache"] },
-  { task = "md-check" },
+  { task = "secrets:scan" },
+  { task = "links:check", args = ["--cache"] },
+  { task = "md:check" },
   "claude plugin validate .claude/skills",
   "shellcheck scripts/*.sh zshrc_fragment.sh",
   "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh",
@@ -41,7 +41,7 @@ run = [
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
 run = "scripts/setup_dotfiles.sh"
 
-[tasks.format-sh]
+[tasks."sh:format"]
 description = "Format shell scripts"
 run = "shfmt -i 2 -w scripts/*.sh"
 

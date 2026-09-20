@@ -1,7 +1,7 @@
 # Meta task about the shared task library itself. Included-task format, as in checks.toml.
 
-["shared-tasks:status"]
-description = "Report whether the shared tasks in use are the ones on dotfiles main"
+["shared-tasks:check"]
+description = "Check whether the shared tasks in use are the ones on dotfiles main"
 # "$MISE_TASK_DIR" is this directory wherever the task was loaded from: the working tree
 # in dotfiles itself, or a cached clone of this repository in a consuming one. A relative
 # `file = "…"` would resolve against the consuming repository instead and miss the script.

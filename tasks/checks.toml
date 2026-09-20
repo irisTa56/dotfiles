@@ -10,22 +10,22 @@
 # reach a script shipped next to these tasks; go through "$MISE_TASK_DIR", which points
 # at this directory wherever it was loaded from.
 
-[secret-scan]
+["secrets:scan"]
 description = "Scan staged changes for secrets"
 tools = { gitleaks = "latest" }
 run = "gitleaks protect -v --staged"
 
-[md-check]
+["md:check"]
 description = "Check markdown files"
 tools = { rumdl = "latest" }
 run = "rumdl check"
 
-[format-md]
+["md:format"]
 description = "Format markdown files"
 tools = { rumdl = "latest" }
 run = "rumdl check --fix"
 
-[link-check]
+["links:check"]
 description = "Check if links are valid, showing redirects"
 tools = { lychee = "latest" }
 # `lychee --cache` skips links that passed within the last day, so a commit waits
