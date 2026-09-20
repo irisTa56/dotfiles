@@ -18,8 +18,10 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 
 # tasks/ holds the task definitions this repository shares with others (see README).
 # Naming it here replaces the default file-task directories, which this repository
-# does not use. This repository loads the shared tasks the same way a consumer does,
-# so a break in them shows up here rather than in whichever repository pulls them next.
+# does not use. Loading them here catches a shared task that fails to parse, to lint or
+# to run, but not one that forgets to declare its tool: `[tools]` above puts gitleaks on
+# PATH for every task in this repository, whatever the task's own `#MISE` header says,
+# and a consuming repository has no such backstop.
 [task_config]
 includes = ["tasks"]
 
