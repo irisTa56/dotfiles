@@ -5,8 +5,9 @@ This file is for whoever adds the next one.
 
 Each task is an executable file, and the directory it sits in is its namespace: `secrets/scan` is the task `secrets:scan`.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
-A file that is not executable is not loaded, and a task can source one through `$MISE_TASK_DIR`.
+A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
 Nothing here does, and a helper added that way would have to be added to what `pre-commit` lints as well, since that selects the executables alone.
+The exception is `.toml`: mise reads every one that is not a config file as a list of tasks, so a data file dropped in here becomes tasks named after its keys, or breaks task loading outright — keep such a file out, or name it in [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes).
 
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.

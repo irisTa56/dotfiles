@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 #MISE description="Check whether the shared tasks in use are the ones on dotfiles main"
 #
-# A `git::` include is pinned by `?ref=`, and mise caches the clone in its own cache
-# directory keyed on the URL and that ref alone: once a ref is cached it is reused without
-# fetching, so a branch ref never picks up new commits. Pinning `?ref=<sha>` instead makes
-# each bump a new cache key, and this check is what tells the consuming repository that a
-# bump is due.
+# Why a consumer pins a commit rather than a branch, and what a consumer does with each
+# exit code, is in the repository README under "Shared mise Tasks". What this script adds
+# is how it answers: the task directory mise reports in the environment variable read below
+# is this directory wherever the task was loaded from, so for a consumer it sits inside
+# mise's cached clone, and the commit in use is readable straight from it.
 #
-# The task directory, which mise reports in the environment variable read below, is this
-# directory wherever the task was loaded from; for a consumer it is inside that cached
-# clone, so the commit in use is readable straight from it.
-#
-# Exit codes: 0 nothing to act on, 1 the pin differs from main, 2 the check could not be made.
+# Exit codes: 0 nothing to act on, 1 the shared tasks differ from main, 2 it could not tell.
 set -euo pipefail
 
 remote_url="https://github.com/irisTa56/dotfiles.git"
@@ -56,21 +52,26 @@ fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
 
-# pipefail carries a git failure past cut.
-if ! latest=$(git ls-remote "$remote_url" refs/heads/main | cut -f1) || [ -z "$latest" ]; then
-  echo "[fail] could not read refs/heads/main from $remote_url" >&2
+# Compare this directory, not the commit that carries it. main takes commits that never
+# touch these tasks — skills, instructions, dependency bumps — and a check that fails on
+# those is one its reader stops reading, which costs exactly the bump that matters.
+# Fetching by URL rather than from `origin` keeps this off whatever credentials the clone
+# was made with, and it leaves the checkout on the commit in use.
+if ! git -C "$tasks_dir" fetch --quiet "$remote_url" main; then
+  echo "[fail] could not fetch main from $remote_url" >&2
   exit 2
 fi
+latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 
-if [ "$in_use" = "$latest" ]; then
-  echo "[ok] the shared tasks are at dotfiles main ($in_use)"
+if git -C "$tasks_dir" diff --quiet "$in_use" "$latest" -- .; then
+  echo "[ok] the shared tasks match dotfiles main ($latest)"
   exit 0
 fi
 
-# Report only that the two differ. The commit in use can be ahead of main as well as behind
-# it, since pinning a commit on an unmerged branch is how a shared-task change gets tried
-# from a consuming repository, and the script cannot see whether the include carries a
-# `?ref=` to bump or is a local path to pull.
-echo "[fail] shared tasks in use: $in_use" >&2
-echo "[fail] dotfiles main:       $latest" >&2
+# Which of the two is the older is not said: the commit in use can be ahead of main as well
+# as behind it, and the script cannot see whether the include carries a `?ref=` to bump or
+# is a local path to pull.
+echo "[fail] the shared tasks differ from dotfiles main" >&2
+echo "[fail] in use: $in_use" >&2
+echo "[fail] main:   $latest" >&2
 exit 1
