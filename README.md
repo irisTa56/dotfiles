@@ -38,7 +38,7 @@ mise run setup:dotfiles
 
 ## Shared mise Tasks
 
-`tasks/` holds the checks this repository runs on itself and lends to others.
+`tasks/` holds the repository-agnostic tasks this repository runs on itself and lends to others.
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 Beyond that the library assumes git and bash.
 
@@ -58,9 +58,10 @@ Pin `ref` to a commit, not a branch.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
-`mise run shared-tasks:check` reports the commit in use against the tip of `main` and prints the `ref` to move to.
-It exits 1 when the pin is behind, so it can gate a build, and 2 when it could not tell — an unreachable remote, or tasks that did not come from a clone of this repository.
-Run inside this repository it exits 0 and checks nothing, since a local path carries no pin.
+`mise run shared-tasks:check` reports the commit in use against the tip of `main`.
+It exits 1 when the two differ, so it can gate a build, and 2 when it could not tell — an unreachable remote, or tasks that did not come from a clone of this repository.
+It names both commits and stops there: the one in use can be ahead of `main` as well as behind it, since pinning a branch is how a change to these tasks gets tried from a consuming repository.
+Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.
 [tasks/checks.toml](tasks/checks.toml) states those constraints for whoever adds the next task.

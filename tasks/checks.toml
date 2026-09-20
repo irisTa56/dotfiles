@@ -1,4 +1,5 @@
-# Repository checks shared with other repositories through `task_config.includes`.
+# Repository-agnostic tasks shared with other repositories through `task_config.includes`:
+# the checks this repository gates a commit on, and the formatter that fixes what one finds.
 # This file uses the included-task format: each top-level table is a task name, with
 # no `[tasks.…]` prefix. Schema: https://mise.jdx.dev/schema/mise-task.json
 #

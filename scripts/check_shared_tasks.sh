@@ -41,16 +41,16 @@ if [ "$(normalize_remote "$origin")" != "$(normalize_remote "$remote_url")" ]; t
   exit 2
 fi
 
-# dotfiles itself loads these tasks from its own working tree through a local path, which
-# carries no `?ref=` to compare or to bump. Its HEAD differs from main on every branch.
+# dotfiles itself loads these tasks from its own working tree, which carries no `?ref=` to
+# compare or to bump; its HEAD differs from main on every branch. Test the clone's root
+# against the project root rather than testing the path prefix, so a dotfiles clone that
+# merely sits inside a consuming repository — a submodule, or one under vendor/ — is still
+# checked rather than being read as that repository's own working tree.
 project_root="${MISE_PROJECT_ROOT:-}"
-if [ -n "$project_root" ]; then
-  case "$tasks_dir" in
-  "$project_root"/*)
-    echo "[ok] the shared tasks come from this repository's working tree; there is no pin to check"
-    exit 0
-    ;;
-  esac
+clone_root=$(git -C "$tasks_dir" rev-parse --show-toplevel)
+if [ -n "$project_root" ] && [ "$clone_root" = "$(cd "$project_root" && pwd -P)" ]; then
+  echo "[ok] the shared tasks come from this repository's working tree; there is no pin to check"
+  exit 0
 fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
@@ -66,7 +66,10 @@ if [ "$in_use" = "$latest" ]; then
   exit 0
 fi
 
+# Report only that the two differ. The commit in use can be ahead of main as well as behind
+# it, since pinning a branch is how a shared-task change gets tried from a consuming
+# repository, and the script cannot see whether the include carries a `?ref=` to bump or is
+# a local path to pull.
 echo "[fail] shared tasks in use: $in_use" >&2
 echo "[fail] dotfiles main:       $latest" >&2
-echo "[fail] update this repository's include to ?ref=$latest" >&2
 exit 1
