@@ -54,7 +54,7 @@ Naming `includes` replaces the default file-task directories rather than adding 
 Of two entries defining the same task the later wins, and an inline `[tasks.<name>]` beats both — which is how a repository overrides a shared task.
 
 Pin `ref` to a commit, not a branch.
-mise keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching, so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
+mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/main/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
 `mise run shared-tasks:status` reports the commit in use against the tip of `main` and prints the `ref` to move to.
 
 A shared task runs in the consuming repository, not this one: `dir`, the paths inside `run`, and a relative `file` all resolve against that repository's root.
