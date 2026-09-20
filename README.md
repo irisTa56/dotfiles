@@ -67,6 +67,7 @@ That link is pinned to a release for the same reason the `ref` is: on `main` it 
 It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach them and a check that failed on those would stop being read.
 On that failure it names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
 It exits 2 when it could not tell instead — an unreachable remote, or tasks that did not come from a clone of this repository — and says which.
+Decide what a gate does with that separately from 1, or a network blip fails a build the way a stale pin does: treat it as a warning where the build may proceed unchecked, and as a failure where it may not.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.
