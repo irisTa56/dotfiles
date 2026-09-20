@@ -20,8 +20,10 @@ includes = [
 mise marks a `git::` include experimental, so the syntax and the caching below carry no compatibility promise and a consumer wired to several of these is worth keeping an eye on mise's releases for.
 Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
 Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task under a directory listed after this include.
-An inline `[tasks.<name>]` does not do that.
-mise lays its fields over the shared file task and keeps the file, so `mise tasks ls` reports the inline description while `mise run` executes the shared script.
+Do not declare an inline `[tasks.<name>]` of the same name.
+mise does not merge one with the shared file task: it keeps that under `<name>.sh` and gives the bare name to the declaration.
+One carrying `run` then runs instead of the shared task, and one carrying only metadata — a `description`, a `depends`, a `dir` — runs nothing at all and exits 0.
+`mise tasks ls` shows both names, so checking there confirms the mistake rather than exposing it.
 
 Pin `ref` to a commit, not a branch, and spell it in full.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
