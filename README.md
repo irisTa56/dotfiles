@@ -46,7 +46,7 @@ Beyond that the library assumes git and bash.
 # mise.toml, in the consuming repository
 [task_config]
 includes = [
-  "git::https://github.com/irisTa56/dotfiles.git//tasks?ref=<commit sha>",
+  "git::https://github.com/irisTa56/dotfiles.git//tasks?ref=<40-character commit sha>",
   "mise-tasks", # and whichever other default directories that repository uses
 ]
 ```
@@ -54,13 +54,14 @@ includes = [
 Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
 Of two entries defining the same task the later wins, and an inline `[tasks.<name>]` beats both — which is how a repository overrides a shared task.
 
-Pin `ref` to a commit, not a branch.
+Pin `ref` to a commit, not a branch, and spell it in full.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
+It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
 `mise run shared-tasks:check` reports the commit in use against the tip of `main`.
 It exits 1 when the two differ, so it can gate a build, and 2 when it could not tell — an unreachable remote, or tasks that did not come from a clone of this repository.
-It names both commits and stops there: the one in use can be ahead of `main` as well as behind it, since pinning a branch is how a change to these tasks gets tried from a consuming repository.
+It names both commits and stops there: the one in use can be ahead of `main` as well as behind it, since pinning a commit on an unmerged branch is how a change to these tasks gets tried from a consuming repository.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.

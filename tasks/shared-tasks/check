@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Check whether the shared tasks in use are the ones on dotfiles main"
 #
-# No comment line below may begin with "MISE", because mise reads the comment block that
-# follows the header above as more of the header and fails to parse it as a usage spec.
-#
 # A `git::` include is pinned by `?ref=`, and mise caches the clone in its own cache
 # directory keyed on the URL and that ref alone: once a ref is cached it is reused without
 # fetching, so a branch ref never picks up new commits. Pinning `?ref=<sha>` instead makes
@@ -71,9 +68,9 @@ if [ "$in_use" = "$latest" ]; then
 fi
 
 # Report only that the two differ. The commit in use can be ahead of main as well as behind
-# it, since pinning a branch is how a shared-task change gets tried from a consuming
-# repository, and the script cannot see whether the include carries a `?ref=` to bump or is
-# a local path to pull.
+# it, since pinning a commit on an unmerged branch is how a shared-task change gets tried
+# from a consuming repository, and the script cannot see whether the include carries a
+# `?ref=` to bump or is a local path to pull.
 echo "[fail] shared tasks in use: $in_use" >&2
 echo "[fail] dotfiles main:       $latest" >&2
 exit 1

@@ -34,8 +34,13 @@ run = [
   "lychee --cache .",
   "rumdl check",
   "claude plugin validate .claude/skills",
-  "shellcheck scripts/*.sh zshrc_fragment.sh tasks/*/*",
-  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh tasks/*/*",
+  "shellcheck scripts/*.sh zshrc_fragment.sh",
+  # The task files are found rather than globbed: mise loads an executable under tasks/
+  # at any depth, so a glob of fixed depth would leave some of them unchecked, and one
+  # deep enough to reach them hands shellcheck the directories along the way.
+  "find tasks -type f -perm -u+x -exec shellcheck {} +",
+  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh",
+  "find tasks -type f -perm -u+x -exec shfmt -i 2 -d {} +",
   "mix format --check-formatted scripts/*.exs",
 ]
 
@@ -53,7 +58,11 @@ run = "scripts/setup_dotfiles.sh"
 
 [tasks."sh:format"]
 description = "Format shell scripts"
-run = "shfmt -i 2 -w scripts/*.sh tasks/*/*"
+# The same files pre-commit checks, so running this leaves nothing for the hook to reject.
+run = [
+  "shfmt -i 2 -w scripts/*.sh zshrc_fragment.sh",
+  "find tasks -type f -perm -u+x -exec shfmt -i 2 -w {} +",
+]
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
