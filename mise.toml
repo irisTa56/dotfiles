@@ -19,8 +19,8 @@ test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmo
 # tasks/ holds the task definitions this repository shares with others (see README).
 # Naming it here replaces the default file-task directories, which this repository
 # does not use. Loading them here catches a shared task that fails to parse, and the two
-# `find` steps below lint every one of them, but only the tasks this task calls are ever
-# run — and no task's tool declaration is exercised at all, since `[tools]` above puts
+# `find` steps below lint every one of them, but only the tasks `pre-commit` calls are
+# ever run — and no task's tool declaration is exercised at all, since `[tools]` above puts
 # gitleaks on PATH whatever a task's own `#MISE` header says, as a consumer will not.
 [task_config]
 includes = ["tasks"]

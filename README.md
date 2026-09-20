@@ -39,6 +39,7 @@ mise run setup:dotfiles
 ## Shared mise Tasks
 
 `tasks/` holds the repository-agnostic tasks this repository lends to others: `secrets:scan`, which gates a commit here too, and `shared-tasks:check` below.
+`secrets:scan` reads the staged diff, so it belongs in a pre-commit hook; a plain checkout stages nothing and it passes having scanned nothing, which is not a CI gate.
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 Beyond that the library assumes git and bash.
 
