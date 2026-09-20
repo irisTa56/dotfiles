@@ -22,7 +22,8 @@ Naming `includes` replaces the default file-task directories rather than adding 
 Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task under a directory listed after this include.
 Do not declare an inline `[tasks.<name>]` of the same name.
 mise does not merge one with the shared file task: it keeps that under `<name>.sh` and gives the bare name to the declaration.
-One carrying `run` then runs instead of the shared task, and one carrying only metadata — a `description`, a `depends`, a `dir` — runs nothing at all and exits 0.
+One carrying `run` then runs instead of the shared task, and one carrying only a `description` or a `dir` runs nothing at all and exits 0.
+One carrying only `depends` runs its dependencies, reports finishing and exits 0 without ever reaching the shared task, which reads as a pass.
 `mise tasks ls` shows both names, so checking there confirms the mistake rather than exposing it.
 
 Pin `ref` to a commit, not a branch, and spell it in full.
