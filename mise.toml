@@ -11,7 +11,7 @@ HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
 HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
 [vars]
-# Where the shell files are, for the three tasks below that lint or format them. Named once
+# Where the shell files are, for the two tasks below that lint or format them. Named once
 # because the lists had already drifted apart when each carried its own: format-sh was
 # missing zshrc_fragment.sh, which pre-commit had always checked.
 sh_paths = "scripts tasks zshrc_fragment.sh"

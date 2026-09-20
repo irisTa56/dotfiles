@@ -38,9 +38,9 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 
 ### `shared-tasks:check`
 
-It says whether the tasks a pin brought in are the ones on `main`.
-It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach them.
-It exits 1 when they differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
+It says whether the pin is the tip of `main`.
+It answers for the commit rather than for what the commit changed, so a `main` that moved without touching these tasks still asks for a bump — which is one line, and which keeps a consumer's copy of these instructions current as well as their copy of the tasks.
+It exits 1 when the two differ and names both, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
 It exits 2 when it could not tell instead — run outside mise, tasks that are not in a repository git will read, or an unreachable remote — and says which of those it was.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
@@ -50,7 +50,8 @@ A repository git will not read is usually mise's cached clone rather than the in
 
 ## Writing one
 
-Each task is an executable file, and the directory it sits in is its namespace: `secrets/scan` is the task `secrets:scan`.
+Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/scan.sh` is the task `secrets:scan`.
+Name it that way or the linting below never sees it, and mise will load it all the same.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
 Nothing here does, and one named `*.sh` would be linted like a task, since that is what `mise.toml` selects on.

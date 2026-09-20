@@ -44,26 +44,23 @@ fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
 
-# Fetching by URL rather than from `origin` keeps this off whatever credentials the clone
-# was made with, and it leaves the checkout on the commit in use.
-if ! git -C "$tasks_dir" fetch --quiet "$remote_url" main; then
-  echo "[fail] could not fetch main from $remote_url" >&2
+# The commit, not what it carries. Comparing the `tasks` directory instead would keep a
+# consumer quiet through a commit that leaves it alone, which is most of them — but it
+# would also decide for them which changes here are worth a pin bump, and the answer to
+# that is every one: bumping is a line, and it is what keeps their copy of the
+# instructions current as well as their copy of the tasks.
+# pipefail carries a git failure past cut.
+if ! latest=$(git ls-remote "$remote_url" refs/heads/main | cut -f1) || [ -z "$latest" ]; then
+  echo "[fail] could not read refs/heads/main from $remote_url" >&2
   exit 2
 fi
-latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 
-# The library is the clone's `tasks`, named from its root. A pathspec relative to
-# "$tasks_dir" would instead name the directory holding this file, so the check would
-# compare itself against itself and stay quiet when any other shared task moves. Only
-# tasks/README.md is left out, and by name rather than by extension: it is the one file here
-# a consumer never runs, and one they read again when they bump the pin, while anything else
-# a task reads is theirs to run.
-if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks ':(exclude)tasks/README.md'; then
-  echo "[ok] the shared tasks match dotfiles main ($latest)"
+if [ "$in_use" = "$latest" ]; then
+  echo "[ok] the shared tasks are at dotfiles main ($in_use)"
   exit 0
 fi
 
-echo "[fail] the shared tasks differ from dotfiles main" >&2
+echo "[fail] the pin is not dotfiles main" >&2
 echo "[fail] in use: $in_use" >&2
 echo "[fail] main:   $latest" >&2
 exit 1
