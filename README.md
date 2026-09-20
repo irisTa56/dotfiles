@@ -39,7 +39,8 @@ mise run setup:dotfiles
 ## Shared mise Tasks
 
 `tasks/` holds the checks this repository runs on itself and lends to others.
-A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs nothing else: every shared task declares the tools it runs, which mise installs for that task alone.
+A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
+Beyond that the library assumes git and a POSIX shell.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -54,11 +55,15 @@ Naming `includes` replaces the default file-task directories rather than adding 
 Of two entries defining the same task the later wins, and an inline `[tasks.<name>]` beats both — which is how a repository overrides a shared task.
 
 Pin `ref` to a commit, not a branch.
-mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/main/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
-`mise run shared-tasks:check` reports the commit in use against the tip of `main` and prints the `ref` to move to.
+mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
+That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
-A shared task runs in the consuming repository, not this one: `dir`, the paths inside `run`, and a relative `file` all resolve against that repository's root.
-Reaching a file shipped alongside the tasks therefore goes through `MISE_TASK_DIR`, which points at `tasks/` wherever it was loaded from — as `shared-tasks:check` does to run `scripts/check_shared_tasks.sh`.
+`mise run shared-tasks:check` reports the commit in use against the tip of `main` and prints the `ref` to move to.
+It exits 1 when the pin is behind, so it can gate a build, and 2 when it could not tell — an unreachable remote, or tasks that did not come from a clone of this repository.
+Run inside this repository it exits 0 and checks nothing, since a local path carries no pin.
+
+A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.
+[tasks/checks.toml](tasks/checks.toml) states those constraints for whoever adds the next task.
 
 ## Agent Instructions
 
