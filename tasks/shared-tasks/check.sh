@@ -2,7 +2,7 @@
 #MISE description="Check whether the shared tasks in use are the ones on dotfiles main"
 #
 # Why a consumer pins a commit rather than a branch, and what each exit code means, is in
-# the repository README under "Shared mise Tasks". What this script adds is how it answers:
+# tasks/README.md under "shared-tasks:check". What this script adds is how it answers:
 # $MISE_TASK_DIR is this directory wherever the task was loaded from, so for a consumer it
 # sits inside mise's cached clone, and the commit in use is readable straight from it.
 #

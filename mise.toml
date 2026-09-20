@@ -34,14 +34,18 @@ run = [
   "rumdl check",
   "claude plugin validate .claude/skills",
   "shellcheck scripts/*.sh zshrc_fragment.sh",
-  # The task files are found rather than globbed: mise loads an executable under tasks/
-  # at any depth, so a glob of fixed depth would leave some of them unchecked, and one
-  # deep enough to reach them hands shellcheck the directories along the way.
+  # shellcheck takes files, and mise loads an executable under tasks/ at any depth, so the
+  # task files are found rather than globbed: a glob of fixed depth would leave some of them
+  # unchecked, and one deep enough to reach them hands shellcheck the directories on the way.
+  # shfmt walks a directory itself, reading shebangs as well as names, so it needs neither.
   "find tasks -type f -perm -u+x -exec shellcheck {} +",
-  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh",
-  "find tasks -type f -perm -u+x -exec shfmt -i 2 -d {} +",
+  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh tasks",
   "mix format --check-formatted scripts/*.exs",
 ]
+
+[tasks."setup:dotfiles"]
+description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
+run = "scripts/setup_dotfiles.sh"
 
 [tasks."links:check"]
 description = "Check if links are valid, showing redirects"
@@ -51,17 +55,10 @@ run = "lychee -v ."
 description = "Format markdown files"
 run = "rumdl check --fix"
 
-[tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
-run = "scripts/setup_dotfiles.sh"
-
 [tasks."sh:format"]
 description = "Format shell scripts"
 # The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
-run = [
-  "shfmt -i 2 -w scripts/*.sh zshrc_fragment.sh",
-  "find tasks -type f -perm -u+x -exec shfmt -i 2 -w {} +",
-]
+run = "shfmt -i 2 -w scripts/*.sh zshrc_fragment.sh tasks"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"

@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic tasks this repository lends to others: `secrets:scan`, which gates a commit here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:scan`, which gates a commit here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -38,23 +38,24 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 It says whether the tasks a pin brought in are the ones on `main`.
 It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach them.
 It exits 1 when they differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
-It exits 2 when it could not tell instead — no `MISE_TASK_DIR`, tasks that came from no repository, or an unreachable remote — and says which of those it was.
+It exits 2 when it could not tell instead — no `MISE_TASK_DIR`, tasks that are not in a repository git will read, or an unreachable remote — and says which of those it was.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-Of the three conditions behind exit 2 only the unreachable remote clears on a retry; the other two stand until someone fixes the include.
+Of the three conditions behind exit 2 only the unreachable remote clears on a retry.
+A repository git will not read is usually mise's cached clone rather than the include: mise reuses that clone on existence alone, so a damaged or half-written one is served until it is deleted.
 
 ## Writing one
 
 Each task is an executable file, and the directory it sits in is its namespace: `secrets/scan` is the task `secrets:scan`.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
-Nothing here does, and a helper added that way would have to be added to every `find tasks` selector in `mise.toml` as well, since each of them picks the executables alone — the two `pre-commit` lints with, and the one `sh:format` formats with.
+Nothing here does, and `shfmt` would reach such a helper — it walks this directory and reads shebangs — while shellcheck would not, since `mise.toml` selects what to hand it with a `find` over the executables alone.
 The exception is `.toml`: mise reads every one that is not a config file as a list of tasks, so a data file dropped in here becomes tasks named after its keys, or breaks task loading outright.
 Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
-A task here is a shell script: this repository hands every executable under this directory to shellcheck and `shfmt`, so one written in another language fails `pre-commit`, and goes on failing `sh:format` until every `find tasks` selector in `mise.toml` narrows.
+A task here is a shell script, and its name says so: this repository hands every executable under this directory to shellcheck, so one written in another language fails `pre-commit` with SC1071 until the `find` in `mise.toml` narrows.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
