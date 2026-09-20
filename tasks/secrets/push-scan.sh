@@ -16,6 +16,8 @@ remote="$1"
 
 # The repository, not the working directory, for the reason secrets:scan gives.
 repo="file://$(git rev-parse --show-toplevel)"
+log="$(mktemp)"
+trap 'rm -f "$log"' EXIT
 status=0
 
 # <local ref> <local sha> <remote ref> <remote sha>
@@ -43,17 +45,25 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
   # this machine's repositories do. Verification stays off so a push never sends a
-  # candidate to its provider. The report names where each hit is rather than what
-  # it is, which is enough to go and look at it.
-  hits="$(trufflehog git "$repo" \
+  # candidate to its provider.
+  #
+  # What reaches the terminal is this task's own report and not trufflehog's, which
+  # counts every hit in the range and so would announce a secret on a push the
+  # filter above lets through. Its log is held back and printed when the scan
+  # itself failed, which is the one time it says something this cannot.
+  if ! hits="$(trufflehog git "$repo" \
     --branch "${local_ref#refs/heads/}" \
     ${since[@]+"${since[@]}"} \
-    --json --no-verification --fail-on-scan-errors --no-update --concurrency=1 |
+    --json --no-verification --fail-on-scan-errors --no-update --concurrency=1 2>"$log" |
     jq -r --arg new "$new" '
       ($new | split("\n")) as $sending
       | select(.SourceMetadata.Data.Git.commit | IN($sending[]))
-      | "\(.DetectorName) in \(.SourceMetadata.Data.Git.file)"
-        + " line \(.SourceMetadata.Data.Git.line), commit \(.SourceMetadata.Data.Git.commit)"')"
+      | "\(.DetectorName) at line \(.SourceMetadata.Data.Git.line)"
+        + " of \(.SourceMetadata.Data.Git.file // "the commit message")"
+        + ", commit \(.SourceMetadata.Data.Git.commit)"')"; then
+    cat "$log" >&2
+    exit 1
+  fi
 
   if [ -n "$hits" ]; then
     printf '%s\n' "$hits" >&2
