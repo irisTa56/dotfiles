@@ -52,9 +52,9 @@ fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
 
-# Compare this directory, not the commit that carries it. main takes commits that never
-# touch these tasks — skills, instructions, dependency bumps — and a check that fails on
-# those is one its reader stops reading, which costs exactly the bump that matters.
+# Compare the library directory, not the commit that carries it. main takes commits that
+# never touch these tasks — skills, instructions, dependency bumps — and a check that fails
+# on those is one its reader stops reading, which costs exactly the bump that matters.
 # Fetching by URL rather than from `origin` keeps this off whatever credentials the clone
 # was made with, and it leaves the checkout on the commit in use.
 if ! git -C "$tasks_dir" fetch --quiet "$remote_url" main; then
@@ -63,7 +63,10 @@ if ! git -C "$tasks_dir" fetch --quiet "$remote_url" main; then
 fi
 latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 
-if git -C "$tasks_dir" diff --quiet "$in_use" "$latest" -- .; then
+# The library is the clone's `tasks`, named from its root. A pathspec relative to
+# "$tasks_dir" would instead name the directory holding this file, so the check would
+# compare itself against itself and stay quiet when any other shared task moves.
+if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks; then
   echo "[ok] the shared tasks match dotfiles main ($latest)"
   exit 0
 fi

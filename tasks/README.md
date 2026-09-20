@@ -9,6 +9,7 @@ A file that is not executable is not loaded either, with one exception, and a ta
 Nothing here does, and a helper added that way would have to be added to what `pre-commit` lints as well, since that selects the executables alone.
 The exception is `.toml`: mise reads every one that is not a config file as a list of tasks, so a data file dropped in here becomes tasks named after its keys, or breaks task loading outright — keep such a file out, or name it in [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes).
 
+A task here is a shell script: this repository's `pre-commit` hands every executable under this directory to shellcheck and `shfmt`, so one written in another language fails that gate until the selector in `mise.toml` narrows.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 
