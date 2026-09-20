@@ -28,8 +28,9 @@ if ! origin=$(git -C "$tasks_dir" remote get-url origin 2>/dev/null); then
 fi
 # mise clones a `git::` include with the URL exactly as the include spells it, so the same
 # repository arrives as https://…, as ssh://git@… , or scp-style as git@…: — and a clone of
-# this repository made by hand carries whichever of those its owner used. Compare on host
-# and path so every spelling of this repository passes and another repository still fails.
+# this repository made by hand carries whichever of those its owner used. Comparing on host
+# and path covers those three. A URL carrying a port or credentials does not normalize, and
+# is reported below as another repository.
 normalize_remote() {
   printf '%s' "$1" | sed -e 's|^[a-zA-Z+]*://||' -e 's|^[^/:]*@||' -e 's|:|/|' -e 's|\.git$||'
 }
@@ -52,9 +53,6 @@ fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
 
-# Compare the library directory, not the commit that carries it. main takes commits that
-# never touch these tasks — skills, instructions, dependency bumps — and a check that fails
-# on those is one its reader stops reading, which costs exactly the bump that matters.
 # Fetching by URL rather than from `origin` keeps this off whatever credentials the clone
 # was made with, and it leaves the checkout on the commit in use.
 if ! git -C "$tasks_dir" fetch --quiet "$remote_url" main; then
@@ -65,15 +63,14 @@ latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 
 # The library is the clone's `tasks`, named from its root. A pathspec relative to
 # "$tasks_dir" would instead name the directory holding this file, so the check would
-# compare itself against itself and stay quiet when any other shared task moves.
-if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks; then
+# compare itself against itself and stay quiet when any other shared task moves. The
+# markdown there is for whoever adds a task, not for a consumer to run, so a consumer is
+# not asked to bump a pin over it.
+if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks ':(exclude)*.md'; then
   echo "[ok] the shared tasks match dotfiles main ($latest)"
   exit 0
 fi
 
-# Which of the two is the older is not said: the commit in use can be ahead of main as well
-# as behind it, and the script cannot see whether the include carries a `?ref=` to bump or
-# is a local path to pull.
 echo "[fail] the shared tasks differ from dotfiles main" >&2
 echo "[fail] in use: $in_use" >&2
 echo "[fail] main:   $latest" >&2

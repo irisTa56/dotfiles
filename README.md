@@ -62,9 +62,10 @@ mise [keys its clone cache on the repository URL and the ref alone, and reuses a
 It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
-`mise run shared-tasks:check` compares the `tasks/` the pin brought in against the one on `main`, and exits 1 when they differ, so it can gate a build.
-It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach this directory and a check that failed on those would stop being read.
-It exits 2 when it could not tell — an unreachable remote, or tasks that did not come from a clone of this repository — and names both commits without saying which is the older, since the pin may be ahead of `main` as well as behind it.
+`mise run shared-tasks:check` compares the shared tasks the pin brought in against the ones on `main`, and exits 1 when they differ, so it can gate a build.
+It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach them and a check that failed on those would stop being read.
+On that failure it names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
+It exits 2 when it could not tell instead — an unreachable remote, or tasks that did not come from a clone of this repository — and says which.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 A shared task runs in the consuming repository, not this one, which is what constrains how one may be written.
