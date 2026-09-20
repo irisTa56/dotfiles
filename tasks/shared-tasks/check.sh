@@ -12,16 +12,18 @@ set -euo pipefail
 remote_url="https://github.com/irisTa56/dotfiles.git"
 
 tasks_dir="${MISE_TASK_DIR:-}"
-if [ -z "$tasks_dir" ]; then
-  echo "[fail] MISE_TASK_DIR is unset; run this through 'mise run', not directly" >&2
+project_root="${MISE_PROJECT_ROOT:-}"
+if [ -z "$tasks_dir" ] || [ -z "$project_root" ]; then
+  echo "[fail] MISE_TASK_DIR and MISE_PROJECT_ROOT are what mise sets; run this through 'mise run'" >&2
   exit 2
 fi
 
 # Which repository this is, git answers; whether it is this one, it does not have to. A
 # `git::` include is a clone mise made from the URL in the include, and a clone made by hand
-# is one its owner chose. Files copied out of here into some other repository would compare
-# that repository's commits against ours and report a difference, which is the answer a
-# divergence deserves.
+# is one its owner chose. Files copied out of here into a repository's own tree are
+# indistinguishable from this repository's working tree and are reported below as nothing to
+# check; telling them apart is what the origin comparison this script used to carry did, and
+# a copy is a fork of how these tasks are managed for the copying side to own.
 # git's own line prints above this one, as it does for the fetch below: `rev-parse` fails
 # for a directory in no repository, one git declines to open, a config it cannot read, and
 # swallowing its stderr would leave this line naming a cause it has not established.
@@ -35,8 +37,7 @@ fi
 # against the project root rather than testing the path prefix, so a dotfiles clone that
 # merely sits inside a consuming repository — a submodule, or one under vendor/ — is still
 # checked rather than being read as that repository's own working tree.
-project_root="${MISE_PROJECT_ROOT:-}"
-if [ -n "$project_root" ] && [ "$clone_root" = "$(cd "$project_root" && pwd -P)" ]; then
+if [ "$clone_root" = "$(cd "$project_root" && pwd -P)" ]; then
   echo "[ok] the shared tasks come from this repository's working tree; there is no pin to check"
   exit 0
 fi
@@ -54,8 +55,9 @@ latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 # The library is the clone's `tasks`, named from its root. A pathspec relative to
 # "$tasks_dir" would instead name the directory holding this file, so the check would
 # compare itself against itself and stay quiet when any other shared task moves. Only
-# tasks/README.md is left out, and by name rather than by extension: it is for whoever adds
-# a task and a consumer never runs it, while anything else a task reads is theirs to run.
+# tasks/README.md is left out, and by name rather than by extension: it is the one file here
+# a consumer never runs, and one they read again when they bump the pin, while anything else
+# a task reads is theirs to run.
 if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks ':(exclude)tasks/README.md'; then
   echo "[ok] the shared tasks match dotfiles main ($latest)"
   exit 0
