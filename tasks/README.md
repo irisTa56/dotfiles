@@ -42,8 +42,8 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 
 It runs trufflehog over the commits a push is about to send on a branch, and fails the push on a hit.
 `secrets:scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns), which covers provider tokens rather than the generic patterns such a credential falls under.
-What it closes is the part of that gap [trufflehog has a detector for](https://github.com/trufflesecurity/trufflehog/tree/main/pkg/detectors), which is narrower than connection strings as a class: on 3.97.5 it reported `postgres://`, `mongodb://` and an http(s) URL carrying userinfo among others, and reported none of `mysql://`, `mariadb://`, `redis://` or `amqp://`.
-A scheme in neither of those is answered by the linked list rather than by this one.
+What trufflehog closes of that gap is neither a class of credential nor the [detectors it ships](https://github.com/trufflesecurity/trufflehog/tree/main/pkg/detectors): `mssql://user:pass@host` goes unreported although a `sqlserver` detector is there, while the same credential written as `Server=…;Password=…;` is reported.
+So a push this passes is not an assurance that some particular form was looked for, and committing that form to a scratch repository and running trufflehog over it is what answers whether it would be.
 
 It reads the pushed refs from stdin and takes the remote's name from its first argument, so a pre-push hook is the only caller it works for.
 mise writes one, resolving the shared hooks directory from a linked worktree as well:

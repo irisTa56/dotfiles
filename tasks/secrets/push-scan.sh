@@ -30,16 +30,19 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   new="$(git rev-list --date-order --reverse "$local_sha" --not --remotes="$remote")"
   [ -n "$new" ] || continue
 
-  # trufflehog walks back from the branch tip and stops at `--since-commit` by
-  # commit date, so only a base older than every one of those commits keeps them
-  # all in range. The parent of the oldest is that. It is a bound and not an
-  # answer: the range also reaches commits the remote already has, which is what
-  # the filter below drops. An orphan branch and a remote with no history leave
-  # that commit without a parent, and then the whole branch is the range.
-  if base="$(git rev-parse --verify --quiet "$(printf '%s\n' "$new" | sed -n '1p')^")"; then
+  # trufflehog stops at `--since-commit` by commit date rather than by ancestry, so
+  # a base holds the set only while it is older than the oldest of them. The parent
+  # of that one usually is, and is checked rather than assumed, since a committer
+  # date that falls along a parent edge would leave its own child out of the range.
+  # Where it does, and where an orphan branch or a remote with no history leaves no
+  # parent at all, the whole branch is the range instead. Either way this bounds the
+  # walk rather than answering it: the range still reaches commits the remote has,
+  # which is what the filter below drops.
+  oldest="$(printf '%s\n' "$new" | sed -n '1p')"
+  since=()
+  if base="$(git rev-parse --verify --quiet "$oldest^")" &&
+    [ "$(git log -1 --format=%ct "$base")" -lt "$(git log -1 --format=%ct "$oldest")" ]; then
     since=(--since-commit "$base")
-  else
-    since=()
   fi
 
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
@@ -54,7 +57,7 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   if ! hits="$(trufflehog git "$repo" \
     --branch "${local_ref#refs/heads/}" \
     ${since[@]+"${since[@]}"} \
-    --json --no-verification --fail-on-scan-errors --no-update --concurrency=1 2>"$log" |
+    --json --no-verification --fail-on-scan-errors --no-update 2>"$log" |
     jq -r --arg new "$new" '
       ($new | split("\n")) as $sending
       | select(.SourceMetadata.Data.Git.commit | IN($sending[]))
