@@ -16,32 +16,30 @@ hook="$(git rev-parse --git-path hooks/pre-commit)"
 test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmod +x "$hook"; }
 '''
 
+# tasks/ holds the task definitions this repository shares with others (see README).
+# Naming it here replaces the default file-task directories, which this repository
+# does not use.
+[task_config]
+includes = ["tasks"]
+
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-# `lychee --cache` skips links that passed within the last day, so a commit waits
-# on a third-party host only for links it has not seen pass lately. lychee never
-# caches a failure. link-check leaves the cache off and requests every link.
-run = '''
-gitleaks protect -v --staged
-lychee --cache .
-rumdl check
-claude plugin validate .claude/skills
-shellcheck scripts/*.sh zshrc_fragment.sh
-shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh
-mix format --check-formatted scripts/*.exs
-'''
+# Each `{ task = … }` step finishes before the next starts, so the checks keep the order
+# they ran in when they were one script. The first three come from tasks/checks.toml;
+# the rest are specific to this repository.
+run = [
+  { task = "secret-scan" },
+  { task = "link-check", args = ["--cache"] },
+  { task = "md-check" },
+  "claude plugin validate .claude/skills",
+  "shellcheck scripts/*.sh zshrc_fragment.sh",
+  "shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh",
+  "mix format --check-formatted scripts/*.exs",
+]
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
 run = "scripts/setup_dotfiles.sh"
-
-[tasks.link-check]
-description = "Check if links are valid, showing redirects"
-run = "lychee -v ."
-
-[tasks.format-md]
-description = "Format markdown files"
-run = "rumdl check --fix"
 
 [tasks.format-sh]
 description = "Format shell scripts"

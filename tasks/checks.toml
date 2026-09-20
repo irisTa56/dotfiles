@@ -1,0 +1,41 @@
+# Repository checks shared with other repositories through `task_config.includes`.
+# This file uses the included-task format: each top-level table is a task name, with
+# no `[tasks.…]` prefix. Schema: https://mise.jdx.dev/schema/mise-task.json
+#
+# Every task declares the tools it runs, so a consuming repository needs no `[tools]`
+# entry of its own; mise installs them for the duration of that task.
+#
+# Paths in `run` resolve against the CONSUMING repository's root, not this one, so keep
+# them repository-agnostic. `file = "…"` resolves the same way and therefore cannot
+# reach a script shipped next to these tasks; go through "$MISE_TASK_DIR", which points
+# at this directory wherever it was loaded from.
+
+[secret-scan]
+description = "Scan staged changes for secrets"
+tools = { gitleaks = "latest" }
+run = "gitleaks protect -v --staged"
+
+[md-check]
+description = "Check markdown files"
+tools = { rumdl = "latest" }
+run = "rumdl check"
+
+[format-md]
+description = "Format markdown files"
+tools = { rumdl = "latest" }
+run = "rumdl check --fix"
+
+[link-check]
+description = "Check if links are valid, showing redirects"
+tools = { lychee = "latest" }
+# `lychee --cache` skips links that passed within the last day, so a commit waits
+# on a third-party host only for links it has not seen pass lately. lychee never
+# caches a failure. Without the flag every link is requested and redirects are shown.
+usage = 'flag "--cache" help="Skip links that passed within the last day"'
+run = '''
+if [ "${usage_cache:-}" = "true" ]; then
+  lychee --cache .
+else
+  lychee -v .
+fi
+'''

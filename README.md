@@ -36,6 +36,30 @@ mise run setup:dotfiles
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
 
+## Shared mise Tasks
+
+`tasks/` holds the checks this repository runs on itself and lends to others.
+A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs nothing else: every shared task declares the tools it runs, which mise installs for that task alone.
+
+```toml
+# mise.toml, in the consuming repository
+[task_config]
+includes = [
+  "git::https://github.com/irisTa56/dotfiles.git//tasks?ref=<commit sha>",
+  "mise-tasks", # and whichever other default directories that repository uses
+]
+```
+
+Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
+Of two entries defining the same task the later wins, and an inline `[tasks.<name>]` beats both — which is how a repository overrides a shared task.
+
+Pin `ref` to a commit, not a branch.
+mise keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching, so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
+`mise run shared-tasks:status` reports the commit in use against the tip of `main` and prints the `ref` to move to.
+
+A shared task runs in the consuming repository, not this one: `dir`, the paths inside `run`, and a relative `file` all resolve against that repository's root.
+Reaching a file shipped alongside the tasks therefore goes through `MISE_TASK_DIR`, which points at `tasks/` wherever it was loaded from — as `shared-tasks:status` does to run `scripts/check_shared_tasks.sh`.
+
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
