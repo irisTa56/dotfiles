@@ -10,26 +10,42 @@ shfmt = "latest"
 HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
 HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
+[vars]
+# Where the shell files are, for the two tasks below that lint or format them. Named once
+# because the lists had already drifted apart when each carried its own: format-sh was
+# missing zshrc_fragment.sh, which pre-commit had always checked.
+sh_paths = "scripts tasks zshrc_fragment.sh"
+
 [hooks]
 postinstall = '''
 hook="$(git rev-parse --git-path hooks/pre-commit)"
 test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmod +x "$hook"; }
 '''
 
+# tasks/ holds the task definitions this repository shares with others (see README).
+# Naming it here replaces the default file-task directories, which this repository
+# does not use, and loads the shared tasks the way a consuming repository loads them.
+[task_config]
+includes = ["tasks"]
+
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 # `lychee --cache` skips links that passed within the last day, so a commit waits
 # on a third-party host only for links it has not seen pass lately. lychee never
 # caches a failure. link-check leaves the cache off and requests every link.
-run = '''
-gitleaks protect -v --staged
-lychee --cache .
-rumdl check
-claude plugin validate .claude/skills
-shellcheck scripts/*.sh zshrc_fragment.sh
-shfmt -i 2 -d scripts/*.sh zshrc_fragment.sh
-mix format --check-formatted scripts/*.exs
-'''
+# Each step finishes before the next starts; only the first is a shared task.
+run = [
+  { task = "secrets:scan" },
+  "lychee --cache .",
+  "rumdl check",
+  "claude plugin validate .claude/skills",
+  # Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
+  # rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
+  # and `sh` — which is what runs this — has no recursive glob to match that.
+  "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
+  "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
+  "mix format --check-formatted scripts/*.exs",
+]
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
@@ -45,7 +61,8 @@ run = "rumdl check --fix"
 
 [tasks.format-sh]
 description = "Format shell scripts"
-run = "shfmt -i 2 -w scripts/*.sh"
+# The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
+run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"

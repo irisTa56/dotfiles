@@ -36,6 +36,12 @@ mise run setup:dotfiles
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
 
+## Shared mise Tasks
+
+`tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, and a check that a consumer's pinned copy of these tasks is the current one.
+This repository runs the first of them in its own `pre-commit`, the same way a consumer would.
+[tasks/README.md](tasks/README.md) is where a repository taking them starts, and where the constraints on writing another are stated.
+
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
