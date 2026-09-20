@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:scan`, which gates a commit here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:scan` and `secrets:push-scan`, which gate a commit and a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -37,6 +37,22 @@ That link is pinned to a release for the same reason the `ref` is: on `main` it 
 
 It reads the staged diff, so it belongs in a pre-commit hook.
 A plain checkout stages nothing and it passes having scanned nothing, which is not a CI gate.
+
+### `secrets:push-scan`
+
+It runs trufflehog over the commits a push is about to send on a branch, and fails the push on a hit.
+`secrets:scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns), which covers provider tokens rather than the generic patterns such a credential falls under.
+
+It reads the pushed refs from stdin and takes the remote's name from its first argument, so a pre-push hook is the only caller it works for.
+mise writes one, resolving the shared hooks directory from a linked worktree as well:
+
+```shell
+mise generate git-pre-commit --hook pre-push --task secrets:push-scan --write
+```
+
+Which repositories are scanned is which repositories have that hook, so there is no list of them to keep anywhere.
+The command moves an existing `pre-push` aside as `pre-push.old`, so where another tool manages the hooks, have that tool run `mise run secrets:push-scan` instead.
+A push from an environment with no mise on PATH, an editor's Git UI say, fails on the hook rather than going out unscanned.
 
 ### `shared-tasks:check`
 
