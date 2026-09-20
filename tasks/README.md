@@ -38,11 +38,11 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 It says whether the tasks a pin brought in are the ones on `main`.
 It answers for those tasks rather than for the commit carrying them, because `main` moves for reasons that never reach them.
 It exits 1 when they differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
-It exits 2 when it could not tell instead — no `MISE_TASK_DIR`, tasks that came from no clone or from another repository's, or an unreachable remote — and says which of those it was.
+It exits 2 when it could not tell instead — no `MISE_TASK_DIR`, tasks that came from no repository, or an unreachable remote — and says which of those it was.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-Of the four conditions behind exit 2 only the unreachable remote clears on a retry; the other three stand until someone fixes the include.
+Of the three conditions behind exit 2 only the unreachable remote clears on a retry; the other two stand until someone fixes the include.
 
 ## Writing one
 

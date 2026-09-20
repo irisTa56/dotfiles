@@ -17,27 +17,16 @@ if [ -z "$tasks_dir" ]; then
   exit 2
 fi
 
-# Establish that the tasks came from a clone of this repository before reading a commit
-# out of it. git walks up from $tasks_dir to whatever repository encloses it, so a copy
-# vendored into some other repository would otherwise report that repository's HEAD as a
-# dotfiles commit.
-# git's own line prints above this one, as it does for the fetch below. `get-url` fails for
-# more than a missing remote — a repository git declines to open, a config it cannot read —
-# and swallowing its stderr would leave this line naming a cause it has not established.
-if ! origin=$(git -C "$tasks_dir" remote get-url origin); then
-  echo "[fail] could not read an 'origin' remote for $tasks_dir" >&2
-  exit 2
-fi
-# mise clones a `git::` include with the URL exactly as the include spells it, so the same
-# repository arrives as https://…, as ssh://git@… , or scp-style as git@…: — and a clone of
-# this repository made by hand carries whichever of those its owner used. Comparing on host
-# and path covers those three. A URL carrying a port or credentials does not normalize, and
-# is reported below as another repository.
-normalize_remote() {
-  printf '%s' "$1" | sed -e 's|^[a-zA-Z+]*://||' -e 's|^[^/:]*@||' -e 's|:|/|' -e 's|\.git$||'
-}
-if [ "$(normalize_remote "$origin")" != "$(normalize_remote "$remote_url")" ]; then
-  echo "[fail] the shared tasks came from $origin, not $remote_url" >&2
+# Which repository this is, git answers; whether it is this one, it does not have to. A
+# `git::` include is a clone mise made from the URL in the include, and a clone made by hand
+# is one its owner chose. Files copied out of here into some other repository would compare
+# that repository's commits against ours and report a difference, which is the answer a
+# divergence deserves.
+# git's own line prints above this one, as it does for the fetch below: `rev-parse` fails
+# for a directory in no repository, one git declines to open, a config it cannot read, and
+# swallowing its stderr would leave this line naming a cause it has not established.
+if ! clone_root=$(git -C "$tasks_dir" rev-parse --show-toplevel); then
+  echo "[fail] could not read a repository at $tasks_dir" >&2
   exit 2
 fi
 
@@ -47,7 +36,6 @@ fi
 # merely sits inside a consuming repository — a submodule, or one under vendor/ — is still
 # checked rather than being read as that repository's own working tree.
 project_root="${MISE_PROJECT_ROOT:-}"
-clone_root=$(git -C "$tasks_dir" rev-parse --show-toplevel)
 if [ -n "$project_root" ] && [ "$clone_root" = "$(cd "$project_root" && pwd -P)" ]; then
   echo "[ok] the shared tasks come from this repository's working tree; there is no pin to check"
   exit 0
