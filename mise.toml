@@ -57,7 +57,7 @@ run = "scripts/setup_dotfiles.sh"
 
 [tasks."sh:format"]
 description = "Format shell scripts"
-# The same files pre-commit checks, so running this leaves nothing for the hook to reject.
+# The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
 run = [
   "shfmt -i 2 -w scripts/*.sh zshrc_fragment.sh",
   "find tasks -type f -perm -u+x -exec shfmt -i 2 -w {} +",

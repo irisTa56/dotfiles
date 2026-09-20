@@ -3,9 +3,8 @@
 #
 # Why a consumer pins a commit rather than a branch, and what each exit code means, is in
 # the repository README under "Shared mise Tasks". What this script adds is how it answers:
-# the task directory mise reports in the environment variable read below
-# is this directory wherever the task was loaded from, so for a consumer it sits inside
-# mise's cached clone, and the commit in use is readable straight from it.
+# $MISE_TASK_DIR is this directory wherever the task was loaded from, so for a consumer it
+# sits inside mise's cached clone, and the commit in use is readable straight from it.
 #
 # Exit codes: 0 nothing to act on, 1 the shared tasks differ from main, 2 it could not tell.
 set -euo pipefail
@@ -63,10 +62,10 @@ latest=$(git -C "$tasks_dir" rev-parse FETCH_HEAD)
 
 # The library is the clone's `tasks`, named from its root. A pathspec relative to
 # "$tasks_dir" would instead name the directory holding this file, so the check would
-# compare itself against itself and stay quiet when any other shared task moves. The
-# markdown there is for whoever adds a task, not for a consumer to run, so a consumer is
-# not asked to bump a pin over it.
-if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks ':(exclude)*.md'; then
+# compare itself against itself and stay quiet when any other shared task moves. Only
+# tasks/README.md is left out, and by name rather than by extension: it is for whoever adds
+# a task and a consumer never runs it, while anything else a task reads is theirs to run.
+if git -C "$clone_root" diff --quiet "$in_use" "$latest" -- tasks ':(exclude)tasks/README.md'; then
   echo "[ok] the shared tasks match dotfiles main ($latest)"
   exit 0
 fi
