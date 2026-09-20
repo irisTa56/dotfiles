@@ -21,8 +21,11 @@ fi
 # out of it. git walks up from $tasks_dir to whatever repository encloses it, so a copy
 # vendored into some other repository would otherwise report that repository's HEAD as a
 # dotfiles commit.
-if ! origin=$(git -C "$tasks_dir" remote get-url origin 2>/dev/null); then
-  echo "[fail] $tasks_dir is not inside a git clone with an 'origin' remote" >&2
+# git's own line prints above this one, as it does for the fetch below. `get-url` fails for
+# more than a missing remote — a repository git declines to open, a config it cannot read —
+# and swallowing its stderr would leave this line naming a cause it has not established.
+if ! origin=$(git -C "$tasks_dir" remote get-url origin); then
+  echo "[fail] could not read an 'origin' remote for $tasks_dir" >&2
   exit 2
 fi
 # mise clones a `git::` include with the URL exactly as the include spells it, so the same
