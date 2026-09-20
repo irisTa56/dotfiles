@@ -29,13 +29,17 @@ if ! origin=$(git -C "$tasks_dir" remote get-url origin 2>/dev/null); then
   echo "[fail] $tasks_dir is not inside a git clone with an 'origin' remote" >&2
   exit 2
 fi
-case "$origin" in
-"$remote_url" | "${remote_url%.git}" | "git@github.com:irisTa56/dotfiles.git") ;;
-*)
+# mise clones a `git::` include with the URL exactly as the include spells it, so the same
+# repository arrives as https://…, as ssh://git@… , or scp-style as git@…: — and a clone of
+# this repository made by hand carries whichever of those its owner used. Compare on host
+# and path so every spelling of this repository passes and another repository still fails.
+normalize_remote() {
+  printf '%s' "$1" | sed -e 's|^[a-zA-Z+]*://||' -e 's|^[^/:]*@||' -e 's|:|/|' -e 's|\.git$||'
+}
+if [ "$(normalize_remote "$origin")" != "$(normalize_remote "$remote_url")" ]; then
   echo "[fail] the shared tasks came from $origin, not $remote_url" >&2
   exit 2
-  ;;
-esac
+fi
 
 # dotfiles itself loads these tasks from its own working tree through a local path, which
 # carries no `?ref=` to compare or to bump. Its HEAD differs from main on every branch.

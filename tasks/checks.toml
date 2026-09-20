@@ -3,8 +3,8 @@
 # no `[tasks.…]` prefix. Schema: https://mise.jdx.dev/schema/mise-task.json
 #
 # A task that needs a tool mise can install declares it, so a consuming repository needs
-# no `[tools]` entry of its own. Beyond that the library assumes only git and a POSIX
-# shell, which is what shared-tasks.toml's task runs on.
+# no `[tools]` entry of its own. A task that needs nothing but git and bash declares
+# nothing, as shared-tasks.toml's does.
 #
 # Paths in `run`, and a relative `file = "…"`, resolve against the CONSUMING repository's
 # root, so they cannot reach a file of this repository's. A helper script belongs in the

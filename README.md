@@ -40,7 +40,7 @@ mise run setup:dotfiles
 
 `tasks/` holds the checks this repository runs on itself and lends to others.
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-Beyond that the library assumes git and a POSIX shell.
+Beyond that the library assumes git and bash.
 
 ```toml
 # mise.toml, in the consuming repository
