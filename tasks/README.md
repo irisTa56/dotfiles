@@ -21,7 +21,8 @@ mise marks a `git::` include experimental, so the syntax and the caching below c
 Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
 Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task under a directory listed after this include.
 Do not declare an inline `[tasks.<name>]` of the same name.
-mise does not merge one with the shared file task: it keeps that under `<name>.sh` and gives the bare name to the declaration.
+mise [overlays such a declaration on a file task of that name](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes), but a file task here is not of that name: its filename ends in `.sh`, which is what the shellcheck and `shfmt` `find` in `mise.toml` selects on, and mise [keeps the extension in the task's name](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4934-L4935), dropping it only for display.
+So the declaration [matches no file task and becomes a task of its own](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4848-L4898) under the bare name, which `mise run <name>` [resolves to ahead of the extension-stripped match](https://github.com/jdx/mise/blob/v2026.9.11/src/task/mod.rs#L3816-L3821), leaving the shared task reachable only as `<name>.sh`.
 One carrying `run` then runs instead of the shared task, and one carrying only a `description` or a `dir` runs nothing at all and exits 0.
 One carrying only `depends` runs its dependencies, reports finishing and exits 0 without ever reaching the shared task, which reads as a pass.
 `mise tasks ls` shows both names, so checking there confirms the mistake rather than exposing it.
