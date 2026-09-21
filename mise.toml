@@ -16,15 +16,20 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # missing zshrc_fragment.sh, which pre-commit had always checked.
 sh_paths = "scripts tasks zshrc_fragment.sh .claude/skills/sync-base/scripts"
 
-# Each hook is written once and then left alone: `mise generate` moves an existing
-# one aside as `<name>.old`, so rewriting on every install would displace whatever
-# else had put a hook there and leave a copy of it behind each time.
+# The pre-commit hook is written once and then left alone: `mise generate` moves an
+# existing one aside as `<name>.old`, so rewriting on every install would displace
+# whatever else had put a hook there and leave a copy of it behind each time.
+# The push scan is registered in git's config instead, which runs beside any
+# pre-push hook file and is safe to set on every install (see tasks/README.md).
+# git before 2.54 ignores those keys, so the last line says so rather than
+# leaving pushes unscanned in silence.
 [hooks]
 postinstall = '''
 hook="$(git rev-parse --git-path hooks/pre-commit)"
 test -f "$hook" || mise generate git-pre-commit --task pre-commit --write
-hook="$(git rev-parse --git-path hooks/pre-push)"
-test -f "$hook" || mise generate git-pre-commit --hook pre-push --task secrets:push-scan --write
+git config hook.secrets-push-scan.event pre-push
+git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
+git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning: this git ignores hook.* config, so pushes are not scanned; git 2.54 or later runs it" >&2
 '''
 
 # tasks/ holds the task definitions this repository shares with others (see README).
