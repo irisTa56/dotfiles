@@ -9,11 +9,11 @@
 !/.claude/skills/orchestrate-handoff/
 !/.claude/skills/page-reader/
 !/.claude/skills/pdf-figure-extractor/
-!/.claude/skills/post-merge-continue/
 !/.claude/skills/pr-description/
 !/.claude/skills/raise-findings/
 !/.claude/skills/review-loop/
 !/.claude/skills/support-pr-review/
+!/.claude/skills/sync-base/
 
 # APM dependencies
 apm_modules/
