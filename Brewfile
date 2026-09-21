@@ -46,8 +46,6 @@ brew "mkcert"
 brew "pandoc"
 # PDF rendering library (based on the xpdf-3.0 code base)
 brew "poppler"
-# Rsync for cloud storage
-brew "rclone"
 # CLI proxy to minimize LLM token consumption
 brew "rtk"
 # SOcket CAT: netcat on steroids
