@@ -32,9 +32,10 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
 
   # The whole branch is walked. `--since-commit` would bound that, but it cuts the
   # walk by committer date while a push is a set defined by ancestry, and no base is
-  # reliably older than everything being sent — a rebase that keeps author dates
-  # leaves a commit dated before its parent, behind any base that looked safe. The
-  # set above is what the answer rests on instead, through the filter below.
+  # reliably older than everything being sent: `rebase --committer-date-is-author-date`
+  # or a committer clock running behind leaves a commit dated before its parent,
+  # behind any base that looked safe. The set above is what the answer rests on
+  # instead, through the filter below.
   #
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
