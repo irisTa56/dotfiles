@@ -43,24 +43,30 @@ if [ "$clone_root" = "$(cd "$project_root" && pwd -P)" ]; then
 fi
 
 in_use=$(git -C "$tasks_dir" rev-parse HEAD)
+in_use_tree=$(git -C "$tasks_dir" rev-parse HEAD:tasks)
 
-# The commit, not what it carries. Comparing the `tasks` directory instead would keep a
-# consumer quiet through a commit that leaves it alone, which is most of them — but it
-# would also decide for them which changes here are worth a pin bump, and the answer to
-# that is every one: bumping is a line, and it is what keeps their copy of the
-# instructions current as well as their copy of the tasks.
-# pipefail carries a git failure past cut.
-if ! latest=$(git ls-remote "$remote_url" refs/heads/main | cut -f1) || [ -z "$latest" ]; then
-  echo "[fail] could not read refs/heads/main from $remote_url" >&2
+# What the commit carries under `tasks`, not the commit: most commits to main leave it
+# alone, and a check that fails on every one of them gets ignored. The README a consumer
+# follows sits under `tasks` too, so a change to it still asks for a bump.
+# `ls-remote` gives main's commit but not its tree, so fetch main's tip alone, trees
+# without blobs, into a throwaway repository; fetching into mise's cached clone instead
+# would change a directory mise owns.
+scratch=$(mktemp -d)
+trap 'rm -rf "$scratch"' EXIT
+git -C "$scratch" init -q
+if ! git -C "$scratch" fetch -q --depth=1 --filter=blob:none "$remote_url" refs/heads/main ||
+  ! latest=$(git -C "$scratch" rev-parse FETCH_HEAD) ||
+  ! latest_tree=$(git -C "$scratch" rev-parse FETCH_HEAD:tasks); then
+  echo "[fail] could not read the tasks tree of refs/heads/main from $remote_url" >&2
   exit 2
 fi
 
-if [ "$in_use" = "$latest" ]; then
-  echo "[ok] the shared tasks are at dotfiles main ($in_use)"
+if [ "$in_use_tree" = "$latest_tree" ]; then
+  echo "[ok] the pinned tasks match dotfiles main ($latest)"
   exit 0
 fi
 
-echo "[fail] the pin is not dotfiles main" >&2
+echo "[fail] the pinned tasks differ from dotfiles main" >&2
 echo "[fail] in use: $in_use" >&2
 echo "[fail] main:   $latest" >&2
 exit 1

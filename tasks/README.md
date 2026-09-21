@@ -71,10 +71,11 @@ A push from an environment with no mise on PATH, an editor's Git UI say, fails o
 
 ### `shared-tasks:check`
 
-It says whether the pin is the tip of `main`.
-It answers for the commit rather than for what the commit changed, so a `main` that moved without touching these tasks still asks for a bump — which is one line, and which keeps a consumer's copy of these instructions current as well as their copy of the tasks.
-It exits 1 when the two differ and names both, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
-It exits 2 when it could not tell instead — run outside mise, tasks that are not in a repository git will read, or a remote it could not read `refs/heads/main` from — and says which of those it was.
+It says whether the pin carries the same `tasks/` as the tip of `main`.
+It answers for what the commits carry under `tasks/` rather than for the commits, so a `main` that moved without touching this directory, which is most of its commits, asks for no bump, while one that changed these instructions does, since they sit under `tasks/` too.
+It exits 1 when the two differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
+It exits 2 when it could not tell instead — run outside mise, tasks that are not in a repository git will read, or a remote it could not read `tasks/` on `refs/heads/main` from — and says which of those it was.
+It does not tell whether the pin is a commit on `main`: one that no branch reaches but carries the same `tasks/` passes, and fails only once the cache is cold, as [the pinning rule above](#taking-them) warns.
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
