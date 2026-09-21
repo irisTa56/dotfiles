@@ -21,7 +21,7 @@ trap 'rm -f "$log"' EXIT
 status=0
 
 # <local ref> <local sha> <remote ref> <remote sha>
-while read -r local_ref local_sha _remote_ref _remote_sha; do
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
   # A deletion arrives as `(delete)` with an all-zero local sha, and adds nothing.
   [[ "$local_sha" =~ [^0] ]] || continue
 
@@ -30,12 +30,17 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   new="$(git rev-list "$local_sha" --not --remotes="$remote")"
   [ -n "$new" ] || continue
 
-  # The whole branch is walked. `--since-commit` would bound that, but it cuts the
-  # walk by committer date while a push is a set defined by ancestry, and no base is
-  # reliably older than everything being sent: `rebase --committer-date-is-author-date`
-  # or a committer clock running behind leaves a commit dated before its parent,
-  # behind any base that looked safe. The set above is what the answer rests on
-  # instead, through the filter below.
+  # The commit git is pushing, peeled so an annotated tag gives its commit. The walk
+  # starts here rather than at the ref's name, which trufflehog would resolve again
+  # in its own clone, where a tag of the same name wins over the branch.
+  tip="$(git rev-parse "$local_sha^{commit}")"
+
+  # Everything behind it is walked. `--since-commit` would bound that, but it cuts
+  # the walk by committer date while a push is a set defined by ancestry, and no
+  # base is reliably older than everything being sent: `rebase
+  # --committer-date-is-author-date` or a committer clock running behind leaves a
+  # commit dated before its parent, behind any base that looked safe. The set above
+  # is what the answer rests on instead, through the filter below.
   #
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
@@ -47,7 +52,7 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   # below lets through. Its log is held back and printed when the scan itself
   # failed, which is the one time it says something this cannot.
   if ! hits="$(trufflehog git "$repo" \
-    --branch "${local_ref#refs/heads/}" \
+    --branch "$tip" \
     --json --no-verification --fail-on-scan-errors --no-update 2>"$log" |
     jq -r --arg new "$new" '
       ($new | split("\n")) as $sending
