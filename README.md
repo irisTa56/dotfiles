@@ -39,7 +39,7 @@ mise run setup:dotfiles
 ## Shared mise Tasks
 
 `tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, a trufflehog scan of the commits a push would send, and a check that a consumer's pinned copy of these tasks is the current one.
-This repository runs the two scans itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` writes.
+This repository runs the two scans itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` sets up.
 [tasks/README.md](tasks/README.md) is where a repository taking them starts, and where the constraints on writing another are stated.
 
 ## Agent Instructions

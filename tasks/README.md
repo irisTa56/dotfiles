@@ -56,9 +56,18 @@ mise generate git-pre-commit --hook pre-push --task secrets:push-scan --write
 Which repositories are scanned is which repositories have that hook, so there is no list of them to keep anywhere.
 Every branch and worktree of the repository shares the hook, which runs whichever `secrets:push-scan` mise finds from the pushing checkout.
 One whose own tasks predate it (an older pin in a consumer, an older `tasks/` here) runs the copy of any checkout it sits inside, and otherwise fails with mise's `no task secrets:push-scan found` until it brings in a default branch that has the task.
-The command moves an existing `pre-push` aside as `pre-push.old`.
-Where another tool manages that hook, the least that can go wrong is to hand it back to this command; a tool kept in charge of it has to pass git's first argument and forward git's stdin, and only the missing argument stops the task, since a run with no ref lines is what an up-to-date push also looks like.
-A push from an environment with no mise on PATH, an editor's Git UI say, fails on the hook rather than going out unscanned.
+The command moves an existing `pre-push` aside as `pre-push.old`, so where another tool owns that hook, it stops the tool's hook from running, and a tool that chains to a moved-aside hook may do so only if the file was there when it wrote its own, leaving pushes unscanned with nothing printed.
+There, register the task as a hook in git's config instead, which leaves the hook file alone:
+
+```shell
+git config hook.secrets-push-scan.event pre-push
+git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
+```
+
+git runs it before the file under the hooks directory, with the same arguments and stdin, and refuses the push when it fails.
+Running it again changes nothing, and it lands in the config every worktree shares.
+It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
+A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
 
 ### `shared-tasks:check`
 
