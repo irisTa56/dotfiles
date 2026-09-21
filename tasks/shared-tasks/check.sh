@@ -18,6 +18,11 @@ if [ -z "$tasks_dir" ] || [ -z "$project_root" ]; then
   exit 2
 fi
 
+# A git hook runs with GIT_DIR and its kin exported, which would point every `git -C` below,
+# the scratch fetch included, at the repository the hook runs for.
+# shellcheck disable=SC2046 # the names are one per line and need splitting
+unset $(git rev-parse --local-env-vars)
+
 # Which repository this is, git answers; whether it is this one, it does not have to. A
 # `git::` include is a clone mise made from the URL in the include, and a clone made by hand
 # is one its owner chose. Files copied out of here into a repository's own tree are
