@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:scan` and `secrets:push-scan`, which gate a commit and a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan` and `secrets:push-scan`, which gate a commit and a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -33,7 +33,7 @@ mise [keys its clone cache on the repository URL and the ref alone, and reuses a
 It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
-### `secrets:scan`
+### `secrets:commit-scan`
 
 It reads the staged diff, so it belongs in a pre-commit hook.
 A plain checkout stages nothing and it passes having scanned nothing, which is not a CI gate.
@@ -42,7 +42,7 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 
 It runs trufflehog over the commits a push is about to send, and fails the push on a hit.
 trufflehog walks the ref's whole history and the task answers for the part of it the push would send, so the wait scales with the repository rather than with the push: a second or so over a few hundred commits, four over ten thousand.
-`secrets:scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns) as it comes: by default it covers provider tokens, the generic connection-string patterns only once configured, and a URL carrying `user:pass@` under no pattern at all.
+`secrets:commit-scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns) as it comes: by default it covers provider tokens, the generic connection-string patterns only once configured, and a URL carrying `user:pass@` under no pattern at all.
 What trufflehog closes of that gap is neither a class of credential nor the [detectors it ships](https://github.com/trufflesecurity/trufflehog/tree/v3.97.5/pkg/detectors): on 3.97.5, `mssql://user:pass@host` goes unreported although a `sqlserver` detector is there, while the same credential written as `Server=…;Password=…;` is reported.
 So a push this passes is not an assurance that some particular form was looked for, and committing that form to a scratch repository and running trufflehog over it is what answers whether it would be.
 
@@ -72,7 +72,7 @@ Give it a CI step of its own and fail the build on anything but 0, so a failure 
 
 ## Writing one
 
-Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/scan.sh` is the task `secrets:scan`.
+Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan`.
 Name it that way or the linting below never sees it, and mise will load it all the same.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
@@ -89,4 +89,4 @@ Neither mistake shows up in this repository's own `mise run pre-commit`: it runs
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
-It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
+It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.

@@ -9,12 +9,12 @@ set -euo pipefail
 # be told apart from an up-to-date push, which git runs this for with an empty
 # stdin, so it scans nothing and passes.
 #
-# secrets:scan gates each commit with gitleaks. This is the second pass its default
+# secrets:commit-scan gates each commit with gitleaks. This is the second pass its default
 # rules do not give, paid once per push rather than once per commit. What it reaches
 # is answered in tasks/README.md and is not summarisable here.
 remote="$1"
 
-# The repository, not the working directory, for the reason secrets:scan gives.
+# The repository, not the working directory, for the reason secrets:commit-scan gives.
 repo="file://$(git rev-parse --show-toplevel)"
 log="$(mktemp)"
 trap 'rm -f "$log"' EXIT

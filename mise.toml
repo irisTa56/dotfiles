@@ -40,7 +40,7 @@ description = "Run pre-commit checks"
 # caches a failure. link-check leaves the cache off and requests every link.
 # Each step finishes before the next starts; only the first is a shared task.
 run = [
-  { task = "secrets:scan" },
+  { task = "secrets:commit-scan" },
   "lychee --cache .",
   "rumdl check",
   "claude plugin validate .claude/skills",
