@@ -18,9 +18,10 @@ branch="${branch#origin/}"
 holder=$(git worktree list --porcelain |
   awk -v ref="branch refs/heads/$branch" '/^worktree /{p=substr($0,10)} $0==ref{print p}')
 
-if [[ -n "$holder" && "$(git branch --show-current)" != "$branch" ]]; then
+current=$(git branch --show-current)
+if [[ -n "$holder" && "$current" != "$branch" ]]; then
   git -C "$holder" merge --ff-only "origin/$branch"
-  echo "Fast-forwarded $branch in $holder; this checkout stays on $(git branch --show-current)." >&2
+  echo "Fast-forwarded $branch in $holder; this checkout stays on ${current:-a detached HEAD}." >&2
 else
   git switch "$branch"
   git merge --ff-only "origin/$branch"
