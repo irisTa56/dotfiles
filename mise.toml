@@ -16,10 +16,15 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # missing zshrc_fragment.sh, which pre-commit had always checked.
 sh_paths = "scripts tasks zshrc_fragment.sh"
 
+# Each hook is written once and then left alone: `mise generate` moves an existing
+# one aside as `<name>.old`, so rewriting on every install would displace whatever
+# else had put a hook there and leave a copy of it behind each time.
 [hooks]
 postinstall = '''
 hook="$(git rev-parse --git-path hooks/pre-commit)"
-test -f "$hook" || { printf '#!/bin/sh\nmise run pre-commit\n' > "$hook" && chmod +x "$hook"; }
+test -f "$hook" || mise generate git-pre-commit --task pre-commit --write
+hook="$(git rev-parse --git-path hooks/pre-push)"
+test -f "$hook" || mise generate git-pre-commit --hook pre-push --task secrets:push-scan --write
 '''
 
 # tasks/ holds the task definitions this repository shares with others (see README).
