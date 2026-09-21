@@ -51,9 +51,15 @@ in_use_tree=$(git -C "$tasks_dir" rev-parse HEAD:tasks)
 # `ls-remote` gives main's commit but not its tree, so fetch main's tip alone, trees
 # without blobs, into a throwaway repository; fetching into mise's cached clone instead
 # would change a directory mise owns.
-scratch=$(mktemp -d)
+if ! scratch=$(mktemp -d); then
+  echo "[fail] could not create a scratch directory" >&2
+  exit 2
+fi
 trap 'rm -rf "$scratch"' EXIT
-git -C "$scratch" init -q
+if ! git -C "$scratch" init -q; then
+  echo "[fail] could not create a scratch repository at $scratch" >&2
+  exit 2
+fi
 if ! git -C "$scratch" fetch -q --depth=1 --filter=blob:none "$remote_url" refs/heads/main ||
   ! latest=$(git -C "$scratch" rev-parse FETCH_HEAD) ||
   ! latest_tree=$(git -C "$scratch" rev-parse FETCH_HEAD:tasks); then
