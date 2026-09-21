@@ -19,7 +19,8 @@ includes = [
 
 mise marks a `git::` include experimental, so the syntax and the caching below carry no compatibility promise and a consumer wired to several of these is worth keeping an eye on mise's releases for.
 Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
-Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task under a directory listed after this include.
+Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task, named `<name>.sh` as well, under a directory listed after this include.
+An extensionless one is a task of another name, for the reason the inline declaration below is: it takes the bare name whatever the order, and the shared task stays runnable as `<name>.sh`.
 Do not declare an inline `[tasks.<name>]` of the same name.
 mise [overlays such a declaration on a file task of that name](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes), but a file task here is not of that name: its filename ends in `.sh`, which is what the shellcheck and `shfmt` `find` in `mise.toml` selects on, and mise [keeps the extension in the task's name](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4934-L4935), dropping it only for display.
 So the declaration [matches no file task and becomes a task of its own](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4848-L4898) under the bare name, which `mise run <name>` [resolves to ahead of the extension-stripped match](https://github.com/jdx/mise/blob/v2026.9.11/src/task/mod.rs#L3816-L3821), leaving the shared task reachable only as `<name>.sh`.
@@ -83,7 +84,7 @@ Give it a CI step of its own and fail the build on anything but 0, so a failure 
 
 ## Writing one
 
-Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan`.
+Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan.sh`, which `mise run secrets:commit-scan` reaches as well.
 Name it that way or the linting below never sees it, and mise will load it all the same.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
