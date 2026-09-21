@@ -16,7 +16,7 @@ The last two both go to the user, and "Waiting on the user" governs both.
 
 The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
 It lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
-The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent, which is refused writes under the common git dir, can still write it.
+The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
 
 It has two sections, and the headings are bookkeeping that stays in the file:
 
