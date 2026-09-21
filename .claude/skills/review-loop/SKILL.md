@@ -128,7 +128,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A valid finding is not fixed for its own sake where the use the change is built for makes it excessive; that judgement is yours.
   - Name in the round's message every finding you floored and the use you weighed it against, so the user can say otherwise.
-  - Weigh it against the use the background states; where nothing states one, the question is whether the situation arises, which "Waiting on the user" keeps out of your hands.
+  - Weigh it against the use the background states, asking first whether the condition the finding names arises in that use; the change's own text describing the condition is not evidence that it does, and where nothing the user said or the background states shows it, that question is not yours, as "Waiting on the user" says.
   - A finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
   - Nothing floors a finding proposing a removal, or one against the background: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
