@@ -40,7 +40,8 @@ A plain checkout stages nothing and it passes having scanned nothing, which is n
 
 ### `secrets:push-scan`
 
-It runs trufflehog over the commits a push is about to send on a branch, and fails the push on a hit.
+It runs trufflehog over the commits a push is about to send, and fails the push on a hit.
+trufflehog walks the ref's whole history and the task answers for the part of it the push would send, so the wait scales with the repository rather than with the push: a second or so over a few hundred commits, four over ten thousand.
 `secrets:scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns), which covers provider tokens rather than the generic patterns such a credential falls under.
 What trufflehog closes of that gap is neither a class of credential nor the [detectors it ships](https://github.com/trufflesecurity/trufflehog/tree/main/pkg/detectors): `mssql://user:pass@host` goes unreported although a `sqlserver` detector is there, while the same credential written as `Server=…;Password=…;` is reported.
 So a push this passes is not an assurance that some particular form was looked for, and committing that form to a scratch repository and running trufflehog over it is what answers whether it would be.

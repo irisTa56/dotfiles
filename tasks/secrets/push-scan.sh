@@ -9,9 +9,9 @@ set -euo pipefail
 # be told apart from an up-to-date push, which git runs this for with an empty
 # stdin, so it scans nothing and passes.
 #
-# secrets:scan gates each commit with gitleaks. This is for the credentials
-# trufflehog has a detector for and gitleaks' default rules do not, and it is paid
-# once per push rather than once per commit.
+# secrets:scan gates each commit with gitleaks. This is the second pass its default
+# rules do not give, paid once per push rather than once per commit. What it reaches
+# is answered in tasks/README.md and is not summarisable here.
 remote="$1"
 
 # The repository, not the working directory, for the reason secrets:scan gives.
@@ -25,38 +25,28 @@ while read -r local_ref local_sha _remote_ref _remote_sha; do
   # A deletion arrives as `(delete)` with an all-zero local sha, and adds nothing.
   [[ "$local_sha" =~ [^0] ]] || continue
 
-  # What this ref would send, oldest by date first. Nothing means the remote holds
-  # all of it already, and scanning would answer for what it already has.
-  new="$(git rev-list --date-order --reverse "$local_sha" --not --remotes="$remote")"
+  # What this ref would send. Nothing means the remote holds all of it already, and
+  # scanning would answer for what it already has.
+  new="$(git rev-list "$local_sha" --not --remotes="$remote")"
   [ -n "$new" ] || continue
 
-  # trufflehog stops at `--since-commit` by commit date rather than by ancestry, so
-  # a base holds the set only while it is older than the oldest of them. The parent
-  # of that one usually is, and is checked rather than assumed, since a committer
-  # date that falls along a parent edge would leave its own child out of the range.
-  # Where it does, and where an orphan branch or a remote with no history leaves no
-  # parent at all, the whole branch is the range instead. Either way this bounds the
-  # walk rather than answering it: the range still reaches commits the remote has,
-  # which is what the filter below drops.
-  oldest="$(printf '%s\n' "$new" | sed -n '1p')"
-  since=()
-  if base="$(git rev-parse --verify --quiet "$oldest^")" &&
-    [ "$(git log -1 --format=%ct "$base")" -lt "$(git log -1 --format=%ct "$oldest")" ]; then
-    since=(--since-commit "$base")
-  fi
-
+  # The whole branch is walked. `--since-commit` would bound that, but it cuts the
+  # walk by committer date while a push is a set defined by ancestry, and no base is
+  # reliably older than everything being sent — a rebase that keeps author dates
+  # leaves a commit dated before its parent, behind any base that looked safe. The
+  # set above is what the answer rests on instead, through the filter below.
+  #
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
   # this machine's repositories do. Verification stays off so a push never sends a
   # candidate to its provider.
   #
   # What reaches the terminal is this task's own report and not trufflehog's, which
-  # counts every hit in the range and so would announce a secret on a push the
-  # filter above lets through. Its log is held back and printed when the scan
-  # itself failed, which is the one time it says something this cannot.
+  # counts every hit it walked and so would announce a secret on a push the filter
+  # below lets through. Its log is held back and printed when the scan itself
+  # failed, which is the one time it says something this cannot.
   if ! hits="$(trufflehog git "$repo" \
     --branch "${local_ref#refs/heads/}" \
-    ${since[@]+"${since[@]}"} \
     --json --no-verification --fail-on-scan-errors --no-update 2>"$log" |
     jq -r --arg new "$new" '
       ($new | split("\n")) as $sending
