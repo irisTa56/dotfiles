@@ -1,7 +1,5 @@
 # Automatic configure script builder
 brew "autoconf"
-# Cross-platform make
-brew "cmake"
 # Container runtimes on MacOS (and Linux) with minimal setup
 brew "colima"
 # GNU File, Shell, and Text utilities
@@ -20,40 +18,24 @@ brew "ffmpeg@7", link: true
 brew "findutils"
 # GNU awk utility
 brew "gawk"
-# GitHub command-line tool
-brew "gh"
-# Git extension for versioning large files
-brew "git-lfs"
 # GNU implementation of the famous stream editor
 brew "gnu-sed"
 # GNU version of the tar archiving utility
 brew "gnu-tar"
 # CLI for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more
 brew "googleworkspace-cli"
-# Ping, but with a graph
-brew "gping"
 # Graph visualization software from AT&T and Bell Labs
 brew "graphviz"
 # GNU grep, egrep and fgrep
 brew "grep"
-# Lightweight and flexible command-line JSON processor
-brew "jq"
 # Polyglot runtime manager (asdf rust clone)
 brew "mise"
-# Simple tool to make locally trusted development certificates
-brew "mkcert"
-# Swiss-army knife of markup format conversion
-brew "pandoc"
 # PDF rendering library (based on the xpdf-3.0 code base)
 brew "poppler"
-# CLI proxy to minimize LLM token consumption
-brew "rtk"
 # SOcket CAT: netcat on steroids
 brew "socat"
 # Display directories as trees (with optional color/HTML output)
 brew "tree"
-# Extremely fast Python package installer and resolver, written in Rust
-brew "uv"
 # Anthropic's official Claude AI desktop app
 cask "claude"
 # OpenJDK distribution from Amazon
