@@ -192,6 +192,7 @@ The loop proposes that close and the user makes it.
 
 Where the round needs the user, everything it needs them for goes to them together, in one message.
 
+- **Inside a subagent that can message the session that spawned it**, send that session what the round puts to the user as the round ends, rather than leaving it for your result: the result reaches it only when the run ends, and the user only through it.
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
   - **Where none comes**, record the held state — what was put to them, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the held state as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
