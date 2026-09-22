@@ -29,6 +29,7 @@ Leave out everything else:
 
 - Who wrote the claims. A checker that knows they are the user's own tends to soften toward them, and one that knows they are yours tends to take them as settled.
 - The reasoning that led to them, and any earlier discussion of whether they hold. A reason handed over draws a verdict on the reason instead of on the claim.
+- Your own guess at how a claim turns out, and where to look for the answer. A hint names the verdict you expect, or the file, mechanism, or alternative you suspect settles it, and the checker then confirms your hunch instead of looking for itself.
 
 Spawn one subagent with the list and the instructions below, choosing the lowest-cost model that can read files, run commands, and consult documentation well enough to settle the claims.
 
@@ -46,6 +47,7 @@ A claim that something exists nowhere is settled by reading everything that coul
 
 A judgment — a recommendation, a scope or cost call — holds only if its grounds hold and nothing you can name weighs against it that those grounds do not answer.
 Check the grounds as you would any claim, and name what weighs against it: a cost it does not count, a cheaper option it passes over, a rule it runs against.
+Judge every claim on its own, even where another claim's failure seems to make it moot, since the author may keep it on other grounds.
 
 For a claim that holds, name the condition under which it stops holding only where the claim's own setting could reach that condition.
 Limits the setting cannot reach are unbounded in number, and listing them buries the ones that matter.
