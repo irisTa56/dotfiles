@@ -27,7 +27,7 @@ Write the target down as a numbered list of claims.
 - Beside each claim, give what it rests on as far as the conversation established it, such as a file and line, a command and what it returned, or a URL. Mark a claim that rests on nothing checked as resting on nothing.
 - State what the user reported as having happened, and what they decided, as the setting rather than as claims. The checker cannot reach either, so as claims they come back as cannot be settled and bury the verdicts that matter.
 
-Leave out everything else:
+Leave out everything else, including:
 
 - Who wrote the claims. A checker that knows they are the user's own tends to soften toward them, and one that knows they are yours tends to take them as settled.
 - The reasoning that led to them, and any earlier discussion of whether they hold. A reason handed over draws a verdict on the reason instead of on the claim.
