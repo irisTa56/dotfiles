@@ -67,7 +67,7 @@ Do not qualify a verdict to soften or harden it, and do not comment on the wordi
 
 ## Relay the result
 
-Put the verdicts to the user claim by claim, with the checker's verdict as it gave it beside the one you wrote down: lead with every claim either verdict judges failed, the ones where the two conflict first among them, and let the rest follow.
+Put the verdicts to the user claim by claim, with the checker's verdict as it gave it beside the one you wrote down: lead with the claims where the two conflict, then every other claim either judges failed, and let the rest follow.
 Two verdicts conflict where one holds and the other fails, or where the checker settles what you could not; a claim the checker could not settle because only the conversation holds the answer is not a conflict.
 
 - Where the two agree, give the verdict once with its evidence.
