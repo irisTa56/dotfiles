@@ -49,8 +49,8 @@ For each claim, return one of:
 
 Settle a claim from something checkable wherever you can reach it: read the file, run the command, read the tool's own documentation or source.
 Treat the evidence given beside a claim as a lead to check, not as proof.
-Change nothing while you check: run only what reads, and never what writes to the working tree or to an external system, such as a push, a gist edit, or an API call that modifies.
-Where only such a write could settle a claim, the claim cannot be settled; name the write that would settle it.
+Change nothing while you check: run only what reads, and never anything that writes, wherever it writes — a file anywhere on the machine, git state, or an external system, such as a push, a sync that overwrites local files, a gist edit, or an API call that modifies.
+Where only a write could settle a claim, the claim cannot be settled; name the write that would settle it.
 A claim that something exists nowhere is settled by reading everything that could hold it, not by a search that returns nothing.
 
 A judgment — a recommendation, a scope or cost call — holds only if its grounds hold and nothing you can name weighs against it that those grounds do not answer.
@@ -67,10 +67,11 @@ Do not qualify a verdict to soften or harden it, and do not comment on the wordi
 
 ## Relay the result
 
-Put the verdicts to the user claim by claim, with the checker's verdict as it gave it beside the one you wrote down: first the claims where the two differ, then those both judge failed, then the rest.
+Put the verdicts to the user claim by claim, with the checker's verdict as it gave it beside the one you wrote down: first the claims where the two conflict, then those both judge failed, then the rest.
+Two verdicts conflict where one holds and the other fails, or where the checker settles what you could not; a claim the checker could not settle because only the conversation holds the answer is not a conflict.
 
 - Where the two agree, give the verdict once with its evidence.
-- Where they differ, give both with their grounds and leave them unresolved. The difference is what the user most needs to look at, and your resolution of it would be the same context judging itself again.
+- Where they conflict, give both with their grounds and leave them unresolved. The conflict is what the user most needs to look at, and your resolution of it would be the same context judging itself again.
 - Where the checker could not settle a claim because only the conversation holds the answer, say so, and let your verdict stand as the context's view.
 - Keep the tone on the claims. A verdict is about a statement, not about the person who made it, and it needs neither praise nor reassurance around it.
 - Where both judge failed a claim that was a conclusion you gave earlier, say what the corrected conclusion is.
