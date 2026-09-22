@@ -36,7 +36,8 @@ Leave out everything else:
 Before spawning, write down your own verdict on each claim, in the same three terms the checker uses, from everything the conversation holds and anything you check now.
 Keep it out of the brief, and fix it before the checker's result arrives, so that result does not pull yours toward it.
 
-Spawn one subagent with the list and the instructions below, choosing the lowest-cost model that can read files, run commands, and consult documentation well enough to settle the claims.
+Spawn one subagent with the list and the instructions below.
+It runs commands on the user's machine, so choose the lowest-cost model that both settles the claims well and keeps to the read-only limit reliably, which means no smaller than Sonnet.
 
 ### What the checker is told
 
@@ -48,6 +49,8 @@ For each claim, return one of:
 
 Settle a claim from something checkable wherever you can reach it: read the file, run the command, read the tool's own documentation or source.
 Treat the evidence given beside a claim as a lead to check, not as proof.
+Change nothing while you check: run only what reads, and never what writes to the working tree or to an external system, such as a push, a gist edit, or an API call that modifies.
+Where only such a write could settle a claim, the claim cannot be settled; name the write that would settle it.
 A claim that something exists nowhere is settled by reading everything that could hold it, not by a search that returns nothing.
 
 A judgment — a recommendation, a scope or cost call — holds only if its grounds hold and nothing you can name weighs against it that those grounds do not answer.
