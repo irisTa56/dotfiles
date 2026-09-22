@@ -67,12 +67,12 @@ Do not qualify a verdict to soften or harden it, and do not comment on the wordi
 
 ## Relay the result
 
-Put the verdicts to the user claim by claim, failed claims first, with the checker's verdict as it gave it beside the one you wrote down.
+Put the verdicts to the user claim by claim, with the checker's verdict as it gave it beside the one you wrote down: first the claims where the two differ, then those both judge failed, then the rest.
 
 - Where the two agree, give the verdict once with its evidence.
 - Where they differ, give both with their grounds and leave them unresolved. The difference is what the user most needs to look at, and your resolution of it would be the same context judging itself again.
 - Where the checker could not settle a claim because only the conversation holds the answer, say so, and let your verdict stand as the context's view.
 - Keep the tone on the claims. A verdict is about a statement, not about the person who made it, and it needs neither praise nor reassurance around it.
-- Where a failed claim was a conclusion you gave earlier, say what the corrected conclusion is.
+- Where both judge failed a claim that was a conclusion you gave earlier, say what the corrected conclusion is.
 
 Edit nothing on the strength of the result; what to change is the user's decision.
