@@ -1,6 +1,6 @@
 ---
 name: cold-check
-description: Have a fresh subagent, which saw none of the conversation, test a set of claims — a conclusion reached in this conversation, or the user's own understanding or draft — claim by claim for whether each holds and where it stops holding.
+description: Have a fresh subagent, which saw none of the conversation, test a set of claims — a conclusion reached in this conversation, or the user's own understanding or draft — claim by claim for whether each holds and where it stops holding, and set its verdicts beside the ones the conversation's own context reaches.
 argument-hint: "What to check — omit for the last conclusion, or paste an understanding, a draft, or a path"
 disable-model-invocation: true
 ---
@@ -9,6 +9,7 @@ disable-model-invocation: true
 
 A claim checked in the context that produced it is checked with the same blind spot that produced it, and that context also leans toward agreeing with whoever is on the other side of the conversation.
 So the check goes to a reader who has neither: a subagent given the claims and what they rest on, and nothing of how the conversation arrived at them.
+The conversation still holds what that reader lacks, such as what the user meant and what was decided, so your own verdict goes beside the checker's rather than being replaced by it.
 
 ## Pick the target
 
@@ -24,12 +25,16 @@ Write the target down as a numbered list of claims.
 - Include the judgments, not only the facts: a recommendation, a call that something is out of scope or not worth its cost, that work should continue or stop, and that something exists nowhere else. These are the claims most often stated without being weighed, and they read as settled once stated.
 - Keep the author's words where the claim is quoted from a draft, since a paraphrase can repair or break what the original said.
 - Beside each claim, give what it rests on as far as the conversation established it: a file and line, a command and what it returned, a URL. Mark a claim that rests on nothing checked as resting on nothing.
+- State what the user reported as having happened, and what they decided, as the setting rather than as claims. The checker cannot reach either, so as claims they come back as cannot be settled and bury the verdicts that matter.
 
 Leave out everything else:
 
 - Who wrote the claims. A checker that knows they are the user's own tends to soften toward them, and one that knows they are yours tends to take them as settled.
 - The reasoning that led to them, and any earlier discussion of whether they hold. A reason handed over draws a verdict on the reason instead of on the claim.
 - Your own guess at how a claim turns out, and where to look for the answer. A hint names the verdict you expect, or the file, mechanism, or alternative you suspect settles it, and the checker then confirms your hunch instead of looking for itself.
+
+Before spawning, write down your own verdict on each claim, in the same three terms the checker uses, from everything the conversation holds and anything you check now.
+Keep it out of the brief, and fix it before the checker's result arrives, so that result does not pull yours toward it.
 
 Spawn one subagent with the list and the instructions below, choosing the lowest-cost model that can read files, run commands, and consult documentation well enough to settle the claims.
 
@@ -59,9 +64,11 @@ Do not qualify a verdict to soften or harden it, and do not comment on the wordi
 
 ## Relay the result
 
-Put the verdicts to the user as the checker gave them, failed claims first, each with its evidence.
+Put the verdicts to the user claim by claim, failed claims first, with the checker's verdict as it gave it beside the one you wrote down.
 
-- Where you disagree with a verdict, keep the verdict and state your disagreement beside it with its grounds, so the user sees both rather than your resolution of them.
+- Where the two agree, give the verdict once with its evidence.
+- Where they differ, give both with their grounds and leave them unresolved. The difference is what the user most needs to look at, and your resolution of it would be the same context judging itself again.
+- Where the checker could not settle a claim because only the conversation holds the answer, say so, and let your verdict stand as the context's view.
 - Keep the tone on the claims. A verdict is about a statement, not about the person who made it, and it needs neither praise nor reassurance around it.
 - Where a failed claim was a conclusion you gave earlier, say what the corrected conclusion is.
 
