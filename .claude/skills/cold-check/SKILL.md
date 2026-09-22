@@ -50,6 +50,7 @@ For each claim, return one of:
 Settle a claim from something checkable wherever you can reach it, for example by reading the file, running the command, or reading the tool's own documentation or source.
 Treat the evidence given beside a claim as a lead to check, not as proof.
 Change nothing while you check: run only what reads, and never anything that writes, wherever it writes — a file anywhere on the machine, git state, or an external system, such as a push, a sync that overwrites local files, a gist edit, or an API call that modifies.
+The one exception is a temporary directory you create for this check, where you may write what reading needs, such as a clone to inspect; nothing run there may reach outside it.
 Where only a write could settle a claim, the claim cannot be settled; name the write that would settle it.
 A claim that something exists nowhere is settled by reading everything that could hold it, not by a search that returns nothing.
 
