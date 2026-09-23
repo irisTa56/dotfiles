@@ -50,6 +50,6 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # only an interactive shell's `mise activate` applies. rclone runs this only
 # for an encrypted config, so a machine without one is unaffected. Set it up:
 #   security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
-#   rclone config encryption set --password-command "$RCLONE_PASSWORD_COMMAND"
+#   rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
 EOF
