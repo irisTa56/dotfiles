@@ -20,6 +20,8 @@ Read-only: search and read, but never write, edit, or move a note.
 Distillation into the base belongs to `kboat-distill`, and graph maintenance to `kboat-curate`.
 Both are deliberately separate, so consulting the base can never mutate it as a side effect.
 If the answer turns up something worth recording, say so and let the user decide; do not record it.
+Where they decide to keep it, the path is K-Boat's `kboat-record-dialogue` skill, run from a session in the k-boat repository, the only place it is available.
+Hand them what it takes: the question, your answer with the general-knowledge part marked apart from what came from the base, and today's date.
 
 ## Procedure
 
@@ -104,7 +106,7 @@ Answer the question, using the notes as the primary source, in the language the 
 Read observation tags as evidence strength, because they record where a claim came from:
 
 - `#grounded` — the source supported it, so treat it as the reader's verified material.
-- `#dialogue` — surfaced in reading-time conversation, verified at distillation but not taken straight from the source. It is still usable, and worth attributing when it carries the answer, since the reader will recognise it as their own reasoning.
+- `#dialogue` — not taken from a read source. A reading's provenance line follows its claims, so read the kind off the first `- [source]` line below the claim, before the next heading. Where that line names a source, the claim surfaced in reading-time conversation and was verified at distillation; where it reads `ask-kboat dialogue in Claude Code, … not a read source`, it is a model's general knowledge from an earlier `ask-kboat` answer, kept because the reader chose to. Both are usable and worth attributing when they carry the answer, but say which kind it is, since the second is not something the reader read. Where no such line follows, as with a claim added by hand, the note does not record where it came from: say so rather than borrowing the line above.
 
 Only those two speak to evidence.
 An observation may carry further tags on the same line, and a note's frontmatter carries its own set, but those categorise the subject and say nothing about how well-supported the claim is.
