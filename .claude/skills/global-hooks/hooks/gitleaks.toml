@@ -1,4 +1,4 @@
-# gitleaks rules for redact_secrets.py: the default rules, plus two credentials
+# gitleaks rules for redact_secrets.sh: the default rules, plus two credentials
 # they miss that a tool's output on a developer machine can carry.
 
 [extend]
@@ -11,10 +11,17 @@ regex = '''\bya29\.[0-9A-Za-z_-]{20,}'''
 keywords = ["ya29."]
 
 # rclone stores these obscured, not encrypted: `rclone reveal` turns one back
-# into the password.
+# into the password. Matched only in the shapes rclone prints them in, a whole
+# `key = value` line of rclone.conf or a quoted JSON value from `rclone config
+# dump`, since a looser match also takes code such as `password=some_variable`.
 [[rules]]
 id = "rclone-obscured-password"
 description = "rclone obscured password, reversible with rclone reveal"
-regex = '''(?i)\b(?:pass|password|password2|pass_phrase|key_file_pass|key_pem_pass)["']?\s*[:=]\s*["']?([A-Za-z0-9_-]{22,})'''
-secretGroup = 1
+regex = '''(?m)(?:^[ \t]*(?:pass|password|password2|pass_phrase|key_file_pass|key_pem_pass)[ \t]*=[ \t]*([A-Za-z0-9_-]{22,})[ \t]*$|"(?:pass|password|password2|pass_phrase|key_file_pass|key_pem_pass)"[ \t]*:[ \t]*"([A-Za-z0-9_-]{22,})")'''
 keywords = ["pass"]
+
+# An obscured value is base64url of random bytes, so it mixes cases; a
+# single-case run is an identifier or a constant name.
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''^[A-Z0-9_-]+$''', '''^[a-z0-9_-]+$''']

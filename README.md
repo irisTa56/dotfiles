@@ -98,11 +98,11 @@ One of them, `hooks/redact_secrets.sh`, runs the output of every Bash and Read c
 - It uses gitleaks' default rules plus the ones in `hooks/gitleaks.toml`, which add Google OAuth access tokens and rclone's obscured passwords.
 - It needs `gitleaks` and `jq` on the PATH Claude Code runs with, which `.config/mise/config.toml` provides.
   - When gitleaks cannot run, the hook withholds the output and tells Claude why, rather than passing it on unscanned.
+  - It withholds the output too when gitleaks finds a secret only after decoding base64, hex or percent-encoding, which leaves nothing verbatim to replace.
   - Any other failure, `jq` missing among them, leaves nothing to withhold the output with, so the hook passes it on and tells Claude it went unscanned.
-- Some output never reaches it.
+- It sees only what a successful Bash or Read call returns, so other output reaches Claude unscanned.
   - A Bash command that exits non-zero fires `PostToolUseFailure` instead, and that event cannot replace the output.
-  - It does not match MCP tools.
-  - It does not match tools this build of Claude Code lacks, such as Grep; searches go through Bash.
+  - An MCP tool's output, or any other tool's, is not matched; this build of Claude Code has no Grep tool, so searches go through Bash.
 - `mise run pre-commit` runs its tests, which feed it fake secrets as Claude Code would.
 
 Restore pinned skills from `apm.lock.yaml`:

@@ -41,7 +41,7 @@ expect() {
     echo "ok   $name"
   else
     echo "FAIL $name"
-    echo "     status=$status stdout=$out stderr=$stderr"
+    echo "     status=$status stdout=${out:0:300} stderr=${stderr:0:300}"
     failures=$((failures + 1))
   fi
 }
@@ -64,11 +64,12 @@ updated='.hookSpecificOutput.updatedToolOutput'
 
 # Bash output is redacted and keeps its shape.
 event="$(bash_event "$github_pat
-{\"refresh_token\": \"$gcp_refresh\"}" "token=$google_access")"
+{\"refresh_token\": \"$gcp_refresh\"}
+{\"pass\": \"$rclone_pass\"}" "token=$google_access")"
 run_hook "$event"
 expect "bash: exit 0" '$s == 0' --argjson s "$status"
-expect "bash: stdout redacted" "$updated.stdout | contains(\$a) or contains(\$b) | not" \
-  --arg a "$github_pat" --arg b "$gcp_refresh"
+expect "bash: stdout redacted" "$updated.stdout | contains(\$a) or contains(\$b) or contains(\$c) | not" \
+  --arg a "$github_pat" --arg b "$gcp_refresh" --arg c "$rclone_pass"
 expect "bash: stdout marked" "$updated.stdout | contains(\"[REDACTED by gitleaks: github-pat]\")"
 expect "bash: stderr redacted by the custom rule" \
   "$updated.stderr == \"token=[REDACTED by gitleaks: google-oauth-access-token]\""
@@ -101,6 +102,28 @@ run_hook "$(jq -n --arg b "$github_pat" '{tool_name: "Read",
   tool_response: {type: "image", file: {base64: $b, type: "image/png"}}}')" \
   REDACT_SECRETS_GITLEAKS=/nonexistent/gitleaks
 expect "image: exit 0, no output" '$s == 0 and $o == ""' -n --argjson s "$status" --arg o "$out"
+
+# Code that assigns to a password-named variable is not an rclone secret.
+run_hook "$(read_event 'password=DEFAULT_PASSWORD_FROM_SETTINGS
+auth = {"password": get_password_from_keychain_service()}
+check_password(password=hashed_user_supplied_value_x)
+password = encrypted_database_password_reference
+')"
+expect "code: exit 0, no output" '$s == 0 and $o == ""' -n --argjson s "$status" --arg o "$out"
+
+# Thousands of findings still redact: the report outgrows an argument's limit.
+many="$(for i in $(seq 1000 4000); do echo "ghp_${chars:0:32}$i"; done)"
+run_hook "$(bash_event "$many" "")"
+expect "many: exit 0, all redacted" \
+  "\$s == 0 and ($updated.stdout | (contains(\"ghp_\") | not) and (split(\"\n\") | length == 3001))" \
+  --argjson s "$status"
+
+# An encoded secret, which gitleaks reports decoded, withholds the output.
+run_hook "$(bash_event "data: $(printf 'token: %s' "$github_pat" | base64)" "")"
+expect "encoded: exit 2 with a reason" '$s == 2 and ($e | contains("encoded"))' \
+  -n --argjson s "$status" --arg e "$stderr"
+expect "encoded: output withheld" \
+  "$updated.stdout == \"[output withheld: gitleaks found a secret it cannot redact in place]\""
 
 # A scanner that is missing or fails withholds the output.
 for scanner in /nonexistent/gitleaks false; do
