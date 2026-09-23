@@ -157,6 +157,21 @@ expect "encoded: exit 2 with a reason" '$s == 2 and ($e | contains("encoded"))' 
 expect "encoded: output withheld" \
   "$updated.stdout == \"[output withheld: gitleaks found a secret it cannot redact in place]\""
 
+# Output that opens like a binary file is scanned, not skipped as one.
+run_hook "$(bash_event "SQLite format 3
+github_token $github_pat" "")"
+expect "binary signature at the start: redacted" \
+  "$updated.stdout == \"SQLite format 3\\ngithub_token [REDACTED by gitleaks: github-pat]\""
+
+# A signature further in still gets it skipped, here tar's at byte 257 of a scan
+# piece, which the hook's own 26-byte first line puts at byte 231 of stdout; the
+# output is then withheld.
+run_hook "$(bash_event "$(printf 'x%.0s' $(seq 1 231))ustar
+github_token $github_pat" "")"
+expect "binary signature further in: output withheld" \
+  '$s == 2 and $o.hookSpecificOutput.updatedToolOutput.stdout == "[output withheld: gitleaks skipped it as a binary file]"' \
+  -n --argjson s "$status" --argjson o "${out:-null}"
+
 # A plain copy does not save an encoded one: the output is withheld.
 run_hook "$(bash_event "$github_pat
 data: $(printf 'token: %s' "$github_pat" | base64)" "")"

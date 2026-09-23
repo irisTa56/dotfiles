@@ -73,14 +73,23 @@ text="$(jq -r '.tool_response
 # directory it scans or the one it is pointed to, both of which a project keeps
 # for its own commit scan; the scan ignores the one, and finds none of the other
 # in $work.
+#
+# gitleaks skips, unscanned and silently, a file whose bytes match a binary
+# format's signature (filetype.Match in sources/file.go), which output such as
+# `strings some.db` or `head file.pdf` does. Each file starts with a text line of
+# the hook's own, so a signature at the start no longer matches, and a skip
+# gitleaks still makes, on a signature further in, withholds the output.
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir "$work/pieces"
-printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work/pieces" -v max=100000 -v overlap=16000 '
+printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work/pieces" -v max=100000 -v overlap=16000 \
+  -v header="redact_secrets scan piece" '
   { line[NR] = $0 }
   END {
     for (first = 1; first <= NR; first = next_first) {
       piece = sprintf("%s/piece.%05d", dir, n++)
+      print header > piece
+      size = length(header) + 1
       for (last = first; last <= NR && (last == first || size + length(line[last]) + 1 <= max); last++) {
         print line[last] > piece
         size += length(line[last]) + 1
@@ -98,9 +107,14 @@ printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work/pieces" -v max=100000 -v over
 report="$work/report.json"
 if ! "$gitleaks" dir "$work/pieces" --config "$hooks_dir/gitleaks.toml" --no-banner --exit-code 0 \
   --ignore-gitleaks-allow --gitleaks-ignore-path "$work" \
-  --report-format json --report-path "$report" --log-level error 2>"$work/err" ||
+  --report-format json --report-path "$report" --log-level debug 2>"$work/log" ||
   ! jq -e 'type == "array"' "$report" >/dev/null 2>&1; then
-  withhold "[output withheld: the gitleaks secret scan could not run]" "$gitleaks failed: $(cat "$work/err")"
+  withhold "[output withheld: the gitleaks secret scan could not run]" \
+    "$gitleaks failed: $(grep -v DBG "$work/log")"
+fi
+if grep -q "skipping binary file" "$work/log"; then
+  withhold "[output withheld: gitleaks skipped it as a binary file]" \
+    "gitleaks took the output for a binary file and did not scan it"
 fi
 
 # gitleaks decodes base64, hex and percent-encoding before matching, and then
