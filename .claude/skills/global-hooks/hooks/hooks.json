@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/redact_secrets.py\"",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/redact_secrets.sh\"",
             "timeout": 30
           }
         ]

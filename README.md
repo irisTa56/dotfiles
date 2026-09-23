@@ -93,11 +93,12 @@ The same symlink carries user-global hooks.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
-One of them, `hooks/redact_secrets.py`, runs the output of every Bash and Read call through gitleaks before Claude sees it, and replaces each secret found with a marker naming the rule.
+One of them, `hooks/redact_secrets.sh`, runs the output of every Bash and Read call through gitleaks before Claude sees it, and replaces each secret found with a marker naming the rule.
 
 - It uses gitleaks' default rules plus the ones in `hooks/gitleaks.toml`, which add Google OAuth access tokens and rclone's obscured passwords.
-- It needs `gitleaks` on the PATH Claude Code runs with, which `.config/mise/config.toml` provides.
-  - When the scan cannot run, the hook withholds the output and tells Claude why, rather than passing it on unscanned.
+- It needs `gitleaks` and `jq` on the PATH Claude Code runs with, which `.config/mise/config.toml` provides.
+  - When gitleaks cannot run, the hook withholds the output and tells Claude why, rather than passing it on unscanned.
+  - Any other failure, `jq` missing among them, leaves nothing to withhold the output with, so the hook passes it on and tells Claude it went unscanned.
 - Some output never reaches it.
   - A Bash command that exits non-zero fires `PostToolUseFailure` instead, and that event cannot replace the output.
   - It does not match MCP tools.
