@@ -16,13 +16,13 @@ hooks_dir="$(cd "$(dirname "$0")" && pwd)"
 # Tests point this at a stand-in to exercise the failure path.
 gitleaks="${REDACT_SECRETS_GITLEAKS:-gitleaks}"
 
-# Rewrites every string in the value, except the discriminators the output
-# schema checks: withholding those too would make Claude Code reject the
+# Rewrites every string in the value, except the `type` discriminator the
+# output schema checks: withholding it too would make Claude Code reject the
 # replacement and pass the original output on.
 rewrite='def rewrite(f):
   if type == "string" then f
   elif type == "object" then
-    with_entries(if .key == "type" or .key == "cell_type" then . else .value |= rewrite(f) end)
+    with_entries(if .key == "type" then . else .value |= rewrite(f) end)
   elif type == "array" then map(rewrite(f))
   else . end;'
 respond='{hookSpecificOutput: {hookEventName: "PostToolUse", updatedToolOutput: .}}'
@@ -47,15 +47,20 @@ withhold() {
 # gitleaks reads its input 100,000 bytes at a time and, finding no blank line
 # to cut at, cuts mid-line, missing a secret that straddles the cut
 # (defaultBufferSize and readUntilSafeBoundary in its sources/). So the text is
-# scanned in pieces of whole lines no longer than that, each from a file, which
-# gitleaks reads in one go where a pipe would hand it less. Each piece repeats
-# the last 16,000 bytes of lines before it, so a multi-line secret such as a
-# private key still lies whole in one piece; replacing by value makes the
-# repeat harmless. The report goes through a file too: passed as an argument, a
-# long one exceeds ARG_MAX.
+# written as files of whole lines no longer than that, which gitleaks reads in
+# one go where a pipe would hand it less, and scanned with `gitleaks dir`. Each
+# file repeats the last 16,000 bytes of lines before it, so a multi-line secret
+# such as a private key still lies whole in one; replacing by value makes the
+# repeat harmless.
+#
+# gitleaks also honours `gitleaks:allow` comments and a .gitleaksignore in the
+# directory it scans or the one it is pointed to, both of which a project keeps
+# for its own commit scan; the scan ignores the one, and finds none of the other
+# in $work.
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work" -v max=100000 -v overlap=16000 '
+mkdir "$work/pieces"
+printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work/pieces" -v max=100000 -v overlap=16000 '
   { line[NR] = $0 }
   END {
     for (first = 1; first <= NR; first = next_first) {
@@ -72,14 +77,13 @@ printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work" -v max=100000 -v overlap=160
       back = 0
     }
   }'
-scanned=true
-for piece in "$work"/piece.*; do
-  "$gitleaks" stdin --config "$hooks_dir/gitleaks.toml" --no-banner --exit-code 0 \
-    --report-format json --report-path - --log-level error <"$piece" >"$piece.json" 2>>"$work/err" &&
-    jq -e 'type == "array"' "$piece.json" >/dev/null 2>&1 || scanned=false
-done
+
+# The report goes to a file: passed as an argument, a long one exceeds ARG_MAX.
 report="$work/report.json"
-if ! $scanned || ! jq -s 'add' "$work"/piece.*.json >"$report" 2>/dev/null; then
+if ! "$gitleaks" dir "$work/pieces" --config "$hooks_dir/gitleaks.toml" --no-banner --exit-code 0 \
+  --ignore-gitleaks-allow --gitleaks-ignore-path "$work" \
+  --report-format json --report-path "$report" --log-level error 2>"$work/err" ||
+  ! jq -e 'type == "array"' "$report" >/dev/null 2>&1; then
   withhold "[output withheld: the gitleaks secret scan could not run]" "$gitleaks failed: $(cat "$work/err")"
 fi
 

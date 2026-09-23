@@ -157,6 +157,36 @@ expect "encoded: exit 2 with a reason" '$s == 2 and ($e | contains("encoded"))' 
 expect "encoded: output withheld" \
   "$updated.stdout == \"[output withheld: gitleaks found a secret it cannot redact in place]\""
 
+# A plain copy does not save an encoded one: the output is withheld.
+run_hook "$(bash_event "$github_pat
+data: $(printf 'token: %s' "$github_pat" | base64)" "")"
+expect "plain and encoded: output withheld" \
+  '$s == 2 and $o.hookSpecificOutput.updatedToolOutput.stdout == "[output withheld: gitleaks found a secret it cannot redact in place]"' \
+  -n --argjson s "$status" --argjson o "${out:-null}"
+
+# A private key split between stdout and stderr is found in the joined text but
+# lies verbatim in neither, so the output is withheld.
+run_hook "$(bash_event "$(head -13 <<<"$key")" "$(tail -n +14 <<<"$key")")"
+expect "split key: output withheld" \
+  '$s == 2 and ($o.hookSpecificOutput.updatedToolOutput.stderr | startswith("[output withheld"))' \
+  -n --argjson s "$status" --argjson o "${out:-null}"
+
+# Suppressions a project keeps for its commit scan do not apply here. The
+# second run starts in a directory holding a .gitleaksignore that names the
+# token, and gets gitleaks by its resolved path, since outside this repository
+# mise may not provide it.
+marked="$updated.stdout == \"token = \\\"[REDACTED by gitleaks: github-pat]\\\"  # gitleaks:allow\""
+run_hook "$(bash_event "token = \"$github_pat\"  # gitleaks:allow" "")"
+expect "gitleaks:allow: redacted" "$marked"
+scanner="$(mise which gitleaks 2>/dev/null || command -v gitleaks)"
+ignored="$(mktemp -d)"
+echo ":github-pat:1" >"$ignored/.gitleaksignore"
+(cd "$ignored" && run_hook "$(bash_event "token = \"$github_pat\"  # gitleaks:allow" "")" \
+  REDACT_SECRETS_GITLEAKS="$scanner" && printf '%s' "$out") >"$ignored/out"
+out="$(cat "$ignored/out")"
+rm -rf "$ignored"
+expect ".gitleaksignore in the working directory: redacted" "$marked"
+
 # A scanner that is missing or fails withholds the output.
 for scanner in /nonexistent/gitleaks false; do
   run_hook "$(read_event "pass = $rclone_pass")" REDACT_SECRETS_GITLEAKS="$scanner"
