@@ -55,6 +55,7 @@ run = [
   "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
   "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
   "mix format --check-formatted scripts/*.exs",
+  "python3 -m unittest discover -s .claude/skills/global-hooks/tests",
 ]
 
 [tasks."setup:dotfiles"]
