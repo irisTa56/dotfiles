@@ -48,7 +48,9 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # rclone reads its config password from the login keychain, so the config
 # can stay encrypted without a prompt. Here rather than mise's [env], which
 # only an interactive shell's `mise activate` applies. rclone runs this only
-# for an encrypted config, so a machine without one is unaffected. Set it up:
+# for an encrypted config, so an unencrypted one is unaffected; one encrypted
+# with a typed password stops opening, and needs `rclone config encryption
+# remove` (which asks for that password) before the setup. Set it up:
 #   security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
 #   rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
