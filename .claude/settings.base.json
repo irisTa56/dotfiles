@@ -13,20 +13,18 @@
       "Read(//**/*.p12)",
       "Read(//**/*.pfx)",
       "Read(//**/*.kdbx)",
-      "Read(//**/id_rsa*)",
-      "Read(//**/id_dsa*)",
-      "Read(//**/id_ecdsa*)",
-      "Read(//**/id_ed25519*)",
+      "Read(//**/id_rsa)",
+      "Read(//**/id_dsa)",
+      "Read(//**/id_ecdsa)",
+      "Read(//**/id_ed25519)",
       "Read(//**/credentials.json)",
       "Read(//**/client_secret*.json)",
       "Read(//**/.netrc)",
       "Read(//**/.git-credentials)",
       "Read(//**/.pgpass)",
-      "Read(//**/.npmrc)",
       "Read(//**/.pypirc)",
       "Read(//**/.dockercfg)",
       "Read(//**/*.tfstate)",
-      "Read(//**/*.tfvars)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Read(~/.azure/**)",
@@ -39,7 +37,9 @@
       "Read(~/.notebooklm/**)"
     ],
     "ask": [
-      "Read(//**/*.pem)"
+      "Read(//**/*.pem)",
+      "Read(//**/.npmrc)",
+      "Read(//**/*.tfvars)"
     ]
   }
 }
