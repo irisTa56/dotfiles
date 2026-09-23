@@ -11,8 +11,9 @@ script_dir=$(cd "$(dirname "$0")" && pwd)
 base="$script_dir/../.claude/settings.base.json"
 target="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
 
+# An empty file reads as {} so it is filled rather than reported as already merged.
 current='{}'
-[ -f "$target" ] && current=$(cat "$target")
+[ -f "$target" ] && current=$(jq -s 'add // {}' "$target")
 
 merged=$(jq --argjson base "$(cat "$base")" '
   def merge($b):

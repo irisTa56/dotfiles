@@ -7,7 +7,8 @@
       "Read(~/.aws/**)",
       "Read(~/.gnupg/**)",
       "Read(~/.netrc)",
-      "Read(~/.docker/config.json)"
+      "Read(~/.docker/config.json)",
+      "Read(~/.config/gcloud/**)"
     ]
   }
 }
