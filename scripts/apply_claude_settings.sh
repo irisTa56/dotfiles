@@ -2,10 +2,10 @@
 # Merge the tracked .claude/settings.base.json into the machine's ~/.claude/settings.json.
 # The machine file keeps whatever else it holds (hooks `rtk init` patched in, keys the
 # /config panel wrote), which is why the base is merged rather than symlinked.
-# Objects merge key by key; an array keeps the machine's own entries and ends with the
-# base's in the base's order, which a `!` carve-out needs to follow the rule it carves
-# from even after the machine file was sorted; any other base value replaces the
-# machine's. A rerun changes nothing.
+# Objects merge key by key; an array starts with the base's entries in the base's order
+# and keeps the machine's own after them, so a `!` carve-out, the base's or the
+# machine's, still follows the rules it carves from after the machine file was sorted;
+# any other base value replaces the machine's. A rerun changes nothing.
 # Removing an entry from the base does not remove it here; edit the machine file for that.
 set -euo pipefail
 
@@ -22,7 +22,7 @@ merged=$(jq --argjson base "$(cat "$base")" '
     if type == "object" and ($b | type) == "object" then
       reduce ($b | keys_unsorted[]) as $k (.; .[$k] |= merge($b[$k]))
     elif type == "array" and ($b | type) == "array" then
-      (. - $b) + $b
+      $b + (. - $b)
     else
       $b
     end;
