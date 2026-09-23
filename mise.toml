@@ -61,10 +61,6 @@ run = [
 description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
 run = "scripts/setup_dotfiles.sh"
 
-[tasks."setup:claude-settings"]
-description = "Merge .claude/settings.base.json into ~/.claude/settings.json (idempotent)"
-run = "scripts/apply_claude_settings.sh"
-
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."

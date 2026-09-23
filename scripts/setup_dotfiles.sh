@@ -44,4 +44,12 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # by the harness snapshot, not earned. It runs commands written for bash,
 # where an unmatched glob is inert.
 [[ -o interactive ]] || setopt nonomatch
+
+# rclone reads its config password from the login keychain, so the config
+# can stay encrypted without a prompt. Here rather than mise's [env], which
+# only an interactive shell's `mise activate` applies. rclone runs this only
+# for an encrypted config, so a machine without one is unaffected. Set it up:
+#   security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
+#   rclone config encryption set --password-command "$RCLONE_PASSWORD_COMMAND"
+export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
 EOF
