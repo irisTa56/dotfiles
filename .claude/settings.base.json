@@ -25,6 +25,7 @@
       "Read(//**/.pypirc)",
       "Read(//**/.dockercfg)",
       "Read(//**/*.tfstate)",
+      "Read(//**/*.tfstate.backup)",
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
       "Read(~/.azure/**)",
