@@ -35,6 +35,16 @@ mise run setup:dotfiles
 
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
+  - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
+  - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
+  - Set it up once per machine:
+
+    ```shell
+    security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
+    rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
+    ```
+
+  - A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
 
 ## Shared mise Tasks
 
@@ -60,17 +70,6 @@ cat >~/.claude/CLAUDE.md <<'EOF'
 @RTK.md
 EOF
 rtk init -g --auto-patch
-```
-
-`~/.claude/settings.json` stays machine-local, since `rtk init` and the `/config` panel write into it.
-The part every machine shares, the permission rules, is `.claude/settings.base.json`.
-These rules reach every project on the machine, and they catch common secret file names and credential directories rather than every tool's store; a store they miss goes in that machine's own file, which the merge leaves in place.
-A name that does not show whether the file holds a secret, such as `*.pem` (a private key or a certificate) or `.npmrc` and `*.tfvars` (often plain project configuration), is asked about rather than denied.
-On a machine running the rtk hook, `cat`, `head`, `tail` and `grep` are rewritten to `rtk read` and `rtk grep`, which these Read rules do not reach ([rtk-ai/rtk#2428](https://github.com/rtk-ai/rtk/issues/2428), closed without a fix), so the rules bind the file tools only.
-Merge the base in, and again whenever it changes:
-
-```shell
-mise run setup:claude-settings
 ```
 
 ## Agent Skills
