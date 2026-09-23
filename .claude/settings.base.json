@@ -36,8 +36,7 @@
       "Read(~/.aws/**)",
       "Read(~/.gnupg/**)",
       "Read(~/.netrc)",
-      "Read(~/.docker/config.json)",
-      "Read(~/.config/gh/hosts.yml)"
+      "Read(~/.docker/config.json)"
     ]
   }
 }
