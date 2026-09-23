@@ -118,6 +118,38 @@ expect "many: exit 0, all redacted" \
   "\$s == 0 and ($updated.stdout | (contains(\"ghp_\") | not) and (split(\"\n\") | length == 3001))" \
   --argjson s "$status"
 
+# Lines of 50 bytes with no secret and no blank line between them.
+filler() {
+  for i in $(seq 1 "$1"); do printf 'filler line %07d abcdefghijklmnopqrstuvwxyz012\n' "$i"; done
+}
+
+# A token across byte 125,000, where gitleaks alone cuts a long input and
+# misses it, is found once the hook scans in pieces. Bash's stdout is the first
+# string the hook scans, so its offsets are the scanned text's.
+run_hook "$(bash_event "$(
+  filler 2499
+  echo "padding to push the token across the cut $github_pat"
+  filler 600
+)" "")"
+expect "gitleaks' own cut: redacted" \
+  "$updated.stdout | (contains(\$a) | not) and contains(\"[REDACTED by gitleaks: github-pat]\")" \
+  --arg a "$github_pat"
+
+# A private key across byte 100,000, where the hook cuts, lies whole in the
+# next piece, which repeats the lines before the cut.
+key="$(
+  echo "-----BEGIN RSA PRIVATE" "KEY-----"
+  for j in $(seq 1 25); do echo "${chars:$((j % 10)):32}${chars:$((j % 7)):32}"; done
+  echo "-----END RSA PRIVATE" "KEY-----"
+)"
+run_hook "$(read_event "$(
+  filler 1980
+  echo "$key"
+)")"
+expect "hook's own cut: private key redacted" \
+  "$updated.file.content | (contains(\$k) | not) and contains(\"[REDACTED by gitleaks: private-key]\")" \
+  --arg k "${key:40:64}"
+
 # An encoded secret, which gitleaks reports decoded, withholds the output.
 run_hook "$(bash_event "data: $(printf 'token: %s' "$github_pat" | base64)" "")"
 expect "encoded: exit 2 with a reason" '$s == 2 and ($e | contains("encoded"))' \

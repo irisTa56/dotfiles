@@ -103,6 +103,7 @@ One of them, `hooks/redact_secrets.sh`, runs the output of every Bash and Read c
 - It sees only what a successful Bash or Read call returns, so other output reaches Claude unscanned.
   - A Bash command that exits non-zero fires `PostToolUseFailure` instead, and that event cannot replace the output.
   - An MCP tool's output, or any other tool's, is not matched; this build of Claude Code has no Grep tool, so searches go through Bash.
+  - Images and PDFs that Read returns go unscanned, though Claude reads the text in them.
 - `mise run pre-commit` runs its tests, which feed it fake secrets as Claude Code would.
 
 Restore pinned skills from `apm.lock.yaml`:

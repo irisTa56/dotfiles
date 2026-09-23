@@ -29,9 +29,10 @@ respond='{hookSpecificOutput: {hookEventName: "PostToolUse", updatedToolOutput: 
 
 event="$(cat)"
 
-# Read returns images and PDFs as base64 payloads, not text a secret could be read from.
+# Read returns images, PDFs and PDF pages rendered as images ("parts") as base64
+# payloads, not text a secret could be read from.
 text="$(jq -r '.tool_response
-  | select(type != "object" or ((.type // "") | IN("image", "pdf") | not))
+  | select(type != "object" or ((.type // "") | IN("image", "pdf", "parts") | not))
   | [.. | strings | select(. != "")] | join("\n")' <<<"$event")"
 [[ -n $text ]] || exit 0
 
@@ -47,13 +48,30 @@ withhold() {
 # to cut at, cuts mid-line, missing a secret that straddles the cut
 # (defaultBufferSize and readUntilSafeBoundary in its sources/). So the text is
 # scanned in pieces of whole lines no longer than that, each from a file, which
-# gitleaks reads in one go where a pipe would hand it less. The report goes
-# through a file too: passed as an argument, a long one exceeds ARG_MAX.
+# gitleaks reads in one go where a pipe would hand it less. Each piece repeats
+# the last 16,000 bytes of lines before it, so a multi-line secret such as a
+# private key still lies whole in one piece; replacing by value makes the
+# repeat harmless. The report goes through a file too: passed as an argument, a
+# long one exceeds ARG_MAX.
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work" -v max=100000 '
-  size > 0 && size + length($0) + 1 > max { close(piece); n++; size = 0 }
-  { piece = sprintf("%s/piece.%05d", dir, n); size += length($0) + 1; print > piece }'
+printf '%s\n' "$text" | LC_ALL=C awk -v dir="$work" -v max=100000 -v overlap=16000 '
+  { line[NR] = $0 }
+  END {
+    for (first = 1; first <= NR; first = next_first) {
+      piece = sprintf("%s/piece.%05d", dir, n++)
+      for (last = first; last <= NR && (last == first || size + length(line[last]) + 1 <= max); last++) {
+        print line[last] > piece
+        size += length(line[last]) + 1
+      }
+      close(piece)
+      size = 0
+      if (last > NR) break
+      for (next_first = last; next_first - 1 > first && back + length(line[next_first - 1]) + 1 <= overlap; next_first--)
+        back += length(line[next_first - 1]) + 1
+      back = 0
+    }
+  }'
 scanned=true
 for piece in "$work"/piece.*; do
   "$gitleaks" stdin --config "$hooks_dir/gitleaks.toml" --no-banner --exit-code 0 \
