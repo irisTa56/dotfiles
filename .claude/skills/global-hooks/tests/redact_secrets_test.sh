@@ -187,6 +187,13 @@ out="$(cat "$ignored/out")"
 rm -rf "$ignored"
 expect ".gitleaksignore in the working directory: redacted" "$marked"
 
+# A failure outside gitleaks, here a temporary directory the hook cannot make,
+# withholds the output too.
+run_hook "$(bash_event "$github_pat" "")" TMPDIR=/nonexistent/dir
+expect "hook failure: exit 2, output withheld" \
+  '$s == 2 and $o.hookSpecificOutput.updatedToolOutput.stdout == "[output withheld: the redaction hook failed]"' \
+  -n --argjson s "$status" --argjson o "${out:-null}"
+
 # A scanner that is missing or fails withholds the output.
 for scanner in /nonexistent/gitleaks false; do
   run_hook "$(read_event "pass = $rclone_pass")" REDACT_SECRETS_GITLEAKS="$scanner"

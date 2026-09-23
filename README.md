@@ -96,10 +96,12 @@ The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it ther
 One of them, `hooks/redact_secrets.sh`, runs the output of every Bash and Read call through gitleaks before Claude sees it, and replaces each secret found with a marker naming the rule.
 
 - It uses gitleaks' default rules plus the ones in `hooks/gitleaks.toml`, which add Google OAuth access tokens and rclone's obscured passwords.
+  - An obscured password is matched in the shapes rclone prints a config in, a whole `key = value` line or a JSON value, and not on a line that `grep -n` or `cat -n` has prefixed.
 - It needs `gitleaks` and `jq` on the PATH Claude Code runs with, which `.config/mise/config.toml` provides.
-  - When gitleaks cannot run, the hook withholds the output and tells Claude why, rather than passing it on unscanned.
-  - It withholds the output too when gitleaks finds a secret only after decoding base64, hex or percent-encoding, which leaves nothing verbatim to replace.
-  - Any other failure, `jq` missing among them, leaves nothing to withhold the output with, so the hook passes it on and tells Claude it went unscanned.
+- Where it cannot redact, it withholds the whole output and tells Claude why.
+  - That happens when gitleaks cannot run, or the hook fails in any other way.
+  - It also happens when gitleaks finds a secret only after decoding base64, hex or percent-encoding, which leaves nothing verbatim to replace.
+  - Only a missing `jq` leaves nothing to withhold the output with, so the hook then passes it on and tells Claude it went unscanned.
 - It sees only what a successful Bash or Read call returns, so other output reaches Claude unscanned.
   - A Bash command that exits non-zero fires `PostToolUseFailure` instead, and that event cannot replace the output.
   - An MCP tool's output, or any other tool's, is not matched; this build of Claude Code has no Grep tool, so searches go through Bash.

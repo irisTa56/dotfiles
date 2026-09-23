@@ -5,12 +5,12 @@
 # together, and each secret found is replaced wherever it appears, so the output
 # keeps the tool's own shape, which Claude Code requires of a replacement.
 #
-# When gitleaks cannot run, or finds a secret that cannot be replaced verbatim,
-# the output is withheld rather than passed on, and the hook exits 2 so Claude
-# is told why. Any other failure also exits 2, and then the output does pass
-# on, unscanned, since there is no jq left to hide it.
+# When gitleaks cannot run, finds a secret that cannot be replaced verbatim, or
+# the hook fails in any other way, the output is withheld rather than passed on,
+# and the hook exits 2 so Claude is told why. Only when jq itself cannot run is
+# there nothing to withhold the output with; the hook then exits 2 saying the
+# output went through unscanned.
 set -euo pipefail
-trap 'echo "redact_secrets: failed at line $LINENO; this output was not scanned" >&2; exit 2' ERR
 
 hooks_dir="$(cd "$(dirname "$0")" && pwd)"
 # Tests point this at a stand-in to exercise the failure path.
@@ -26,6 +26,30 @@ rewrite='def rewrite(f):
   elif type == "array" then map(rewrite(f))
   else . end;'
 respond='{hookSpecificOutput: {hookEventName: "PostToolUse", updatedToolOutput: .}}'
+event=""
+
+# Prints the output with every non-empty string replaced by the marker $1.
+withheld() {
+  jq --arg marker "$1" "$rewrite"' .tool_response | rewrite(if . == "" then . else $marker end) | '"$respond" <<<"$event"
+}
+
+# Withholds the output with the marker $1, tells Claude why ($2), and exits 2.
+withhold() {
+  withheld "$1"
+  echo "redact_secrets: withheld this tool's output: $2" >&2
+  exit 2
+}
+
+on_error() {
+  trap - ERR
+  if withheld "[output withheld: the redaction hook failed]" 2>/dev/null; then
+    echo "redact_secrets: withheld this tool's output: failed at line $1" >&2
+  else
+    echo "redact_secrets: failed at line $1; this output was not scanned" >&2
+  fi
+  exit 2
+}
+trap 'on_error $LINENO' ERR
 
 event="$(cat)"
 
@@ -35,14 +59,6 @@ text="$(jq -r '.tool_response
   | select(type != "object" or ((.type // "") | IN("image", "pdf", "parts") | not))
   | [.. | strings | select(. != "")] | join("\n")' <<<"$event")"
 [[ -n $text ]] || exit 0
-
-# Replaces every string in the output with the marker $1, tells Claude why ($2),
-# and exits 2.
-withhold() {
-  jq --arg marker "$1" "$rewrite"' .tool_response | rewrite(if . == "" then . else $marker end) | '"$respond" <<<"$event"
-  echo "redact_secrets: withheld this tool's output: $2" >&2
-  exit 2
-}
 
 # gitleaks reads its input 100,000 bytes at a time and, finding no blank line
 # to cut at, cuts mid-line, missing a secret that straddles the cut
