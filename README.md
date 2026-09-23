@@ -62,6 +62,13 @@ EOF
 rtk init -g --auto-patch
 ```
 
+`~/.claude/settings.json` stays machine-local, since `rtk init` and the `/config` panel write into it.
+The part every machine shares, the permission rules, is `.claude/settings.base.json`; merge it in, and again whenever it changes:
+
+```shell
+mise run setup:claude-settings
+```
+
 ## Agent Skills
 
 Most skills live under `.claude/skills/`, managed by [APM](https://github.com/microsoft/apm), co-located with the instructions and rules above.

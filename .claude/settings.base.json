@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr review *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr close *)",
+      "Bash(gh issue create *)",
+      "Bash(gh issue edit *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh issue close *)",
+      "Bash(gh gist create *)",
+      "Bash(gh gist edit *)",
+      "Bash(gh gist delete *)",
+      "Bash(gh release create *)",
+      "Bash(gh api * -X *)",
+      "Bash(gh api * --method *)",
+      "Bash(gh api * -f *)",
+      "Bash(gh api * -F *)",
+      "Bash(gh api * --field *)",
+      "Bash(gh api * --raw-field *)",
+      "Bash(gh api * --input *)",
+      "Bash(mise run skills:push *)",
+      "mcp__*__send_message",
+      "mcp__*__reply",
+      "mcp__*__forward",
+      "mcp__*__share_file"
+    ],
+    "deny": [
+      "Read(//**/.env)",
+      "Read(//**/.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.netrc)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.config/gh/hosts.yml)"
+    ]
+  }
+}
