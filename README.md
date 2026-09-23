@@ -35,6 +35,16 @@ mise run setup:dotfiles
 
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
+  - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
+  - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
+  - Set it up once per machine:
+
+    ```shell
+    security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
+    rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
+    ```
+
+  - A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
 
 ## Shared mise Tasks
 
