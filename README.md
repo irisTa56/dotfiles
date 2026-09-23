@@ -63,7 +63,9 @@ rtk init -g --auto-patch
 ```
 
 `~/.claude/settings.json` stays machine-local, since `rtk init` and the `/config` panel write into it.
-The part every machine shares, the permission rules, is `.claude/settings.base.json`; merge it in, and again whenever it changes:
+The part every machine shares, the permission rules, is `.claude/settings.base.json`.
+Its deny list names generic credential locations and the stores of tools installed here; a store only one machine has goes in that machine's own file, which the merge leaves in place.
+Merge the base in, and again whenever it changes:
 
 ```shell
 mise run setup:claude-settings
