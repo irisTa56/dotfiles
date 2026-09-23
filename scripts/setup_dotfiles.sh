@@ -9,6 +9,7 @@ __pycache__/
 __tmp*
 _tmp*/
 .DS_Store
+.env.local
 .git/
 .ipynb_checkpoints/
 .pytest_cache/
