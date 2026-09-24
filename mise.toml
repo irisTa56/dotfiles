@@ -13,8 +13,8 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 [vars]
 # Where the shell files are, for the two tasks below that lint or format them. Named once
 # because the lists had already drifted apart when each carried its own: format-sh was
-# missing zshrc_fragment.sh, which pre-commit had always checked.
-sh_paths = "scripts tasks zshenv_fragment.sh zprofile_fragment.sh zshrc_fragment.sh .claude/skills/sync-base/scripts"
+# missing the .zshrc fragment, which pre-commit had always checked.
+sh_paths = "scripts tasks zsh_fragments .claude/skills/sync-base/scripts"
 
 # The pre-commit hook is written once and then left alone: `mise generate` moves an
 # existing one aside as `<name>.old`, so rewriting on every install would displace
