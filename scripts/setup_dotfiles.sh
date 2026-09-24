@@ -18,6 +18,7 @@ _tmp*/
 *uncommitted*/
 CLAUDE.local.md
 erl_crash.dump
+fnox.local.toml
 mise.local.toml
 EOF
 

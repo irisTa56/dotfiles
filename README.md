@@ -11,12 +11,13 @@ brew bundle
 ```
 
 The above supplies mise, which supplies additional tools and linters.
-The tools and settings that reach every repository live in this repository's `.config/mise/config.toml`, which mise reads once it is symlinked into place; the root `mise.toml` pins the tools this repository's own tasks use.
+The tools, settings and tasks that reach every repository live in this repository's `.config/mise/`, as `config.toml` and the file tasks under `tasks/`, which mise reads once each is symlinked into place; the root `mise.toml` pins the tools this repository's own tasks use.
 [mise refuses to parse a `mise.toml` from a directory it has not been told to trust](https://mise.jdx.dev/cli/trust.html), so trust this one before installing:
 
 ```shell
 mkdir -p ~/.config/mise
 ln -sf "$PWD/.config/mise/config.toml" ~/.config/mise/config.toml
+ln -sfn "$PWD/.config/mise/tasks" ~/.config/mise/tasks
 mise trust
 mise install
 ```
@@ -54,6 +55,25 @@ Each of the three files sources the fragment of the same name in `zsh_fragments/
       - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
     - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
   - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
+
+## Secrets
+
+API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
+[fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
+
+- Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
+
+  ```shell
+  mise run secrets:add <NAME>
+  ```
+
+  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
+  - It also adds a line to the root's `CLAUDE.local.md`, likewise ignored, telling an agent working there to run what needs a key through fnox.
+  - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
+- Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
+- A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.
+
+`.claude/rules/secrets.md` tells an agent the same when it opens `.env`, mise config or fnox config in any repository.
 
 ## Shared mise Tasks
 
