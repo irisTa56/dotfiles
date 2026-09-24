@@ -17,8 +17,8 @@ permissions:
 
 env:
   # The repository's .config/mise/config.toml is the machine-wide config that
-  # ~/.config/mise links to, and mise also reads it as this project's own; without
-  # this, every job would install that whole toolset.
+  # ~/.config/mise links to, and mise also reads it as this project's own; this keeps
+  # its settings, env and tool list, all set for that machine, out of every job.
   MISE_IGNORED_CONFIG_PATHS: ${{ github.workspace }}/.config/mise/config.toml
   # `mise run` would otherwise install every tool mise.toml lists before running a
   # task, apm-cli included; each job installs only what its task needs instead.
