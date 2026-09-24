@@ -17,6 +17,7 @@ The tools and settings that reach every repository live in this repository's `.c
 ```shell
 mkdir -p ~/.config/mise
 ln -sf "$PWD/.config/mise/config.toml" ~/.config/mise/config.toml
+ln -sfn "$PWD/.config/mise/tasks" ~/.config/mise/tasks
 mise trust
 mise install
 ```
