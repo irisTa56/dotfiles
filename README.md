@@ -1,34 +1,37 @@
 # dotfiles
 
-## Prerequisites
+## Setup
 
-Homebrew is the one thing nothing here installs, and everything below needs it.
-Install [Homebrew](https://brew.sh), and let it install the rest:
+Homebrew is left to the user: install [Homebrew](https://brew.sh), and have it install what the `Brewfile` lists, mise among them, from a clone of this repository:
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew bundle
 ```
 
-The above supplies mise, which supplies additional tools and linters.
-The tools, settings and tasks that reach every repository live in this repository's `.config/mise/`, as `config.toml` and the file tasks under `tasks/`, which mise reads once each is symlinked into place; the root `mise.toml` pins the tools this repository's own tasks use.
-[mise refuses to parse a `mise.toml` from a directory it has not been told to trust](https://mise.jdx.dev/cli/trust.html), so trust this one before installing:
+mise sets up the rest.
+[mise refuses to parse a `mise.toml` from a directory it has not been told to trust](https://mise.jdx.dev/cli/trust.html), so trust this one first:
 
 ```shell
-mkdir -p ~/.config/mise
-ln -sf "$PWD/.config/mise/config.toml" ~/.config/mise/config.toml
-ln -sfn "$PWD/.config/mise/tasks" ~/.config/mise/tasks
 mise trust
-mise install
+mise bootstrap
 ```
+
+[`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
+
+- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds their two lines to `~/.claude/CLAUDE.md`.
+  - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside or `--force-dotfiles` is passed.
+  - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
+- It installs the tools that the global config and the root `mise.toml` pin.
+- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `rtk init`, `apm install`, `skills:sync`, and the `basic-memory` MCP server.
+
+The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
+
+A few steps stay by hand, since each needs a secret, a sign-in, or a path only this machine knows: `gh auth login`, the rclone password below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
 
 ## Initial Setup
 
-Run once on a new machine to drop `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), to make `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, to set pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and to set npm's `min-release-age` in `~/.npmrc`:
-
-```shell
-mise run setup:dotfiles
-```
+`mise bootstrap` runs `mise run setup:dotfiles`, which drops `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, sets pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and sets npm's `min-release-age` in `~/.npmrc`.
 
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
@@ -89,17 +92,7 @@ This repository runs the two scans itself, the same way a consumer would, from t
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
 
 `~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
-Wire them, and the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes, once on a new machine:
-
-```shell
-ln -sf "$PWD/.claude/INSTRUCTIONS.md" ~/.claude/INSTRUCTIONS.md
-ln -sfn "$PWD/.claude/rules" ~/.claude/rules
-cat >~/.claude/CLAUDE.md <<'EOF'
-@INSTRUCTIONS.md
-@RTK.md
-EOF
-rtk init -g --auto-patch
-```
+`mise bootstrap` links them, adds the `@INSTRUCTIONS.md` and `@RTK.md` lines to that file, leaving any other line in it, and runs `rtk init -g --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes.
 
 ## Agent Skills
 
@@ -111,18 +104,13 @@ The `target: claude` field in `apm.yml` is deliberately the **singular** `target
 `apm uninstall` reads only the singular field, so with `target:` set it honors the pin and touches `.claude/skills/` alone.
 A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk targets (`.github/`, `.cursor/`, …) and mirror skills into a stray `.agents/skills/`.
 
-Symlink `~/.claude/skills` to it once:
-
-```shell
-ln -sfn "$PWD/.claude/skills" ~/.claude/skills
-```
-
-The same symlink carries user-global hooks.
+`mise bootstrap` symlinks `~/.claude/skills` to it.
+That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins-reference#skills-directory-plugins) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
-Restore pinned skills from `apm.lock.yaml`:
+Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
 
 ```shell
 apm install
@@ -158,7 +146,7 @@ apm install --update
 Some skills are published as a single-file GitHub gist, which APM deploys under a directory named after the gist hash rather than a readable name.
 These are vendored from `gistSkills.json`, a `name -> raw gist URL` catalog, by `scripts/sync_gist_skills.sh`.
 The catalog is the source of truth, and the materialized `.claude/skills/<name>/SKILL.md` is gitignored like APM deps.
-Unlike APM packages, these are not restored by `apm install`; run `mise run skills:sync` separately.
+Unlike APM packages, these are not restored by `apm install`; `mise bootstrap` runs `mise run skills:sync` after it, which overwrites every one with its gist's copy.
 
 List the catalog, then sync every entry (or one by name):
 
@@ -170,7 +158,7 @@ mise run skills:sync japanese-tech-writing
 
 Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then run `mise run skills:sync <name>`.
 
-The gist is the only durable copy of a skill's content, so push a local edit back to it:
+The gist is the only durable copy of a skill's content, so push a local edit back to it before the next sync:
 
 ```shell
 mise run skills:push japanese-tech-writing
@@ -195,11 +183,13 @@ Re-including the directory is enough — the exclusion above uses a single `*`, 
 The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
 Claude Desktop's DXT extensions and remote connectors are managed in-app, not from this directory.
 
-To wire `basic-memory` into a fresh client:
+`mise bootstrap` registers `basic-memory` in Claude Code's user scope when it is not there yet:
 
 ```shell
 claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
 ```
+
+Another client is wired by hand.
 
 ### Setting up K-Boat
 
