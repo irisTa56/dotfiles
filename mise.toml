@@ -58,7 +58,7 @@ run = [
 ]
 
 [tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv)"
+description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv, pitchfork shell)"
 run = "scripts/setup_dotfiles.sh"
 
 [tasks.link-check]
