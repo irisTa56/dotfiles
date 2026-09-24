@@ -49,6 +49,9 @@ run = [
   "lychee --cache .",
   "rumdl check",
   "claude plugin validate .claude/skills",
+  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
+  # and validate passes those; `find -L` lists only the dangling ones.
+  "! find -L .claude/evals -type l | grep .",
   # Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
   # rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
   # and `sh` — which is what runs this — has no recursive glob to match that.
