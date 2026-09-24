@@ -57,11 +57,20 @@ export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclon
 # where no project lock is written: a user-wide one is baked into each
 # project's uv.lock and then conflicts with anyone locking without it
 # (astral-sh/uv#18775), so a project sets its own in pyproject.toml.
+# The window goes as a flag rather than UV_EXCLUDE_NEWER, which the tool
+# uvx launches would inherit and pass to a uv it runs in the project.
+# Setting UV_EXCLUDE_NEWER (false to disable) replaces the flag.
 export NPM_CONFIG_MIN_RELEASE_AGE=1
-uvx() { UV_EXCLUDE_NEWER="${UV_EXCLUDE_NEWER-1 day}" command uvx "$@"; }
+uvx() {
+  if [[ -v UV_EXCLUDE_NEWER ]]; then
+    command uvx "$@"
+  else
+    command uvx --exclude-newer "1 day" "$@"
+  fi
+}
 uv() {
-  if [[ ${1-} == tool ]]; then
-    UV_EXCLUDE_NEWER="${UV_EXCLUDE_NEWER-1 day}" command uv "$@"
+  if [[ ${1-} == tool && ${2-} == (install|run|upgrade) && ! -v UV_EXCLUDE_NEWER ]]; then
+    command uv tool "$2" --exclude-newer "1 day" "${@:3}"
   else
     command uv "$@"
   fi
