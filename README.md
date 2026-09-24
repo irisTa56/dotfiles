@@ -88,7 +88,7 @@ This repository runs the two scans itself, the same way a consumer would, from t
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
 - `.claude/INSTRUCTIONS.md` — user-scoped principles (shareable), symlinked to `~/.claude/INSTRUCTIONS.md`.
-- `~/.claude/RTK.md` — private and machine-local, not managed here; the block below writes it.
+- `~/.claude/RTK.md` — private and machine-local, not managed here; `mise bootstrap` writes it through `rtk init`.
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
 
 `~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
