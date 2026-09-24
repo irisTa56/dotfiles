@@ -75,17 +75,17 @@ uv() {
 }
 EOF
 
-# launchd starts the pitchfork supervisor with no shell environment, and its
-# default `sh -c` reads no startup file, so a daemon running rclone would get
-# no RCLONE_PASSWORD_COMMAND and stall on the password prompt. zsh reads
-# .zshenv even non-interactively. One key set in place: the file also holds
-# the namespaces `mise daemons` registers, which differ per machine.
-pitchfork settings set --global general.shell "/bin/zsh -c"
-
-# npm picks no package version published less than a day ago, so a
-# compromised release pulled within hours is not taken into a lockfile or a
-# one-off install; mise and pnpm 11 already wait a day by default. A version
-# a lockfile already pins still installs. User config rather than an
-# environment variable, which would outrank a project's own .npmrc. One key
-# set in place: the file may also hold registry auth.
+# npm picks no package version published less than a day ago,
+# so a compromised release pulled within hours is not taken into a lockfile
+# or a one-off install; mise and pnpm 11 already wait a day by default.
+# A version a lockfile already pins still installs. User config rather than
+# an environment variable, which would outrank a project's own .npmrc.
+# One key set in place: the file may also hold registry auth.
 npm config set min-release-age=1 --location=user
+
+# launchd starts the pitchfork supervisor with no shell environment,
+# and its default `sh -c` reads no startup file, so a daemon running rclone
+# would get no RCLONE_PASSWORD_COMMAND and stall on the password prompt.
+# zsh reads .zshenv even non-interactively. One key set in place: the file
+# also holds the namespaces `mise daemons` registers, which differ per machine.
+pitchfork settings set --global general.shell "/bin/zsh -c"
