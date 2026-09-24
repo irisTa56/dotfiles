@@ -1,0 +1,5 @@
+{
+  "name": "address-finding",
+  "description": "Links the address-finding skill so its eval suite runs with it loaded",
+  "version": "0.0.0"
+}
