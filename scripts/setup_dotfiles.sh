@@ -1,7 +1,10 @@
 #!/bin/bash
 set -euxo pipefail
 
-curl -s -o ~/.dircolors https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS
+# Replaced only by a download that succeeded, so a failed one on a rerun
+# stops here rather than leaving an error page where the colors were.
+curl -fsSL -o ~/.dircolors.new https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS
+mv ~/.dircolors.new ~/.dircolors
 
 mkdir -p ~/.config/git
 cat <<'EOF' >~/.config/git/ignore

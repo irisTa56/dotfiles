@@ -10,7 +10,6 @@ cmake = "latest"
 entire = "latest"
 fnox = "latest"
 gcloud = "latest"
-gh = "latest"
 git-lfs = "latest"
 gping = "latest"
 jq = "latest"
@@ -40,6 +39,3 @@ ERL_AFLAGS = "-kernel shell_history enabled"
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["python", "ruby"]
-
-[settings.github]
-credential_command = "gh auth token"
