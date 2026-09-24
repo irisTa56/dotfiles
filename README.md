@@ -3,7 +3,7 @@
 ## Setup
 
 Homebrew is left to the user: install [Homebrew](https://brew.sh), and have it install what the `Brewfile` lists, mise and gh among them, from a clone of this repository.
-Sign gh in before mise runs: mise installs most tools from GitHub, whose API limits requests without a token, and the global config hands mise gh's token.
+Sign gh in before mise runs: mise installs most tools from GitHub, whose API limits requests without a token, and `MISE_GITHUB_CREDENTIAL_COMMAND` hands mise gh's token.
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -16,8 +16,10 @@ mise sets up the rest.
 
 ```shell
 mise trust
-mise bootstrap
+MISE_GITHUB_CREDENTIAL_COMMAND="gh auth token" mise bootstrap
 ```
+
+The first run sets that variable by hand, since `.zshenv` exports it only once this run has had it source the shell fragments.
 
 On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which installs nothing the `Brewfile` lists, gh included.
 

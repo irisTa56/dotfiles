@@ -29,7 +29,7 @@ export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclon
 # mise takes github.credential_command from its global config only,
 # and a worktree or clone of this repository puts a copy of that config
 # on the project path, where mise drops the setting with a warning;
-# an environment variable holds wherever the command runs.
+# an environment variable does not depend on where mise runs.
 export MISE_GITHUB_CREDENTIAL_COMMAND="gh auth token"
 
 # uvx and `uv tool` pick no package version published less than a day ago,
