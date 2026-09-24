@@ -36,9 +36,7 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
   tip="$(git rev-parse "$local_sha^{commit}")"
 
   # Everything behind it is walked, and the filter below, on the set above, decides
-  # what is reported. `--since-commit` with a commit the remote already holds would
-  # shorten the walk without changing that answer; it is not passed, and a remote
-  # that holds nothing yet offers no such commit.
+  # what is reported.
   #
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
