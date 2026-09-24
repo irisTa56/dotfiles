@@ -102,6 +102,7 @@ jobs:
           fetch-depth: 0 # the action walks history from the base to the head
       - uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
         with:
-          # As secrets:push-scan does: a candidate is never sent to its provider, an
-          # unverified one fails the job too, and so does a commit it cannot read.
-          extra_args: --no-verification --fail-on-scan-errors
+          # Unlike secrets:push-scan, candidates are verified with their providers: the
+          # commits are already public by now, and an unverified candidate, such as a
+          # documentation example, does not fail the job. A commit it cannot read does.
+          extra_args: --results=verified,unknown --fail-on-scan-errors
