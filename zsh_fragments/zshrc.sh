@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 
-DOTFILES_DIR="${0:A:h}"
+DOTFILES_DIR="${0:A:h}/.."
 
 # aliases
 
