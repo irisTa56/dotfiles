@@ -1,6 +1,14 @@
+---
+description: The CI baseline for irisTa56's public repositories
+paths:
+  - "**/.github/workflows/*.yml"
+  - "**/.github/dependabot.yml"
+---
+
 # CI baseline
 
-The CI every public repository of this owner follows, dotfiles and k-boat among them.
+Hold a public repository owned by irisTa56, dotfiles and k-boat among them, to this baseline when writing or editing its CI.
+Elsewhere, a repository's own conventions come first, and this is only a reference.
 A repository departs from it only where a comment in its workflow says why.
 
 ## Checks
@@ -14,7 +22,7 @@ A repository departs from it only where a comment in its workflow says why.
 Secrets are scanned in three layers, each covering what the one before it cannot:
 
 - **GitHub**: secret scanning and push protection are on. For a personal account's repository they cover provider tokens only; generic patterns such as private keys and database connection strings need an organization with Secret Protection ([GitHub docs](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enabling-secret-scanning-for-generic-patterns)).
-- **Local hooks**: `secrets:commit-scan` and `secrets:push-scan` from this repository's shared tasks ([tasks/README.md](../tasks/README.md)).
+- **Local hooks**: `secrets:commit-scan` and `secrets:push-scan`, the shared tasks dotfiles lends ([tasks/README.md](../../tasks/README.md)).
 - **CI**: for commits that never went through those hooks, two jobs scan each pull request's commits and each push to `main`:
   - `gitleaks/gitleaks-action` with `GITLEAKS_VERSION: latest` and `GITLEAKS_ENABLE_COMMENTS: "false"`. Its upstream limits are named in a comment, not worked around: a PR scan covers only the first 30 commits ([gitleaks-action#187](https://github.com/gitleaks/gitleaks-action/issues/187)) and skips what a merge commit brings in ([#236](https://github.com/gitleaks/gitleaks-action/issues/236)).
   - `trufflesecurity/trufflehog` with `--results=verified,unknown --fail-on-scan-errors`: the upstream-recommended results, plus failing when a commit could not be read rather than passing having scanned nothing.
