@@ -73,7 +73,7 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
 2. From that root, store the key, typing it at the prompt so it lands in neither shell history nor a process's arguments:
 
    ```shell
-   fnox set <NAME> --provider keychain
+   fnox set -c fnox.local.toml <NAME> --provider keychain
    ```
 
    The login keychain does not sync through iCloud, so another Mac needs the key stored again.
