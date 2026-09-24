@@ -41,9 +41,15 @@ fi
 # `fnox set` writes to fnox.toml when the directory has one, hence `-c`.
 fnox set -c fnox.local.toml "$1" --provider "$provider"
 
-if ! grep -qsF 'fnox exec' CLAUDE.local.md; then
-  end_line CLAUDE.local.md
-  cat >>CLAUDE.local.md <<'EOF'
+note="$(
+  cat <<'EOF'
 - Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.
 EOF
+)"
+# An existing file has a structure of its own, and where the line belongs in it
+# is a call this task cannot make, so there the line is left to the user.
+if [[ ! -e CLAUDE.local.md ]]; then
+  printf '%s\n' "$note" >CLAUDE.local.md
+elif ! grep -qF 'fnox exec' CLAUDE.local.md; then
+  printf '%s\n%s\n' "Add this line where it fits in $root/CLAUDE.local.md:" "$note" >&2
 fi
