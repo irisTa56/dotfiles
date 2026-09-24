@@ -19,6 +19,8 @@ mise trust
 mise bootstrap
 ```
 
+On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which installs nothing the `Brewfile` lists, gh included.
+
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
 - `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds their two lines to `~/.claude/CLAUDE.md`.
