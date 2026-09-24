@@ -34,7 +34,9 @@ mise run setup:dotfiles
 Each of the three files sources the fragment of the same name here (`zshenv_fragment.sh`, `zprofile_fragment.sh`, `zshrc_fragment.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
 `scripts/setup_dotfiles.sh` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
-A machine set up before the fragments existed holds the old generated content in `~/.zshenv` and `~/.zprofile`; empty both before rerunning setup, or that content runs as well as the fragment's.
+The files follow the main checkout's working tree: a fragment missing there, because the checkout moved or sits on a branch without it, is reported on every shell start and not sourced.
+
+A machine set up before the fragments existed holds the old generated content in `~/.zshenv` and `~/.zprofile`; remove that content, keeping any line an installer appended after it, before rerunning setup, or it runs as well as the fragment's.
 
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.

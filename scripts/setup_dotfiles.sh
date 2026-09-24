@@ -24,14 +24,17 @@ EOF
 # Each startup file sources its fragment from the main checkout, so an edit
 # there reaches the next shell without rerunning this script, and lines an
 # installer appends to the file stay. Not a worktree's path, which goes away.
-# The guard keeps a shell starting if the checkout moves; a file that already
-# names its fragment, however it sources it, is left alone.
+# A missing fragment (the checkout moved, or sits on a branch without it)
+# is reported on every shell start rather than skipped, since unattended
+# shells depend on .zshenv's. A file that already names its fragment,
+# however it sources it, is left alone.
 dotfiles_dir="$(git -C "$(dirname "$0")" worktree list --porcelain | sed -n '1s/^worktree //p')"
 for name in zshenv zprofile zshrc; do
   fragment="$dotfiles_dir/${name}_fragment.sh"
   touch ~/."$name"
   grep -qF "${name}_fragment.sh" ~/."$name" ||
-    printf '[[ -r "%s" ]] && source "%s"\n' "$fragment" "$fragment" >>~/."$name"
+    printf 'if [[ -r "%s" ]]; then source "%s"; else echo "%s: missing, not sourced" >&2; fi\n' \
+      "$fragment" "$fragment" "$fragment" >>~/."$name"
 done
 
 # npm picks no package version published less than a day ago,
