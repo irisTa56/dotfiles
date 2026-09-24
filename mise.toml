@@ -38,6 +38,27 @@ git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning
 [task_config]
 includes = ["tasks"]
 
+# `mise bootstrap` sets a machine up from this checkout: these links and lines,
+# then the tools, then the bootstrap task below. Each source resolves from this
+# file's directory, so a run from a worktree would link into a directory that goes away.
+[dotfiles]
+"~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
+"~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
+"~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
+"~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
+"~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
+# Lines rather than the whole file, which stays machine-local.
+"~/.claude/CLAUDE.md/instructions" = { line = "@INSTRUCTIONS.md" }
+"~/.claude/CLAUDE.md/rtk" = { line = "@RTK.md" }
+
+[bootstrap.hooks]
+pre-dotfiles = '''
+test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --path-format=absolute --git-common-dir)" || {
+  echo "run mise bootstrap from the main checkout: from a worktree, [dotfiles] would link into it" >&2
+  exit 1
+}
+'''
+
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 # `lychee --cache` skips links that passed within the last day, so a commit waits
@@ -63,6 +84,20 @@ run = [
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm release window, pitchfork shell)"
 run = "scripts/setup_dotfiles.sh"
+
+# `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
+[tasks.bootstrap]
+description = "Finish machine setup after `mise bootstrap` links dotfiles and installs tools"
+run = [
+  { task = "setup:dotfiles" },
+  "rtk init -g --auto-patch",
+  "apm install",
+  # Overwrites every gist skill, local edits not yet pushed included.
+  { task = "skills:sync" },
+  # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
+  # starts the server to check it, and `add-json` fails on one already there.
+  "jq -e '.mcpServers[\"basic-memory\"]' ~/.claude.json >/dev/null 2>&1 || claude mcp add-json -s user basic-memory '{\"command\":\"uvx\",\"args\":[\"basic-memory\",\"mcp\"]}'",
+]
 
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"

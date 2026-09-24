@@ -18,6 +18,8 @@ brew "ffmpeg@7", link: true
 brew "findutils"
 # GNU awk utility
 brew "gawk"
+# GitHub command-line tool
+brew "gh"
 # GNU implementation of the famous stream editor
 brew "gnu-sed"
 # GNU version of the tar archiving utility
