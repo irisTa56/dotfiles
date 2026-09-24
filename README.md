@@ -2,11 +2,13 @@
 
 ## Setup
 
-Homebrew is left to the user: install [Homebrew](https://brew.sh), and have it install what the `Brewfile` lists, mise among them, from a clone of this repository:
+Homebrew is left to the user: install [Homebrew](https://brew.sh), and have it install what the `Brewfile` lists, mise and gh among them, from a clone of this repository.
+Sign gh in before mise runs: mise installs most tools from GitHub, whose API limits requests without a token, and the global config hands mise gh's token.
 
 ```shell
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew bundle
+gh auth login
 ```
 
 mise sets up the rest.
@@ -27,7 +29,7 @@ mise bootstrap
 
 The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
 
-A few steps stay by hand, since each needs a secret, a sign-in, or a path only this machine knows: `gh auth login`, the rclone password below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
+A few more steps stay by hand, since each needs a secret or a path only this machine knows: the rclone password below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
 
 ## Initial Setup
 
