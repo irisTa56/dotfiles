@@ -10,6 +10,12 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Weekly, as k-boat does: both secret scans cover the whole history on a scheduled
+  # run, which catches what a PR scan missed, and every job meets this week's release
+  # of the tools mise.toml tracks at `latest` even when no PR comes in. GitHub
+  # notifies whoever last edited the cron line when a scheduled run fails.
+  schedule:
+    - cron: "0 6 * * 1"
 
 # Dependabot PRs run with a read-only token; these jobs need nothing more.
 permissions:
@@ -102,7 +108,9 @@ jobs:
           fetch-depth: 0 # the action walks history from the base to the head
       - uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
         with:
-          # Unlike secrets:push-scan, candidates are verified with their providers: the
-          # commits are already public by now, and an unverified candidate, such as a
-          # documentation example, does not fail the job. A commit it cannot read does.
-          extra_args: --results=verified,unknown --fail-on-scan-errors
+          # Unlike secrets:push-scan, candidates are verified with their providers, as
+          # the commits are already public by now, and only a live one fails the job.
+          # An unknown result is left out: the connection-string example in
+          # tasks/README.md names an unreachable host, which comes back unknown. A
+          # commit the scan cannot read fails the job too.
+          extra_args: --results=verified --fail-on-scan-errors
