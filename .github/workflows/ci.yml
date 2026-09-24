@@ -87,7 +87,7 @@ jobs:
   # for commits that reached the repository without going through those hooks.
   # Known upstream limits, left as they are: a PR scan covers only the first 30 of its
   # commits and skips what a merge commit brings in (gitleaks-action#187, #236).
-  gitleaks:
+  secret-scan-gitleaks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -101,7 +101,7 @@ jobs:
           # Commenting on the PR needs a write token this workflow does not grant.
           GITLEAKS_ENABLE_COMMENTS: "false"
 
-  trufflehog:
+  secret-scan-trufflehog:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
