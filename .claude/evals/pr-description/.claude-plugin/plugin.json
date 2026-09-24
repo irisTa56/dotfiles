@@ -1,0 +1,5 @@
+{
+  "name": "pr-description",
+  "description": "Links the pr-description skill so its eval suite runs with it loaded",
+  "version": "0.0.0"
+}

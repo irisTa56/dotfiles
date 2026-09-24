@@ -22,5 +22,4 @@ apm_modules/
 .lycheecache
 
 # Results that claude plugin eval writes next to its eval cases
-/.claude/skills/*/evals/results/
 /.claude/evals/*/evals/results/
