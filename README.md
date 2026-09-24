@@ -31,7 +31,7 @@ mise run setup:dotfiles
 
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
-Each of the three files sources the fragment of the same name here (`zshenv_fragment.sh`, `zprofile_fragment.sh`, `zshrc_fragment.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
+Each of the three files sources the fragment of the same name in `zsh_fragments/` (`zshenv.sh`, `zprofile.sh`, `zshrc.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
 `scripts/setup_dotfiles.sh` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).

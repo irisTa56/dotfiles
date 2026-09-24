@@ -33,9 +33,9 @@ EOF
 # which would otherwise glue the two.
 dotfiles_dir="$(git -C "$(dirname "$0")" worktree list --porcelain | sed -n '1s/^worktree //p')"
 for name in zshenv zprofile zshrc; do
-  fragment="$dotfiles_dir/${name}_fragment.sh"
+  fragment="$dotfiles_dir/zsh_fragments/$name.sh"
   touch ~/."$name"
-  grep -qF "${name}_fragment.sh" ~/."$name" ||
+  grep -qF "zsh_fragments/$name.sh" ~/."$name" ||
     printf '\nif [[ -r "%s" ]]; then source "%s"; else echo "%s: missing, not sourced" >&2; fi\n' \
       "$fragment" "$fragment" "$fragment" >>~/."$name"
 done
