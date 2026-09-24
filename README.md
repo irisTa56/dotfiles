@@ -11,7 +11,7 @@ brew bundle
 ```
 
 The above supplies mise, which supplies additional tools and linters.
-The tools and settings that reach every repository live in this repository's `.config/mise/config.toml`, which mise reads once it is symlinked into place; the root `mise.toml` pins the tools this repository's own tasks use.
+The tools, settings and tasks that reach every repository live in this repository's `.config/mise/`, as `config.toml` and the file tasks under `tasks/`, which mise reads once each is symlinked into place; the root `mise.toml` pins the tools this repository's own tasks use.
 [mise refuses to parse a `mise.toml` from a directory it has not been told to trust](https://mise.jdx.dev/cli/trust.html), so trust this one before installing:
 
 ```shell
