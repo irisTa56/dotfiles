@@ -1,0 +1,5 @@
+{
+  "name": "review-skills",
+  "description": "Bundles the review skills that call finding-bar so their eval suite runs with it loaded",
+  "version": "0.0.0"
+}

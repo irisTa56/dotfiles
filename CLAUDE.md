@@ -14,7 +14,8 @@
     - Neither honors `.git/info/exclude`, which is where `.claude/worktrees/` is excluded, so its copy of every skill and rule comes back as hits unless the search drops that directory.
 - Checks: `mise run pre-commit` from this repository's root.
   - It leaves out the `md-to-docx` skill's tests, which are the required CI check: run `npm ci --ignore-scripts && npm test` there when its scripts, fixtures, or dependencies change.
-  - It also leaves out skill evals, which spend plan usage: when an edit to a skill with an `evals/` directory could change what its graders check — a rule they test, or the `description` that decides whether it fires — or rewrites the skill at large, run `claude plugin eval .claude/skills/<name> --trust-plugin --no-publish --judge-model sonnet`.
+  - It also leaves out skill evals, which spend plan usage: when an edit to a skill with an eval suite could change what its graders check — a rule they test, or the `description` that decides whether it fires — or rewrites the skill at large, run `claude plugin eval <suite> --trust-plugin --no-publish --judge-model sonnet`.
+    - A suite is the skill's own directory where it has an `evals/` there. `address-finding`, `raise-findings`, and `finding-bar` share `.claude/evals/review-skills` instead, a plugin that links them together, since an eval loads nothing but its target and the first two call `finding-bar`.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
 - PR bodies are English prose, and there is no template to fill in.
 - The squashed subject on `main` is the commit's when the PR has one commit and the PR title when it has more, so write both as Conventional Commits.
