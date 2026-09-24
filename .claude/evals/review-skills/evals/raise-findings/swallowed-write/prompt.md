@@ -4,14 +4,21 @@ max_turns: 12
 allowed_tools: [Skill, Read, Grep, Glob]
 ---
 
-Review the change below by running the raise-findings skill. There is no git repository here: the diff is the change, and the files after it are under `resources/`.
+Review the change below by running the raise-findings skill. There is no git repository here: the diff below is the change, and it shows every file it touches in full.
 
 The change is for letting `todo set <key> <value>` persist a setting across runs.
 
 ```diff
 --- a/settings.py
 +++ b/settings.py
-@@ -9,3 +9,11 @@ def load_settings(path: Path = SETTINGS_PATH) -> dict:
+@@ -1,11 +1,19 @@
+ import json
+ from pathlib import Path
+
+ SETTINGS_PATH = Path.home() / ".todo" / "settings.json"
+
+
+ def load_settings(path: Path = SETTINGS_PATH) -> dict:
      if not path.exists():
          return {}
      return json.loads(path.read_text())
