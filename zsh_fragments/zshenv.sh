@@ -26,6 +26,12 @@ export LC_CTYPE=ja_JP.UTF-8
 # which only `mise activate` in an interactive shell applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
 
+# mise takes github.credential_command from its global config only,
+# and a worktree or clone of this repository puts a copy of that config
+# on the project path, where mise drops the setting with a warning;
+# an environment variable holds wherever the command runs.
+export MISE_GITHUB_CREDENTIAL_COMMAND="gh auth token"
+
 # uvx and `uv tool` pick no package version published less than a day ago,
 # the window npm gets from its user config (set by setup_dotfiles.sh).
 # uv gets it only where no project lock is written:
