@@ -38,9 +38,9 @@ git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning
 [task_config]
 includes = ["tasks"]
 
-# CI runs each `qa:` family as a job of its own (.github/workflows/ci.yml), so a check
-# that belongs in CI goes under `qa:`, and a new family needs its own job there too:
-# `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
+# CI runs each `qa:` task by name as a job of its own (.github/workflows/ci.yml), so a
+# check that belongs in CI goes under `qa:`, and a new `qa:` task needs its own job
+# there too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
 # Claude Code CLI, and `mix format` an Elixir toolchain, neither of which CI installs.

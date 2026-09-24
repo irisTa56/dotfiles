@@ -1,10 +1,10 @@
 name: CI
 
 # The `qa:` jobs call the same mise tasks as the local `mise run pre-commit`, so what
-# a check runs is mise.toml's to say. One job per top-level `qa:` family: pre-commit
-# picks up a new family through its `qa:**` dependency and CI does not, so a new one
-# needs its own job here, and a place in the main ruleset's required checks, before a
-# merge waits on it. `secrets:commit-scan` reads the staged diff and has no job; the
+# a check runs is mise.toml's to say. Each job runs one `qa:` task by name: pre-commit
+# picks up a new `qa:` task through its `qa:**` dependency and CI does not, so a new
+# one, even beside an existing task, needs its own job here, and a place in the main
+# ruleset's required checks, before a merge waits on it. `secrets:commit-scan` reads the staged diff and has no job; the
 # two secret-scan jobs scan a pull request's commits instead.
 
 on:
