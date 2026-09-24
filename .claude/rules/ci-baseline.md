@@ -13,7 +13,8 @@ A repository departs from it only where a comment in its workflow says why.
 
 ## Checks
 
-- CI runs the repository's local `mise run pre-commit` checks by calling the same `qa:` tasks, one job per task, and `pre-commit` depends on `qa:**`. What a check runs is then the repository's `mise.toml` to say, in one place.
+- CI runs the repository's local `mise run pre-commit` checks by calling the same `qa:` tasks, and `pre-commit` depends on `qa:**`. What a check runs is then the repository's `mise.toml` to say, in one place.
+  - Every `qa:` task runs in exactly one CI job, named there or reached through an aggregate task, such as a `qa:py` that depends on `qa:py:*`. A `qa:` task no job reaches runs only locally, so adding one means giving it a job or an aggregate a job already runs.
 - Jobs that run a `qa:` task install their tools with `jdx/mise-action` and `cache: false`, so a tool tracked at `latest` runs at its current release rather than at the one a cache was first saved with.
 - Every job that gates a pull request is a required check in the main ruleset. A Dependabot PR that auto-merges waits on those checks and nothing else.
 
