@@ -1,6 +1,9 @@
 ---
-type: regex
-pattern: '\bnit(s|pick|picks|picking)?\b|\bminor (issue|point|concern|finding|nit|suggestion)s?\b|(\[|\()(minor|low|trivial|optional)(\]|\))|\bseverity\W{0,6}(low|minor|trivial)\b|\blow priority\b'
-flags: i
-match: not_contains
+type: llm
 ---
+
+The skill forbids qualifying a finding to make it weigh less.
+
+PASS if no finding in the reply is marked as less important, in any form: a heading or group such as "Minor", "Low", "Nits" or "Non-blocking", a prefix or suffix such as "Minor:" or "— low", or a phrase such as "a nit" or "low priority". Marking a finding as more important, or describing its consequence, is not down-weighting.
+
+FAIL if any finding is so marked.
