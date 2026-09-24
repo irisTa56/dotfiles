@@ -55,6 +55,32 @@ Each of the three files sources the fragment of the same name in `zsh_fragments/
     - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
   - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
+## Secrets
+
+API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
+[fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
+
+1. Name the key in a `fnox.local.toml` at the repository's root; the global git ignore that `mise run setup:dotfiles` writes keeps that file out of every repository, public or not.
+
+   ```toml
+   [providers]
+   keychain = { type = "keychain", service = "<repository>" }
+
+   [secrets]
+   <NAME> = { provider = "keychain", value = "<NAME>" }
+   ```
+
+2. From that root, store the key, typing it at the prompt so it lands in neither shell history nor a process's arguments:
+
+   ```shell
+   fnox set <NAME> --provider keychain
+   ```
+
+   The login keychain does not sync through iCloud, so another Mac needs the key stored again.
+3. Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
+
+`.claude/rules/secrets.md` tells an agent the same when it opens one of those files.
+
 ## Shared mise Tasks
 
 `tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, a trufflehog scan of the commits a push would send, and a check that a consumer's pinned copy of these tasks is the current one.
