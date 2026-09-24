@@ -23,7 +23,7 @@ mise install
 
 ## Initial Setup
 
-Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zprofile`, and `~/.zshenv` (each is overwritten with canonical content):
+Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zprofile`, and `~/.zshenv` (each is overwritten with canonical content), and to set pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`:
 
 ```shell
 mise run setup:dotfiles
@@ -45,6 +45,7 @@ mise run setup:dotfiles
     ```
 
   - A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
+  - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
 ## Shared mise Tasks
 

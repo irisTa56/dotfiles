@@ -51,3 +51,10 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # `mise activate` applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
 EOF
+
+# launchd starts the pitchfork supervisor with no shell environment, and its
+# default `sh -c` reads no startup file, so a daemon running rclone would get
+# no RCLONE_PASSWORD_COMMAND and stall on the password prompt. zsh reads
+# .zshenv even non-interactively. One key set in place: the file also holds
+# the namespaces `mise daemons` registers, which differ per machine.
+pitchfork settings set --global general.shell "/bin/zsh -c"
