@@ -81,17 +81,24 @@ jobs:
 
   # The two scans mirror the local pair, gitleaks per commit and trufflehog per push,
   # for commits that reached the repository without going through those hooks.
+  # The CLI rather than gitleaks-action, whose pull_request scan covers only the
+  # first 30 commits the API lists and skips what a merge commit brings in.
   gitleaks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # full history so gitleaks can scan the PR's commits
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: gitleaks
+          cache: false # as in `markdown-lint`
+      # `--diff-merges=first-parent` gives a merge commit a diff, so a secret added
+      # while resolving a conflict is scanned; git log shows merges without one.
+      - run: gitleaks git -v --log-opts="--diff-merges=first-parent $BASE..$HEAD" .
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Commenting on the PR needs a write token this workflow does not grant.
-          GITLEAKS_ENABLE_COMMENTS: "false"
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.event.after }}
 
   # The action bounds a PR's commits with `--since-commit <base>`, which cuts by
   # committer date, so a commit dated before the base (after a rebase, say) can go
