@@ -59,26 +59,46 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 }
 '''
 
+# CI runs each `qa:` task by name as a job of its own (.github/workflows/ci.yml), so a
+# check that belongs in CI goes under `qa:`, and a new `qa:` task needs its own job
+# there too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
+# `*` matches a single task segment and would leave `qa:links:offline` out.
+# The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
+# Claude Code CLI, and `mix format` an Elixir toolchain, neither of which CI installs.
+# `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
+# request's commits with its own jobs instead of the staged diff this one reads.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-# `lychee --cache` skips links that passed within the last day, so a commit waits
-# on a third-party host only for links it has not seen pass lately. lychee never
-# caches a failure. link-check leaves the cache off and requests every link.
-# Each step finishes before the next starts; only the first is a shared task.
+depends = ["qa:**", "secrets:commit-scan"]
 run = [
-  { task = "secrets:commit-scan" },
-  "lychee --cache .",
-  "rumdl check",
   "claude plugin validate .claude/skills",
-  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
-  # and validate passes those; `find -L` lists only the dangling ones.
-  "! find -L .claude/evals -type l | grep .",
-  # Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
-  # rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
-  # and `sh` — which is what runs this — has no recursive glob to match that.
+  "mix format --check-formatted scripts/*.exs",
+]
+
+[tasks."qa:md"]
+description = "Lint markdown files"
+run = "rumdl check"
+
+[tasks."qa:sh"]
+description = "Lint and check formatting of shell scripts"
+# Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
+# rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
+# and `sh` — which is what runs this — has no recursive glob to match that.
+run = [
   "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
   "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
-  "mix format --check-formatted scripts/*.exs",
+]
+
+# Offline, so a commit never waits on a third-party host and a host being down never
+# fails one; `link-check` below requests every link, and CI runs that weekly without
+# gating anything (.github/workflows/link-check-weekly.yml).
+[tasks."qa:links:offline"]
+description = "Check local links and anchors, and eval symlinks, without the network"
+run = [
+  "lychee --offline --no-progress .",
+  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
+  # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
+  "! find -L .claude/evals -type l | grep .",
 ]
 
 [tasks."setup:dotfiles"]

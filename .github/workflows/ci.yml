@@ -1,15 +1,35 @@
 name: CI
 
+# Follows the CI baseline in .claude/rules/ci-baseline.md; a departure from it says why here.
+# Each `qa:` job runs one mise task by name; which tasks need a job, and why, is in
+# the comment above `[tasks.pre-commit]` in mise.toml. A new job also needs a place in
+# the main ruleset's required checks before a merge waits on it.
+
 on:
-  # No path filter: this check is a required status check on main, so it must
+  # No path filter: these checks are required status checks on main, so they must
   # report on every PR (a check that never runs would block merges forever).
   pull_request:
   push:
     branches: [main]
+  # Weekly, as k-boat does: both secret scans cover the whole history on a scheduled
+  # run, which catches what a PR scan missed, and every job meets this week's release
+  # of the tools mise.toml tracks at `latest` even when no PR comes in. GitHub
+  # notifies whoever last edited the cron line when a scheduled run fails.
+  schedule:
+    - cron: "0 6 * * 1"
 
-# Dependabot PRs run with a read-only token; this job needs nothing more.
+# Dependabot PRs run with a read-only token; these jobs need nothing more.
 permissions:
   contents: read
+
+env:
+  # The repository's .config/mise/config.toml is the machine-wide config that
+  # ~/.config/mise links to, and mise also reads it as this project's own; this keeps
+  # its settings, env and tool list, all set for that machine, out of every job.
+  MISE_IGNORED_CONFIG_PATHS: ${{ github.workspace }}/.config/mise/config.toml
+  # `mise run` would otherwise install every tool mise.toml lists before running a
+  # task, apm-cli included; each job installs only what its task needs instead.
+  MISE_TASK_RUN_AUTO_INSTALL: "false"
 
 jobs:
   md-to-docx:
@@ -30,3 +50,69 @@ jobs:
       - run: npm ci --strict-allow-scripts
 
       - run: npm test
+
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: rumdl
+          # mise.toml tracks these tools at `latest`, and a restored cache would hold
+          # each at the release it was first saved with until mise.toml changed.
+          cache: false
+      - run: mise run qa:md
+
+  shell-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: shellcheck shfmt
+          cache: false # as in `markdown-lint`
+      - run: mise run qa:sh
+
+  link-check-offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: lychee
+          cache: false # as in `markdown-lint`
+      - run: mise run qa:links:offline
+
+  # The two scans mirror the local pair, gitleaks per commit and trufflehog per push,
+  # for commits that reached the repository without going through those hooks.
+  # Known upstream limits, left as they are: a PR scan covers only the first 30 of its
+  # commits and skips what a merge commit brings in (gitleaks-action#187, #236).
+  secret-scan-gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full history so gitleaks can scan the PR's commits
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The action pins an older gitleaks otherwise; mise.toml tracks `latest`.
+          GITLEAKS_VERSION: latest
+          # Commenting on the PR needs a write token this workflow does not grant.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+  secret-scan-trufflehog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the action walks history from the base to the head
+      - uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
+        with:
+          # Unlike secrets:push-scan, candidates are verified with their providers, as
+          # the commits are already public by now; a live or unknown one fails the
+          # job, and so does a commit the scan cannot read. SQLServer is excluded
+          # because the message of commit b39f7e6 quotes a `Server=…;Password=…;`
+          # example, which verifies as unknown and would fail every scheduled
+          # full-history run; TruffleHog cannot ignore a finding in a commit message.
+          extra_args: --results=verified,unknown --fail-on-scan-errors --exclude-detectors=SQLServer
