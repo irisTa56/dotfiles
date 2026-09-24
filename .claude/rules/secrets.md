@@ -6,7 +6,8 @@ paths:
   - "**/fnox*.toml"
   - "**/mise*.toml"
   - "**/.mise*.toml"
-  - "**/.config/mise/config*.toml"
+  - "**/mise/**/*.toml"
+  - "**/.mise/**/*.toml"
 ---
 
 # Secrets
