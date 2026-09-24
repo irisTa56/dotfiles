@@ -1,15 +1,31 @@
 name: CI
 
+# The `qa:` jobs call the same mise tasks as the local `mise run pre-commit`, so what
+# a check runs is mise.toml's to say. One job per top-level `qa:` family: pre-commit
+# picks up a new family through its `qa:**` dependency and CI does not, so a new one
+# needs its own job here, and a place in the main ruleset's required checks, before a
+# merge waits on it. `secrets:commit-scan` reads the staged diff and has no job; the
+# two secret-scan jobs scan a pull request's commits instead.
+
 on:
-  # No path filter: this check is a required status check on main, so it must
+  # No path filter: these checks are required status checks on main, so they must
   # report on every PR (a check that never runs would block merges forever).
   pull_request:
   push:
     branches: [main]
 
-# Dependabot PRs run with a read-only token; this job needs nothing more.
+# Dependabot PRs run with a read-only token; these jobs need nothing more.
 permissions:
   contents: read
+
+env:
+  # The repository's .config/mise/config.toml is the machine-wide config that
+  # ~/.config/mise links to, and mise also reads it as this project's own; without
+  # this, every job would install that whole toolset.
+  MISE_IGNORED_CONFIG_PATHS: ${{ github.workspace }}/.config/mise/config.toml
+  # `mise run` would otherwise install every tool mise.toml lists before running a
+  # task, apm-cli included; each job installs only what its task needs instead.
+  MISE_TASK_RUN_AUTO_INSTALL: "false"
 
 jobs:
   md-to-docx:
@@ -30,3 +46,64 @@ jobs:
       - run: npm ci --strict-allow-scripts
 
       - run: npm test
+
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: rumdl
+          # mise.toml tracks these tools at `latest`, and a restored cache would hold
+          # each at the release it was first saved with until mise.toml changed.
+          cache: false
+      - run: mise run qa:md
+
+  shell-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: shellcheck shfmt
+          cache: false # as in `markdown-lint`
+      - run: mise run qa:sh
+
+  link-check-offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: lychee
+          cache: false # as in `markdown-lint`
+      - run: mise run qa:links:offline
+
+  # The two scans mirror the local pair, gitleaks per commit and trufflehog per push,
+  # for commits that reached the repository without going through those hooks.
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full history so gitleaks can scan the PR's commits
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Commenting on the PR needs a write token this workflow does not grant.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+  # The action bounds a PR's commits with `--since-commit <base>`, which cuts by
+  # committer date, so a commit dated before the base (after a rebase, say) can go
+  # unscanned here. secrets:push-scan walks by ancestry instead; this is the backstop.
+  trufflehog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the action walks history from the base to the head
+      - uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
+        with:
+          # As secrets:push-scan does: a candidate is never sent to its provider, and
+          # an unverified one fails the job too.
+          extra_args: --no-verification
