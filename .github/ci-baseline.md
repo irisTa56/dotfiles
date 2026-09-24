@@ -1,6 +1,7 @@
 # CI baseline
 
-The CI every public repository of this owner follows, dotfiles and k-boat among them. A repository departs from it only where a comment in its workflow says why.
+The CI every public repository of this owner follows, dotfiles and k-boat among them.
+A repository departs from it only where a comment in its workflow says why.
 
 ## Checks
 
