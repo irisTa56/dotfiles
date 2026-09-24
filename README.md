@@ -60,17 +60,14 @@ Each of the three files sources the fragment of the same name in `zsh_fragments/
 API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
 [fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
 
-1. Name the key in a `fnox.local.toml` at the repository's root; the global git ignore that `mise run setup:dotfiles` writes keeps that file out of every repository, public or not.
+1. Declare the keychain in a `fnox.local.toml` at the repository's root; the global git ignore that `mise run setup:dotfiles` writes keeps that file out of every repository, public or not.
 
    ```toml
    [providers]
    keychain = { type = "keychain", service = "<repository>" }
-
-   [secrets]
-   <NAME> = { provider = "keychain", value = "<NAME>" }
    ```
 
-2. From that root, store the key, typing it at the prompt so it lands in neither shell history nor a process's arguments:
+2. From that root, store the key, typing it at the prompt so it lands in neither shell history nor a process's arguments; fnox adds its entry to the same file:
 
    ```shell
    fnox set -c fnox.local.toml <NAME> --provider keychain
