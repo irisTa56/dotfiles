@@ -18,8 +18,5 @@
 # APM dependencies
 apm_modules/
 
-# lychee request cache
-.lycheecache
-
 # Results that claude plugin eval writes next to its eval cases
 /.claude/evals/*/evals/results/
