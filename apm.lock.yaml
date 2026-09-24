@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-24T01:59:17.581969+00:00'
+generated_at: '2026-09-24T06:27:11.661060+00:00'
 apm_version: 0.30.0
 dependencies:
 - repo_url: anthropics/skills
@@ -219,40 +219,6 @@ dependencies:
     .claude/skills/memory-tasks/SKILL.md: sha256:57bb7232567a03a4442c142fb15614226291e8c895ef36d07ac7610013d75fee
   content_hash: sha256:abc17a4831fee2a02abdb7035383820cf2950f56dcf8f07cedb27d82741e4f2b
 - repo_url: github/awesome-copilot
-  name: acquire-codebase-knowledge
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/acquire-codebase-knowledge
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/acquire-codebase-knowledge
-  - .claude/skills/acquire-codebase-knowledge/SKILL.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/STACK.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md
-  - .claude/skills/acquire-codebase-knowledge/assets/templates/TESTING.md
-  - .claude/skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md
-  - .claude/skills/acquire-codebase-knowledge/references/stack-detection.md
-  - .claude/skills/acquire-codebase-knowledge/scripts/scan.py
-  deployed_file_hashes:
-    .claude/skills/acquire-codebase-knowledge/SKILL.md: sha256:a86527533d2ee4df27063af24402b9e1a345c33bba3cf423c96da7cdb3864a60
-    .claude/skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md: sha256:3b7a958d153c037a6fc19e35e7e9792650d747491340d83ba831714b6ca02b6c
-    .claude/skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md: sha256:d714bef20a5ed8fee1ab5e01041abd18f1d95b93d455e82b371031a6675b6430
-    .claude/skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md: sha256:c20c1dca3226992b785229b4ba2c08caada775bd0e26a85f1185d0600b6f2a37
-    .claude/skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md: sha256:60930c9b9aecf63e9c1c19a597bfaba6cab5f44d687e2c751cf034ffe962af25
-    .claude/skills/acquire-codebase-knowledge/assets/templates/STACK.md: sha256:0faf167cb857c14f4f8fbdbebf58727440d80c275fa483dedd7a08e2ac3ebe12
-    .claude/skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md: sha256:29a5a387c894135c41c74a1b3e629ece88707c0a56aa9e4153ec9682f5c0c373
-    .claude/skills/acquire-codebase-knowledge/assets/templates/TESTING.md: sha256:941a0f400441660a5fb9a28f43318f4a13f1a1c79e8cfac03cdf893cd6c3db85
-    .claude/skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md: sha256:d06d9de9b30ebfe73a8f1034bfc1f2c4b68e45bd8425d56df8e4d48f06673dce
-    .claude/skills/acquire-codebase-knowledge/references/stack-detection.md: sha256:9baaaaadbebdfd53099875a9f4920d2fcb236efe040655a2d43217a6a31a4c9f
-    .claude/skills/acquire-codebase-knowledge/scripts/scan.py: sha256:193d5b9f73a71d6ecc2f39f13f33d96be49d675abe83f5857ddbdc4ae21b7bd9
-  content_hash: sha256:af2efcbc519f87124c63ecf0fc3cc61f41138a928b5ad24a90ed0fb65c468fa4
-- repo_url: github/awesome-copilot
   name: create-architectural-decision-record
   host: github.com
   resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
@@ -308,20 +274,6 @@ dependencies:
   deployed_file_hashes:
     .claude/skills/create-technical-spike/SKILL.md: sha256:2caccb0ba3b9851b82c648870330b6d22a47ee7cda4d3770ef8b5f8d6e439281
   content_hash: sha256:e711706b4aebacac01bcc025e19bcf0e88bf784cbe6419ddf07c2be67c501f33
-- repo_url: github/awesome-copilot
-  name: documentation-writer
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/documentation-writer
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/documentation-writer
-  - .claude/skills/documentation-writer/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/documentation-writer/SKILL.md: sha256:7e8244988c9f4eb63bf8c0edf160578544621eb96e5e51e2d848f1401c5de8f1
-  content_hash: sha256:ee53d65b163cd7eb953a930c95841cfe398cc2c0bd24c06508bbaa07c432be35
 - repo_url: github/awesome-copilot
   name: draw-io-diagram-generator
   host: github.com
@@ -379,20 +331,6 @@ dependencies:
     .claude/skills/drawio/scripts/package.json: sha256:4f0671a98161a586df441fbe4de3bdb6c52797b71a9810752c27699f18991525
   content_hash: sha256:4c77e3941e561b9740f20150bee250a2236ab9da207f1e46f4501a5492ba6013
 - repo_url: github/awesome-copilot
-  name: git-commit
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/git-commit
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/git-commit
-  - .claude/skills/git-commit/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/git-commit/SKILL.md: sha256:554d1a3c6d95f15bc1170160659ecdc9a9958b64f377f3988941b672c249b13f
-  content_hash: sha256:2607fc60629b82b257136dd2a7a373f0a4466c0b49df7746d845d59313c99b21
-- repo_url: github/awesome-copilot
   name: memory-merger
   host: github.com
   resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
@@ -420,34 +358,6 @@ dependencies:
   deployed_file_hashes:
     .claude/skills/prd/SKILL.md: sha256:6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5
   content_hash: sha256:1f3e1f005fc40fda85d250ae906c8ee4f7e8e833e23adfeca6542c19609fd7cd
-- repo_url: github/awesome-copilot
-  name: refactor
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/refactor
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/refactor
-  - .claude/skills/refactor/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/refactor/SKILL.md: sha256:58a38edd230cdcdd866939906321c8ba6f47c98a70d0cda373360196ee2ca1a7
-  content_hash: sha256:87789a786b96f99ba0680e89345a975106e10e7db1071c7cdc2e76d507c449d6
-- repo_url: github/awesome-copilot
-  name: refactor-plan
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/refactor-plan
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/refactor-plan
-  - .claude/skills/refactor-plan/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/refactor-plan/SKILL.md: sha256:93741df0042a15c01ae8589e72014dcf53c557c11ca1df69c29737534c312c29
-  content_hash: sha256:26f32d34d48e9a40e5dd91d877319c94c6b8537e204d95d187ba45b443276868
 - repo_url: github/awesome-copilot
   name: update-implementation-plan
   host: github.com
@@ -4951,114 +4861,6 @@ dependencies:
 deployments:
 - kind: project-relative
   target: claude
-  value: .claude/skills/acquire-codebase-knowledge
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:a86527533d2ee4df27063af24402b9e1a345c33bba3cf423c96da7cdb3864a60
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/ARCHITECTURE.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:3b7a958d153c037a6fc19e35e7e9792650d747491340d83ba831714b6ca02b6c
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/CONCERNS.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:d714bef20a5ed8fee1ab5e01041abd18f1d95b93d455e82b371031a6675b6430
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/CONVENTIONS.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:c20c1dca3226992b785229b4ba2c08caada775bd0e26a85f1185d0600b6f2a37
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/INTEGRATIONS.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:60930c9b9aecf63e9c1c19a597bfaba6cab5f44d687e2c751cf034ffe962af25
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/STACK.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:0faf167cb857c14f4f8fbdbebf58727440d80c275fa483dedd7a08e2ac3ebe12
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/STRUCTURE.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:29a5a387c894135c41c74a1b3e629ece88707c0a56aa9e4153ec9682f5c0c373
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/assets/templates/TESTING.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:941a0f400441660a5fb9a28f43318f4a13f1a1c79e8cfac03cdf893cd6c3db85
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/references/inquiry-checkpoints.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:d06d9de9b30ebfe73a8f1034bfc1f2c4b68e45bd8425d56df8e4d48f06673dce
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/references/stack-detection.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:9baaaaadbebdfd53099875a9f4920d2fcb236efe040655a2d43217a6a31a4c9f
-- kind: project-relative
-  target: claude
-  value: .claude/skills/acquire-codebase-knowledge/scripts/scan.py
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/acquire-codebase-knowledge
-  active_owner: github/awesome-copilot/skills/acquire-codebase-knowledge
-  content_hash: sha256:193d5b9f73a71d6ecc2f39f13f33d96be49d675abe83f5857ddbdc4ae21b7bd9
-- kind: project-relative
-  target: claude
   value: .claude/skills/create-architectural-decision-record
   runtime: null
   scope: project
@@ -5129,24 +4931,6 @@ deployments:
   - github/awesome-copilot/skills/create-technical-spike
   active_owner: github/awesome-copilot/skills/create-technical-spike
   content_hash: sha256:2caccb0ba3b9851b82c648870330b6d22a47ee7cda4d3770ef8b5f8d6e439281
-- kind: project-relative
-  target: claude
-  value: .claude/skills/documentation-writer
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/documentation-writer
-  active_owner: github/awesome-copilot/skills/documentation-writer
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/documentation-writer/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/documentation-writer
-  active_owner: github/awesome-copilot/skills/documentation-writer
-  content_hash: sha256:7e8244988c9f4eb63bf8c0edf160578544621eb96e5e51e2d848f1401c5de8f1
 - kind: project-relative
   target: claude
   value: .claude/skills/draw-io-diagram-generator
@@ -5309,24 +5093,6 @@ deployments:
   - github/awesome-copilot/skills/drawio
   active_owner: github/awesome-copilot/skills/drawio
   content_hash: sha256:4f0671a98161a586df441fbe4de3bdb6c52797b71a9810752c27699f18991525
-- kind: project-relative
-  target: claude
-  value: .claude/skills/git-commit
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/git-commit
-  active_owner: github/awesome-copilot/skills/git-commit
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/git-commit/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/git-commit
-  active_owner: github/awesome-copilot/skills/git-commit
-  content_hash: sha256:554d1a3c6d95f15bc1170160659ecdc9a9958b64f377f3988941b672c249b13f
 - kind: project-relative
   target: claude
   value: .claude/skills/gws-docs
@@ -25235,42 +25001,6 @@ deployments:
   - github/awesome-copilot/skills/prd
   active_owner: github/awesome-copilot/skills/prd
   content_hash: sha256:6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5
-- kind: project-relative
-  target: claude
-  value: .claude/skills/refactor
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/refactor
-  active_owner: github/awesome-copilot/skills/refactor
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/refactor-plan
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/refactor-plan
-  active_owner: github/awesome-copilot/skills/refactor-plan
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/refactor-plan/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/refactor-plan
-  active_owner: github/awesome-copilot/skills/refactor-plan
-  content_hash: sha256:93741df0042a15c01ae8589e72014dcf53c557c11ca1df69c29737534c312c29
-- kind: project-relative
-  target: claude
-  value: .claude/skills/refactor/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/refactor
-  active_owner: github/awesome-copilot/skills/refactor
-  content_hash: sha256:58a38edd230cdcdd866939906321c8ba6f47c98a70d0cda373360196ee2ca1a7
 - kind: project-relative
   target: claude
   value: .claude/skills/skill-creator
