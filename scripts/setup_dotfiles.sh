@@ -50,6 +50,12 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # the setup. Here rather than mise's [env], which only an interactive shell's
 # `mise activate` applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
+
+# npm and uv skip package versions published less than a day ago, so a
+# compromised release pulled within hours never gets installed; mise and
+# pnpm 11 already wait a day by default. uv records the window in uv.lock.
+export NPM_CONFIG_MIN_RELEASE_AGE=1
+export UV_EXCLUDE_NEWER="1 day"
 EOF
 
 # launchd starts the pitchfork supervisor with no shell environment, and its
