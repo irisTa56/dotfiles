@@ -27,13 +27,14 @@ EOF
 # A missing fragment (the checkout moved, or sits on a branch without it)
 # is reported on every shell start rather than skipped, since unattended
 # shells depend on .zshenv's. A file that already names its fragment,
-# however it sources it, is left alone.
+# however it sources it, is left alone. The line starts with a newline in
+# case the file's last line lacks one, which would otherwise glue the two.
 dotfiles_dir="$(git -C "$(dirname "$0")" worktree list --porcelain | sed -n '1s/^worktree //p')"
 for name in zshenv zprofile zshrc; do
   fragment="$dotfiles_dir/${name}_fragment.sh"
   touch ~/."$name"
   grep -qF "${name}_fragment.sh" ~/."$name" ||
-    printf 'if [[ -r "%s" ]]; then source "%s"; else echo "%s: missing, not sourced" >&2; fi\n' \
+    printf '\nif [[ -r "%s" ]]; then source "%s"; else echo "%s: missing, not sourced" >&2; fi\n' \
       "$fragment" "$fragment" "$fragment" >>~/."$name"
 done
 
