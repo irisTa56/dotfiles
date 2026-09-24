@@ -23,15 +23,16 @@ mise install
 
 ## Initial Setup
 
-Run once on a new machine to drop `~/.dircolors`, `~/.config/git/ignore`, `~/.zprofile`, and `~/.zshenv` (each is overwritten with canonical content), to set pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and to set npm's `min-release-age` in `~/.npmrc`:
+Run once on a new machine to drop `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), to make `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, to set pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and to set npm's `min-release-age` in `~/.npmrc`:
 
 ```shell
 mise run setup:dotfiles
 ```
 
-### Shell startup: `.zprofile` vs `.zshenv`
+### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
-`scripts/setup_dotfiles.sh` writes both files and each line there says why it is where it is.
+Each of the three files sources the fragment of the same name here (`zshenv_fragment.sh`, `zprofile_fragment.sh`, `zshrc_fragment.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
+`scripts/setup_dotfiles.sh` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
 - `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 - `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.

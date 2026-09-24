@@ -14,7 +14,7 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # Where the shell files are, for the two tasks below that lint or format them. Named once
 # because the lists had already drifted apart when each carried its own: format-sh was
 # missing zshrc_fragment.sh, which pre-commit had always checked.
-sh_paths = "scripts tasks zshrc_fragment.sh .claude/skills/sync-base/scripts"
+sh_paths = "scripts tasks zshenv_fragment.sh zprofile_fragment.sh zshrc_fragment.sh .claude/skills/sync-base/scripts"
 
 # The pre-commit hook is written once and then left alone: `mise generate` moves an
 # existing one aside as `<name>.old`, so rewriting on every install would displace
@@ -58,7 +58,7 @@ run = [
 ]
 
 [tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, gitignore, zprofile, zshenv, pitchfork shell, npm release window)"
+description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm release window, pitchfork shell)"
 run = "scripts/setup_dotfiles.sh"
 
 [tasks.link-check]

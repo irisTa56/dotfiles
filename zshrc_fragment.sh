@@ -43,7 +43,6 @@ function show-modified-homebrew-formula() {
 
 # settings
 
-export LC_CTYPE=ja_JP.UTF-8
 export PROMPT="%K{2} %k %F{7}[%DT%* %n@%m:%~]%f"$'\n'"\$ "
 
 JAVA_HOME=$(/usr/libexec/java_home)
