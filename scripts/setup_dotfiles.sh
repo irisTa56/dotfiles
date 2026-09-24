@@ -51,11 +51,21 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # `mise activate` applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
 
-# npm and uv skip package versions published less than a day ago, so a
-# compromised release pulled within hours never gets installed; mise and
-# pnpm 11 already wait a day by default. uv records the window in uv.lock.
+# npm, uvx and `uv tool` skip package versions published less than a day
+# ago, so a compromised release pulled within hours never gets installed;
+# mise and pnpm 11 already wait a day by default. uv gets the window only
+# where no project lock is written: a user-wide one is baked into each
+# project's uv.lock and then conflicts with anyone locking without it
+# (astral-sh/uv#18775), so a project sets its own in pyproject.toml.
 export NPM_CONFIG_MIN_RELEASE_AGE=1
-export UV_EXCLUDE_NEWER="1 day"
+uvx() { UV_EXCLUDE_NEWER="${UV_EXCLUDE_NEWER-1 day}" command uvx "$@"; }
+uv() {
+  if [[ ${1-} == tool ]]; then
+    UV_EXCLUDE_NEWER="${UV_EXCLUDE_NEWER-1 day}" command uv "$@"
+  else
+    command uv "$@"
+  fi
+}
 EOF
 
 # launchd starts the pitchfork supervisor with no shell environment, and its
