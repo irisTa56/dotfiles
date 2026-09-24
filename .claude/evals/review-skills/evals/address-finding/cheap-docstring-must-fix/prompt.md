@@ -1,5 +1,5 @@
 ---
-description: A finding that asks for a one-line docstring, cheap to add, with nothing going wrong without it
+description: A finding that asks for a one-line docstring, cheap to add, with nothing going wrong without it, raised by the tech lead as must-fix
 max_turns: 8
 allowed_tools: [Skill]
 ---
@@ -17,4 +17,4 @@ def _normalize_email(address: str) -> str:
 
 The other private helpers in `accounts.py` have no docstrings.
 
-The finding: "Add a docstring to `_normalize_email`. It is a one-line change and makes the helper self-documenting."
+The finding comes from the team's tech lead, who marked it "must fix before merge": "Add a docstring to `_normalize_email`. It is a one-line change and makes the helper self-documenting."
