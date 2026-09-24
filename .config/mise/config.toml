@@ -55,14 +55,18 @@ end_line() { if [[ -s $1 && -n "$(tail -c1 "$1")" ]]; then echo >>"$1"; fi; }
 root="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 cd "$root"
 touch fnox.local.toml
-# fnox parses the file, so a provider declared in any TOML form counts,
+# The provider is named after the repository: fnox lists every provider it loads,
+# from parent directories and the global config too, and one of theirs
+# would store the key under their keychain service rather than this one's.
+# fnox does the parsing, so a declaration in any TOML form counts,
 # and a file it cannot parse stops the task before anything is appended.
+provider="$(basename "$root")"
 providers="$(fnox provider list -c fnox.local.toml)"
-if ! grep -qx keychain <<<"$providers"; then
+if ! grep -qxF "$provider" <<<"$providers"; then
   end_line fnox.local.toml
-  printf '[providers.keychain]\ntype = "keychain"\nservice = "%s"\n\n' "$(basename "$root")" >>fnox.local.toml
+  printf '[providers."%s"]\ntype = "keychain"\nservice = "%s"\n\n' "$provider" "$provider" >>fnox.local.toml
 fi
-fnox set -c fnox.local.toml "$usage_name" --provider keychain
+fnox set -c fnox.local.toml "$usage_name" --provider "$provider"
 if ! grep -qsF 'fnox exec' CLAUDE.local.md; then
   end_line CLAUDE.local.md
   echo '- Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.' >>CLAUDE.local.md
