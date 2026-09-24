@@ -60,23 +60,19 @@ Each of the three files sources the fragment of the same name in `zsh_fragments/
 API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
 [fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
 
-1. Declare the keychain in a `fnox.local.toml` at the repository's root; the global git ignore that `mise run setup:dotfiles` writes keeps that file out of every repository, public or not.
+- Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
 
-   ```toml
-   [providers]
-   keychain = { type = "keychain", service = "<repository>" }
-   ```
+  ```shell
+  mise run secrets:add <NAME>
+  ```
 
-2. From that root, store the key, typing it at the prompt so it lands in neither shell history nor a process's arguments; fnox adds its entry to the same file:
+  - The task declares the keychain in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
+  - It also adds a line to the root's `CLAUDE.local.md`, likewise ignored, telling an agent working there to run what needs a key through fnox.
+  - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
+- Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
+- A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.
 
-   ```shell
-   fnox set -c fnox.local.toml <NAME> --provider keychain
-   ```
-
-   The login keychain does not sync through iCloud, so another Mac needs the key stored again.
-3. Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
-
-`.claude/rules/secrets.md` tells an agent the same when it opens one of those files.
+`.claude/rules/secrets.md` tells an agent the same when it opens `.env`, mise config or fnox config in any repository.
 
 ## Shared mise Tasks
 

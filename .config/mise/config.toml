@@ -37,6 +37,35 @@ uv = "latest"
 [env]
 ERL_AFLAGS = "-kernel shell_history enabled"
 
+# The README's Secrets section is the convention this task carries out.
+# It works in the main checkout, not a worktree: fnox.local.toml is git-ignored,
+# so a worktree has none, and fnox finds the main checkout's from one under it.
+# `fnox set` writes to fnox.toml when the directory has one, hence `-c`.
+# raw keeps stdin on the terminal for fnox's prompt.
+[tasks."secrets:add"]
+description = "Store an API key in the keychain for this repository, through fnox"
+usage = 'arg "<name>" help="Environment variable the key is passed as"'
+dir = "{{cwd}}"
+raw = true
+shell = "bash -c"
+run = '''
+set -euo pipefail
+root="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
+cd "$root"
+if ! grep -qs '^keychain *=' fnox.local.toml; then
+  if grep -qs '^\[providers\]' fnox.local.toml; then
+    echo "fnox.local.toml has [providers] without keychain; add it there by hand" >&2
+    exit 1
+  fi
+  printf '[providers]\nkeychain = { type = "keychain", service = "%s" }\n\n' "$(basename "$root")" >>fnox.local.toml
+fi
+fnox set -c fnox.local.toml "$usage_name" --provider keychain
+if ! grep -qsF 'fnox exec' CLAUDE.local.md; then
+  if [[ -s CLAUDE.local.md && -n "$(tail -c1 CLAUDE.local.md)" ]]; then echo >>CLAUDE.local.md; fi
+  echo '- Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.' >>CLAUDE.local.md
+fi
+'''
+
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["python", "ruby"]

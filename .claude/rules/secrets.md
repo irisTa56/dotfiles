@@ -13,6 +13,6 @@ paths:
 # Secrets
 
 - Keep secrets out of `.env`, `.env.*` and mise's `[env]`, which are then config like any other: read them freely, and report one that holds a secret to the user by file and variable name, never by value.
-- A secret lives in the macOS keychain, named in the repository root's `fnox.local.toml`; run the command that needs it as `fnox exec -- <command>`.
+- A secret lives in the macOS keychain, named in the main checkout's `fnox.local.toml`; run the command that needs it as `fnox exec -- <command>`.
 - When a command fails for want of a key, look for it there rather than in `.env`, and never write a key into `.env` or mise's `[env]`.
-- A key not yet stored is the user's to add. Where the root's `fnox.local.toml` lacks `[providers]` `keychain = { type = "keychain", service = "<repository>" }`, write that in yourself, since it holds no secret; then have the user run `fnox set -c fnox.local.toml <NAME> --provider keychain` from the root, which adds the entry.
+- A key not yet stored is the user's to add, with `mise run secrets:add <NAME>`.
