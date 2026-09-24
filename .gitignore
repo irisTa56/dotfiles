@@ -20,3 +20,6 @@ apm_modules/
 
 # lychee request cache
 .lycheecache
+
+# Results that claude plugin eval writes next to a skill's eval cases
+/.claude/skills/*/evals/results/
