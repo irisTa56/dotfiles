@@ -35,10 +35,10 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
   # in its own clone, where a tag of the same name wins over the branch.
   tip="$(git rev-parse "$local_sha^{commit}")"
 
-  # Everything behind it is walked. `--since-commit` would bound that, but to what
-  # one base excludes, while the set above excludes whatever any of the remote's
-  # branches holds, which a single base cannot name once that history spans several
-  # of them. The set is what the answer rests on instead, through the filter below.
+  # Everything behind it is walked, and the filter below, on the set above, decides
+  # what is reported. `--since-commit` with a commit the remote already holds would
+  # shorten the walk without changing that answer; it is not passed, and a remote
+  # that holds nothing yet offers no such commit.
   #
   # `--trust-local-git-config` is left off: with it trufflehog reads the repository
   # with go-git, which rejects a config that sets `extensions.worktreeConfig`, as
