@@ -50,18 +50,21 @@ raw = true
 shell = "bash -c"
 run = '''
 set -euo pipefail
+# Appending to a file whose last line lacks a newline would glue the two.
+end_line() { if [[ -s $1 && -n "$(tail -c1 "$1")" ]]; then echo >>"$1"; fi; }
 root="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 cd "$root"
-if ! grep -qs '^keychain *=' fnox.local.toml; then
-  if grep -qs '^\[providers\]' fnox.local.toml; then
-    echo "fnox.local.toml has [providers] without keychain; add it there by hand" >&2
-    exit 1
-  fi
-  printf '[providers]\nkeychain = { type = "keychain", service = "%s" }\n\n' "$(basename "$root")" >>fnox.local.toml
+touch fnox.local.toml
+# fnox parses the file, so a provider declared in any TOML form counts,
+# and a file it cannot parse stops the task before anything is appended.
+providers="$(fnox provider list -c fnox.local.toml)"
+if ! grep -qx keychain <<<"$providers"; then
+  end_line fnox.local.toml
+  printf '[providers.keychain]\ntype = "keychain"\nservice = "%s"\n\n' "$(basename "$root")" >>fnox.local.toml
 fi
 fnox set -c fnox.local.toml "$usage_name" --provider keychain
 if ! grep -qsF 'fnox exec' CLAUDE.local.md; then
-  if [[ -s CLAUDE.local.md && -n "$(tail -c1 CLAUDE.local.md)" ]]; then echo >>CLAUDE.local.md; fi
+  end_line CLAUDE.local.md
   echo '- Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.' >>CLAUDE.local.md
 fi
 '''
