@@ -50,6 +50,29 @@ export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 # the setup. Here rather than mise's [env], which only an interactive shell's
 # `mise activate` applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"
+
+# uvx and `uv tool` pick no package version published less than a day ago,
+# the window npm gets from its user config (set below). uv gets it only
+# where no project lock is written: a user-wide one is baked into each
+# project's uv.lock and then conflicts with anyone locking without it
+# (astral-sh/uv#18775), so a project sets its own in pyproject.toml.
+# The window goes as a flag rather than UV_EXCLUDE_NEWER, which the tool
+# uvx launches would inherit and pass to a uv it runs in the project.
+# Setting UV_EXCLUDE_NEWER (false to disable) replaces the flag.
+uvx() {
+  if [[ -v UV_EXCLUDE_NEWER ]]; then
+    command uvx "$@"
+  else
+    command uvx --exclude-newer "1 day" "$@"
+  fi
+}
+uv() {
+  if [[ ${1-} == tool && ${2-} == (install|run|upgrade) && ! -v UV_EXCLUDE_NEWER ]]; then
+    command uv tool "$2" --exclude-newer "1 day" "${@:3}"
+  else
+    command uv "$@"
+  fi
+}
 EOF
 
 # launchd starts the pitchfork supervisor with no shell environment, and its
@@ -58,3 +81,11 @@ EOF
 # .zshenv even non-interactively. One key set in place: the file also holds
 # the namespaces `mise daemons` registers, which differ per machine.
 pitchfork settings set --global general.shell "/bin/zsh -c"
+
+# npm picks no package version published less than a day ago, so a
+# compromised release pulled within hours is not taken into a lockfile or a
+# one-off install; mise and pnpm 11 already wait a day by default. A version
+# a lockfile already pins still installs. User config rather than an
+# environment variable, which would outrank a project's own .npmrc. One key
+# set in place: the file may also hold registry auth.
+npm config set min-release-age=1 --location=user

@@ -14,10 +14,10 @@ Extract figures, diagrams, tables, and code blocks from a PDF and save each as a
 
 ## Dependencies
 
-Use `uv run --with` for dependency resolution. All Python code in this skill should be run via:
+Use `uvx --with` for dependency resolution. All Python code in this skill should be run via:
 
 ```bash
-uv run --with pymupdf --with pillow python3 << 'PYEOF'
+uvx --with pymupdf --with pillow python3 << 'PYEOF'
 # ... code here ...
 PYEOF
 ```
