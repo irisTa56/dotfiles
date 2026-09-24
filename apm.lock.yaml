@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-24T06:27:11.661060+00:00'
+generated_at: '2026-09-24T07:00:10.094323+00:00'
 apm_version: 0.30.0
 dependencies:
 - repo_url: anthropics/skills
@@ -330,20 +330,6 @@ dependencies:
     .claude/skills/drawio/scripts/drawio-to-png.mjs: sha256:ddf888061284c38fe7c4f6838c62dd342f16d26beb3f666c54287f5a2f362461
     .claude/skills/drawio/scripts/package.json: sha256:4f0671a98161a586df441fbe4de3bdb6c52797b71a9810752c27699f18991525
   content_hash: sha256:4c77e3941e561b9740f20150bee250a2236ab9da207f1e46f4501a5492ba6013
-- repo_url: github/awesome-copilot
-  name: memory-merger
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/memory-merger
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/memory-merger
-  - .claude/skills/memory-merger/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/memory-merger/SKILL.md: sha256:a98f9bbd157755bfcaa8914095990d13a8d614afa18c882f3892f81e257e221c
-  content_hash: sha256:6d64cdfdbf2309c78905a6ab208cc5ccced0cb955f404d8fc124c9720ade6ac3
 - repo_url: github/awesome-copilot
   name: prd
   host: github.com
@@ -5336,24 +5322,6 @@ deployments:
   - basicmachines-co/basic-memory/skills/memory-lifecycle
   active_owner: basicmachines-co/basic-memory/skills/memory-lifecycle
   content_hash: sha256:f2ee82712215c2be28cc1a0a780f26b7fe3a8954c933a528edb455892f47c3f6
-- kind: project-relative
-  target: claude
-  value: .claude/skills/memory-merger
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/memory-merger
-  active_owner: github/awesome-copilot/skills/memory-merger
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/memory-merger/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/memory-merger
-  active_owner: github/awesome-copilot/skills/memory-merger
-  content_hash: sha256:a98f9bbd157755bfcaa8914095990d13a8d614afa18c882f3892f81e257e221c
 - kind: project-relative
   target: claude
   value: .claude/skills/memory-metadata-search
