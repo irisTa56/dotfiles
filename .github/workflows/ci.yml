@@ -1,5 +1,6 @@
 name: CI
 
+# Follows the CI baseline in .github/ci-baseline.md; a departure from it says why here.
 # Each `qa:` job runs one mise task by name; which tasks need a job, and why, is in
 # the comment above `[tasks.pre-commit]` in mise.toml. A new job also needs a place in
 # the main ruleset's required checks before a merge waits on it.
@@ -109,8 +110,9 @@ jobs:
       - uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85 # v3.97.9
         with:
           # Unlike secrets:push-scan, candidates are verified with their providers, as
-          # the commits are already public by now, and only a live one fails the job.
-          # An unknown result is left out: the connection-string example in
-          # tasks/README.md names an unreachable host, which comes back unknown. A
-          # commit the scan cannot read fails the job too.
-          extra_args: --results=verified --fail-on-scan-errors
+          # the commits are already public by now; a live or unknown one fails the
+          # job, and so does a commit the scan cannot read. SQLServer is excluded
+          # because the message of commit b39f7e6 quotes a `Server=…;Password=…;`
+          # example, which verifies as unknown and would fail every scheduled
+          # full-history run; TruffleHog cannot ignore a finding in a commit message.
+          extra_args: --results=verified,unknown --fail-on-scan-errors --exclude-detectors=SQLServer
