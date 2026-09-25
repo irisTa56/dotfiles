@@ -111,7 +111,7 @@ A task here is a shell script, and its name says so: this repository hands every
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
-Neither mistake shows up in this repository's own `mise run pre-commit`: it runs one of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
+Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
