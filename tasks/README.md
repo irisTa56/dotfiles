@@ -73,13 +73,13 @@ A push from an environment with no mise on PATH, an editor's Git UI say, fails o
 
 ### `link-check:staged`
 
-It runs lychee over the network on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
+It runs lychee on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
 It takes the staged files among those `lychee .` would read there, so the repository's `lychee.toml` (`extensions`, `exclude_path`) and `.gitignore` decide which files count, as they do for a run over the whole tree.
 Every link in such a file is checked, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
 The files are chosen from the index but read from disk, as `lychee .` reads them, so a staged file with edits left unstaged — part of it staged with `git add -p`, or edited again after `git add` — is checked as it is on disk: a broken link only in those edits fails the commit, and one staged but since removed on disk passes it.
 A file whose name contains a newline is not matched, and goes unchecked.
-It runs at the repository root, where lychee reads that repository's `lychee.toml` and writes its request cache, `.lycheecache`, which the repository has to ignore.
-The cache skips a link that passed within the last day and never holds a failure; it lives in each checkout, so a new worktree starts with it empty.
+It runs at the repository root, so lychee runs under that repository's `lychee.toml`, whose [settings](https://lychee.cli.rs/guides/config/) decide how links are checked — whether over the network, how long a result is cached, which fragments are looked for — with `--cache` added.
+lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lycheecache`, there, so the repository has to ignore it; it lives in each checkout, so a new worktree starts with it empty.
 
 A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.

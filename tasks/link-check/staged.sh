@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-#MISE description="Check the links of staged files over the network"
+#MISE description="Check the links of staged files"
 #MISE tools={ lychee = "latest" }
 set -euo pipefail
 
 # Every link in a staged file is requested, old ones included, so a host failing on
 # one of those blocks the commit too; a link in an unstaged file blocks nothing.
-# --cache skips links that passed within the last day; lychee never caches a failure.
+# --cache skips links that passed recently; lychee never caches a failure.
 
 # The repository root, not the working directory, for the reason secrets:commit-scan
 # gives; lychee also reads lychee.toml and writes .lycheecache there.
