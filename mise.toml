@@ -125,6 +125,7 @@ run = [
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
+
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
