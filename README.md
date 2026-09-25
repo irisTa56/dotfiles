@@ -36,11 +36,11 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
 
-A few more steps stay by hand, since each needs a secret or a path only this machine knows: the rclone password below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
+A few more steps stay by hand, since each needs a secret, a sign-in or a path only this machine knows: rclone's remotes below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
 
 ## Shell and User Config
 
-`mise bootstrap` runs `mise run setup:dotfiles`, which drops `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, sets pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and sets npm's `min-release-age` in `~/.npmrc`.
+`mise bootstrap` runs `mise run setup:dotfiles`, which drops `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, sets pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, sets npm's `min-release-age` in `~/.npmrc`, and encrypts rclone's config with a password it keeps in the login keychain.
 
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
@@ -58,14 +58,8 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 
 - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
 - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
-- Set it up once per machine:
-
-  ```shell
-  security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
-  rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
-  ```
-
-- A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
+- `setup:dotfiles` stores a random password where the command reads it, and [encrypts the config](https://rclone.org/docs/#configuration-encryption) with it, before any remote exists if need be; a remote added later with [`rclone config`](https://rclone.org/drive/) is saved encrypted.
+- A config already encrypted with a typed password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
 - It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)); mise and pnpm 11 already wait a day by default.
   - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.

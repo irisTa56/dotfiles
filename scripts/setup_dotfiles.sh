@@ -58,3 +58,30 @@ npm config set min-release-age=1 --location=user
 # zsh reads .zshenv even non-interactively. One key set in place: the file
 # also holds the namespaces `mise daemons` registers, which differ per machine.
 pitchfork settings set --global general.shell "/bin/zsh -c"
+
+# rclone's config is encrypted with a password that RCLONE_PASSWORD_COMMAND
+# reads from the login keychain. The command is taken from zsh, whose .zshenv
+# states it, so it is written once; this run's own environment may predate
+# the sourcing line above. Storing the password elsewhere, fnox say,
+# means changing that command and the item created below together.
+RCLONE_PASSWORD_COMMAND="$(zsh -c 'printf %s "$RCLONE_PASSWORD_COMMAND"')"
+test -n "$RCLONE_PASSWORD_COMMAND"
+export RCLONE_PASSWORD_COMMAND
+# A random password nobody types, so the item can be made here;
+# xtrace is off so the value is not echoed.
+if ! $RCLONE_PASSWORD_COMMAND >/dev/null 2>&1; then
+  { set +x; } 2>/dev/null
+  security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
+  set -x
+fi
+# `check` fails both on a config not yet encrypted, a missing one included,
+# and on one encrypted with another password, which `set` cannot open;
+# the header tells the two apart.
+if ! rclone config encryption check >/dev/null 2>&1; then
+  rclone_conf="$(rclone config paths | sed -n 's/^Config file: *//p')"
+  if grep -qx 'RCLONE_ENCRYPT_V0:' "$rclone_conf" 2>/dev/null; then
+    echo "$rclone_conf is encrypted with another password; decrypt it with \`env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove\`, then rerun" >&2
+    exit 1
+  fi
+  rclone config encryption set
+fi
