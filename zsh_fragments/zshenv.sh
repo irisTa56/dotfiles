@@ -21,7 +21,8 @@ export LC_CTYPE=ja_JP.UTF-8
 
 # rclone reads its config password from the login keychain,
 # so the config can stay encrypted without a prompt;
-# the README's shell startup section has the setup.
+# scripts/setup_dotfiles.sh stores the password where this command reads it,
+# so storing it elsewhere, in fnox say, changes the item that script creates too.
 # Here rather than mise's [env],
 # which only `mise activate` in an interactive shell applies.
 export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclone -s config -w"

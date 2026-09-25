@@ -62,13 +62,12 @@ pitchfork settings set --global general.shell "/bin/zsh -c"
 # rclone's config is encrypted with a password that RCLONE_PASSWORD_COMMAND
 # reads from the login keychain. The command is taken from zsh, whose .zshenv
 # states it, so it is written once; this run's own environment may predate
-# the sourcing line above. Storing the password elsewhere, fnox say,
-# means changing that command and the item created below together.
+# the sourcing line above.
 RCLONE_PASSWORD_COMMAND="$(zsh -c 'printf %s "$RCLONE_PASSWORD_COMMAND"')"
 test -n "$RCLONE_PASSWORD_COMMAND"
 export RCLONE_PASSWORD_COMMAND
-# A random password nobody types, so the item can be made here;
-# xtrace is off so the value is not echoed.
+# A random password nobody types, so the item can be made here,
+# where that command reads; xtrace is off so the value is not echoed.
 if ! $RCLONE_PASSWORD_COMMAND >/dev/null 2>&1; then
   { set +x; } 2>/dev/null
   security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
