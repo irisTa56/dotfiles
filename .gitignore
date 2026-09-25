@@ -20,3 +20,6 @@ apm_modules/
 
 # Results that claude plugin eval writes next to its eval cases
 /.claude/evals/*/evals/results/
+
+# lychee request cache, written by link-check:staged
+.lycheecache

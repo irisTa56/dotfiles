@@ -93,7 +93,7 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 
 `mise bootstrap` symlinks `~/.claude/skills` to it.
 That symlink carries user-global hooks.
-`.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins-reference#skills-directory-plugins) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
+`.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
@@ -217,6 +217,12 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
 
 ### Shared mise Tasks
 
-`tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, a trufflehog scan of the commits a push would send, and a check that a consumer's pinned copy of these tasks is the current one.
-This repository runs the two scans itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` sets up.
+`tasks/` holds the repository-agnostic tasks this repository lends to others:
+
+- a gitleaks scan of a commit's staged changes;
+- a networked check of the links in the files a commit stages;
+- a trufflehog scan of the commits a push would send;
+- a check that a consumer's pinned copy of these tasks is the current one.
+
+This repository runs the first three itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` sets up.
 [tasks/README.md](tasks/README.md) is where a repository taking them starts, and where the constraints on writing another are stated.

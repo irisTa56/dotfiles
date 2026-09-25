@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan` and `secrets:push-scan`, which gate a commit and a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -71,6 +71,20 @@ Running it again changes nothing, and it lands in the config every worktree shar
 It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
 A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
 
+### `link-check:staged`
+
+It runs lychee on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
+It takes the staged files among those `lychee .` would read there, so the repository's `lychee.toml` (`extensions`, `exclude_path`) and `.gitignore` decide which files count, as they do for a run over the whole tree.
+Every link in such a file is checked, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
+The files are chosen from the index but read from disk, as `lychee .` reads them, so a staged file with edits left unstaged — part of it staged with `git add -p`, or edited again after `git add` — is checked as it is on disk: a broken link only in those edits fails the commit, and one staged but since removed on disk passes it.
+A file whose name contains a newline is not matched, and goes unchecked.
+It runs at the repository root, so lychee runs under that repository's `lychee.toml`, whose [settings](https://lychee.cli.rs/guides/config/) decide how links are checked — whether over the network, how long a result is cached, which fragments are looked for — with `--cache` added.
+lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lycheecache`, there, so the repository has to ignore it; it lives in each checkout, so a new worktree starts with it empty.
+
+A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
+The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
+The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
+
 ### `shared-tasks:check`
 
 It says whether the pin carries the same `tasks/` as the tip of `main`.
@@ -97,7 +111,7 @@ A task here is a shell script, and its name says so: this repository hands every
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
-Neither mistake shows up in this repository's own `mise run pre-commit`: it runs one of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
+Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
