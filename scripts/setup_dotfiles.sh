@@ -80,7 +80,7 @@ fi
 if ! rclone config encryption check >/dev/null 2>&1; then
   rclone_conf="$(rclone config paths | sed -n 's/^Config file: *//p')"
   if grep -qx 'RCLONE_ENCRYPT_V0:' "$rclone_conf" 2>/dev/null; then
-    echo "$rclone_conf is encrypted with another password; decrypt it with \`env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove\`, then rerun" >&2
+    echo "$rclone_conf is encrypted with another password; decrypt it with \`env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove\`, which asks for that password, or without it move the file aside, then rerun" >&2
     exit 1
   fi
   rclone config encryption set

@@ -59,7 +59,9 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
 - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
 - `setup:dotfiles` stores a random password where the command reads it, and [encrypts the config](https://rclone.org/docs/#configuration-encryption) with it, before any remote exists if need be; a remote added later with [`rclone config`](https://rclone.org/drive/) is saved encrypted.
-- A config already encrypted with a typed password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
+- A config already encrypted with another password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it.
+  - Decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password; for a config copied from another Mac, the password command prints it there.
+  - Without the password, as when the keychain item is gone, move the config aside and add the remotes again.
 - It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)); mise and pnpm 11 already wait a day by default.
   - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
