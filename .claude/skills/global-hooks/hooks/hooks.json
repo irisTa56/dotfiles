@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.command // empty' | grep -v pipefail | grep -qE 'git[^|;]* (merge|rebase|pull|commit)[^|;]*\\|[^;]*&&[^;]*git[^;]* push' && { echo 'Blocked: the git merge/rebase/pull/commit is piped, so && tests the last pipe stage and the push would run even if that step failed. Drop the pipe, or push in a separate command after checking the result.' >&2; exit 2; } || exit 0"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/block-piped-git-push.sh\""
           }
         ]
       }
