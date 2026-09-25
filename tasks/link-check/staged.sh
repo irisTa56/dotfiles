@@ -16,8 +16,9 @@ cd "$(git rev-parse --show-toplevel)"
 # whatever its extension and whether or not it is ignored.
 files=$(
   lychee --dump-inputs . | sed 's|^\./||' | {
-    # grep exits 1 when no staged file is among them, which is not an error.
-    grep -Fx -f <(git diff --cached --name-only --diff-filter=d) || [ $? -eq 1 ]
+    # grep exits 1 when no staged file is among them, which is not an error. git quotes
+    # a non-ASCII name unless told not to, and lychee prints it raw.
+    grep -Fx -f <(git -c core.quotePath=false diff --cached --name-only --diff-filter=d) || [ $? -eq 1 ]
   }
 )
 [ -n "$files" ] || exit 0
