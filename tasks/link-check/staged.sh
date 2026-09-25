@@ -13,13 +13,13 @@ cd "$(git rev-parse --show-toplevel)"
 
 # The staged files among those `lychee .` reads, so the repository's lychee config and
 # .gitignore decide which files count: a file named on the command line is checked
-# whatever its extension and whether or not it is ignored.
+# whatever its extension and whether or not it is ignored. git does the matching,
+# taking lychee's list as literal pathspecs, so a name git stores in another Unicode
+# form than the one on disk (macOS precomposes) still matches; -r keeps git from
+# listing every staged file when lychee lists none.
 files=$(
-  lychee --dump-inputs . | sed 's|^\./||' | {
-    # grep exits 1 when no staged file is among them, which is not an error. git quotes
-    # a non-ASCII name unless told not to, and lychee prints it raw.
-    grep -Fx -f <(git -c core.quotePath=false diff --cached --name-only --diff-filter=d) || [ $? -eq 1 ]
-  }
+  lychee --dump-inputs . | sed 's|^\./||' | tr '\n' '\0' |
+    xargs -0 -r git --literal-pathspecs -c core.quotePath=false diff --cached --name-only --diff-filter=d --
 )
 [ -n "$files" ] || exit 0
 
