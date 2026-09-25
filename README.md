@@ -44,26 +44,33 @@ A few more steps stay by hand, since each needs a secret or a path only this mac
 Each of the three files sources the fragment of the same name in `zsh_fragments/` (`zshenv.sh`, `zprofile.sh`, `zshrc.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
 `scripts/setup_dotfiles.sh` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
-- `.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then. See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
-- `.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
-  - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
-  - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
-  - Set it up once per machine:
+#### `.zprofile`
 
-    ```shell
-    security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
-    rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
-    ```
+`.zprofile` is read by login shells, and only after macOS's `/etc/zprofile` has run `/usr/libexec/path_helper` — so PATH set anywhere earlier is already demoted by then.
+See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/1127).
 
-  - A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
-  - It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)); mise and pnpm 11 already wait a day by default.
-    - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
-    - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
-    - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
-      - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
-      - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
-    - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
-  - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
+#### `.zshenv`
+
+`.zshenv` is read by every shell, which is what `HOMEBREW_PREFIX` and the `nomatch` guard need.
+
+- It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
+- rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
+- Set it up once per machine:
+
+  ```shell
+  security add-generic-password -a rclone -s config -w "$(openssl rand -base64 40)"
+  rclone config encryption set --password-command "/usr/bin/security find-generic-password -a rclone -s config -w"
+  ```
+
+- A config already encrypted with a typed password stops opening under the export, since a failing password command does not fall back to the prompt; decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password.
+- It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)); mise and pnpm 11 already wait a day by default.
+  - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
+  - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
+  - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
+    - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
+    - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
+  - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
+- pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
 ## Secrets
 
