@@ -127,7 +127,8 @@ description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
 
 # A broken external link a commit adds is caught at the commit rather than by the next
-# weekly run, and a host failing on a link the commit did not touch blocks nothing.
+# weekly run. Every link in a staged file is requested, old ones included, so a host
+# failing on one of those blocks the commit too; one in an unstaged file blocks nothing.
 # Markdown is the only file type here that `lychee .` reads. `--cache` skips links that
 # passed within the last day; lychee never caches a failure.
 [tasks."link-check:staged"]

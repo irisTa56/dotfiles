@@ -93,7 +93,7 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 
 `mise bootstrap` symlinks `~/.claude/skills` to it.
 That symlink carries user-global hooks.
-`.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins-reference#skills-directory-plugins) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
+`.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
