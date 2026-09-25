@@ -74,7 +74,8 @@ A push from an environment with no mise on PATH, an editor's Git UI say, fails o
 ### `link-check:staged`
 
 It runs lychee over the network on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
-It takes the file types `lychee .` reads, Markdown, HTML, CSS, plain text and XML, and every link in such a file, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
+It takes the staged files among those `lychee .` would read there, so the repository's `lychee.toml` (`extensions`, `exclude_path`) and `.gitignore` decide which files count, as they do for a run over the whole tree.
+Every link in such a file is checked, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
 A partially staged file is checked as it is in the working tree rather than as staged.
 It runs at the repository root, where lychee reads that repository's `lychee.toml` and writes its request cache, `.lycheecache`, which the repository has to ignore.
 The cache skips a link that passed within the last day and never holds a failure; it lives in each checkout, so a new worktree starts with it empty.
