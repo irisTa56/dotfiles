@@ -125,23 +125,6 @@ run = [
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
-
-# A broken external link a commit adds is caught at the commit rather than by the next
-# weekly run. Every link in a staged file is requested, old ones included, so a host
-# failing on one of those blocks the commit too; one in an unstaged file blocks nothing.
-# The failure names mise's own skip for this task alone, since the bypass at hand
-# otherwise is `--no-verify`, which drops the secret scan with it.
-# Markdown is the only file type here that `lychee .` reads. `--cache` skips links that
-# passed within the last day; lychee never caches a failure.
-[tasks."link-check:staged"]
-description = "Check the links of staged Markdown files, over the network"
-run = '''
-git diff --cached --name-only --diff-filter=d -z -- '*.md' | xargs -0 -r lychee --cache --no-progress || {
-  echo "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP=link-check:staged git commit ..." >&2
-  exit 1
-}
-'''
-
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"

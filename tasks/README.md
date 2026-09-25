@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan` and `secrets:push-scan`, which gate a commit and a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -70,6 +70,18 @@ git runs it before the file under the hooks directory, with the same arguments a
 Running it again changes nothing, and it lands in the config every worktree shares.
 It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
 A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
+
+### `link-check:staged`
+
+It runs lychee over the network on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
+It takes the file types `lychee .` reads, Markdown, HTML, CSS, plain text and XML, and every link in such a file, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
+A partially staged file is checked as it is in the working tree rather than as staged.
+It runs at the repository root, where lychee reads that repository's `lychee.toml` and writes its request cache, `.lycheecache`, which the repository has to ignore.
+The cache skips a link that passed within the last day and never holds a failure; it lives in each checkout, so a new worktree starts with it empty.
+
+A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
+The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
+The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
 ### `shared-tasks:check`
 
