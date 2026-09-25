@@ -23,7 +23,10 @@ files=$(
 )
 [ -n "$files" ] || exit 0
 
-printf '%s\n' "$files" | tr '\n' '\0' | xargs -0 lychee --cache --no-progress || {
+# lychee expands an input as a glob and reads one starting with `-` as an option, so
+# `[`, `*` and `?` are bracketed to match only themselves, and each path gets `./`.
+printf '%s\n' "$files" | sed -e 's/[*?[]/[&]/g' -e 's|^|./|' | tr '\n' '\0' |
+  xargs -0 lychee --cache --no-progress || {
   # The bypass at hand otherwise is --no-verify, which drops every other check with it.
   # The skip takes the task's full name, `.sh` included; the bare name skips nothing.
   echo "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP=${MISE_TASK_NAME:-link-check:staged.sh} git commit ..." >&2
