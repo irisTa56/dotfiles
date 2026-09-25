@@ -1,5 +1,8 @@
 # dotfiles
 
+This repository sets up a Mac: its shell, its tools, and the agent configuration every project on it loads.
+[Using from Other Repositories](#using-from-other-repositories) covers what another repository takes from it.
+
 ## Setup
 
 Homebrew is left to the user: install [Homebrew](https://brew.sh), and have it install what the `Brewfile` lists, mise and gh among them, from a clone of this repository.
@@ -35,7 +38,7 @@ The global config, `.config/mise/config.toml`, holds the tools, settings and tas
 
 A few more steps stay by hand, since each needs a secret or a path only this machine knows: the rclone password below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
 
-## Initial Setup
+## Shell and User Config
 
 `mise bootstrap` runs `mise run setup:dotfiles`, which drops `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, sets pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, and sets npm's `min-release-age` in `~/.npmrc`.
 
@@ -71,31 +74,6 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
   - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
 - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
-
-## Secrets
-
-API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
-[fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
-
-- Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
-
-  ```shell
-  mise run secrets:add <NAME>
-  ```
-
-  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
-  - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the task prints it for you to place instead.
-  - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
-- Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
-- A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.
-
-`.claude/rules/secrets.md` tells an agent the same when it opens `.env`, mise config or fnox config in any repository.
-
-## Shared mise Tasks
-
-`tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, a trufflehog scan of the commits a push would send, and a check that a consumer's pinned copy of these tasks is the current one.
-This repository runs the two scans itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` sets up.
-[tasks/README.md](tasks/README.md) is where a repository taking them starts, and where the constraints on writing another are stated.
 
 ## Agent Instructions
 
@@ -216,3 +194,33 @@ Setting up the MCP server above is not enough on its own because project registr
 basic-memory project add k-boat-knowledge <KBOAT_KNOWLEDGE_PATH>
 basic-memory project list
 ```
+
+## Using from Other Repositories
+
+The sections above set this Mac up; the two below are for work inside another repository.
+[Secrets](#secrets) works only on a Mac set up from here, since its task comes with the global mise config, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
+
+### Secrets
+
+API keys stay out of every file a repository keeps, `.env` and mise's `[env]` included, so those hold only settings anyone may read, an agent included.
+[fnox](https://fnox.jdx.dev), which the global mise config installs, keeps each key in the macOS login keychain and hands it to one command at a time.
+
+- Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
+
+  ```shell
+  mise run secrets:add <NAME>
+  ```
+
+  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
+  - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the task prints it for you to place instead.
+  - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
+- Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
+- A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.
+
+`.claude/rules/secrets.md` tells an agent the same when it opens `.env`, mise config or fnox config in any repository.
+
+### Shared mise Tasks
+
+`tasks/` holds the repository-agnostic tasks this repository lends to others: a gitleaks scan of a commit's staged changes, a trufflehog scan of the commits a push would send, and a check that a consumer's pinned copy of these tasks is the current one.
+This repository runs the two scans itself, the same way a consumer would, from the `pre-commit` and `pre-push` hooks that `mise install` sets up.
+[tasks/README.md](tasks/README.md) is where a repository taking them starts, and where the constraints on writing another are stated.
