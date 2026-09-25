@@ -102,7 +102,7 @@ run = [
 ]
 
 [tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm release window, pitchfork shell)"
+description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm release window, pitchfork shell, rclone config encryption)"
 run = "scripts/setup_dotfiles.sh"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
