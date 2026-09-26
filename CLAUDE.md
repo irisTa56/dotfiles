@@ -7,7 +7,7 @@
   - A worktree of this repository is not what those symlinks point at, so a skill edited there is not the skill running.
 - `tasks/` is published: other repositories clone it through `task_config.includes` and run what is in it, so a file added there reaches them. What may go in it, and what happens to a file that should not, is in [tasks/README.md](tasks/README.md#writing-one).
 - Only the skill directories that `.gitignore` unignores are tracked here, so an edit to any other exists on this machine alone and no clone carries it.
-  - A gist-sourced skill lives in its gist, so send an edit back with `mise run skills:push <name>`, an external write, before the next `mise run skills:sync`, which `mise bootstrap` also runs, overwrites it.
+  - A gist-sourced skill lives in its gist, so send an edit back with `mise run skills:push <name>`, an external write, before the next `apm install`, which `mise bootstrap` also runs, restores the pinned copy over it.
   - An APM-sourced skill is upstream's text restored from the `apm.lock.yaml` pin on every install, so correcting one means dropping it from `apm.yml` rather than editing the file.
   - A Copilot-authored one prints `.github/skills/<name>/…` paths that resolve nowhere here; its companion files sit beside the `SKILL.md` under `~/.claude/skills/<name>/`, and the wrong path text is knowingly left as it stands.
   - Search them with `command grep -r --exclude-dir=worktrees`; bare `grep` here is a harness wrapper around `ugrep --ignore-files`, so it shares `rg`'s blind spot and sees only the tracked ones, and a short result reads as an answer rather than as a failure.
