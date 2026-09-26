@@ -147,9 +147,9 @@ The gist is the only durable copy of a skill's content, and `apm install` restor
 mise run skills:push japanese-tech-writing
 ```
 
-This goes through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
-It refuses to push a local copy whose pin is behind the gist's latest revision, which would drop what that revision added.
-It then runs `apm update` on that skill, which moves the pin to the pushed commit, and fails if the pin is not the gist's latest revision; until that `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy, and a push from it is refused.
+This commits the edit on top of the pinned revision in a temporary clone of the gist and pushes it with git, using `gh`'s credential for that push alone.
+A gist that has moved past the pin rejects the push as non-fast-forward, which keeps the edit from dropping that revision.
+It then runs `apm update` on that skill, which moves the pin to the pushed commit, and fails if the pin lands anywhere else; until that `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy, and a push from it is refused.
 
 ### Repo-tracked skills
 
