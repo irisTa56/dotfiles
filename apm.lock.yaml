@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-26T08:29:57.089151+00:00'
+generated_at: '2026-09-26T10:57:47.495395+00:00'
 apm_version: 0.31.0
 dependencies:
 - repo_url: anthropics/skills
@@ -446,6 +446,7 @@ dependencies:
   name: japanese-tech-writing
   host: gist.github.com
   resolved_commit: ba3e5556b65b7c46919c91893c6da94ad87aa8d4
+  resolved_ref: ba3e5556b65b7c46919c91893c6da94ad87aa8d4
   version: unknown
   package_type: claude_skill
   deployed_files:
