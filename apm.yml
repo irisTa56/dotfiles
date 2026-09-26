@@ -35,5 +35,8 @@ dependencies:
   - googleworkspace/cli/skills/gws-slides
   - mattpocock/skills/skills/engineering/tdd
   - mattpocock/skills/skills/productivity/handoff
+  # A gist deploys under its hash unless given an alias.
+  - git: https://gist.github.com/irisTa56/4f4492cc558997fae5692cb3b5137f6a.git
+    alias: japanese-tech-writing
   mcp: []
 scripts: {}

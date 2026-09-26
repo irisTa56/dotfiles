@@ -32,7 +32,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
-- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `rtk init`, `apm install`, `skills:sync`, and the `basic-memory` MCP server.
+- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `rtk init`, `apm install`, and the `basic-memory` MCP server.
 
 The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
 
@@ -130,33 +130,30 @@ apm install --update
 
 ### Gist-sourced skills
 
-Some skills are published as a single-file GitHub gist, which APM deploys under a directory named after the gist hash rather than a readable name.
-These are vendored from `gistSkills.json`, a `name -> raw gist URL` catalog, by `scripts/sync_gist_skills.sh`.
-The catalog is the source of truth, and the materialized `.claude/skills/<name>/SKILL.md` is gitignored like APM deps.
-Unlike APM packages, these are not restored by `apm install`; `mise bootstrap` runs `mise run skills:sync` after it, which overwrites every one with its gist's copy.
+Some skills are published as a single-file GitHub gist holding a `SKILL.md`.
+APM installs one from the gist's git URL like any other package, and pins it in `apm.lock.yaml`.
+It deploys under a directory named after the gist hash unless the dependency carries an `alias`, so each is declared in `apm.yml` in the object form:
 
-List the catalog, then sync every entry (or one by name):
-
-```shell
-mise run skills:list
-mise run skills:sync
-mise run skills:sync japanese-tech-writing
+```yaml
+- git: https://gist.github.com/<owner>/<gist_id>.git
+  alias: <name>
 ```
 
-Add a skill by putting a `name -> raw gist URL` entry in `gistSkills.json`, then run `mise run skills:sync <name>`.
+Then run `apm install`.
 
-The gist is the only durable copy of a skill's content, so push a local edit back to it before the next sync:
+The gist is the only durable copy of a skill's content, and `apm install` restores the pinned copy over a local edit, so push the edit back to the gist first:
 
 ```shell
 mise run skills:push japanese-tech-writing
 ```
 
 This goes through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
+It then runs `apm update` on that skill, which moves the pin to the pushed commit.
 
 ### Repo-tracked skills
 
 A few skills are written here rather than pulled from an upstream, and this repository is their only copy.
-`.gitignore` excludes all of `.claude/skills/*`, which is what keeps APM and gist output out of version control.
+`.gitignore` excludes all of `.claude/skills/*`, which is what keeps APM output out of version control.
 A hand-written skill therefore needs one line to unignore it:
 
 ```gitignore

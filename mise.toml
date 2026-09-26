@@ -4,6 +4,7 @@ lychee = "latest"
 rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
+yq = "latest"
 "pipx:apm-cli" = "latest"
 
 [env]
@@ -114,9 +115,8 @@ description = "Finish machine setup after `mise bootstrap` links dotfiles and in
 run = [
   { task = "setup:dotfiles" },
   "rtk init -g --auto-patch",
+  # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
-  # Overwrites every gist skill, local edits not yet pushed included.
-  { task = "skills:sync" },
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
   # starts the server to check it, and `add-json` fails on one already there.
   "jq -e '.mcpServers[\"basic-memory\"]' ~/.claude.json >/dev/null 2>&1 || claude mcp add-json -s user basic-memory '{\"command\":\"uvx\",\"args\":[\"basic-memory\",\"mcp\"]}'",
@@ -147,22 +147,11 @@ run = 'scripts/ccusage_popup.exs weekly'
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
 run = 'scripts/ccusage_popup.exs monthly'
 
-[tasks."skills:list"]
-description = "List gist-sourced skills declared in gistSkills.json"
-run = "jq -r 'keys[]' gistSkills.json"
-
-[tasks."skills:sync"]
-description = "Vendor gist-sourced skills into .claude/skills/ (gitignored like APM deps; catalog is SoT)"
-usage = 'arg "[name]" help="Skill from gistSkills.json to sync; omit to sync all"'
-# ${usage_name:-} is intentionally unquoted: no arg must expand to zero args (sync all),
-# not an empty-string arg, which the script would reject as an invalid name.
-run = "scripts/sync_gist_skills.sh ${usage_name:-}"
-
 [tasks."skills:push"]
-description = "Push local edits to a gist-sourced SKILL.md back to its gist (external write; needs gh auth)"
-usage = 'arg "<name>" help="Skill from gistSkills.json to push back to its gist"'
+description = "Push local edits to a gist-sourced SKILL.md back to its gist and pin it (external write; needs gh auth)"
+usage = 'arg "<name>" help="Alias of a gist dependency in apm.yml to push back to its gist"'
 # $usage_name is a single required arg (usage errors if omitted); quote it since a skill
-# name is one token, unlike the deliberately unquoted optional arg in skills:sync.
+# name is one token.
 run = 'scripts/push_gist_skill.sh "$usage_name"'
 
 [tasks."skills:remove"]
