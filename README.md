@@ -131,13 +131,12 @@ apm install --update
 ### Gist-sourced skills
 
 Some skills are published as a single-file GitHub gist holding a `SKILL.md`.
-APM installs one from the gist's git URL like any other package.
-It deploys under a directory named after the gist hash unless the dependency carries an `alias`, and `ref` pins the revision, so each is declared in `apm.yml` in the object form:
+APM installs one from the gist's git URL like any other package, and pins it in `apm.lock.yaml`.
+It deploys under a directory named after the gist hash unless the dependency carries an `alias`, so each is declared in `apm.yml` in the object form:
 
 ```yaml
 - git: https://gist.github.com/<owner>/<gist_id>.git
   alias: <name>
-  ref: <commit>
 ```
 
 Then run `apm install`.
@@ -148,9 +147,9 @@ The gist is the only durable copy of a skill's content, and `apm install` restor
 mise run skills:push japanese-tech-writing
 ```
 
-This commits the edit on top of `ref` in a temporary clone of the gist and pushes it with git, using `gh`'s credential for that push alone.
-A gist that has moved past `ref` rejects the push as non-fast-forward, which keeps the edit from dropping that revision.
-It then sets `ref` to the pushed commit and runs `apm install`; until that `apm.yml` and `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy, and a push from it is refused.
+This commits the edit on top of the pinned revision in a temporary clone of the gist and pushes it with git, using `gh`'s credential for that push alone.
+A gist that has moved past the pin rejects the push as non-fast-forward, which keeps the edit from dropping that revision.
+It then runs `apm update` on that skill, which moves the pin to the pushed commit, and fails if the pin lands anywhere else; until that `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy, and a push from it is refused.
 
 ### Repo-tracked skills
 
