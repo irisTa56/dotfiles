@@ -51,3 +51,4 @@ echo "[ok] $name -> gist $gist_id"
 # Pin the pushed commit, so the next `apm install` restores the edit rather than reverting it.
 cd "$root"
 apm update --yes "$name"
+echo "[note] commit apm.lock.yaml and land it on main, or an install from main restores the old copy"
