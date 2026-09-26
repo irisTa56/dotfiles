@@ -18,8 +18,14 @@ case "$name" in
   ;;
 esac
 
+# A field of the skill's gist dependency in the lockfile.
+locked() {
+  N="$name" yq -r ".dependencies[] | select(.name == strenv(N) and .host == \"gist.github.com\") | .$1" "$lockfile"
+}
+head_of_gist() { gh api "/gists/$gist_id" --jq '.history[0].version'; }
+
 # repo_url is <owner>/<gist_id> for a gist dependency.
-repo=$(N="$name" yq -r '.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .repo_url' "$lockfile")
+repo=$(locked repo_url)
 gist_id="${repo##*/}"
 if ! printf '%s' "$gist_id" | grep -Eq '^[0-9a-f]+$'; then
   echo "[fail] $name: no gist dependency by that alias in $(basename "$lockfile")" >&2
@@ -29,6 +35,15 @@ fi
 file="$root/.claude/skills/$name/SKILL.md"
 if [ ! -f "$file" ]; then
   echo "[fail] $name: no local SKILL.md at ${file#"$root"/} (run 'apm install' first)" >&2
+  exit 1
+fi
+
+# The local copy is the pinned commit's, so pushing it over a newer gist head would drop
+# whatever that head added.
+pinned=$(locked resolved_commit)
+latest=$(head_of_gist)
+if [ "$pinned" != "$latest" ]; then
+  echo "[fail] $name: the local copy is from $pinned but gist $gist_id is at $latest; set your edit aside, run 'apm update --yes $name', and redo it on top" >&2
   exit 1
 fi
 
@@ -54,8 +69,8 @@ apm update --yes "$name"
 
 # The pin comes from the gist's git side, which the API write may not have reached yet;
 # a stale pin would restore the old copy on the next install while this reported success.
-pinned=$(N="$name" yq -r '.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit' "$lockfile")
-latest=$(gh api "/gists/$gist_id" --jq '.history[0].version')
+pinned=$(locked resolved_commit)
+latest=$(head_of_gist)
 if [ "$pinned" != "$latest" ]; then
   echo "[fail] $name: pinned $pinned but gist $gist_id is at $latest; the edit is in the gist, the local copy is the old one, so rerun 'apm update --yes $name' until apm.lock.yaml pins $latest" >&2
   exit 1
