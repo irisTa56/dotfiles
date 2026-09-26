@@ -46,7 +46,11 @@ cp "$file" "$tmp/SKILL.md"
 git -C "$tmp" commit -qam "Update $name"
 # gh supplies the credential for this push alone; the empty helper first drops the
 # configured ones, so none of them stores gh's token.
-git -C "$tmp" -c credential.helper= -c credential.helper='!gh auth git-credential' push -q origin HEAD
+git -C "$tmp" -c credential.helper= -c credential.helper='!gh auth git-credential' push -q origin HEAD || {
+  # The local SKILL.md is now the edit's only copy, and `apm update` would overwrite it.
+  echo "[fail] $name: push refused (see git's message above); if the gist moved past the pin, copy .claude/skills/$name/SKILL.md aside, run 'apm update --yes $name', redo the edit on top and rerun" >&2
+  exit 1
+}
 pushed=$(git -C "$tmp" rev-parse HEAD)
 echo "[ok] $name -> gist $repo at $pushed"
 
