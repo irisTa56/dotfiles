@@ -57,7 +57,7 @@ apm update --yes "$name"
 pinned=$(N="$name" yq -r '.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit' "$lockfile")
 latest=$(gh api "/gists/$gist_id" --jq '.history[0].version')
 if [ "$pinned" != "$latest" ]; then
-  echo "[fail] $name: pinned $pinned but gist $gist_id is at $latest; rerun 'apm update --yes $name'" >&2
+  echo "[fail] $name: pinned $pinned but gist $gist_id is at $latest; the edit is in the gist, the local copy is the old one, so rerun 'apm update --yes $name' until apm.lock.yaml pins $latest" >&2
   exit 1
 fi
 echo "[note] commit apm.lock.yaml and land it on main, or an install from main restores the old copy"
