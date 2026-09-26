@@ -51,4 +51,13 @@ echo "[ok] $name -> gist $gist_id"
 # Pin the pushed commit, so the next `apm install` restores the edit rather than reverting it.
 cd "$root"
 apm update --yes "$name"
+
+# The pin comes from the gist's git side, which the API write may not have reached yet;
+# a stale pin would restore the old copy on the next install while this reported success.
+pinned=$(N="$name" yq -r '.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit' "$lockfile")
+latest=$(gh api "/gists/$gist_id" --jq '.history[0].version')
+if [ "$pinned" != "$latest" ]; then
+  echo "[fail] $name: pinned $pinned but gist $gist_id is at $latest; rerun 'apm update --yes $name'" >&2
+  exit 1
+fi
 echo "[note] commit apm.lock.yaml and land it on main, or an install from main restores the old copy"

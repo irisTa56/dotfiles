@@ -148,7 +148,7 @@ mise run skills:push japanese-tech-writing
 ```
 
 This goes through the GitHub API (`gh` auth required) and verifies the result, since `gh gist edit` silently no-ops in a non-interactive shell.
-It then runs `apm update` on that skill, which moves the pin to the pushed commit; until that `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy.
+It then runs `apm update` on that skill, which moves the pin to the pushed commit, and fails if the pin is not the gist's latest revision; until that `apm.lock.yaml` change reaches `main`, an `apm install` from `main` restores the old copy.
 
 ### Repo-tracked skills
 
