@@ -25,6 +25,7 @@ Write the target down as a numbered list of claims.
 - Include the judgments, not only the facts, such as a recommendation, where a fix belongs, a call that something is out of scope or not worth its cost, that work should continue or stop, and that something exists nowhere else. These are the claims most often stated without being weighed, and they read as settled once stated.
 - Keep the author's words where the claim is quoted from a draft, since a paraphrase can repair or break what the original said.
 - Beside each claim, give what it rests on as far as the conversation established it, such as a file and line, a command and what it returned, or a URL. Mark a claim that rests on nothing checked as resting on nothing.
+  - Where what it rests on is an external URL, also list as a claim of its own that the page there says what the first claim takes from it. A checker that settles the first claim from another source would otherwise return it as holding and leave unreported a page that does not support it.
 - State what the user reported as having happened, and what they decided, as the setting rather than as claims. The checker cannot reach either, so as claims they come back as cannot be settled and bury the verdicts that matter.
 
 Leave out everything else, including:
