@@ -34,11 +34,13 @@ git for-each-ref --format='%(refname:short)' refs/heads | while read -r branch; 
     echo "- $branch: locked"
     continue
   fi
-  pr_json=$(gh pr list --head "$branch" --state all --json number,state,headRefOid,mergedAt)
+  pr_json=$(gh pr list --head "$branch" --state all --json number,state,baseRefName,headRefOid,mergedAt)
   prs=$(jq -r 'map("#\(.number) \(.state)") | join(", ")' <<<"$pr_json")
   # A squash merge lands a pull request's commits as one, which matches none of them
   # patch for patch once there are several, so only the commits after its head are counted.
-  since=$(jq -r 'map(select(.state == "MERGED")) | sort_by(.mergedAt) | last | .headRefOid // empty' <<<"$pr_json")
+  # A stacked pull request merges into another branch, which is not $base, so it does not count.
+  since=$(jq -r --arg base "${base#origin/}" \
+    'map(select(.state == "MERGED" and .baseRefName == $base)) | sort_by(.mergedAt) | last | .headRefOid // empty' <<<"$pr_json")
   counted="in all"
   if [[ -n $since ]] && git merge-base --is-ancestor "$since" "$branch" 2>/dev/null; then
     counted="after merged PR head ${since:0:7}"
