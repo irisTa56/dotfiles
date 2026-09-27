@@ -23,6 +23,9 @@ Take that outline from what the change actually has to say.
 ## Be self-contained at the overview level
 
 - Convey the change at an overview level in the body itself. The reviewer should grasp what changed and why without opening the linked ticket, issue, or prior PR.
+- Open the body with that overview: what the change does, stated as its effect, and why it is needed. Mechanism, the exact scope of the old behavior, and alternatives come after it; a reviewer who stops after the opening should already know what they are judging.
+  - NG: opening with where the old code path did and did not reach ("`--no-cache` only reached remote `file =` tasks named on the command line").
+  - OK: "`mise run --no-cache` now clones remote `git::` task includes again, so a branch `ref` picks up new commits; before, only `MISE_TASK_REMOTE_NO_CACHE=true` did."
 - Deferring depth to the link is fine, and often preferable: background, full specifications, and exhaustive context belong behind the ticket link rather than inlined in the body.
 - What must not depend on the link is the gist.
   - NG (gist outsourced to the link): a rationale that amounts to "updated per the policy in #1234".
@@ -73,6 +76,7 @@ Take that outline from what the change actually has to say.
 Re-read the draft and check:
 
 - Does the draft satisfy every section and checklist item the repository requires?
+- Does the opening alone tell a reviewer what the change does and why?
 - Can a reviewer see the shape of the change without reading the whole body?
 - Would a reviewer who cannot open the linked ticket still understand the change?
 - Does every change bullet describe an actual change, with no non-changes or self-inflicted caveats?
