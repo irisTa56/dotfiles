@@ -16,7 +16,8 @@ Where the task fails, report what it says rather than working around it.
 ## Worktrees
 
 Claude Code reuses a worktree across sessions, and one whose last session was archived stays behind, usually on a detached HEAD, which `gh-poi` never touches.
-List the sessions with the desktop app's `list_sessions` tool (`mcp__ccd_session_mgmt__list_sessions`), archived ones included, and take a worktree as in use where a session that is not archived has its `cwd` in it, or where this session runs in it.
+List the sessions that are not archived with the desktop app's `list_sessions` tool (`mcp__ccd_session_mgmt__list_sessions`), raising its `limit` until fewer come back than it allows, since it lists 20 by default and scheduled runs alone can number hundreds.
+Take a worktree as in use where one of them has its `cwd` in it, or where this session runs in it.
 Where that tool is not available, ask the user which worktrees are in use.
 
 Look into each worktree not in use along these, and report what each shows:
