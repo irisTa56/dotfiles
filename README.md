@@ -191,8 +191,8 @@ basic-memory project list
 
 ## Using from Other Repositories
 
-The sections above set this Mac up; the two below are for work inside another repository.
-[Secrets](#secrets) works only on a Mac set up from here, since its task comes with the global mise config, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
+The sections above set this Mac up; the ones below are for work inside another repository.
+[Secrets](#secrets) and [Stale local branches](#stale-local-branches) work only on a Mac set up from here, since their tasks come with the global mise config, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
 
 ### Secrets
 
@@ -212,6 +212,13 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
 - A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.
 
 `.claude/rules/secrets.md` tells an agent the same when it opens `.env`, mise config or fnox config in any repository.
+
+### Stale local branches
+
+`gh-poi` deletes a local branch only once a pull request holds its commits, so a branch that never got one, such as a Claude Code session's that ended without a pull request, stays behind.
+`mise run git:sweep`, from anywhere in the repository, runs `gh-poi` and then deletes every branch the default branch already holds whole, and lists what is left with the evidence a keep-or-delete call needs.
+A branch it should never touch is held with `gh-poi lock <branch>`, which both honor.
+The `sweep-branches` skill runs the task and proposes a call on each listed branch, deleting only the ones you then name.
 
 ### Shared mise Tasks
 

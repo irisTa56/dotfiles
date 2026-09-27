@@ -13,6 +13,7 @@
 !/.claude/skills/raise-findings/
 !/.claude/skills/review-loop/
 !/.claude/skills/support-pr-review/
+!/.claude/skills/sweep-branches/
 !/.claude/skills/sync-base/
 
 # APM dependencies

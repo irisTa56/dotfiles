@@ -23,4 +23,4 @@ It switches this checkout to the base and fast-forwards it, or, where another wo
 Where it fails, report what git says rather than working around it.
 
 Report what the base moved to, and which branch this checkout is on, since continuing work wants a fresh branch off the base.
-The merged branch and its worktree are left alone, for `gh-poi` to sweep with the rest.
+The merged branch and its worktree are left alone, for `sweep-branches` to sweep with the rest.
