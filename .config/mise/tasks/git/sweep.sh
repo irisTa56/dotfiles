@@ -34,13 +34,22 @@ git for-each-ref --format='%(refname:short)' refs/heads | while read -r branch; 
     echo "- $branch: locked"
     continue
   fi
-  # git cherry marks a commit `-` where $base holds an equivalent patch, as after a squash merge.
-  cherry=$(git cherry "$base" "$branch")
+  pr_json=$(gh pr list --head "$branch" --state all --json number,state,headRefOid,mergedAt)
+  prs=$(jq -r 'map("#\(.number) \(.state)") | join(", ")' <<<"$pr_json")
+  # A squash merge lands a pull request's commits as one, which matches none of them
+  # patch for patch once there are several, so only the commits after its head are counted.
+  since=$(jq -r 'map(select(.state == "MERGED")) | sort_by(.mergedAt) | last | .headRefOid // empty' <<<"$pr_json")
+  counted="in all"
+  if [[ -n $since ]] && git merge-base --is-ancestor "$since" "$branch" 2>/dev/null; then
+    counted="after merged PR head ${since:0:7}"
+  else
+    since=
+  fi
+  # git cherry marks a commit `-` where $base holds an equivalent patch.
+  cherry=$(git cherry -v "$base" "$branch" ${since:+"$since"})
   missing=$(grep -c '^+' <<<"$cherry" || true)
   landed=$(grep -c '^-' <<<"$cherry" || true)
-  prs=$(gh pr list --head "$branch" --state all --json number,state \
-    --jq 'map("#\(.number) \(.state)") | join(", ")')
-  line="- $branch: $missing commit(s) not on $base, $landed landed as equivalent patches; PRs: ${prs:-none}"
+  line="- $branch: $missing commit(s) not on $base, $landed landed as equivalent patches ($counted); PRs: ${prs:-none}"
   worktree=$(git worktree list --porcelain |
     awk -v ref="branch refs/heads/$branch" '/^worktree /{p=substr($0,10)} $0==ref{print p}')
   if [[ -n $worktree ]]; then
@@ -48,5 +57,5 @@ git for-each-ref --format='%(refname:short)' refs/heads | while read -r branch; 
     line+="; checked out in $worktree ($dirty uncommitted path(s))"
   fi
   echo "$line"
-  git cherry -v "$base" "$branch" | grep '^+' | sed 's/^/    /' || true
+  grep '^+' <<<"$cherry" | sed 's/^/    /' || true
 done
