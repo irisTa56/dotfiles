@@ -21,8 +21,9 @@ Where that tool is not available, ask the user which worktrees are in use.
 
 Give each worktree not in use one line: remove or keep, and the evidence.
 
-- Propose removing one with no changed and no untracked paths.
-- For one with either, read `git -C <path> status` and say what is there; propose removing it only where what is there is output a command regenerates.
+- Propose removing one with no changed and no untracked paths, and, where it is detached, no commits on no branch.
+- For one with changed or untracked paths, read `git -C <path> status` and say what is there; propose removing it only where what is there is output a command regenerates.
+- For a detached one with commits on no branch, list them with `git -C <path> log --oneline HEAD --not --branches --remotes` and propose keeping it, since removing it discards them.
 
 A worktree in use is noted without a proposal.
 
@@ -31,7 +32,7 @@ A worktree in use is noted without a proposal.
 Then give each listed branch one line: delete or keep, and the evidence the call rests on.
 
 - A `locked` branch is kept on purpose; leave it out of the proposals.
-- A branch checked out in a worktree follows that worktree's call: it can be deleted once the worktree is removed.
+- A branch checked out in a worktree can be deleted only once that worktree is removed, but its call still comes from the rules below.
 - A branch with no missing commits has all its work on the default branch, through its merged pull request or as equivalent patches; propose deleting it.
   - Where a pull request under its name merged into the default branch, the task counts only the commits after that pull request's head, since a squash merge matches none of several commits patch for patch.
 - For a branch with missing commits, read each one with `git show --stat` and look for its change on the default branch under another commit, as when the work was redone in a later pull request.

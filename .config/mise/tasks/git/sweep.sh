@@ -82,5 +82,10 @@ git worktree list --porcelain | awk '
     untracked=$(grep -c '^??' <<<"$status" || true)
     changed=$(grep -vc '^??' <<<"$status" || true)
   fi
-  echo "- $path: $ref; $changed changed, $untracked untracked path(s)"
+  line="- $path: $ref; $changed changed, $untracked untracked path(s)"
+  # Removing a worktree drops its HEAD, which is all that holds a commit made on it detached.
+  if [[ $ref == detached* ]]; then
+    line+="; $(git -C "$path" rev-list --count HEAD --not --branches --remotes) commit(s) on no branch"
+  fi
+  echo "$line"
 done
