@@ -20,13 +20,12 @@ includes = [
 mise marks a `git::` include experimental, so the syntax and the caching below carry no compatibility promise and a consumer wired to several of these is worth keeping an eye on mise's releases for.
 Naming `includes` replaces the default file-task directories rather than adding to them, so a repository that keeps its own tasks in one has to list it back.
 Of two entries defining the same task the later wins, which is how a repository overrides a shared one: it puts its own file task, named `<name>.sh` as well, under a directory listed after this include.
-An extensionless one is a task of another name, for the reason the inline declaration below is: it takes the bare name whatever the order, and the shared task stays runnable as `<name>.sh`.
-Do not declare an inline `[tasks.<name>]` of the same name.
-mise [overlays such a declaration on a file task of that name](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes), but a file task here is not of that name: its filename ends in `.sh`, which is what the shellcheck and `shfmt` `find` in `mise.toml` selects on, and mise [keeps the extension in the task's name](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4934-L4935), dropping it only for display.
-So the declaration [matches no file task and becomes a task of its own](https://github.com/jdx/mise/blob/v2026.9.11/src/config/mod.rs#L4848-L4898) under the bare name, which `mise run <name>` [resolves to ahead of the extension-stripped match](https://github.com/jdx/mise/blob/v2026.9.11/src/task/mod.rs#L3816-L3821), leaving the shared task reachable only as `<name>.sh`.
-One carrying `run` then runs instead of the shared task, and one carrying only a `description` or a `dir` runs nothing at all and exits 0.
-One carrying only `depends` runs its dependencies, reports finishing and exits 0 without ever reaching the shared task, which reads as a pass.
-`mise tasks ls` shows both names, so checking there confirms the mistake rather than exposing it.
+An extensionless one is a task of another name, since mise [keeps the extension in a file task's name](https://github.com/jdx/mise/blob/v2026.9.15/src/config/mod.rs#L5491-L5492), dropping it only for display.
+It takes the bare name whatever the order, which `mise run <name>` [resolves to ahead of the extension-stripped match](https://github.com/jdx/mise/blob/v2026.9.15/src/task/mod.rs#L3956-L3961), and the shared task stays runnable as `<name>.sh`.
+
+An inline `[tasks.<name>]` in the consuming repository [configures the shared task under either name](https://mise.jdx.dev/tasks/task-configuration.html#configuring-file-tasks-from-toml).
+Declare only metadata in it, such as a `description`, an `env` or `depends`: the shared script stays the task's command and runs after whatever `depends` names.
+A block carrying `run`, `run_windows` or `file` replaces the shared task instead, and `<name>.sh` stops existing as well, which makes it an override by another route rather than a way to configure the shared one.
 
 Pin `ref` to a commit on `main`, not a branch, and spell it in full.
 For a sha mise clones the whole repository and checks the commit out, so a commit no branch reaches is not in the clone: a pin taken from a branch since deleted, or from a pull request this repository squash-merged, fails the next time the cache is cold rather than when it was written.
