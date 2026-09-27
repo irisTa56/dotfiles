@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Delete the local branches gh-poi leaves behind that carry no commits of their own, and list the rest"
+#MISE description="Delete the local branches gh-poi leaves behind that carry no commits of their own, and list the rest with the linked worktrees"
 #MISE dir="{{cwd}}"
 set -euo pipefail
 
@@ -7,8 +7,12 @@ set -euo pipefail
 # so a branch that never got one stays however long ago its tip reached the default branch.
 # Here such a branch goes too, and what neither deletes is listed with what a keep-or-delete
 # call rests on. A branch `gh poi lock` holds is left alone by both.
+# gh-poi also removes a clean worktree on a merged branch; the other linked worktrees are listed,
+# since whether one is still in use is for the caller to judge.
 
 git -c remote.origin.followRemoteHEAD=always fetch --prune origin
+# A worktree whose directory is gone stays registered, and holds its branch, until pruned.
+git worktree prune
 gh-poi
 
 base=$(git symbolic-ref --short refs/remotes/origin/HEAD)
@@ -60,4 +64,23 @@ git for-each-ref --format='%(refname:short)' refs/heads | while read -r branch; 
   fi
   echo "$line"
   grep '^+' <<<"$cherry" | sed 's/^/    /' || true
+done
+
+echo
+echo "Linked worktrees:"
+git worktree list --porcelain | awk '
+  function flush() { if (path != "") print path "\t" ref; path = "" }
+  /^worktree / { flush(); if (seen++) path = substr($0, 10); ref = "" }
+  /^HEAD / { head = substr($0, 6, 7) }
+  /^branch / { ref = substr($0, 19) }
+  /^detached/ { ref = "detached at " head }
+  END { flush() }
+' | while IFS=$'\t' read -r path ref; do
+  status=$(git -C "$path" status --porcelain)
+  untracked=0 changed=0
+  if [[ -n $status ]]; then
+    untracked=$(grep -c '^??' <<<"$status" || true)
+    changed=$(grep -vc '^??' <<<"$status" || true)
+  fi
+  echo "- $path: $ref; $changed changed, $untracked untracked path(s)"
 done
