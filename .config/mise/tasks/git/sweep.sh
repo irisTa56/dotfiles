@@ -76,13 +76,14 @@ git worktree list --porcelain | awk '
   /^detached/ { ref = "detached at " head }
   END { flush() }
 ' | while IFS=$'\t' read -r path ref; do
-  status=$(git -C "$path" status --porcelain)
-  untracked=0 changed=0
+  status=$(git -C "$path" status --porcelain --ignored)
+  untracked=0 ignored=0 changed=0
   if [[ -n $status ]]; then
     untracked=$(grep -c '^??' <<<"$status" || true)
-    changed=$(grep -vc '^??' <<<"$status" || true)
+    ignored=$(grep -c '^!!' <<<"$status" || true)
+    changed=$(grep -vc '^[?!][?!]' <<<"$status" || true)
   fi
-  line="- $path: $ref; $changed changed, $untracked untracked path(s)"
+  line="- $path: $ref; $changed changed, $untracked untracked, $ignored ignored path(s)"
   # Removing a worktree drops its HEAD, which is all that holds a commit made on it detached.
   if [[ $ref == detached* ]]; then
     line+="; $(git -C "$path" rev-list --count HEAD --not --branches --remotes) commit(s) on no branch"
