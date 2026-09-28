@@ -17,7 +17,9 @@ lychee = "latest"
 mkcert = "latest"
 ollama = "latest"
 pandoc = "latest"
-pitchfork = "latest"
+# An upgrade leaves the old supervisor running, and only one started from the new binary moves
+# the login registration off the old version's path before `mise prune` deletes it.
+pitchfork = { version = "latest", postinstall = '"$MISE_TOOL_INSTALL_PATH/pitchfork" supervisor start --force' }
 rclone = "latest"
 rtk = "latest"
 rumdl = "latest"
