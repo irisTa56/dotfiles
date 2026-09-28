@@ -39,3 +39,17 @@ ERL_AFLAGS = "-kernel shell_history enabled"
 [settings]
 experimental = true
 idiomatic_version_file_enable_tools = ["python", "ruby"]
+
+[hooks]
+# Upgrading pitchfork leaves the old supervisor running the old binary, and leaves the login
+# registration pointing at the version directory that `mise prune` then deletes, after which the
+# supervisor silently stops starting at login. Only a supervisor started from the new binary
+# rewrites that registration. Invoke the path just installed rather than plain `pitchfork`: mise
+# may run this hook before the version links on PATH are refreshed. The `if` keeps the hook's exit
+# status 0 when this install upgraded some other tool.
+postinstall = '''
+bin="$(printf '%s' "$MISE_INSTALLED_TOOLS" | jq -r '.[] | select(.name == "pitchfork") | .install_path')"
+if [ -n "$bin" ]; then
+  "$bin/pitchfork" supervisor start --force
+fi
+'''
