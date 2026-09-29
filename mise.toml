@@ -20,7 +20,8 @@ sh_paths = "scripts tasks zsh_fragments .config/mise/tasks .claude/skills/sync-b
 # The pre-commit hook is regenerated on every install. It only runs the pre-commit
 # task, so it goes stale only when mise's template or the task name changes, and a
 # hook written once would then stay old with nothing saying so. `mise generate`
-# moves the previous hook aside as `pre-commit.old`, which is left behind in sight.
+# moves the previous hook aside as `pre-commit.old`, replacing the one there, so a
+# hook anything else put in its place is gone after the second install.
 # The push scan is registered in git's config instead, which runs beside any
 # pre-push hook file and is safe to set on every install (see tasks/README.md).
 # git before 2.54 ignores those keys, so the last line says so rather than
