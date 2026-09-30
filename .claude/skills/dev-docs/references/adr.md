@@ -44,8 +44,8 @@ Write one when someone changing that part later would need the reason: the decis
 ## Status and superseding
 
 - The status is one of `Proposed`, `Accepted`, `Rejected`, and `Superseded by [NNNN](NNNN-<slug>.md)`.
-  - An ADR written at the start of a phase is Proposed and becomes Accepted when the phase closes.
-  - One written with the change that implements it, as in a bug fix, lands Accepted.
+  - An ADR written within a phase, at its start or midway, is Proposed and is settled when the phase closes.
+  - One written outside any phase with the change that implements it, as in a bug fix, lands Accepted.
   - A decision dropped before its pull request merges is simply not merged.
   - A Proposed decision dropped after it merged, with nothing replacing it, becomes Rejected, with a line in its Context saying why.
 - To change a decision, write a new ADR whose Context says what changed and begins with `Supersedes [NNNN](NNNN-<slug>.md)`.
