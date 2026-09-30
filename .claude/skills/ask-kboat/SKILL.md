@@ -25,7 +25,7 @@ Hand them what it takes: the question, your answer with the general-knowledge pa
 
 ## Procedure
 
-Basic Memory's tools are built for a different job than this one — resuming recent work, which is what `memory-continue` does.
+Basic Memory's tools are built for resuming recent work, which is a different job from this skill's.
 Several of their defaults, and their behaviour when a call finds nothing, are wrong for asking timeless questions of a matured base.
 Each is called out below at the point where it bites.
 
