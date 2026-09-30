@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-09-26T11:50:28.279128+00:00'
+generated_at: '2026-09-30T11:57:58.343208+00:00'
 apm_version: 0.31.0
 dependencies:
 - repo_url: anthropics/skills
@@ -219,62 +219,6 @@ dependencies:
     .claude/skills/memory-tasks/SKILL.md: sha256:57bb7232567a03a4442c142fb15614226291e8c895ef36d07ac7610013d75fee
   content_hash: sha256:abc17a4831fee2a02abdb7035383820cf2950f56dcf8f07cedb27d82741e4f2b
 - repo_url: github/awesome-copilot
-  name: create-architectural-decision-record
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/create-architectural-decision-record
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/create-architectural-decision-record
-  - .claude/skills/create-architectural-decision-record/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/create-architectural-decision-record/SKILL.md: sha256:c11af0c34fa034e36e622ad97f1194824c3cbbe675a8b17cdc0bedc91b188a72
-  content_hash: sha256:5c99e32293271aef0270c279c2af8b62301e29257bf85f2ebf7e810c740b4404
-- repo_url: github/awesome-copilot
-  name: create-implementation-plan
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/create-implementation-plan
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/create-implementation-plan
-  - .claude/skills/create-implementation-plan/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/create-implementation-plan/SKILL.md: sha256:11caba1048cbdbfca6f7ce13a0e0580d6e9d943f7b775ee24978ece1d3334066
-  content_hash: sha256:5c282fded01e40a7db621b0690513f62d179b600e0a271751e82cb0c9e1bcafc
-- repo_url: github/awesome-copilot
-  name: create-specification
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/create-specification
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/create-specification
-  - .claude/skills/create-specification/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/create-specification/SKILL.md: sha256:0de8583934fbcb7afa0aa4c2569c75d74cad1a711664bb57b6aa5e0fcf6d92ae
-  content_hash: sha256:9796c1d33858522eb67ea2fa864993bdad11f5d79832cca9cf64b9a47c610c09
-- repo_url: github/awesome-copilot
-  name: create-technical-spike
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/create-technical-spike
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/create-technical-spike
-  - .claude/skills/create-technical-spike/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/create-technical-spike/SKILL.md: sha256:2caccb0ba3b9851b82c648870330b6d22a47ee7cda4d3770ef8b5f8d6e439281
-  content_hash: sha256:e711706b4aebacac01bcc025e19bcf0e88bf784cbe6419ddf07c2be67c501f33
-- repo_url: github/awesome-copilot
   name: draw-io-diagram-generator
   host: github.com
   resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
@@ -330,34 +274,6 @@ dependencies:
     .claude/skills/drawio/scripts/drawio-to-png.mjs: sha256:ddf888061284c38fe7c4f6838c62dd342f16d26beb3f666c54287f5a2f362461
     .claude/skills/drawio/scripts/package.json: sha256:4f0671a98161a586df441fbe4de3bdb6c52797b71a9810752c27699f18991525
   content_hash: sha256:4c77e3941e561b9740f20150bee250a2236ab9da207f1e46f4501a5492ba6013
-- repo_url: github/awesome-copilot
-  name: prd
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/prd
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/prd
-  - .claude/skills/prd/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/prd/SKILL.md: sha256:6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5
-  content_hash: sha256:1f3e1f005fc40fda85d250ae906c8ee4f7e8e833e23adfeca6542c19609fd7cd
-- repo_url: github/awesome-copilot
-  name: update-implementation-plan
-  host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
-  version: unknown
-  virtual_path: skills/update-implementation-plan
-  is_virtual: true
-  package_type: claude_skill
-  deployed_files:
-  - .claude/skills/update-implementation-plan
-  - .claude/skills/update-implementation-plan/SKILL.md
-  deployed_file_hashes:
-    .claude/skills/update-implementation-plan/SKILL.md: sha256:08f62222ba518b54dd0f369c539f6f75dabb32893768e0cb2ff49ecb1e8cb7a9
-  content_hash: sha256:b2f2a6bf2544b416b9145e805c0f534ad078e7135c1ce26e73af1b0cd99cb692
 - repo_url: googleworkspace/cli
   name: gws-docs
   host: github.com
@@ -491,78 +407,6 @@ dependencies:
     .claude/skills/handoff/agents/openai.yaml: sha256:5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28
   content_hash: sha256:57c3a6244da589bab282fdd546421b081d767f2e76b061cd756f1b4fdbd574c2
 deployments:
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-architectural-decision-record
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-architectural-decision-record
-  active_owner: github/awesome-copilot/skills/create-architectural-decision-record
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-architectural-decision-record/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-architectural-decision-record
-  active_owner: github/awesome-copilot/skills/create-architectural-decision-record
-  content_hash: sha256:c11af0c34fa034e36e622ad97f1194824c3cbbe675a8b17cdc0bedc91b188a72
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-implementation-plan
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-implementation-plan
-  active_owner: github/awesome-copilot/skills/create-implementation-plan
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-implementation-plan/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-implementation-plan
-  active_owner: github/awesome-copilot/skills/create-implementation-plan
-  content_hash: sha256:11caba1048cbdbfca6f7ce13a0e0580d6e9d943f7b775ee24978ece1d3334066
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-specification
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-specification
-  active_owner: github/awesome-copilot/skills/create-specification
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-specification/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-specification
-  active_owner: github/awesome-copilot/skills/create-specification
-  content_hash: sha256:0de8583934fbcb7afa0aa4c2569c75d74cad1a711664bb57b6aa5e0fcf6d92ae
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-technical-spike
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-technical-spike
-  active_owner: github/awesome-copilot/skills/create-technical-spike
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/create-technical-spike/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/create-technical-spike
-  active_owner: github/awesome-copilot/skills/create-technical-spike
-  content_hash: sha256:2caccb0ba3b9851b82c648870330b6d22a47ee7cda4d3770ef8b5f8d6e439281
 - kind: project-relative
   target: claude
   value: .claude/skills/draw-io-diagram-generator
@@ -1096,24 +940,6 @@ deployments:
   content_hash: sha256:57bb7232567a03a4442c142fb15614226291e8c895ef36d07ac7610013d75fee
 - kind: project-relative
   target: claude
-  value: .claude/skills/prd
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/prd
-  active_owner: github/awesome-copilot/skills/prd
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/prd/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/prd
-  active_owner: github/awesome-copilot/skills/prd
-  content_hash: sha256:6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5
-- kind: project-relative
-  target: claude
   value: .claude/skills/skill-creator
   runtime: null
   scope: project
@@ -1328,21 +1154,3 @@ deployments:
   - mattpocock/skills/skills/engineering/tdd
   active_owner: mattpocock/skills/skills/engineering/tdd
   content_hash: sha256:859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a
-- kind: project-relative
-  target: claude
-  value: .claude/skills/update-implementation-plan
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/update-implementation-plan
-  active_owner: github/awesome-copilot/skills/update-implementation-plan
-  content_hash: null
-- kind: project-relative
-  target: claude
-  value: .claude/skills/update-implementation-plan/SKILL.md
-  runtime: null
-  scope: project
-  owners:
-  - github/awesome-copilot/skills/update-implementation-plan
-  active_owner: github/awesome-copilot/skills/update-implementation-plan
-  content_hash: sha256:08f62222ba518b54dd0f369c539f6f75dabb32893768e0cb2ff49ecb1e8cb7a9
