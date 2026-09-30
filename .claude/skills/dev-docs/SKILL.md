@@ -8,6 +8,7 @@ argument-hint: "What to do — e.g. start phase 2, close phase 1, record a decis
 
 These documents let a person steer work that spans sessions without writing a specification of the current behavior.
 The flow is intent, then implementation; a specification is written only for a boundary that others have come to depend on, and only for that boundary.
+What keeps current behavior from drifting is the test suite, not a document.
 Each document holds one kind of information, chosen by how long that information stays true.
 
 - **Roadmap**: requirements at the granularity of ideas, scope, what is out of scope, and the order of phases. It changes when direction changes.
@@ -39,7 +40,7 @@ Read the reference for each document you write or change, and only those:
 
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap. If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan. Where the notes go is in [Research](#research).
-3. Write the phase plan, and an ADR for each decision that later work must respect or will ask the reason for. A decision that matters only inside this phase stays in the plan as one line, with the finding it rests on beside it, even when it took research.
+3. Write the phase plan, and an ADR for each decision whose reason someone changing that part later would need: one that is costly to reverse, or whose reason the code does not show. Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
    - If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
 4. Resolve every question whose answer could change the plan before committing it; the plan's Open questions hold only what can wait.
 5. Commit the plan, its ADRs, and the roadmap's update for review.
@@ -81,9 +82,12 @@ If the direction itself changes, research again and write a new ADR that superse
 ## Closing a phase
 
 1. Under each Done when item, add the evidence that it holds: the command and its output, a screenshot, a link to a run.
-2. Update the architecture overview for what the phase changed. For the first phase, this is usually where it is first written.
-3. Settle each of the phase's ADRs: Accepted, or superseded.
-4. Mark the phase done in the roadmap and the plan closed; the plan is not edited after this.
+2. Keep what should go on holding, since the closed plan will not be updated:
+   - Turn each Done when check that can be automated into a test, end to end where the item describes behavior seen from outside.
+   - Add a line to the architecture overview's outside-visible behavior for each promise that cannot be tested.
+3. Update the architecture overview for what the phase changed. For the first phase, this is usually where it is first written.
+4. Settle each of the phase's ADRs: Accepted, or superseded.
+5. Mark the phase done in the roadmap and the plan closed; the plan is not edited after this.
 
 These changes go in the pull request that completes the last Done when item, or in one of their own if the implementation has already merged.
 
@@ -96,7 +100,7 @@ Place each result by how long it stays useful:
 
 - **The process**: stays with the branch, not the main branch.
 - **A finding a decision rests on**: goes into that ADR's context, with its source and the date you checked it.
-- **A finding only this phase uses**: goes into the phase plan, as a sourced assumption.
+- **Any other finding the phase relies on**: goes into the phase plan, as a sourced assumption beside what it supports.
 
 Research notes are working files and never reach the main branch.
 Commit them to the branch only if they are fit to publish wherever the branch is pushed, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
