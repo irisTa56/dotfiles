@@ -51,6 +51,7 @@ New ADRs land as Proposed.
 ## Working in a phase
 
 Treat the phase plan as the instruction: implement toward its Done when items and verify with the checks they name.
+Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside; the test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
 The plan has already settled requirements, assumptions, decisions, and what counts as done, so none of those is by itself a reason to enter plan mode.
 Enter plan mode only when how to build it is still open:
 
@@ -81,10 +82,8 @@ If the direction itself changes, research again and write a new ADR that superse
 
 ## Closing a phase
 
-1. Under each Done when item, add the evidence that it holds: the command and its output, a screenshot, a link to a run.
-2. Keep what should go on holding, since the closed plan will not be updated:
-   - Turn each Done when check that can be automated into a test, end to end where the item describes behavior seen from outside.
-   - Add a line to the architecture overview's outside-visible behavior for each promise that cannot be tested.
+1. Under each Done when item, add the evidence that it holds: the test run or command and its output, a screenshot, a link to a run.
+2. For each item that should go on holding but has no test, add a line to the architecture overview's outside-visible behavior, since the closed plan will not be updated.
 3. Update the architecture overview for what the phase changed. For the first phase, this is usually where it is first written.
 4. Settle each of the phase's ADRs: Accepted, or superseded.
 5. Mark the phase done in the roadmap and the plan closed; the plan is not edited after this.
