@@ -98,11 +98,10 @@ These changes go in the pull request that completes the last Done when item, or 
 Research happens at two points: while writing a phase plan, for questions that could change direction, and during a work session, for how to implement, in plan mode if that helps.
 Keep it in a working copy where you can commit, since some session recorders capture a conversation only when a commit follows it.
 
-Place each result by how long it stays useful:
+Keep the process apart from what it found:
 
 - **The process**: stays with the branch, not the main branch.
-- **A finding behind a decision that gets an ADR**: goes into that ADR's context, with its source and the date you checked it.
-- **Any other finding the phase relies on**, including one behind a decision kept in the plan: goes into the phase plan with its source, beside the assumption or decision it supports.
+- **A finding**: goes beside the decision or assumption it supports, with its source and the date you checked it. That is the ADR's context where the decision has an ADR, and the phase plan otherwise; which decisions get one is settled in [Starting a phase](#starting-a-phase), not by the finding.
 
 Research notes are working files and never reach the main branch.
 Commit them to the branch only if they are fit to publish wherever the branch is pushed, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
