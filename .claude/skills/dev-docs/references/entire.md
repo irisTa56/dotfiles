@@ -22,6 +22,8 @@ These points decide whether the research behind a decision can be found again.
   - A repository that wants subagents recorded sets `CLAUDE_CODE_FORK_SUBAGENT=0`.
   - If the Agent tool offers no `run_in_background` parameter, tell the person instead of assuming the research will be kept.
 - A subagent's final report reaches the parent transcript either way, so notes that carry each conclusion and its source keep what a decision rests on even when a subagent's working is lost.
+- The rules on `run_in_background` and fork mode hold for every session in the repository, not only for research, so they belong in its instructions (`CLAUDE.md`, `CLAUDE.local.md`, or the like).
+  - If the instructions lack them, propose adding them.
 
 ## Finding the conversation after a squash merge
 

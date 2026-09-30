@@ -58,7 +58,9 @@ The IDs are local to the plan.
 ## What each section holds
 
 - **Goal**: one or two sentences on what the phase establishes.
-- **Requirements & Constraints**: each outcome the phase must deliver, stated so it can be observed, and each constraint on how, such as "runs offline".
+- **Requirements & Constraints**: the boundary conditions of what the phase delivers, which the person reads to see the edges of the deliverable before any code exists.
+  - A requirement is an outcome the phase must deliver, stated so it can be observed.
+  - A constraint limits how, such as "runs offline".
   - **Out of scope**: what this phase deliberately leaves out, and where it goes instead if anywhere.
 - **Assumptions & Risks**: each fact the plan relies on, with where it came from or the word Unverified.
   - Under each, the risk: what breaks if it is false, and the observation that would reveal it.
@@ -80,5 +82,5 @@ When the phase closes, add the evidence under each Done when item, set the statu
 ```markdown
 - **<what is observed>** — verifies R001, A002.
   - Check: <how it is observed>
-  - Evidence: <test run or command and its output, screenshot, link>
+  - Evidence: <the test that verifies it and its result, or a command and its output, a screenshot, a link>
 ```

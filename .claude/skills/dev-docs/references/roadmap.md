@@ -38,4 +38,5 @@ What a phase must achieve belongs to its plan, and why a choice was made belongs
   - A constraint that shapes every phase, such as data that must stay out of a public repository, goes here next to what it constrains.
 - **Non-goals**: each thing left out, with why in one sentence.
 - **Phases**: each phase in order, with one sentence on what it establishes, a link to its plan once it has one, and its state.
+  - Refer to a phase that has not started by its name, since it gets its number only when it starts.
   - Say which part of the order is fixed and which is decided later, when that is so.
