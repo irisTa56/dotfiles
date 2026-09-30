@@ -55,7 +55,7 @@ Give requirements and assumptions short IDs so Done when can point at them; the 
 - Every R and every unverified A appears in at least one Done when item, or the plan says why not.
 - An assumption either cites where it came from or says Unverified; an unverified one that the phase cannot proceed without is a question to settle now, not later.
 - An Open question that could change a requirement, a decision, or a Done when item is not open; resolve it before committing the plan.
-- Dependencies lists only what the phase adds, since each one adds complexity and risk the person should see.
+- Dependencies lists only what the phase adds, since each one adds complexity and risk the person should see. Where the exact package is chosen while building, name the purpose, so that a dependency for any other purpose reads as a change to the plan.
 - When the phase closes, add the evidence under each Done when item, set the status to `Closed YYYY-MM-DD`, and do not edit the plan again:
 
   ```markdown

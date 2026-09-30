@@ -1,7 +1,7 @@
 # Decision record (ADR)
 
 An ADR keeps one decision together with what it rested on and what it turned down, so a later reader can tell whether the reasons still hold.
-Write one when a decision outlives the phase that made it, or rests on research; a decision that matters only inside one phase is a line in that phase's plan instead.
+Write one when later work must respect a decision or will ask why it was made; a decision that matters only inside one phase is a line in that phase's plan instead, however much research it took.
 
 ```markdown
 # NNNN. <Decision, stated as what was chosen>
@@ -11,7 +11,7 @@ Write one when a decision outlives the phase that made it, or rests on research;
 
 ## Context
 
-<The problem and the forces on it. Each finding carries its source and the date it was checked, as in "Geofabrik extracts keep each object's timestamp ([technical notes](https://…), checked 2026-09-28)".>
+<The problem and the forces on it. Each finding carries its source and the date it was checked, as in "Geofabrik extracts keep each object's timestamp ([technical notes](https://…), checked 2026-09-28)". A source can also be a path in the repository or a command you ran.>
 
 ## Decision
 

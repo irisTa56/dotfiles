@@ -16,16 +16,19 @@ Each document holds one kind of information, chosen by how long that information
 - **Phase plan**: what one phase must achieve and how anyone will know it did. A person steers the phase with it; once the phase closes, it is a record.
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan. When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
 
+Before any pull request opens, run `review-loop` on its diff yourself; where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
+
 ## Fit the repository first
 
 Before writing anything, read what the repository already says: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING`, an existing roadmap, and an existing decision-record directory with its template (`docs/adr/`, `doc/adr/`, `docs/decisions/`).
 Where the repository has a convention, follow it and map the kinds above onto it: an ADR goes where the repository keeps them, in its template, adding only what the template lacks, such as rejected alternatives.
 Where it has none and the user owns the repository, use the default layout in [references/layout.md](references/layout.md).
+Where it covers some kinds and not others, place the rest as the default layout would, beside the documents the repository already keeps.
 
 A repository that has not adopted these documents does not get them unasked.
 If there is no roadmap and the user has not asked to start one, apply only what fits the task in hand, such as the plan-mode guidance below or an ADR in the repository's own format, and propose the rest rather than creating it.
 
-Write each document by its reference, reading only the one you are writing:
+Read the reference for each document you write or change, and only those:
 
 - [references/roadmap.md](references/roadmap.md)
 - [references/architecture.md](references/architecture.md)
@@ -36,9 +39,10 @@ Write each document by its reference, reading only the one you are writing:
 
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap. If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan. Where the notes go is in [Research](#research).
-3. Write the phase plan, and an ADR for each decision that outlives the phase or rests on research. A decision that matters only inside this phase stays in the plan as one line.
+3. Write the phase plan, and an ADR for each decision that later work must respect or will ask the reason for. A decision that matters only inside this phase stays in the plan as one line, with the finding it rests on beside it, even when it took research.
+   If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
 4. Resolve every question whose answer could change the plan before committing it; the plan's Open questions hold only what can wait.
-5. Commit the plan, its ADRs, and the roadmap's update, then have the person read the diff and run `review-loop` on it.
+5. Commit the plan, its ADRs, and the roadmap's update for review.
 
 The plan lands on the main branch in a pull request of its own, before the implementation, because later sessions start from the main branch and must be able to read it.
 New ADRs land as Proposed.
@@ -82,7 +86,6 @@ If the direction itself changes, research again and write a new ADR that superse
 4. Mark the phase done in the roadmap and the plan closed; the plan is not edited after this.
 
 These changes go in the pull request that completes the last Done when item, or in one of their own if the implementation has already merged.
-Run `review-loop` on the diff before opening any pull request of the phase.
 
 ## Research
 
