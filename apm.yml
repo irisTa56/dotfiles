@@ -10,6 +10,8 @@ dependencies:
   - anthropics/skills/skills/skill-creator
   - basicmachines-co/basic-memory/skills/memory-curate
   - basicmachines-co/basic-memory/skills/memory-defrag
+  - basicmachines-co/basic-memory/skills/memory-ingest
+  - basicmachines-co/basic-memory/skills/memory-notes
   - googleworkspace/cli/skills/gws-docs
   - googleworkspace/cli/skills/gws-drive
   - googleworkspace/cli/skills/gws-gmail

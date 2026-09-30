@@ -1,6 +1,6 @@
 lockfile_version: '1'
-generated_at: '2026-09-30T15:12:05.097413+00:00'
-apm_version: 0.31.0
+generated_at: '2026-09-30T15:23:47.524456+00:00'
+apm_version: 0.32.0
 dependencies:
 - repo_url: agents365-ai/drawio-skill
   materialization_repo_url: Agents365-ai/drawio-skill
@@ -249,6 +249,34 @@ dependencies:
   deployed_file_hashes:
     .claude/skills/memory-defrag/SKILL.md: sha256:9833723b0feacdc2ea2b36d428b381e06d84a490a96fa5f884775e4f7764aedc
   content_hash: sha256:82da4efe339bfb37fe68e97909df5a966d821fb790a4c0ab092a020f1252621e
+- repo_url: basicmachines-co/basic-memory
+  name: memory-ingest
+  host: github.com
+  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  version: unknown
+  virtual_path: skills/memory-ingest
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-ingest
+  - .claude/skills/memory-ingest/SKILL.md
+  deployed_file_hashes:
+    .claude/skills/memory-ingest/SKILL.md: sha256:3dbd6517d53e19280c792cfe3e7153a3c7d8486291153d75554c544bb6935b52
+  content_hash: sha256:c1ecd6237ae2cba8073082f7bc9a54b06a41101bfe2643c3b302c66400f3d98b
+- repo_url: basicmachines-co/basic-memory
+  name: memory-notes
+  host: github.com
+  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  version: unknown
+  virtual_path: skills/memory-notes
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/memory-notes
+  - .claude/skills/memory-notes/SKILL.md
+  deployed_file_hashes:
+    .claude/skills/memory-notes/SKILL.md: sha256:68a38d488900703cbd16e9f5dde8d5ac0500ed99959aecdda48dddd15c2b9c1e
+  content_hash: sha256:f1b167acaf5ea7d83cb10912189dc463675defdb100b237d65887688ef026842
 - repo_url: googleworkspace/cli
   name: gws-docs
   host: github.com
@@ -1292,6 +1320,42 @@ deployments:
   - basicmachines-co/basic-memory/skills/memory-defrag
   active_owner: basicmachines-co/basic-memory/skills/memory-defrag
   content_hash: sha256:9833723b0feacdc2ea2b36d428b381e06d84a490a96fa5f884775e4f7764aedc
+- kind: project-relative
+  target: claude
+  value: .claude/skills/memory-ingest
+  runtime: null
+  scope: project
+  owners:
+  - basicmachines-co/basic-memory/skills/memory-ingest
+  active_owner: basicmachines-co/basic-memory/skills/memory-ingest
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/memory-ingest/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - basicmachines-co/basic-memory/skills/memory-ingest
+  active_owner: basicmachines-co/basic-memory/skills/memory-ingest
+  content_hash: sha256:3dbd6517d53e19280c792cfe3e7153a3c7d8486291153d75554c544bb6935b52
+- kind: project-relative
+  target: claude
+  value: .claude/skills/memory-notes
+  runtime: null
+  scope: project
+  owners:
+  - basicmachines-co/basic-memory/skills/memory-notes
+  active_owner: basicmachines-co/basic-memory/skills/memory-notes
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/memory-notes/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - basicmachines-co/basic-memory/skills/memory-notes
+  active_owner: basicmachines-co/basic-memory/skills/memory-notes
+  content_hash: sha256:68a38d488900703cbd16e9f5dde8d5ac0500ed99959aecdda48dddd15c2b9c1e
 - kind: project-relative
   target: claude
   value: .claude/skills/skill-creator
