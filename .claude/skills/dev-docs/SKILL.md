@@ -20,8 +20,8 @@ Before any pull request opens, run `review-loop` on its diff yourself; where the
 
 ## Fit the repository first
 
-Before writing anything, read what the repository already says: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING`, an existing roadmap, and an existing decision-record directory with its template (`docs/adr/`, `doc/adr/`, `docs/decisions/`).
-Where the repository has a convention, follow it and map the kinds above onto it: an ADR goes where the repository keeps them, in its template, adding only what the template lacks, such as rejected alternatives.
+Before writing anything, read what the repository already says: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING`, and any document of the kinds above it already keeps, with its template.
+Where the repository has a convention, follow it and map the kinds above onto it: each document goes where the repository keeps its kind, in that format, adding only the elements the format lacks and the kind needs.
 Where it has none and the user owns the repository, use the default layout in [references/layout.md](references/layout.md).
 Where it covers some kinds and not others, place the rest as the default layout would, beside the documents the repository already keeps.
 
@@ -40,7 +40,7 @@ Read the reference for each document you write or change, and only those:
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap. If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan. Where the notes go is in [Research](#research).
 3. Write the phase plan, and an ADR for each decision that later work must respect or will ask the reason for. A decision that matters only inside this phase stays in the plan as one line, with the finding it rests on beside it, even when it took research.
-   If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
+   - If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
 4. Resolve every question whose answer could change the plan before committing it; the plan's Open questions hold only what can wait.
 5. Commit the plan, its ADRs, and the roadmap's update for review.
 
