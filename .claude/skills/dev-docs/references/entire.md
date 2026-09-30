@@ -1,0 +1,27 @@
+# Keeping research recoverable with Entire
+
+[Entire](https://github.com/entireio/cli) records agent sessions as checkpoints under git refs and adds an `Entire-Checkpoint` trailer to each commit a session makes, so `entire why <file>:<line>` can lead from a line back to the conversation that produced it.
+A repository uses it when it has an `.entire/` directory.
+These points decide whether the research behind a decision can be found again.
+
+## A checkpoint needs a commit
+
+- A checkpoint is created when the session commits, so research whose session never commits is not recorded. Commit something in the same session once the research has produced its result, even if it is only the ADR or the plan.
+- The checkpoint stores the session's transcript, including what the Write and Edit tools wrote. Notes kept untracked are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
+- Files under `.claude/` are left out of a checkpoint's file list by design, because Entire treats each agent's own configuration directory as protected (`ProtectedDirs` in [`cmd/entire/cli/agent/agent.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/agent/agent.go)). Keep research notes outside it.
+
+## Subagents
+
+- A subagent's own transcript is recorded only when the Agent call passes `run_in_background: true` explicitly, although Claude Code backgrounds subagents without it ([entireio/cli#2556](https://github.com/entireio/cli/issues/2556)). Pass it on every Agent call you want recorded.
+- With fork mode on, Claude Code removes that parameter from the Agent tool, so no subagent can be recorded ([fork mode](https://code.claude.com/docs/en/sub-agents#turn-fork-mode-on-or-off)). It is on by default in interactive terminal sessions. A repository that wants subagents recorded sets `CLAUDE_CODE_FORK_SUBAGENT=0`; if the Agent tool offers no `run_in_background` parameter, tell the person instead of assuming the research will be kept.
+- A subagent's final report reaches the parent transcript either way, so notes that carry each conclusion and its source keep what a decision rests on even when a subagent's working is lost.
+
+## Finding the conversation after a squash merge
+
+- A squash merge gathers every commit's trailer into one commit, and `entire why` on the main branch then picks the first checkpoint that touched the file, whichever commit added the line ([`attribution.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/attribution.go)). It is reliable only down to the file.
+- To reach the right conversation, fetch the pull request's head (`git fetch origin pull/<N>/head`), check it out in a temporary worktree, and run `entire why` there on the matching line. GitHub keeps `refs/pull/<N>/head` after the branch is deleted.
+
+## Visibility
+
+Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
+Where the repository is public, its Entire settings should send checkpoints to a private remote (`checkpoint_remote`); check `.entire/settings.json` before researching anything that should not be public.
