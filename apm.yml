@@ -6,11 +6,10 @@ includes: auto
 target: claude
 dependencies:
   apm:
+  - Agents365-ai/drawio-skill/skills/drawio-skill
   - anthropics/skills/skills/skill-creator
   - basicmachines-co/basic-memory/skills/memory-curate
   - basicmachines-co/basic-memory/skills/memory-defrag
-  - github/awesome-copilot/skills/draw-io-diagram-generator
-  - github/awesome-copilot/skills/drawio
   - googleworkspace/cli/skills/gws-docs
   - googleworkspace/cli/skills/gws-drive
   - googleworkspace/cli/skills/gws-gmail
