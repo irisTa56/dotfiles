@@ -11,8 +11,8 @@
 ## Answer shape in conversation
 
 - Close with a summary of the answer, and the questions you need answered after it. The end of a turn is what the user reliably reads, while an opening gets buried under progress output.
-- List those questions, numbered, rather than leaving them in prose, so the user can answer each by its number. One buried in prose gets skimmed past, and the work proceeds on a default the user never chose.
-  - Put beside each the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
+  - List those questions, numbered, rather than leaving them in prose, so the user can answer each by its number. One buried in prose gets skimmed past, and the work proceeds on a default the user never chose.
+    - Put beside each the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 
 ## Language and Expression
