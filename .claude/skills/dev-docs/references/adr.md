@@ -29,8 +29,9 @@ Any other decision is a line in its phase plan instead, however much research it
 ```
 
 - The status is one of `Proposed`, `Accepted`, and `Superseded by [NNNN](NNNN-<slug>.md)`.
-  - An ADR written at the start of a phase is Proposed and becomes Accepted when the phase closes. One written with the change that implements it, as in a bug fix, lands Accepted.
+  - An ADR written at the start of a phase is Proposed and becomes Accepted when the phase closes.
+  - One written with the change that implements it, as in a bug fix, lands Accepted.
   - A decision dropped before its pull request merges is simply not merged.
 - To change a decision, write a new ADR whose Context says what changed and begins with `Supersedes [NNNN](NNNN-<slug>.md)`, then change the old one's status line and nothing else.
-- Keep an alternative only if it was a real option; listing strawmen hides the ones that mattered.
+- Keep an alternative only if it was a real option, since listing strawmen hides the ones that mattered.
 - The rejected alternatives are what turn a later review into a choice between options rather than a yes or no, so do not drop them to save space.

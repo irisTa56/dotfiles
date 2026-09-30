@@ -35,6 +35,6 @@ It is written when the first phase closes and revised when a phase, or a change 
 - [NNNN. <title>](decisions/NNNN-<slug>.md)
 ```
 
-- Describe the present, not the history or the plan; the history is in the ADRs and the plans.
+- Describe the present, not the history or the plan, which the ADRs and the plans already hold.
 - Name files and types rather than linking them, since links go stale — unless the repository runs a link checker over local links, in which case link them and let the checker catch staleness.
 - List only accepted ADRs that still shape the code, and drop a superseded one in favour of its successor.

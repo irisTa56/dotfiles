@@ -29,4 +29,5 @@ What a phase must achieve belongs to its plan, and why a choice was made belongs
 - Write a requirement as the outcome someone needs, not as a mechanism: "a mapper can see which features have gone longest without an edit", not "colour features by timestamp".
 - A constraint that shapes every phase, such as data that must stay out of a public repository, goes in Scope next to what it constrains.
 - Say which part of the phase order is fixed and which is decided later, when that is so.
-- A finding that motivates the purpose may stay here in a sentence with its source; a finding that decided something goes to that decision's ADR.
+- A finding that motivates the purpose may stay here in a sentence with its source.
+  - A finding behind a decision goes beside that decision instead, as the skill's Research section says.
