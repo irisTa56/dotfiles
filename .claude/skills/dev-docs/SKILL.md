@@ -139,7 +139,8 @@ Whether work that should stay private goes to a private tracker is the repositor
 
 - **A fix whose change one sentence can describe**: no document.
   - Record it in the tracker if it needs tracking, and close it with the pull request.
-- **A bug that needs investigation**: the report and the investigation go in the tracker, the fix in a pull request.
+- **Work that one sentence cannot describe but that needs no steering**, such as a bug that needs investigation, a feature, or a refactor: the change goes in a pull request, with no phase plan.
+  - For a bug, the report and the investigation go in the tracker.
   - A decision that comes out of it is recorded as in [Starting a phase](#starting-a-phase), phase or not.
   - A change to structure or invariants updates the architecture overview.
 - **Work that needs steering**, meaning its requirements must be decided and it spans sessions: insert it into the roadmap as a phase and write a phase plan.
