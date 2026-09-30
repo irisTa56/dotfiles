@@ -101,7 +101,7 @@ The old one's status line is the only part of it that changes.
 2. For each item that should go on holding but has no test, add a line to the architecture overview's outside-visible behavior, since the closed plan will not be updated.
 3. Update the architecture overview for what the phase changed.
    - For the first phase, this is usually where it is first written.
-4. Settle each of the phase's ADRs: Accepted, or superseded.
+4. Settle each of the phase's ADRs: Accepted, Rejected, or superseded.
 5. Mark the phase done in the roadmap and the plan closed, and do not edit the plan after this.
 
 These changes go in the pull request that completes the last Done when item, or in one of their own if the implementation has already merged.

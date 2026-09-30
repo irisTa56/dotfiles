@@ -23,9 +23,9 @@ What a phase must achieve belongs to its plan, and why a choice was made belongs
 
 ## Phases
 
-1. **<phase name>**: <what it establishes> — [plan](plan/phase-01-<slug>.md), done
-2. **<phase name>**: <what it establishes> — in progress
-3. **<phase name>**: <what it establishes>
+- **Phase 01: <name>**: <what it establishes> — [plan](plan/phase-01-<slug>.md), done
+- **Phase 02: <name>**: <what it establishes> — [plan](plan/phase-02-<slug>.md), in progress
+- **<name>**: <what it establishes>
 ```
 
 ## What each section holds
@@ -37,6 +37,7 @@ What a phase must achieve belongs to its plan, and why a choice was made belongs
   - Write a requirement as the outcome someone needs, not as a mechanism: "a mapper can see which features have gone longest without an edit", not "colour features by timestamp".
   - A constraint that shapes every phase, such as data that must stay out of a public repository, goes here next to what it constrains.
 - **Non-goals**: each thing left out, with why in one sentence.
-- **Phases**: each phase in order, with one sentence on what it establishes, a link to its plan once it has one, and its state.
-  - Refer to a phase that has not started by its name, since it gets its number only when it starts.
+- **Phases**: each phase in its planned order, with one sentence on what it establishes, a link to its plan once it has one, and its state.
+  - Use a bullet list, not a numbered one, and show a phase's number only once it has started, since it gets its number then and a list numeral would give an unstarted phase one it may never have.
+  - Refer to a phase that has not started by its name.
   - Say which part of the order is fixed and which is decided later, when that is so.

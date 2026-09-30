@@ -21,5 +21,6 @@ dev/
   - The roadmap's list order is the planned order, and a phase not yet started is known by its name.
 - A decision gets its number, four digits as adr-tools and MADR use, when it is written.
 - Numbers are never reused, including for a superseded ADR.
-- Where the repository keeps research notes untracked, add `dev/research/` to `.git/info/exclude` so a broad `git add` cannot pick them up.
+- Where the repository keeps research notes untracked, add `dev/research/` to the file `git rev-parse --git-path info/exclude` prints, so a broad `git add` cannot pick them up.
+  - In a linked worktree `.git` is a file, so the literal path `.git/info/exclude` does not exist there.
 - Link the documents to each other with relative links, and link the root README to `dev/` so a reader can find them.
