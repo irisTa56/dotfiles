@@ -74,7 +74,7 @@ Enter plan mode only when how to build it is still open:
 - or the code is unfamiliar.
 
 A plan-mode plan covers only how to build.
-If it would change a requirement, an assumption, a decision, a dependency, or a Done when item, or it contains a decision the person should review with care, move that into the phase plan or an ADR, commit it, and get it reviewed before implementing on top of it.
+If it would change a requirement, an assumption, a decision, a dependency, or a Done when item, or it contains a decision the person should review with care, move that into the phase plan or an ADR as [Changing direction](#changing-direction) says, and get it reviewed before implementing on top of it.
 The approval screen is the right place to review how, but it is not a record, so it is the wrong place to settle what.
 
 ### When to go back to the plan
@@ -94,6 +94,13 @@ If you notice it in plan mode, say so rather than presenting a plan that routes 
 Revise the phase plan and commit the revision, so the diff shows what changed.
 If the direction itself changes, research again and write a new ADR that supersedes the old one.
 The old one's status line is the only part of it that changes.
+
+Where the revision goes depends on whether implementation has started:
+
+- **Before it starts**: the revision lands on the main branch in a pull request of its own, as the plan did.
+- **Once it has started**: the revision is a commit of its own on the implementation branch, which the person reads before any code builds on it.
+
+An ADR written mid-phase lands as Proposed, like one written at the start, and is settled when the phase closes.
 
 ## Closing a phase
 
