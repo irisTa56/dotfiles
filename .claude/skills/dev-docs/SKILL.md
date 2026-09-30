@@ -129,6 +129,7 @@ Keep the process apart from what it found:
 - **The process**: stays with the branch, not the main branch.
 - **A finding**: goes beside the decision or assumption it supports, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
+  - Where it supports the roadmap's own content, such as its purpose or a non-goal, that is the roadmap's Background.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), not by the finding.
 
 Research notes are working files and never reach the main branch.
