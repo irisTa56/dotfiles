@@ -1,7 +1,8 @@
 # Decision record (ADR)
 
 An ADR keeps one decision together with what it rested on and what it turned down, so a later reader can tell whether the reasons still hold.
-Write one when someone changing that part later would need the reason: the decision is costly to reverse, or the code does not show why it was made. Any other decision is a line in its phase plan instead, however much research it took.
+Write one when someone changing that part later would need the reason: the decision is costly to reverse, or the code does not show why it was made.
+Any other decision is a line in its phase plan instead, however much research it took.
 
 ```markdown
 # NNNN. <Decision, stated as what was chosen>

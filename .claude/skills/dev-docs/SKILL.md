@@ -40,10 +40,12 @@ Read the reference for each document you write or change, and only those:
 
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap. If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan. Where the notes go is in [Research](#research).
-3. Write the phase plan, and an ADR for each decision whose reason someone changing that part later would need: one that is costly to reverse, or whose reason the code does not show. Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
-   - If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
-4. Resolve every question whose answer could change the plan before committing it; the plan's Open questions hold only what can wait.
-5. Commit the plan, its ADRs, and the roadmap's update for review.
+3. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
+   - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
+   - Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
+4. If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
+5. Resolve every question whose answer could change the plan before committing it; the plan's Open questions hold only what can wait.
+6. Commit the plan, its ADRs, and the roadmap's update for review.
 
 The plan lands on the main branch in a pull request of its own, before the implementation, because later sessions start from the main branch and must be able to read it.
 New ADRs land as Proposed.
@@ -52,6 +54,7 @@ New ADRs land as Proposed.
 
 Treat the phase plan as the instruction: implement toward its Done when items and verify with the checks they name.
 Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside; the test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
+Where a test-driven development skill is available, work that red-green loop through it.
 The plan has already settled requirements, assumptions, decisions, and what counts as done, so none of those is by itself a reason to enter plan mode.
 Enter plan mode only when how to build it is still open:
 
@@ -98,8 +101,8 @@ Keep it in a working copy where you can commit, since some session recorders cap
 Place each result by how long it stays useful:
 
 - **The process**: stays with the branch, not the main branch.
-- **A finding a decision rests on**: goes into that ADR's context, with its source and the date you checked it.
-- **Any other finding the phase relies on**: goes into the phase plan, as a sourced assumption beside what it supports.
+- **A finding behind a decision that gets an ADR**: goes into that ADR's context, with its source and the date you checked it.
+- **Any other finding the phase relies on**, including one behind a decision kept in the plan: goes into the phase plan with its source, beside the assumption or decision it supports.
 
 Research notes are working files and never reach the main branch.
 Commit them to the branch only if they are fit to publish wherever the branch is pushed, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
