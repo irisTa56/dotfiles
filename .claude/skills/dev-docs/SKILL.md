@@ -97,7 +97,7 @@ The old one's status line is the only part of it that changes.
 
 Where the revision goes depends on whether implementation has started:
 
-- **Before it starts**: the revision lands on the main branch in a pull request of its own, as the plan did.
+- **Before it starts, or when the implementation so far is set aside to start over**: the revision lands on the main branch in a pull request of its own, as the plan did.
 - **Once it has started**: the revision is a commit of its own on the implementation branch, which the person reads before any code builds on it.
 
 An ADR written mid-phase lands as Proposed, like one written at the start, and is settled when the phase closes.
