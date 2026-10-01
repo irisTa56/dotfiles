@@ -17,7 +17,7 @@ Each document holds one kind of information, chosen by how long that information
 - **Architecture overview**: the current structure, its invariants, a short list of behavior visible from outside, and links to the decisions behind them.
   - It changes when the structure does.
 - **Decision record (ADR)**: one decision, the findings it rests on, the alternatives it rejected and why, and what it costs.
-  - It never changes except to be superseded.
+  - It never changes except for its status, as when it is superseded.
 - **Phase plan**: what one phase must achieve and how anyone will know it did.
   - A person steers the phase with it, and once the phase closes, it is a record.
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan.

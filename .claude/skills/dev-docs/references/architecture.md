@@ -48,6 +48,6 @@ It is written when the first phase closes and revised when a phase, or a change 
   - Each behavior someone outside the code can observe or depend on, in a line, linking a specification where one exists.
 - **Cross-cutting concerns**: error handling, configuration, testing, and the like, where they follow one rule across the code.
 
-A statement in any section that rests on an accepted ADR carries the link `[NNNN]`, as [adr.md](adr.md#where-it-is-linked-from) describes, and when the statement goes, the link and its definition go with it.
+A statement in any section that rests on an accepted ADR carries the link `[NNNN]`, as [adr.md](adr.md#where-it-is-linked-from) describes, and when the statement goes, the link and its definition go with it and the ADR's status changes as described there.
 
 Describe the present, not the history or the plan, which the ADRs and the plans already hold.
