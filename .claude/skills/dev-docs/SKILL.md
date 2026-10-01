@@ -140,7 +140,7 @@ A finding whose decision or assumption is not written yet, such as one from the 
 
 - Keep those notes untracked, in a working copy that will still be there when that phase is planned.
 - When writing a phase plan, move into it and its ADRs the findings its decisions and assumptions rest on, and delete each from the notes once the plan or ADR holding it has merged into the main branch.
-- Check each finding again as you move it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
+  - Check each finding again as you move it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
 
 If the repository has an `.entire/` directory, read [references/entire.md](references/entire.md) before researching.
 
