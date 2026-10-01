@@ -57,6 +57,5 @@ Write one when someone changing that part later would need the reason: the decis
 - A phase plan's Decisions links each ADR the phase wrote, and keeps that link once the plan is closed.
 - The roadmap and the architecture overview link an ADR from each statement it supports, so a reader sees which decision a statement rests on.
   - Write the link as a shortcut reference after the statement, `[NNNN]`, and define it at the foot of the file as `[NNNN]: decisions/NNNN-<slug>.md`.
-  - Every Accepted ADR is linked this way, so where neither document has a statement it supports, add the statement.
   - A link goes when its statement goes, and its definition goes once the file has no other link to it.
   - When the ADR is superseded, its links move to the successor, and when it is rejected or deprecated, they go.
