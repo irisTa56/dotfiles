@@ -44,5 +44,5 @@ What a phase must achieve belongs to its plan, and why a choice was made belongs
   - Say which part of the order is fixed and which is decided later, when that is so.
 
 A choice the roadmap itself makes, such as a scope item, a non-goal, or the phase order, gets an ADR by the test in [adr.md](adr.md), written with the roadmap change that makes it.
-The statement of that choice carries the link `[NNNN]`, as [adr.md](adr.md#where-it-is-linked-from) describes, and when the statement goes, the link and its definition go with it and the ADR's status changes as described there.
+The statement of that choice carries the link `[NNNN]`, and [adr.md](adr.md#where-it-is-linked-from) says how to write it and what happens to it when the statement goes or the decision stops holding.
 A non-goal whose whole reason fits its one sentence needs no ADR.
