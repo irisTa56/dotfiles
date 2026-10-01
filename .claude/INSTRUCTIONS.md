@@ -40,6 +40,7 @@
 ## Delegation
 
 - Choose the lowest-cost model that can still do the delegated work well.
+- Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
 
 ## Task-specific policies
 
