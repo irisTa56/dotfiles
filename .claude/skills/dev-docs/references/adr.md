@@ -43,10 +43,19 @@ Write one when someone changing that part later would need the reason: the decis
 
 ## Status and superseding
 
-- The status is one of `Proposed`, `Accepted`, `Rejected`, and `Superseded by [NNNN](NNNN-<slug>.md)`.
+- The status is one of `Proposed`, `Accepted`, `Rejected`, `Deprecated`, and `Superseded by [NNNN](NNNN-<slug>.md)`.
   - An ADR written within a phase, at its start or midway, is Proposed and is settled when the phase closes.
-  - One written outside any phase with the change that implements it, as in a bug fix, lands Accepted.
+  - One written outside any phase lands Accepted with the change it belongs to, such as the bug fix that implements it or the roadmap change that states it.
   - A decision dropped before its pull request merges is simply not merged.
   - A Proposed decision dropped after it merged, with nothing replacing it, becomes Rejected, with a line in its Context saying why.
+  - An Accepted decision that stops holding, with nothing replacing it, becomes Deprecated, with a line in its Context saying why.
 - To change a decision, write a new ADR whose Context says what changed and begins with `Supersedes [NNNN](NNNN-<slug>.md)`.
   - Then change the old one's status line and nothing else.
+
+## Where it is linked from
+
+- A phase plan's Decisions links each ADR the phase wrote, and keeps that link once the plan is closed.
+- The roadmap and the architecture overview link an ADR from each statement it supports, so a reader sees which decision a statement rests on.
+  - Write the link as a shortcut reference after the statement, `[NNNN]`, and define it at the foot of the file as `[NNNN]: decisions/NNNN-<slug>.md`.
+  - A link goes when its statement goes, and its definition goes once the file has no other link to it.
+  - When the ADR is superseded, its links move to the successor, and when it is rejected or deprecated, they go.

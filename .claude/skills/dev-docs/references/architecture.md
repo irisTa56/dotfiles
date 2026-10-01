@@ -22,6 +22,7 @@ It is written when the first phase closes and revised when a phase, or a change 
 ## Invariants
 
 - <invariant>
+- <invariant> [NNNN]
 
 ## Boundaries and outside-visible behavior
 
@@ -32,9 +33,7 @@ It is written when the first phase closes and revised when a phase, or a change 
 
 - <concern>
 
-## Decisions
-
-- [NNNN. <title>](decisions/NNNN-<slug>.md)
+[NNNN]: decisions/NNNN-<slug>.md
 ```
 
 ## What each section holds
@@ -48,7 +47,7 @@ It is written when the first phase closes and revised when a phase, or a change 
   - Each boundary between layers or systems, and what crosses it.
   - Each behavior someone outside the code can observe or depend on, in a line, linking a specification where one exists.
 - **Cross-cutting concerns**: error handling, configuration, testing, and the like, where they follow one rule across the code.
-- **Decisions**: the accepted ADRs that still shape the code.
-  - Drop a superseded one in favour of its successor.
+
+A statement in any section that rests on an accepted ADR carries the link `[NNNN]`, and [adr.md](adr.md#where-it-is-linked-from) says how to write it and what happens to it when the statement goes or the decision stops holding.
 
 Describe the present, not the history or the plan, which the ADRs and the plans already hold.
