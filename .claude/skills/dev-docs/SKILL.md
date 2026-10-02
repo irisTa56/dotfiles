@@ -126,18 +126,11 @@ Run it from a working copy of the repository where you can commit, since some se
 
 Keep the process apart from what it found:
 
-- **The process**: stays with the branch, not the main branch.
+- **The process**: its working files, such as notes and code written only to try something out, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
+  - No commit to the repository can pick them up there, and removing a worktree does not delete them.
 - **A finding**: goes beside the decision or assumption it supports, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
-
-Research notes, and code written only to try something out, are working files and never reach the main branch:
-
-- **They start in the private workspace**, a directory outside the working tree, which [references/private-workspace.md](references/private-workspace.md) describes.
-  - No commit to the repository can pick them up there, and removing a worktree does not delete them.
-- **`research/`, a directory next to these documents, takes only what was rewritten for it**: where the pull request should carry how a decision was reached, rewrite that part in a form fit to publish wherever the branch is pushed, and commit it to the branch.
-  - Nothing is written there first, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
-  - Remove it before the review, once its conclusions are in the ADR or the plan, so the review and the merged diff see only those.
 
 If the repository has an `.entire/` directory, read [references/entire.md](references/entire.md) before researching.
 

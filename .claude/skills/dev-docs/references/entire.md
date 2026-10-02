@@ -9,10 +9,6 @@ These points decide whether the research behind a decision can be found again.
 - A checkpoint is created when the session commits to the repository itself, so research whose session never commits there is not recorded, and a commit in the private workspace does not make one.
   - Commit something to the repository in the same session once the research has produced its result, even if it is only the ADR or the plan.
   - If nothing is ready to commit, have the session make an empty commit (`git commit --allow-empty`), which still gets a checkpoint.
-- The checkpoint stores the session's transcript, including what the Write and Edit tools wrote.
-  - Files kept in the private workspace are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
-- Files under `.claude/` are left out of a checkpoint's file list by design, because Entire treats each agent's own configuration directory as protected (`ProtectedDirs` in [`cmd/entire/cli/agent/agent.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/agent/agent.go)).
-  - Keep research notes outside it.
 
 ## Subagents
 
