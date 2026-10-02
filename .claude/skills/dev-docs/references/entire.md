@@ -34,8 +34,11 @@ These points decide whether the research behind a decision can be found again.
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
 The repository sends them to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and no file it commits names that repository:
 
-- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli#checkpoint-remote), and `.worktreeinclude` lists `.entire/settings.local.json`, which Claude Code [copies into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
-- **In each clone**: `git remote add checkpoints <URL of the companion repository>`, and an untracked `.entire/settings.local.json` in the main checkout that sets `strategy_options.checkpoint_remote` to the companion repository's provider and name.
+- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli#checkpoint-remote).
+- **In each clone**: `git remote add checkpoints <URL of the companion repository>`, and two untracked files in the main checkout.
+  - `.entire/settings.local.json` sets `strategy_options.checkpoint_remote` to the companion repository's provider and name.
+  - `.worktreeinclude` lists `.entire/settings.local.json`, which Claude Code [copies into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
+    - It stays out of the repository, listed in `.git/info/exclude`, because it has no per-person counterpart and each person lists files of their own in it.
 
 Before researching, run `entire status` in the working tree you are in, which must print `Checkpoints sync to: dedicated checkpoint remote (<owner>/<name>)`.
 `Checkpoints sync to: checkpoints (set by checkpoint_push_remote)` is not that: it is a working tree without its `.entire/settings.local.json`, from which a push to `origin` carries no checkpoint.
