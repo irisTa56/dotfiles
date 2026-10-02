@@ -42,10 +42,11 @@ A repository whose checkpoints must stay out of `origin`, as a public one's must
   - `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, and holds no `checkpoint_remote`.
     - That setting is fail-closed, so a clone that has not been set up, such as a fork's, sends checkpoints nowhere, where one inheriting a committed `checkpoint_remote` it does not own [falls back to `origin`](https://github.com/entireio/cli#checkpoint-remote).
   - `.worktreeinclude` lists `.entire/settings.local.json`, so that Claude Code [copies that file into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
-- **In each clone, once**:
+- **In each clone**:
   - `git remote add checkpoints <URL of the companion repository>`.
-  - `.entire/settings.local.json` in the main checkout, which Entire's `.gitignore` leaves untracked, sets `strategy_options.checkpoint_remote` to the companion repository's provider and name, and Entire then sends checkpoints there on every push.
-    - A session in a worktree asks the person to create it, since Claude Code [refuses its writes to the main checkout](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation) and a copy in the worktree goes when the worktree does.
+  - `.entire/settings.local.json`, which Entire's `.gitignore` leaves untracked, sets `strategy_options.checkpoint_remote` to the companion repository's provider and name, and Entire then sends checkpoints there on every push.
+    - Entire reads it from the working tree it runs in, so the main checkout holds the copy `.worktreeinclude` hands to new worktrees, and a worktree older than that copy needs the file written into it as well.
+    - A session in a worktree asks the person to create the main checkout's copy, since Claude Code [refuses its writes there](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation).
 
-Before researching in such a repository, check that `entire status` reports checkpoints syncing to the dedicated checkpoint remote.
-Where it reports anything else, set the clone up, and where what is missing is a committed file, put that change to the person.
+Before researching in such a repository, run `entire status` in the working tree you are in, which must report checkpoints syncing to the dedicated checkpoint remote.
+Where it reports anything else, supply what is missing from the list above and run it again, and where what is missing is a committed file, put that change to the person.
