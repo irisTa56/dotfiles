@@ -11,7 +11,7 @@ dev/
     phase-01-<slug>.md
   decisions/
     0001-<slug>.md
-  research/  # working notes fit to publish; never on the main branch
+  research/  # working files fit to publish; never on the main branch
 ```
 
 - The top level of `dev/` holds the documents that keep being revised.

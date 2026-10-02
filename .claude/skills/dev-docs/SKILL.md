@@ -131,19 +131,19 @@ Keep the process apart from what it found:
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
 
-Research notes are working files and never reach the main branch.
+Research notes, and code written only to try something out, are working files and never reach the main branch.
 Where they go depends on whether they are fit to publish wherever the branch is pushed:
 
-- **Notes that are**: a `research/` directory next to these documents, committed to the branch.
+- **Files that are**: a `research/` directory next to these documents, committed to the branch.
   - Remove them before the review, once their conclusions are in the ADR or the plan, so the review and the merged diff see only those.
-  - The pull request still keeps every commit reachable after its branch is deleted, and on a public host those commits are public, which is why no other notes go here.
-- **Any other notes**: a directory outside the working tree, the one `git config --get --type=path dev-docs.private-notes` prints, in a subdirectory named after the branch.
+  - The pull request still keeps every commit reachable after its branch is deleted, and on a public host those commits are public, which is why no other files go here.
+- **Any other files**: a private workspace outside the working tree, the directory `git config --get --type=path dev-docs.private-workspace` prints, in a subdirectory named after the branch.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
-  - If the command prints nothing, ask the person for the directory and record it with `git config dev-docs.private-notes <path>`, rather than leaving such notes untracked in the repository.
-  - Where the directory is a repository, commit the notes there.
+  - If the command prints nothing, ask the person for the directory and record it with `git config dev-docs.private-workspace <path>`, rather than leaving such files untracked in the repository.
+  - Where the workspace is in a repository, commit there, and only that subdirectory (`git add <subdirectory>`, then `git commit -- <subdirectory>`), since other sessions work beside it in the same checkout.
   - Where the pull request should carry how a decision was reached, rewrite that part into `research/` in a form fit to publish.
 
-A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in that directory outside the working tree, fit to publish or not, where it will still be when that phase is planned.
+A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in the private workspace, fit to publish or not, where it will still be when that phase is planned.
 When writing a phase plan, copy into it and its ADRs the findings its decisions and assumptions rest on.
 Check each finding again as you copy it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
 
