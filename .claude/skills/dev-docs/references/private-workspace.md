@@ -8,6 +8,8 @@ Where it prints nothing, ask the person for the companion repository's URL and f
 
 One checkout serves every session:
 
-- Keep a branch's files under a subdirectory named `<YYYYMMDD>-<branch>`, dated the day it is created, which stays after the branch merges.
+- Keep a branch's files under a subdirectory named `<YYYYMMDD>-<branch>`, which stays after the branch merges.
+  - `<YYYYMMDD>` is the day the subdirectory is created.
+  - `<branch>` is the branch's name with each `/` replaced by `-`, so `claude/fix-login` gives `20261002-claude-fix-login`, and not the name of the worktree's directory, which need not match the branch.
 - Commit there as the work goes, naming the paths you wrote: `git add <path>`, then `git commit -- <path>`, which [leaves whatever another session has staged out of your commit](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---only).
   - When the repository's branch is pushed, offer to push the workspace as well, since until then this checkout is the only copy of what it holds.
