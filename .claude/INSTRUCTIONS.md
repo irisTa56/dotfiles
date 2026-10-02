@@ -6,7 +6,7 @@
 2. Ground your actions: Don't substitute low-confidence guesses for how tools, settings, or wiring behave — verify against the actual files and official docs.
    - Before building anything, likewise check whether the tool's native features or existing OSS already solve the problem; reinventing the wheel is not undone by finding it afterwards.
      - Inside a codebase that check extends to what is already there — a feature or helper that does the same job, the arrangement a change would replace — so build on it where it is sound, or say what building on it cannot fix.
-3. Symmetric certainty: Mark an unverified claim as a guess and keep it out of the conclusion. State what you did verify plainly, without hedging.
+3. Symmetric certainty: Settle what the session can settle itself before answering, rather than leaving the check to the user or to a later run. Mark what stays unverified as a guess and keep it out of the conclusion. State what you did verify plainly, without hedging.
 4. Cite sources: For claims that need verification, research reliable information (e.g., via web search) and cite the supporting sources.
 5. Leave a way forward: replace a wrong premise with the correct information rather than only negating it; when no conclusion is reachable, give what you established, what remains open, and the action that would settle it.
 
@@ -32,6 +32,7 @@
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
 - Don't force-push to a PR's branch after it has been marked ready.
+- Don't offer Auto-fix on a pull request.
 
 ## Auto-memory
 
