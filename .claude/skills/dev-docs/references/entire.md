@@ -41,11 +41,8 @@ Where the repository is public, its checkpoints go to its companion repository (
 - **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote.
   - That setting is fail-closed, so a clone without the remote, such as a fork's, sends checkpoints nowhere.
   - `checkpoint_remote` is not used, since it takes a repository's name rather than a remote's, and a clone that inherits it without owning that repository [falls back to pushing checkpoints to `origin`](https://github.com/entireio/cli#checkpoint-remote).
-- **In each clone's git config**, which linked worktrees share:
-  - `git remote add checkpoints <URL of the companion repository>`.
-  - `git config remote.checkpoints.push 'refs/entire/checkpoints/*:refs/entire/checkpoints/*'`, so that a push to that remote sends the checkpoint refs and no branch.
-  - `git config hook.checkpoints-sync.event pre-push` and `git config hook.checkpoints-sync.command 'test "$1" = checkpoints || git push --quiet checkpoints #'`, so that a push to any other remote sends them as well.
-    - Entire by itself sends checkpoints only on a push to the remote that setting names.
-    - Git runs the command with the pushed remote's name as `$1` and appends its arguments, which the trailing `#` drops ([git-hook](https://git-scm.com/docs/git-hook)).
+- **In each clone's git config**, written by the setup command in [private-workspace.md](private-workspace.md#setting-a-clone-up):
+  - a remote named `checkpoints` whose URL is the companion repository's, with a push refspec that sends the checkpoint refs and no branch;
+  - a `pre-push` hook that pushes to it whenever another remote is pushed, since Entire by itself sends checkpoints only on a push to the remote that setting names.
 
-Before researching anything that should not be public, check that `entire status` reports checkpoints syncing to `checkpoints`, and set the clone up if it does not.
+Before researching anything that should not be public, run that command's `check`.
