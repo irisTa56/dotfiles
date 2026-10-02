@@ -6,11 +6,11 @@ These points decide whether the research behind a decision can be found again.
 
 ## A checkpoint needs a commit
 
-- A checkpoint is created when the session commits, so research whose session never commits is not recorded.
-  - Commit something in the same session once the research has produced its result, even if it is only the ADR or the plan.
+- A checkpoint is created when the session commits to the repository itself, so research whose session never commits there is not recorded, and a commit in the private workspace does not make one.
+  - Commit something to the repository in the same session once the research has produced its result, even if it is only the ADR or the plan.
   - If nothing is ready to commit, have the session make an empty commit (`git commit --allow-empty`), which still gets a checkpoint.
 - The checkpoint stores the session's transcript, including what the Write and Edit tools wrote.
-  - Notes kept outside the working tree are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
+  - Files kept in the private workspace are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
 - Files under `.claude/` are left out of a checkpoint's file list by design, because Entire treats each agent's own configuration directory as protected (`ProtectedDirs` in [`cmd/entire/cli/agent/agent.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/agent/agent.go)).
   - Keep research notes outside it.
 
@@ -36,5 +36,16 @@ These points decide whether the research behind a decision can be found again.
 ## Visibility
 
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
-Where the repository is public, its Entire settings should send checkpoints to a private remote (`checkpoint_remote`).
-Check `.entire/settings.json` before researching anything that should not be public.
+Where the repository is public, its checkpoints go to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and the committed settings do not name that repository:
+
+- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote.
+  - That setting is fail-closed, so a clone without the remote, such as a fork's, sends checkpoints nowhere.
+  - `checkpoint_remote` is not used, since it takes a repository's name rather than a remote's, and a clone that inherits it without owning that repository [falls back to pushing checkpoints to `origin`](https://github.com/entireio/cli#checkpoint-remote).
+- **In each clone's git config**, which linked worktrees share:
+  - `git remote add checkpoints <URL of the companion repository>`.
+  - `git config remote.checkpoints.push 'refs/entire/checkpoints/*:refs/entire/checkpoints/*'`, so that a push to that remote sends the checkpoint refs and no branch.
+  - `git config hook.checkpoints-sync.event pre-push` and `git config hook.checkpoints-sync.command 'test "$1" = checkpoints || git push --quiet checkpoints #'`, so that a push to any other remote sends them as well.
+    - Entire by itself sends checkpoints only on a push to the remote that setting names.
+    - Git runs the command with the pushed remote's name as `$1` and appends its arguments, which the trailing `#` drops ([git-hook](https://git-scm.com/docs/git-hook)).
+
+Before researching anything that should not be public, check that `entire status` reports checkpoints syncing to `checkpoints`, and set the clone up if it does not.

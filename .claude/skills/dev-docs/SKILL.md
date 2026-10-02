@@ -48,8 +48,8 @@ Read the reference for each document you write or change, and only those:
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap.
    - If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan.
-   - Start from the findings the research notes still hold from earlier research, such as the roadmap's.
-   - Where the notes go is in [Research](#research).
+   - Start from the findings carried over from earlier research, such as the roadmap's.
+   - Where they are kept, and where this research's notes go, is in [Research](#research).
 3. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
@@ -122,7 +122,7 @@ Research happens at three points:
 - while writing a phase plan, for questions that could change direction,
 - and during a work session, for how to implement, in plan mode if that helps.
 
-Keep it in a working copy where you can commit, since some session recorders capture a conversation only when a commit follows it.
+Run it from a working copy of the repository where you can commit, since some session recorders capture a conversation only when a commit to the repository follows it.
 
 Keep the process apart from what it found:
 
@@ -131,20 +131,15 @@ Keep the process apart from what it found:
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
 
-Research notes, and code written only to try something out, are working files and never reach the main branch.
-Where they go depends on whether they are fit to publish wherever the branch is pushed:
+Research notes, and code written only to try something out, are working files and never reach the main branch:
 
-- **Files that are**: a `research/` directory next to these documents, committed to the branch.
-  - Remove them before the review, once their conclusions are in the ADR or the plan, so the review and the merged diff see only those.
-  - The pull request still keeps every commit reachable after its branch is deleted, and on a public host those commits are public, which is why no other files go here.
-- **Any other files**: a private workspace outside the working tree, the directory `git config --get --type=path dev-docs.private-workspace` prints, in a subdirectory named after the branch.
+- **They start in the private workspace**, a directory outside the working tree, which [references/private-workspace.md](references/private-workspace.md) describes.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
-  - If the command prints nothing, ask the person for the directory and record it with `git config dev-docs.private-workspace <path>`, rather than leaving such files untracked in the repository.
-  - Where the workspace is in a repository, commit there, and only that subdirectory (`git add <subdirectory>`, then `git commit -- <subdirectory>`), since other sessions work beside it in the same checkout.
-    - List environments and build output in the workspace's `.gitignore`, which keeps them out of the commit and lets `git clean -fdX -- <subdirectory>` delete them from one subdirectory when the space is needed.
-  - Where the pull request should carry how a decision was reached, rewrite that part into `research/` in a form fit to publish.
+- **`research/`, a directory next to these documents, takes only what was rewritten for it**: where the pull request should carry how a decision was reached, rewrite that part in a form fit to publish wherever the branch is pushed, and commit it to the branch.
+  - Nothing is written there first, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
+  - Remove it before the review, once its conclusions are in the ADR or the plan, so the review and the merged diff see only those.
 
-A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in the private workspace, fit to publish or not, where it will still be when that phase is planned.
+A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in the private workspace's `carry-over/` directory, where the session that plans that phase looks for it.
 When writing a phase plan, copy into it and its ADRs the findings its decisions and assumptions rest on.
 Check each finding again as you copy it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
 
