@@ -51,7 +51,7 @@
 
 ### When building or replacing something in a codebase
 
-- Look first at what is already there — a feature or helper that does the same job, the arrangement the change would replace — and build on it where it is sound, or say what building on it cannot fix.
+- Look first at what is already there — a feature or helper that does the same job, the arrangement the change would replace — and build on it where it is sound, or, before building anything else, say what building on it cannot fix.
 
 ### Showing a change
 
