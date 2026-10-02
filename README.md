@@ -19,10 +19,11 @@ mise sets up the rest.
 
 ```shell
 mise trust
-MISE_GITHUB_CREDENTIAL_COMMAND="gh auth token" mise bootstrap
+MISE_GITHUB_CREDENTIAL_COMMAND="$(brew --prefix)/bin/gh auth token" mise bootstrap
 ```
 
 The first run sets that variable by hand, since `.zshenv` exports it only once this run has had it source the shell fragments.
+Both name gh by absolute path, for the reason `zsh_fragments/zshenv.sh` gives beside its export.
 
 On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which installs nothing the `Brewfile` lists, gh included.
 

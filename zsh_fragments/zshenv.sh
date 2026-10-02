@@ -31,7 +31,9 @@ export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclon
 # and a worktree or clone of this repository puts a copy of that config
 # on the project path, where mise drops the setting with a warning;
 # an environment variable does not depend on where mise runs.
-export MISE_GITHUB_CREDENTIAL_COMMAND="gh auth token"
+# The absolute path keeps the command off mise's shims: a gh shim would run
+# mise, which runs this command again, and each level waits on the next.
+export MISE_GITHUB_CREDENTIAL_COMMAND="${HOMEBREW_PREFIX}/bin/gh auth token"
 
 # uvx and `uv tool` pick no package version published less than a day ago,
 # the window npm gets from its user config (set by setup_dotfiles.sh).
