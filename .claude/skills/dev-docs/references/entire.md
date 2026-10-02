@@ -10,7 +10,7 @@ These points decide whether the research behind a decision can be found again.
   - Commit something in the same session once the research has produced its result, even if it is only the ADR or the plan.
   - If nothing is ready to commit, have the session make an empty commit (`git commit --allow-empty`), which still gets a checkpoint.
 - The checkpoint stores the session's transcript, including what the Write and Edit tools wrote.
-  - Notes kept untracked are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
+  - Notes kept outside the working tree are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
 - Files under `.claude/` are left out of a checkpoint's file list by design, because Entire treats each agent's own configuration directory as protected (`ProtectedDirs` in [`cmd/entire/cli/agent/agent.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/agent/agent.go)).
   - Keep research notes outside it.
 
