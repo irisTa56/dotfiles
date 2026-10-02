@@ -45,6 +45,7 @@ A repository whose checkpoints must stay out of `origin`, as a public one's must
 - **In each clone, once**:
   - `git remote add checkpoints <URL of the companion repository>`.
   - `.entire/settings.local.json` in the main checkout, which Entire's `.gitignore` leaves untracked, sets `strategy_options.checkpoint_remote` to the companion repository's provider and name, and Entire then sends checkpoints there on every push.
+    - A session in a worktree asks the person to create it, since Claude Code [refuses its writes to the main checkout](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation) and a copy in the worktree goes when the worktree does.
 
-Before researching anything that should not be public, check that `entire status` reports checkpoints syncing to the dedicated checkpoint remote.
+Before researching in such a repository, check that `entire status` reports checkpoints syncing to the dedicated checkpoint remote.
 Where it reports anything else, set the clone up, and where what is missing is a committed file, put that change to the person.

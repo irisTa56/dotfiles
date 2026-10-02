@@ -22,6 +22,6 @@ Where it prints nothing, set the clone up rather than keeping working files untr
 One checkout serves every session, so other sessions work beside yours:
 
 - Write only under your branch's subdirectory and `carry-over/`.
-- Commit there as the work goes, naming the paths you wrote: `git add <path>`, then `git commit -- <path>`, which leaves whatever another session has staged out of your commit.
+- Commit there as the work goes, naming the paths you wrote: `git add <path>`, then `git commit -- <path>`, which [leaves whatever another session has staged out of your commit](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---only).
 - List environments and build output, such as `.venv/` and `target/`, in the workspace's `.gitignore`, so that `git add` leaves them out.
 - Delete ignored files only when the person asks for the disk space back, and then with `git clean -fdX -- <subdirectory>`, which removes the ignored files under that one subdirectory and nothing else.
