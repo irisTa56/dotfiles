@@ -11,7 +11,6 @@ dev/
     phase-01-<slug>.md
   decisions/
     0001-<slug>.md
-  research/  # working notes; never on the main branch
 ```
 
 - The top level of `dev/` holds the documents that keep being revised.
@@ -21,6 +20,4 @@ dev/
   - The roadmap's list order is the planned order, and a phase not yet started is known by its name.
 - A decision gets its number, four digits as adr-tools and MADR use, when it is written.
 - Numbers are never reused, including for a superseded ADR.
-- Where the repository keeps research notes untracked, add `dev/research/` to the file `git rev-parse --git-path info/exclude` prints, so a broad `git add` cannot pick them up.
-  - In a linked worktree `.git` is a file, so the literal path `.git/info/exclude` does not exist there.
 - Link the documents to each other with relative links, and link the root README to `dev/` so a reader can find them.

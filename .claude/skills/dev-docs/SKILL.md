@@ -48,7 +48,7 @@ Read the reference for each document you write or change, and only those:
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap.
    - If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan.
-   - Start from the findings the research notes still hold from earlier research, such as the roadmap's.
+   - Start from what earlier research, such as the roadmap's, left in the private workspace, and check a finding again before the plan rests on it, since facts such as a service's load or a repository's activity can change within days.
    - Where the notes go is in [Research](#research).
 3. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
@@ -122,25 +122,15 @@ Research happens at three points:
 - while writing a phase plan, for questions that could change direction,
 - and during a work session, for how to implement, in plan mode if that helps.
 
-Keep it in a working copy where you can commit, since some session recorders capture a conversation only when a commit follows it.
+Run it from a working copy of the repository where you can commit, since some session recorders capture a conversation only when a commit to the repository follows it.
 
 Keep the process apart from what it found:
 
-- **The process**: stays with the branch, not the main branch.
+- **The process**: its working files, such as notes and code written only to try something out, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
+  - No commit to the repository can pick them up there, and removing a worktree does not delete them.
 - **A finding**: goes beside the decision or assumption it supports, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
-
-Research notes are working files and never reach the main branch.
-Commit them to the branch only if they are fit to publish wherever the branch is pushed, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
-Otherwise keep them untracked.
-Remove any committed notes before the review, once their conclusions are in the ADR or the plan, so the review and the merged diff see only those.
-
-A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in the research notes after the branch that found it merges:
-
-- Keep those notes untracked, in a working copy that will still be there when that phase is planned.
-- When writing a phase plan, move into it and its ADRs the findings its decisions and assumptions rest on, and delete each from the notes once the plan or ADR holding it has merged into the main branch.
-  - Check each finding again as you move it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
 
 If the repository has an `.entire/` directory, read [references/entire.md](references/entire.md) before researching.
 

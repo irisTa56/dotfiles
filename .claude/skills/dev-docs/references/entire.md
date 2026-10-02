@@ -6,13 +6,9 @@ These points decide whether the research behind a decision can be found again.
 
 ## A checkpoint needs a commit
 
-- A checkpoint is created when the session commits, so research whose session never commits is not recorded.
-  - Commit something in the same session once the research has produced its result, even if it is only the ADR or the plan.
+- A checkpoint is created when the session commits to the repository itself, so research whose session never commits there is not recorded, and a commit in the private workspace does not make one.
+  - Commit something to the repository in the same session once the research has produced its result, even if it is only the ADR or the plan.
   - If nothing is ready to commit, have the session make an empty commit (`git commit --allow-empty`), which still gets a checkpoint.
-- The checkpoint stores the session's transcript, including what the Write and Edit tools wrote.
-  - Notes kept untracked are therefore still recoverable from the checkpoint, provided they were written with those tools rather than through the shell.
-- Files under `.claude/` are left out of a checkpoint's file list by design, because Entire treats each agent's own configuration directory as protected (`ProtectedDirs` in [`cmd/entire/cli/agent/agent.go`](https://github.com/entireio/cli/blob/main/cmd/entire/cli/agent/agent.go)).
-  - Keep research notes outside it.
 
 ## Subagents
 
@@ -36,5 +32,11 @@ These points decide whether the research behind a decision can be found again.
 ## Visibility
 
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
-Where the repository is public, its Entire settings should send checkpoints to a private remote (`checkpoint_remote`).
-Check `.entire/settings.json` before researching anything that should not be public.
+The repository sends them to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and no file it commits names that repository:
+
+- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli#checkpoint-remote), and `.worktreeinclude` lists `.entire/settings.local.json`, which Claude Code [copies into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
+- **In each clone**: `git remote add checkpoints <URL of the companion repository>`, and an untracked `.entire/settings.local.json` in the main checkout that sets `strategy_options.checkpoint_remote` to the companion repository's provider and name.
+
+Before researching, run `entire status` in the working tree you are in, which must print `Checkpoints sync to: dedicated checkpoint remote (<owner>/<name>)`.
+`Checkpoints sync to: checkpoints (set by checkpoint_push_remote)` is not that: it is a working tree without its `.entire/settings.local.json`, from which a push to `origin` carries no checkpoint.
+Where it prints anything else, supply what is missing and run it again, putting to the person any change to a committed file, or to the main checkout from a worktree, [where Claude Code refuses your writes](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation).
