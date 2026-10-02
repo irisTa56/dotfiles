@@ -141,6 +141,7 @@ Where they go depends on whether they are fit to publish wherever the branch is 
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
   - If the command prints nothing, ask the person for the directory and record it with `git config dev-docs.private-workspace <path>`, rather than leaving such files untracked in the repository.
   - Where the workspace is in a repository, commit there, and only that subdirectory (`git add <subdirectory>`, then `git commit -- <subdirectory>`), since other sessions work beside it in the same checkout.
+    - List environments and build output in the workspace's `.gitignore`, which keeps them out of the commit and lets `git clean -fdX -- <subdirectory>` delete them from one subdirectory when the space is needed.
   - Where the pull request should carry how a decision was reached, rewrite that part into `research/` in a form fit to publish.
 
 A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside, so it is kept in the private workspace, fit to publish or not, where it will still be when that phase is planned.
