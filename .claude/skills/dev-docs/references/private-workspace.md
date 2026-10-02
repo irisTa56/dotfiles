@@ -5,13 +5,12 @@ Where the repository uses Entire, its checkpoints go to that same repository ([e
 
 ## Setting a clone up
 
-No file committed to the repository names the companion repository, so each clone is set up once, with [scripts/companion.exs](../scripts/companion.exs):
+No file committed to the repository names the companion repository, so each clone is told once where its checkout is.
+`git config --get --type=path dev-docs.private-workspace` prints the workspace's directory.
+Where it prints nothing, set the clone up rather than keeping working files untracked in the repository:
 
-- `elixir <path to it> check` exits 0 where the clone is set up, and otherwise lists what is missing.
-- Where something is missing, ask the person for the companion repository's URL and for a directory outside the repository to keep its checkout in, and run `elixir <path to it> setup <url> <directory>`, rather than keeping working files untracked in the repository.
-  - It clones the companion repository there unless the directory already exists, and records everything in the clone's git config, which linked worktrees share.
-
-`git config --get --type=path dev-docs.private-workspace` then prints the workspace's directory.
+1. Ask the person for the companion repository's URL and for a directory to keep its checkout in, outside every git working tree.
+2. Clone it there, and record the directory with `git config dev-docs.private-workspace <directory>`, which linked worktrees share.
 
 ## Layout
 

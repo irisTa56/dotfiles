@@ -76,7 +76,7 @@ description = "Run pre-commit checks"
 depends = ["qa:**", "secrets:commit-scan", "link-check:staged"]
 run = [
   "claude plugin validate .claude/skills",
-  "mix format --check-formatted scripts/*.exs .claude/skills/*/scripts/*.exs",
+  "mix format --check-formatted scripts/*.exs",
 ]
 
 [tasks."qa:md"]

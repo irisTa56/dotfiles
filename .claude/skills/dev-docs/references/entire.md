@@ -36,13 +36,15 @@ These points decide whether the research behind a decision can be found again.
 ## Visibility
 
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
-Where the repository is public, its checkpoints go to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and the committed settings do not name that repository:
+A repository whose checkpoints must stay out of `origin`, as a public one's must, sends them to its companion repository ([private-workspace.md](private-workspace.md)), and no file it commits names that repository:
 
-- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote.
-  - That setting is fail-closed, so a clone without the remote, such as a fork's, sends checkpoints nowhere.
-  - `checkpoint_remote` is not used, since it takes a repository's name rather than a remote's, and a clone that inherits it without owning that repository [falls back to pushing checkpoints to `origin`](https://github.com/entireio/cli#checkpoint-remote).
-- **In each clone's git config**, written by the setup command in [private-workspace.md](private-workspace.md#setting-a-clone-up):
-  - a remote named `checkpoints` whose URL is the companion repository's, with a push refspec that sends the checkpoint refs and no branch;
-  - a `pre-push` hook that pushes to it whenever another remote is pushed, since Entire by itself sends checkpoints only on a push to the remote that setting names.
+- **Committed**:
+  - `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, and holds no `checkpoint_remote`.
+    - That setting is fail-closed, so a clone that has not been set up, such as a fork's, sends checkpoints nowhere, where one inheriting a committed `checkpoint_remote` it does not own [falls back to `origin`](https://github.com/entireio/cli#checkpoint-remote).
+  - `.worktreeinclude` lists `.entire/settings.local.json`, so that Claude Code [copies that file into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
+- **In each clone, once**:
+  - `git remote add checkpoints <URL of the companion repository>`.
+  - `.entire/settings.local.json` in the main checkout, which Entire's `.gitignore` leaves untracked, sets `strategy_options.checkpoint_remote` to the companion repository's provider and name, and Entire then sends checkpoints there on every push.
 
-Before researching anything that should not be public, run that command's `check`.
+Before researching anything that should not be public, check that `entire status` reports checkpoints syncing to the dedicated checkpoint remote.
+Where it reports anything else, set the clone up, and where what is missing is a committed file, put that change to the person.
