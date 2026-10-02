@@ -48,5 +48,6 @@ A repository whose checkpoints must stay out of `origin`, as a public one's must
     - Entire reads it from the working tree it runs in, so the main checkout holds the copy `.worktreeinclude` hands to new worktrees, and a worktree older than that copy needs the file written into it as well.
     - A session in a worktree asks the person to create the main checkout's copy, since Claude Code [refuses its writes there](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation).
 
-Before researching in such a repository, run `entire status` in the working tree you are in, which must report checkpoints syncing to the dedicated checkpoint remote.
-Where it reports anything else, supply what is missing from the list above and run it again, and where what is missing is a committed file, put that change to the person.
+Before researching in such a repository, run `entire status` in the working tree you are in, which must print `Checkpoints sync to: dedicated checkpoint remote (<owner>/<name>)`.
+`Checkpoints sync to: checkpoints (set by checkpoint_push_remote)` is not that: it is a working tree without its `.entire/settings.local.json`, from which a push to `origin` carries no checkpoint.
+Where it prints anything else, supply what is missing from the list above and run it again, and where what is missing is a committed file, put that change to the person.
