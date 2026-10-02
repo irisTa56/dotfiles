@@ -49,6 +49,10 @@
 
 - Lay out the alternatives neutrally alongside the recommendation only when the decision is hard to reverse and the alternatives would lead to materially different work.
 
+### When building or replacing something in a codebase
+
+- Look first at what is already there — a feature or helper that does the same job, the arrangement the change would replace — and build on it where it is sound, or, before building anything else, say what building on it cannot fix.
+
 ### Showing a change
 
 - Apply an edit that is not mechanical with the edit tool rather than through a script; the tool puts the change where the user is reading.
