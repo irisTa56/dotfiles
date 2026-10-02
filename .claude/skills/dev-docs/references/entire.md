@@ -36,18 +36,11 @@ These points decide whether the research behind a decision can be found again.
 ## Visibility
 
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
-A repository whose checkpoints must stay out of `origin`, as a public one's must, sends them to its companion repository ([private-workspace.md](private-workspace.md)), and no file it commits names that repository:
+The repository sends them to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and no file it commits names that repository:
 
-- **Committed**:
-  - `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, and holds no `checkpoint_remote`.
-    - That setting is fail-closed, so a clone that has not been set up, such as a fork's, sends checkpoints nowhere, where one inheriting a committed `checkpoint_remote` it does not own [falls back to `origin`](https://github.com/entireio/cli#checkpoint-remote).
-  - `.worktreeinclude` lists `.entire/settings.local.json`, so that Claude Code [copies that file into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
-- **In each clone**:
-  - `git remote add checkpoints <URL of the companion repository>`.
-  - `.entire/settings.local.json`, which Entire's `.gitignore` leaves untracked, sets `strategy_options.checkpoint_remote` to the companion repository's provider and name, and Entire then sends checkpoints there on every push.
-    - Entire reads it from the working tree it runs in, so the main checkout holds the copy `.worktreeinclude` hands to new worktrees, and a worktree older than that copy needs the file written into it as well.
-    - A session in a worktree asks the person to create the main checkout's copy, since Claude Code [refuses its writes there](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation).
+- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli#checkpoint-remote), and `.worktreeinclude` lists `.entire/settings.local.json`, which Claude Code [copies into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
+- **In each clone**: `git remote add checkpoints <URL of the companion repository>`, and an untracked `.entire/settings.local.json` in the main checkout that sets `strategy_options.checkpoint_remote` to the companion repository's provider and name.
 
-Before researching in such a repository, run `entire status` in the working tree you are in, which must print `Checkpoints sync to: dedicated checkpoint remote (<owner>/<name>)`.
+Before researching, run `entire status` in the working tree you are in, which must print `Checkpoints sync to: dedicated checkpoint remote (<owner>/<name>)`.
 `Checkpoints sync to: checkpoints (set by checkpoint_push_remote)` is not that: it is a working tree without its `.entire/settings.local.json`, from which a push to `origin` carries no checkpoint.
-Where it prints anything else, supply what is missing from the list above and run it again, and where what is missing is a committed file, put that change to the person.
+Where it prints anything else, supply what is missing and run it again, putting to the person any change to a committed file, or to the main checkout from a worktree, [where Claude Code refuses your writes](https://code.claude.com/docs/en/worktrees#how-claude-code-enforces-isolation).

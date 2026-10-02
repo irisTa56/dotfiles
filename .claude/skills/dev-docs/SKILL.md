@@ -48,8 +48,8 @@ Read the reference for each document you write or change, and only those:
 1. Read the roadmap and the architecture overview, and find the phase in the roadmap.
    - If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan.
-   - Start from the findings earlier research left, such as the roadmap's.
-   - Where they are, and where this research's notes go, is in [Research](#research).
+   - Start from what earlier research, such as the roadmap's, left in the private workspace, and check a finding again before the plan rests on it, since facts such as a service's load or a repository's activity can change within days.
+   - Where the notes go is in [Research](#research).
 3. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
@@ -138,10 +138,6 @@ Research notes, and code written only to try something out, are working files an
 - **`research/`, a directory next to these documents, takes only what was rewritten for it**: where the pull request should carry how a decision was reached, rewrite that part in a form fit to publish wherever the branch is pushed, and commit it to the branch.
   - Nothing is written there first, because a pull request keeps every commit reachable after its branch is deleted, and on a public host those commits are public.
   - Remove it before the review, once its conclusions are in the ADR or the plan, so the review and the merged diff see only those.
-
-A finding whose decision or assumption is not written yet, such as one from the roadmap's research that bears on a phase not yet planned, has nothing to sit beside yet, and stays where its research left it, under that branch's subdirectory of the private workspace.
-When writing a phase plan, read what earlier branches left there that bears on the phase, and copy into the plan and its ADRs the findings its decisions and assumptions rest on.
-Check each finding again as you copy it, and give it the date of that check, since facts such as a service's load or a repository's activity can change within days.
 
 If the repository has an `.entire/` directory, read [references/entire.md](references/entire.md) before researching.
 
