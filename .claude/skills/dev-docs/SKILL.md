@@ -105,7 +105,7 @@ If you notice it in plan mode, say so rather than presenting a plan that routes 
 ## Changing direction
 
 Revise the phase plan and commit the revision, so the diff shows what changed.
-If the direction itself changes, research again and write a new ADR that supersedes the old one.
+If the direction itself changes, research again and settle the new direction with the person as [Starting a phase](#starting-a-phase) does, then write a new ADR that supersedes the old one.
 The old one's status line is the only part of it that changes.
 
 Where the revision goes depends on whether implementation has started:
