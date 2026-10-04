@@ -126,6 +126,15 @@ describe('the status line', () => {
     expect(w.status.at(-1)).toBeUndefined()
   })
 
+  test('clears the status once the record is gone', async ($, on) => {
+    const w = world(on, record('### Round 1'))
+    await $.turn.start({ text: 'hi', turnId: 't1' })
+    w.record = undefined
+    await $.turn.start({ text: 'hi', turnId: 't2' })
+
+    expect(w.status).toEqual(['review-loop: round 1', undefined])
+  })
+
   test('rereads the record once the loop writes it', async ($, on) => {
     const w = world(on, record('### Round 1'))
     w.written = record('### Round 1', '### Round 2')
