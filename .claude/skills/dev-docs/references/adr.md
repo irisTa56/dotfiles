@@ -36,11 +36,11 @@ Write one when someone changing that part later would need the reason: the decis
   - Each finding carries its source and the date it was checked, as in `Geofabrik extracts keep each object's timestamp ([technical notes](https://…), checked 2026-09-28)`.
   - A source can also be a path in the repository or a command you ran.
   - A finding belongs here when the decision, or the rejection of an alternative, would change if it were false.
-    - What else the research learned of the chosen option, such as how it behaves in a case or how a failure of it would be detected, goes to the notes for building ([SKILL.md](../SKILL.md#research)), since a later record takes an earlier one as its pattern.
+    - What else the research learned of the chosen option, such as how it behaves in a case you ran, goes to the notes for building ([SKILL.md](../SKILL.md#research)), since a later record takes an earlier one as its pattern.
 - **Decision**: what was chosen, in a few sentences.
 - **Rejected alternatives**: each alternative and why it lost, pointing at the context where it can.
   - Keep an alternative only if it was a real option, one that could have been chosen and lost on a trade-off, since listing strawmen hides the ones that mattered.
-    - A candidate that lacks something the decision requires was never one.
+    - A candidate that lacks something the decision requires was never one, and what ruled it out stays in the research notes.
   - These are what turn a later review into a choice between options rather than a yes or no, so do not drop them to save space.
 - **Consequences**: each dependency the decision adds, or "none", and what could go wrong because of it and how that would show.
 
