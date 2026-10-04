@@ -66,7 +66,6 @@ The IDs are local to the plan.
   - A limit a dependency puts on the outcome belongs to the requirement it narrows: say in one line what is not delivered because of it, with the cases known as examples, rather than listing how the dependency behaves.
   - **Out of scope**: what this phase deliberately leaves out, and where it goes instead if anywhere.
 - **Assumptions & Risks**: each fact the plan relies on, with where it came from or the word Unverified.
-  - A fact you verified is listed like one you did not, since the plan breaks the same way once it stops holding.
   - Under each, the risk: what breaks if it is false, and the observation that would reveal it.
     - The observation is the building session's signal to stop and come back to the plan, which is why the line names a sign rather than a countermeasure.
   - An unverified assumption the phase cannot proceed without is a question to settle now, not later.

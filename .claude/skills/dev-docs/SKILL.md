@@ -63,8 +63,8 @@ Read the reference for each document you write or change, and only those:
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision the person steers by stays in the plan as one line, with the finding it rests on beside it, even when it took research.
    - A choice of how to build is neither, as [references/phase-plan.md](references/phase-plan.md) says of the plan's lines.
-5. If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
    - The plan and its ADRs say no more of another phase than the roadmap does, such as which phase comes next or what a later one will take up.
+5. If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
 6. Resolve every question whose answer could change the plan before committing it, so that the plan's Open questions hold only what can wait.
 7. Commit the plan, its ADRs, and the roadmap's update for review.
 
@@ -74,7 +74,7 @@ New ADRs land as Proposed.
 ## Working in a phase
 
 Treat the phase plan as the instruction: implement toward its Done when items and verify with the checks they name.
-Start from the notes the planning session left for this plan in the private workspace ([Research](#research)), and check a finding there again before code rests on it.
+Start from the notes the planning session left for this plan in the private workspace, under that session's branch and not yours ([Research](#research)), and check a finding there again before code rests on it.
 Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside.
 The test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
 Where a test-driven development skill is available, work that red-green loop through it.
