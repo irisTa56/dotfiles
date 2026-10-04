@@ -62,8 +62,7 @@ pitchfork settings set --global general.shell "/bin/zsh -c"
 # `pitchfork boot enable` otherwise writes the versioned install path into
 # the launchd registration, which `mise prune` deletes after an upgrade,
 # and the supervisor then stops starting at login without a word.
-# mise's `latest` symlink follows the upgrade. The setting is read when
-# the registration is written, so an existing one needs `boot enable` again.
+# mise's `latest` symlink follows the upgrade.
 pitchfork settings set --global boot.executable "$HOME/.local/share/mise/installs/pitchfork/latest/pitchfork"
 
 # rclone's config is encrypted with a password that RCLONE_PASSWORD_COMMAND
