@@ -6,6 +6,7 @@ shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
 "pipx:apm-cli" = "latest"
+biome = "latest"
 
 [env]
 HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
@@ -83,6 +84,11 @@ run = [
 description = "Lint markdown files"
 run = "rumdl check"
 
+# biome.json names the files: the function-hooks module under global-hooks.
+[tasks."qa:ts"]
+description = "Lint and check formatting of TypeScript"
+run = "biome ci"
+
 [tasks."qa:sh"]
 description = "Lint and check formatting of shell scripts"
 # Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
@@ -132,6 +138,10 @@ run = "lychee -v ."
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
+
+[tasks.format-ts]
+description = "Format TypeScript and apply safe lint fixes"
+run = "biome check --write"
 
 [tasks.format-sh]
 description = "Format shell scripts"

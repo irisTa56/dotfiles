@@ -1,0 +1,8 @@
+{
+  "files": {
+    "includes": [".claude/skills/global-hooks/**", "!**/.claude-plugin/types"]
+  },
+  "formatter": {
+    "indentStyle": "space"
+  }
+}
