@@ -41,7 +41,13 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 
 ## Shell and User Config
 
-`mise bootstrap` runs `mise run setup:dotfiles`, which drops `~/.dircolors` and `~/.config/git/ignore` (each is overwritten with canonical content), makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments, sets pitchfork's `general.shell` in `~/.config/pitchfork/config.toml`, sets npm's `min-release-age` in `~/.npmrc`, and encrypts rclone's config with a password it keeps in the login keychain.
+`mise bootstrap` runs `mise run setup:dotfiles`, which does the following:
+
+- Drops `~/.dircolors` and `~/.config/git/ignore`, each overwritten with canonical content.
+- Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
+- Sets npm's `min-release-age` in `~/.npmrc`.
+- Sets pitchfork's `general.shell` and `boot.executable` in `~/.config/pitchfork/config.toml`.
+- Encrypts rclone's config with a password it keeps in the login keychain.
 
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
