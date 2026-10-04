@@ -29,7 +29,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds their two lines to `~/.claude/CLAUDE.md`.
+- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds the line that imports them to `~/.claude/CLAUDE.md`.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
@@ -82,11 +82,11 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
 - `.claude/INSTRUCTIONS.md` — user-scoped principles (shareable), symlinked to `~/.claude/INSTRUCTIONS.md`.
-- `~/.claude/RTK.md` — private and machine-local, not managed here; `mise bootstrap` writes it through `rtk init`.
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
 
 `~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
-`mise bootstrap` links them, adds the `@INSTRUCTIONS.md` and `@RTK.md` lines to that file, leaving any other line in it, and runs `rtk init -g --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes.
+`mise bootstrap` links them, adds the `@INSTRUCTIONS.md` line to that file, leaving any other line in it, and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes.
+Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/INSTRUCTIONS.md` says of `rtk proxy`.
 
 ## Agent Skills
 
