@@ -49,9 +49,8 @@ includes = ["tasks"]
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
-# Lines rather than the whole file, which stays machine-local.
+# A line rather than the whole file, which stays machine-local.
 "~/.claude/CLAUDE.md/instructions" = { line = "@INSTRUCTIONS.md" }
-"~/.claude/CLAUDE.md/rtk" = { line = "@RTK.md" }
 
 [bootstrap.hooks]
 pre-dotfiles = '''
@@ -115,7 +114,9 @@ run = "scripts/setup_dotfiles.sh"
 description = "Finish machine setup after `mise bootstrap` links dotfiles and installs tools"
 run = [
   { task = "setup:dotfiles" },
-  "rtk init -g --auto-patch",
+  # Hook only: the RTK.md a plain `rtk init -g` writes and imports is regenerated on
+  # every run, and its rule on `rtk proxy` contradicts .claude/INSTRUCTIONS.md's.
+  "rtk init -g --hook-only --auto-patch",
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
