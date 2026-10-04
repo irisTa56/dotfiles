@@ -1,10 +1,12 @@
 [tools]
+biome = "latest"
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
+"npm:typescript" = "latest"
 "pipx:apm-cli" = "latest"
 
 [env]
@@ -66,13 +68,16 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
 # Claude Code CLI, and `mix format` an Elixir toolchain, neither of which CI installs.
+# `ts:types` needs that CLI too, so it is no `qa:` task either; it is a task of its own
+# because it is the slow one, which `depends` runs beside the rest, and the one worth
+# running alone while editing the module.
 # `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "secrets:commit-scan", "link-check:staged"]
+depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged"]
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
@@ -82,6 +87,27 @@ run = [
 [tasks."qa:md"]
 description = "Lint markdown files"
 run = "rumdl check"
+
+# biome.json names the files: the function-hooks module under global-hooks.
+[tasks."qa:ts"]
+description = "Lint and check formatting of TypeScript"
+run = "biome ci"
+
+# The declarations are those of the installed CLI. The engine writes them, git-ignored,
+# beside a plugin it loads with `--plugin-dir` and not beside one it loads from the
+# skills directory, so the first step loads the module that way: `/cost` is a command
+# that runs without a model call, and the rest keeps the run from connecting MCP servers
+# and making startup requests, which is most of its time, and from waiting on a stdin
+# that is open and silent.
+# The run exits 0 whether or not it wrote anything, so the old declarations go first:
+# `tsc` then fails on a run that wrote none instead of passing against stale ones.
+[tasks."ts:types"]
+description = "Type-check the function-hooks module against the installed Claude Code CLI"
+run = [
+  "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
+  "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
+  "tsc --noEmit -p .claude/skills/global-hooks",
+]
 
 [tasks."qa:sh"]
 description = "Lint and check formatting of shell scripts"
@@ -132,6 +158,10 @@ run = "lychee -v ."
 [tasks.format-md]
 description = "Format markdown files"
 run = "rumdl check --fix"
+
+[tasks.format-ts]
+description = "Format TypeScript and apply safe lint fixes"
+run = "biome check --write"
 
 [tasks.format-sh]
 description = "Format shell scripts"
