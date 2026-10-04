@@ -13,3 +13,7 @@ One checkout serves every session:
   - `<branch>` is the branch's name with each `/` replaced by `-`, so `claude/fix-login` gives `20261002-claude-fix-login`, and not the name of the worktree's directory, which need not match the branch.
 - Commit there as the work goes, naming the paths you wrote: `git add <path>`, then `git commit -- <path>`, which [leaves whatever another session has staged out of your commit](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---only).
   - When the repository's branch is pushed, offer to push the workspace as well, since until then this checkout is the only copy of what it holds.
+- Keep downloaded data, and files derived from it that are not committed, in `data/` at the top level, which every branch shares and the companion repository's `.gitignore` leaves out of git.
+  - Where that `.gitignore` has no `/data/` line, add it and commit it before putting anything there.
+  - Only what can be fetched or built again goes there, since a new clone of the workspace starts without it.
+  - A document committed to the repository names where the data came from, and not its path here.
