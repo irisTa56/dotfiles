@@ -15,7 +15,8 @@ Take the finding seriously, but do not accept it blindly.
 - **Trade-offs?** Consider what the finding may have missed.
 - **Proportionate?** Judge whether the proposed approach is appropriately scoped; a simpler, more targeted fix may resolve the same concern. This weighs the *how*, not the *whether* — the underlying problem should still be addressed.
 - **A more fundamental fix?** Reframe holistically: is there a root-cause fix that removes repeated manual work or prevents the whole class of issue (automation/abstraction over ad-hoc edits)?
-- **The same mechanism again?** When findings keep landing on one mechanism, round after round, the mechanism is what is wrong and not its wording. Ask what it should do before rewording it again, and weigh §4's removal for it: where it is a claim about a set the change cannot exhaust, a rule or a check written to cover the set draws the findings the list did.
+- **The same mechanism again?** When findings keep landing on one mechanism, round after round, the mechanism is what is wrong and not its wording. Ask what it should do before rewording it again, and weigh §4's removal for it.
+  - Where it is a claim about a set the change cannot exhaust, a rule or a check written to cover the set draws the findings the list did.
   - One finding can carry that signal on its own: where what it calls a contradiction sits between two parts of the change itself, ask whether a decision is missing before asking which side is wrong, since two parts answering one question differently is what an unsettled specification looks like and picking a side buries it.
 - **Broken-window risk?** Even if minor now, fix it when leaving it invites further degradation or costly rework.
 - **Grounded in actual behavior?** Judge by what the deliverable does — the code when run, the prose when read — not by what a spec or plan says. If the spec or plan itself looks flawed, surface it to the user rather than silently conforming.
