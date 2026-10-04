@@ -55,7 +55,7 @@ Read the reference for each document you write or change, and only those:
    - Start from what earlier research, such as the roadmap's, left in the private workspace, and check a finding again before the plan rests on it, since facts such as a service's load or a repository's activity can change within days.
    - For a choice among candidates, take the candidates from a source that lists the field, such as a comparison page its community keeps, before turning any down, since a search that starts from the ones you know returns those.
    - Where settling an assumption takes something only the person can allow, such as a large download or an install, ask for it now rather than carrying the assumption into the plan unverified.
-   - Where the notes go is in [Research](#research).
+   - Where the notes and a download go is in [Research](#research).
 3. Take the person through each decision that sets what the phase delivers or what it is built on before writing the plan, one decision at a time, with the candidates, what the research found for each, and the one you would pick.
    - A draft written on your own picks, with the questions beside it, has the person answer inside a direction they have not examined, and a review started on it reviews what their answers then overturn.
    - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
@@ -140,6 +140,7 @@ Keep the process apart from what it found, and a finding a document rests on apa
 
 - **The process**: its working files, such as notes and code written only to try something out, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
+  - Data the research downloads, and the files derived from it, go in that workspace's `data/` directory, as the reference says.
 - **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
