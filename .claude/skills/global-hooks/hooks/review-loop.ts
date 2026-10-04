@@ -10,13 +10,12 @@ const RECORD_DIR = '/.claude/review-loop/'
 // Where the skill keeps the current branch's record.
 const recordPath = async ($: EngineInterface): Promise<string | undefined> => {
   const home = await $.env.get('HOME')
-  const git = await $.process
-    .run(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir', '--abbrev-ref', 'HEAD'], {
-      timeoutMs: 5000,
-    })
-    .catch(() => undefined)
+  const git = await $.process.run(
+    ['git', 'rev-parse', '--path-format=absolute', '--git-common-dir', '--abbrev-ref', 'HEAD'],
+    { timeoutMs: 5000 },
+  )
   // A failed git prints nothing, or on an unborn branch names a record that is not there.
-  const [commonDir, branch] = git?.stdout.trim().split('\n') ?? []
+  const [commonDir, branch] = git.stdout.trim().split('\n')
   if (home === undefined || !commonDir || !branch) return undefined
 
   return `${home}${RECORD_DIR}${commonDir.replaceAll('/', '-')}/${branch}.md`
@@ -24,13 +23,14 @@ const recordPath = async ($: EngineInterface): Promise<string | undefined> => {
 
 const statusText = async ($: EngineInterface): Promise<string | undefined> => {
   const path = await recordPath($)
-  const text = path === undefined ? undefined : await $.fs.read(path).catch(() => undefined)
+  const text = path === undefined ? undefined : await $.fs.read(path)
   const open = typeof text === 'string' ? readRecord(text) : undefined
   if (open === undefined) return undefined
 
   return `review-loop: ${open.round > 0 ? `round ${open.round}` : 'no round yet'}`
 }
 
+// Any failure on the way, a missing record included, shows no status.
 const showStatus = async ($: EngineInterface): Promise<void> =>
   $.ui.status(await statusText($).catch(() => undefined))
 
