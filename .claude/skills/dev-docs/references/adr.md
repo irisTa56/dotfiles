@@ -35,6 +35,8 @@ Write one when someone changing that part later would need the reason: the decis
 - **Context**: the problem and the forces on it.
   - Each finding carries its source and the date it was checked, as in `Geofabrik extracts keep each object's timestamp ([technical notes](https://…), checked 2026-09-28)`.
   - A source can also be a path in the repository or a command you ran.
+  - A finding belongs here when the decision, or the rejection of an alternative, would change if it were false.
+    - What else the research learned of the chosen option, such as how it behaves in a case you ran, goes to the notes for building ([SKILL.md](../SKILL.md#research)), since a later record takes an earlier one as its pattern.
 - **Decision**: what was chosen, in a few sentences.
 - **Rejected alternatives**: each alternative and why it lost, pointing at the context where it can.
   - Keep an alternative only if it was a real option, since listing strawmen hides the ones that mattered.
