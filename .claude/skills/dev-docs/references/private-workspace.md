@@ -16,5 +16,4 @@ One checkout serves every session:
 - Keep downloaded data, and files derived from it that are not committed, in `data/` at the top level, which every branch shares and the companion repository's `.gitignore` leaves out of git.
   - Where that `.gitignore` has no `/data/` line, add it and commit it before putting anything there.
   - Only what can be fetched or built again goes there, since a new clone of the workspace starts without it.
-    - Anything else is committed under the branch's subdirectory, or put to the person where it is [too large for that](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github#file-size-limits).
   - A document committed to the repository names where the data came from, and not its path here.
