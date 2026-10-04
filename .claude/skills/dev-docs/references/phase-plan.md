@@ -3,8 +3,8 @@
 A phase plan is for the person steering the phase: it fixes what the phase must achieve, what it takes for granted, what was decided, and how anyone will know it is done.
 It leaves how to build to the session that builds it, so it has no implementation steps and no per-task test list.
 A model that can read the code does not need them, and a person reading the plan is slowed down by them.
-The test for any line is who needs it: it stays when the person needs it to see the edge of what is delivered or to know the phase is done, and it goes to the notes for building ([SKILL.md](../SKILL.md#research)) when the building session would settle or find it while building.
-A true statement is held to that test as well, so a review finding about how a tool behaves adds a line only where it moves that edge.
+The test for a detail is who needs it: it stays when the person steers by it, as one of those four, and it goes to the notes for building ([SKILL.md](../SKILL.md#research)) when it is only the building session that would settle or find it while building.
+A true statement is held to that test as well, so a review finding about how a tool behaves adds a line only where it changes one of those four.
 
 Use bullets and subheadings, not tables: a table cell cannot wrap a sentence that grows.
 Give requirements and assumptions short IDs so Done when can point at them.

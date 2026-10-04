@@ -26,7 +26,7 @@ Each document holds one kind of information, chosen by how long that information
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
 
-- Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as its reference states them.
+- Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as the list above and its reference state them.
   - A reviewer who is not told raises whatever the building session might trip on, and since each such finding is true, taking findings on their truth turns a plan into an implementation plan and a decision record into a list of a tool's behaviours.
 - Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge can only be superseded.
 
