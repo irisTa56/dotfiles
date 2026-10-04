@@ -140,7 +140,7 @@ Keep the process apart from what it found, and a finding a document rests on apa
 
 - **The process**: its working files, such as notes and code written only to try something out, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
-  - Data the research downloads, and the files derived from it, go in that workspace's `data/` directory, as the reference says.
+  - Downloaded data, and files derived from it that are not committed, go in that workspace's `data/` directory, as the reference says.
 - **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
