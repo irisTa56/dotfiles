@@ -58,6 +58,8 @@ describe('readRecord', () => {
   })
 })
 
+// The skill's own command for the record's directory, with the branch asked for in the same call.
+const GIT = 'git rev-parse --path-format=absolute --git-common-dir --abbrev-ref HEAD'
 const RECORD = '/home/u/.claude/review-loop/-repo-.git/feat/x.md'
 
 type World = {
@@ -74,7 +76,11 @@ type World = {
 const world = (on: On, recordText?: string): World => {
   const w: World = { record: recordText, git: { exitCode: 0, stdout: '/repo/.git\nfeat/x\n' }, status: [] }
   mock.env(on, { HOME: '/home/u' })
-  on('process.run', () => ({ value: { ...w.git, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }))
+  on('process.run', (_, e) =>
+    e.argv.join(' ') === GIT
+      ? { value: { ...w.git, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
+      : { deny: `unexpected command: ${e.argv.join(' ')}` },
+  )
   on('fs.read', (_, e) => {
     if (e.path !== RECORD || w.record === undefined) return { deny: 'ENOENT' }
 

@@ -15,10 +15,9 @@ const recordPath = async ($: EngineInterface): Promise<string | undefined> => {
       timeoutMs: 5000,
     })
     .catch(() => undefined)
-  if (home === undefined || git === undefined || git.exitCode !== 0) return undefined
-
-  const [commonDir, branch] = git.stdout.trim().split('\n')
-  if (!commonDir || !branch) return undefined
+  // A failed git prints nothing, or on an unborn branch names a record that is not there.
+  const [commonDir, branch] = git?.stdout.trim().split('\n') ?? []
+  if (home === undefined || !commonDir || !branch) return undefined
 
   return `${home}${RECORD_DIR}${commonDir.replaceAll('/', '-')}/${branch}.md`
 }
