@@ -33,7 +33,7 @@ Output is **comment drafts only**. Never post.
 Use the `gh` CLI for every GitHub read; do **not** mix in GitHub MCP here.
 Every operation is read-only, and MCP's advantage (structured review-thread objects with node IDs / `canResolve`) only pays off when posting or resolving, which this skill never does.
 
-- Never use `fetch_webpage` or browser tools for GitHub URLs (private-repo policy).
+- Never use a web-fetch tool (`WebFetch`, `fetch_webpage`) or browser tools for GitHub URLs (private-repo policy).
 - Useful reads:
   - Metadata plus most comment surfaces in one call: `gh pr view <url> --json title,body,author,baseRefName,headRefName,files,labels,url,comments,reviews,latestReviews,closingIssuesReferences`.
     - `comments` — issue-level comments, where a bot's walkthrough lands.

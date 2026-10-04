@@ -1,6 +1,6 @@
 ---
 name: address-review-comment
-description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via gh CLI (never fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
+description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via gh CLI (never WebFetch or fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
 disable-model-invocation: true
 ---
 
@@ -17,7 +17,7 @@ A GitHub PR review comment URL, e.g.:
 
 ## Procedure
 
-**Every GitHub read and write below goes through the `gh` CLI, not through `fetch_webpage` or a browser tool.**
+**Every GitHub read and write below goes through the `gh` CLI, not through a web-fetch tool (`WebFetch`, `fetch_webpage`) or a browser tool.**
 
 ### 1. Parse the URL
 
