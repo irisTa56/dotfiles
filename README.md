@@ -102,6 +102,8 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
+The same `hooks/hooks.json` names a function-hooks module under `modules`, `hooks/review-loop.ts`, which supports the `review-loop` skill: it shows the state of the branch's record in the status line, and refuses `Edit` and `Write` inside the working tree while a reviewer reads it.
+The function-hooks API is early access, so check the module after a Claude Code update with `claude plugin validate .claude/skills/global-hooks` and `claude plugin test .claude/skills/global-hooks`, neither of which `mise run pre-commit` runs.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
