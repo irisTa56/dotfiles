@@ -23,11 +23,21 @@ describe('readRecord', () => {
   test('reads a count after the round as a count, not as a range', () => {
     expect(readRecord(record('### Round 2 - 3 findings'))).toEqual({ round: 2 })
     expect(readRecord(record('### Round 2 – 3 findings'))).toEqual({ round: 2 })
+  })
+
+  test('counts a group of several rounds as its last', () => {
     expect(readRecord(record('### Rounds 23–25, with two interventions'))).toEqual({ round: 25 })
+    expect(readRecord(record('### Rounds 9 and 10'))).toEqual({ round: 10 })
+    expect(readRecord(record('### Rounds 4, 5 and 6'))).toEqual({ round: 6 })
+    expect(readRecord(record('### Rounds 1 to 4 (run as rounds 3 to 6 of another loop)'))).toEqual({ round: 4 })
+  })
+
+  test('reads a round written in bold at the head of a line', () => {
+    expect(readRecord(record('### Round 1', '**Round 2.** text'))).toEqual({ round: 2 })
   })
 
   test('ignores a round named in prose or in the background', () => {
-    const text = [...HEAD, '### Where it sits (round 4)', '## Verdicts', 'Round 5 applied 3 fixes.'].join('\n')
+    const text = [...HEAD, '### Round 7 of the earlier loop', '## Verdicts', 'Round 5 applied 3 fixes.'].join('\n')
     expect(readRecord(text)).toEqual({ round: 0 })
   })
 
@@ -56,6 +66,8 @@ type World = {
   // What `git rev-parse` exits with and prints.
   git: { exitCode: number; stdout: string }
   status: (string | undefined)[]
+  // What the next Edit or Write leaves as the record's text.
+  written?: string
 }
 
 // The world beneath the mod: git, the file system and the tools.
@@ -76,7 +88,11 @@ const world = (on: On, recordText?: string): World => {
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
   on('turn.complete', (_, e) => ({ text: e.answer }))
-  on('tool.call', { tool: ['Edit', 'Write'] }, () => ({ result: {} as never }))
+  on('tool.call', { tool: ['Edit', 'Write'] }, () => {
+    if (w.written !== undefined) w.record = w.written
+
+    return { result: {} as never }
+  })
 
   return w
 }
@@ -106,11 +122,11 @@ describe('the status line', () => {
 
   test('rereads the record once the loop writes it', async ($, on) => {
     const w = world(on, record('### Round 1'))
-    w.record = record('### Round 1', '### Round 2')
+    w.written = record('### Round 1', '### Round 2')
     await $.tool.call(edit(RECORD))
     expect(w.status).toEqual(['review-loop: round 2'])
 
-    w.record = record('### Round 1', '### Round 2', '### Round 3')
+    w.written = record('### Round 1', '### Round 2', '### Round 3')
     await $.tool.call(write(RECORD))
     expect(w.status).toEqual(['review-loop: round 2', 'review-loop: round 3'])
   })

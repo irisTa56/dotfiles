@@ -9,13 +9,13 @@ export type OpenRecord = {
 
 const CLOSED_HEADING = /^##\s+Closed\b/
 // Records also end on a bare sentence in place of the heading.
-const CLOSED_SENTENCE = /^(Closed|Withdrawn)\b/
+const CLOSED_SENTENCE = /^Closed\b/
 const VERDICTS = /^##\s+Verdicts\b/
-// "### Round 3 — held", "## Round 4 (endgame)", "**Round 2.**"
-const ROUND = /^(?:#{2,4}\s+|\*\*)Rounds?\s+(\d+)/
-// "### Rounds 1-6 — ...": a group of several rounds counts as its last. Only the
-// plural is a range; "### Round 2 - 3 findings" is round 2.
-const ROUND_RANGE = /^(?:#{2,4}\s+|\*\*)Rounds\s+\d+\s*[-–]\s*(\d+)/
+// "### Round 3 — held", "## Round 4 (endgame)", "**Round 2.**", and a group of
+// several: "### Rounds 1-6 — ...", "### Rounds 9 and 10", "### Rounds 1 to 3, ...".
+// A group counts as its last round; after the singular a second number is a
+// count, as in "### Round 2 - 3 findings".
+const ROUND = /^(?:#{2,4}\s+|\*\*)Round(s?)\s+(\d+(?:\s*(?:[-–,]|and|to)\s*\d+)*)/
 
 const isClosed = (lines: readonly string[]): boolean => {
   const last = lines.at(-1) ?? ''
@@ -33,9 +33,10 @@ export const readRecord = (text: string): OpenRecord | undefined => {
   if (verdictsAt < 0 || isClosed(lines)) return undefined
 
   const rounds = lines.slice(verdictsAt + 1).flatMap(line => {
-    const found = ROUND_RANGE.exec(line) ?? ROUND.exec(line)
+    const [, plural, list] = ROUND.exec(line) ?? []
+    const numbers = list?.match(/\d+/g) ?? []
 
-    return found ? [Number(found[1])] : []
+    return numbers.length > 0 ? [Number(plural ? numbers.at(-1) : numbers[0])] : []
   })
 
   return { round: Math.max(0, ...rounds) }
