@@ -11,8 +11,11 @@ const CLOSED_HEADING = /^##\s+Closed\b/
 // Records also end on a bare sentence in place of the heading.
 const CLOSED_SENTENCE = /^(Closed|Withdrawn)\b/
 const VERDICTS = /^##\s+Verdicts\b/
-// "### Round 3 — held", "## Round 4 (endgame)", "### Rounds 1-6 — ...", "**Round 2.**"
-const ROUND = /^(?:#{2,4}\s+|\*\*)Rounds?\s+(\d+)(?:\s*[-–]\s*(\d+))?/
+// "### Round 3 — held", "## Round 4 (endgame)", "**Round 2.**"
+const ROUND = /^(?:#{2,4}\s+|\*\*)Rounds?\s+(\d+)/
+// "### Rounds 1-6 — ...": a group of several rounds counts as its last. Only the
+// plural is a range; "### Round 2 - 3 findings" is round 2.
+const ROUND_RANGE = /^(?:#{2,4}\s+|\*\*)Rounds\s+\d+\s*[-–]\s*(\d+)/
 
 const isClosed = (lines: readonly string[]): boolean => {
   const last = lines.at(-1) ?? ''
@@ -30,9 +33,9 @@ export const readRecord = (text: string): OpenRecord | undefined => {
   if (verdictsAt < 0 || isClosed(lines)) return undefined
 
   const rounds = lines.slice(verdictsAt + 1).flatMap(line => {
-    const found = ROUND.exec(line)
+    const found = ROUND_RANGE.exec(line) ?? ROUND.exec(line)
 
-    return found ? [Number(found[2] ?? found[1])] : []
+    return found ? [Number(found[1])] : []
   })
 
   return { round: Math.max(0, ...rounds) }

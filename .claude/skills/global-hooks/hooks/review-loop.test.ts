@@ -20,6 +20,12 @@ describe('readRecord', () => {
     })
   })
 
+  test('reads a count after the round as a count, not as a range', () => {
+    expect(readRecord(record('### Round 2 - 3 findings'))).toEqual({ round: 2 })
+    expect(readRecord(record('### Round 2 – 3 findings'))).toEqual({ round: 2 })
+    expect(readRecord(record('### Rounds 23–25, with two interventions'))).toEqual({ round: 25 })
+  })
+
   test('ignores a round named in prose or in the background', () => {
     const text = [...HEAD, '### Where it sits (round 4)', '## Verdicts', 'Round 5 applied 3 fixes.'].join('\n')
     expect(readRecord(text)).toEqual({ round: 0 })
@@ -67,12 +73,15 @@ const world = (on: On, recordText?: string): World => {
 
     return { value: undefined }
   })
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('turn.start', (_, e) => ({ turnId: e.turnId }))
+  on('turn.complete', (_, e) => ({ text: e.answer }))
   on('tool.call', { tool: ['Edit', 'Write'] }, () => ({ result: {} as never }))
 
   return w
 }
 
+const write = (file_path: string) => ({ tool: 'Write', tool_use_id: 'toolu_write', file_path, content: '' }) as const
 const edit = (file_path: string) =>
   ({ tool: 'Edit', tool_use_id: 'toolu_edit', file_path, old_string: 'a', new_string: 'b' }) as const
 
@@ -99,8 +108,21 @@ describe('the status line', () => {
     const w = world(on, record('### Round 1'))
     w.record = record('### Round 1', '### Round 2')
     await $.tool.call(edit(RECORD))
+    expect(w.status).toEqual(['review-loop: round 2'])
 
-    expect(w.status.at(-1)).toBe('review-loop: round 2')
+    w.record = record('### Round 1', '### Round 2', '### Round 3')
+    await $.tool.call(write(RECORD))
+    expect(w.status).toEqual(['review-loop: round 2', 'review-loop: round 3'])
+  })
+
+  test('draws as the session starts and as a turn ends', async ($, on) => {
+    const w = world(on, record('### Round 1'))
+    await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+    expect(w.status).toEqual(['review-loop: round 1'])
+
+    w.record = record('### Round 1', '## Closed abc1234')
+    await $.turn.complete({ answer: 'done', durationMs: 1, isAborted: false, turnId: 't1', reason: 'answer' })
+    expect(w.status).toEqual(['review-loop: round 1', undefined])
   })
 
   test('leaves the status alone on an edit elsewhere', async ($, on) => {
