@@ -59,6 +59,13 @@ npm config set min-release-age=1 --location=user
 # also holds the namespaces `mise daemons` registers, which differ per machine.
 pitchfork settings set --global general.shell "/bin/zsh -c"
 
+# `pitchfork boot enable` otherwise writes the versioned install path into
+# the launchd registration, which `mise prune` deletes after an upgrade,
+# and the supervisor then stops starting at login without a word.
+# mise's `latest` symlink follows the upgrade. The setting is read when
+# the registration is written, so an existing one needs `boot enable` again.
+pitchfork settings set --global boot.executable "$HOME/.local/share/mise/installs/pitchfork/latest/pitchfork"
+
 # rclone's config is encrypted with a password that RCLONE_PASSWORD_COMMAND
 # reads from the login keychain. The command is taken from zsh, whose .zshenv
 # states it, so it is written once; this run's own environment may predate
