@@ -19,6 +19,7 @@ dependencies:
   - googleworkspace/cli/skills/gws-shared
   - googleworkspace/cli/skills/gws-sheets
   - googleworkspace/cli/skills/gws-slides
+  - mattpocock/skills/skills/engineering/codebase-design
   - mattpocock/skills/skills/engineering/tdd
   - mattpocock/skills/skills/productivity/handoff
   # A gist deploys under its hash unless given an alias.
