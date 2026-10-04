@@ -1,13 +1,13 @@
 [tools]
+biome = "latest"
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
-"pipx:apm-cli" = "latest"
-biome = "latest"
 "npm:typescript" = "latest"
+"pipx:apm-cli" = "latest"
 
 [env]
 HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
