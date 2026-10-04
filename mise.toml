@@ -71,7 +71,8 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # `tsc` checks the function-hooks module against the type declarations of the installed
 # CLI. The engine writes those, git-ignored, beside a plugin it loads with `--plugin-dir`
 # and not beside one it loads from the skills directory, so the step before `tsc` loads
-# it that way; `/cost` is a command that runs without a model call.
+# it that way; `/cost` is a command that runs without a model call, and the rest keeps the
+# run from connecting MCP servers and making startup requests, which is most of its time.
 # `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
@@ -82,7 +83,7 @@ depends = ["qa:**", "secrets:commit-scan", "link-check:staged"]
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
-  "claude -p --no-session-persistence --plugin-dir .claude/skills/global-hooks /cost >/dev/null",
+  "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost >/dev/null",
   "tsc --noEmit -p .claude/skills/global-hooks",
   "mix format --check-formatted scripts/*.exs",
 ]
