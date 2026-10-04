@@ -1,6 +1,10 @@
 {
   "files": {
-    "includes": [".claude/skills/global-hooks/**", "!**/.claude-plugin/types"]
+    "includes": [
+      ".claude/skills/global-hooks/**",
+      "!**/.claude-plugin/types",
+      "!!.claude/worktrees"
+    ]
   },
   "formatter": {
     "indentStyle": "space"
