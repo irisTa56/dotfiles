@@ -64,8 +64,7 @@ export const register: Register = (on) => {
   // The loop writes its record mid-turn, so reread it as the write lands.
   on("tool.call", { tool: ["Edit", "Write"] }, async ($, e, next) => {
     const ran = await next(e);
-    if (typeof e.file_path === "string" && e.file_path.includes(RECORD_DIR))
-      await showStatus($);
+    if (e.file_path.includes(RECORD_DIR)) await showStatus($);
 
     return ran;
   });
