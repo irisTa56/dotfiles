@@ -26,6 +26,10 @@ Each document holds one kind of information, chosen by how long that information
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
 
+- Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as its reference states them.
+  - A reviewer who is not told raises whatever the building session might trip on, and since each such finding is true, taking findings on their truth turns a plan into an implementation plan and a decision record into a list of a tool's behaviours.
+- Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge can only be superseded.
+
 ## Fit the repository first
 
 Before writing anything, read what the repository already says: `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING`, and any document of the kinds above it already keeps, with its template.
@@ -49,13 +53,20 @@ Read the reference for each document you write or change, and only those:
    - If the work is not there, see [Work outside the roadmap](#work-outside-the-roadmap).
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan.
    - Start from what earlier research, such as the roadmap's, left in the private workspace, and check a finding again before the plan rests on it, since facts such as a service's load or a repository's activity can change within days.
+   - For a choice among candidates, take the candidates from a source that lists the field, such as a comparison page its community keeps, before turning any down, since a search that starts from the ones you know returns those.
+   - Where settling an assumption takes something only the person can allow, such as a large download or an install, ask for it now rather than carrying the assumption into the plan unverified.
    - Where the notes go is in [Research](#research).
-3. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
+3. Take the person through each decision that sets what the phase delivers or what it is built on before writing the plan, one decision at a time, with the candidates, what the research found for each, and the one you would pick.
+   - A draft written on your own picks, with the questions beside it, has the person answer inside a direction they have not examined, and a review started on it reviews what their answers then overturn.
+   - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
+4. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
-   - Any other decision stays in the plan as one line, with the finding it rests on beside it, even when it took research.
-4. If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
-5. Resolve every question whose answer could change the plan before committing it, so that the plan's Open questions hold only what can wait.
-6. Commit the plan, its ADRs, and the roadmap's update for review.
+   - Any other decision the person steers by stays in the plan as one line, with the finding it rests on beside it, even when it took research.
+   - A choice of how to build is neither, as [references/phase-plan.md](references/phase-plan.md) says of the plan's lines.
+5. If the research contradicts the roadmap, correct the roadmap in the same commit rather than leaving the plan to disagree with it.
+   - The plan and its ADRs say no more of another phase than the roadmap does, such as which phase comes next or what a later one will take up.
+6. Resolve every question whose answer could change the plan before committing it, so that the plan's Open questions hold only what can wait.
+7. Commit the plan, its ADRs, and the roadmap's update for review.
 
 The plan lands on the main branch in a pull request of its own, before the implementation, because later sessions start from the main branch and must be able to read it.
 New ADRs land as Proposed.
@@ -63,6 +74,7 @@ New ADRs land as Proposed.
 ## Working in a phase
 
 Treat the phase plan as the instruction: implement toward its Done when items and verify with the checks they name.
+Start from the notes the planning session left for this plan in the private workspace ([Research](#research)), and check a finding there again before code rests on it.
 Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside.
 The test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
 Where a test-driven development skill is available, work that red-green loop through it.
@@ -124,13 +136,16 @@ Research happens at three points:
 
 Run it from a working copy of the repository where you can commit, since some session recorders capture a conversation only when a commit to the repository follows it.
 
-Keep the process apart from what it found:
+Keep the process apart from what it found, and a finding a document rests on apart from one only the building session needs:
 
 - **The process**: its working files, such as notes and code written only to try something out, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
-- **A finding**: goes beside the decision or assumption it supports, with its source and the date you checked it.
+- **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
+- **A finding only the building session needs**, such as how a tool behaved in a case you ran or which cases a test should hold: goes in the private workspace, in notes for that session that name the plan they are for.
+  - It supports no decision, so no document has a place for it, and left among the working files it is found a second time while building.
+  - Detail that leaves a plan or an ADR as how to build moves into those notes in the same step, so that nothing is dropped between the two.
 
 If the repository has an `.entire/` directory, read [references/entire.md](references/entire.md) before researching.
 
