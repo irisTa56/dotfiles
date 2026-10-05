@@ -141,12 +141,14 @@ Once approved, commit with a **concise English message** in conventional commit 
 git add <changed-files>
 git commit -m "<type>: <concise description>"
 git push
+git diff --quiet @{push} -- <changed-files> && git rev-parse --short @{push}
 ```
 
 - Keep the description under 72 characters.
 - Stage only the files related to this review comment.
 - Push to the current branch so the commit is visible on the PR.
-- Take the SHA for Step 9 from `git diff --quiet @{push} -- <changed-files> && git rev-parse --short @{push}`, which prints it only once the pushed branch holds the edits. Where it prints nothing, the commit or the push did not land — a pre-commit hook that fails creates no commit — so settle that before Step 9 rather than citing an earlier commit.
+- The last command prints the SHA for Step 9, and only once the pushed branch holds the edits.
+  - Where it prints nothing, the commit or the push did not land: settle that before Step 9 rather than citing an earlier commit.
 
 ### 9. Post Reply
 
