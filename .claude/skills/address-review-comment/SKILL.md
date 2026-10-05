@@ -146,6 +146,7 @@ git push
 - Keep the description under 72 characters.
 - Stage only the files related to this review comment.
 - Push to the current branch so the commit is visible on the PR.
+- Take the SHA for Step 9 from the branch as pushed, with `git log -1 --format='%h %s' @{u}`, and go on only if its subject is the message just committed. A pre-commit hook that fails creates no commit, and the previous commit's SHA would then be posted as the fix.
 
 ### 9. Post Reply
 
