@@ -146,7 +146,7 @@ git push
 - Keep the description under 72 characters.
 - Stage only the files related to this review comment.
 - Push to the current branch so the commit is visible on the PR.
-- Take the SHA for Step 9 from the branch as pushed, with `git log -1 --format='%h %s' @{u}`, and go on only if its subject is the message just committed. A pre-commit hook that fails creates no commit, and the previous commit's SHA would then be posted as the fix.
+- Take the SHA for Step 9 from `git diff --quiet @{push} -- <changed-files> && git rev-parse --short @{push}`, which prints it only once the pushed branch holds the edits. Where it prints nothing, the commit or the push did not land — a pre-commit hook that fails creates no commit — so settle that before Step 9 rather than citing an earlier commit.
 
 ### 9. Post Reply
 
