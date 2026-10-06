@@ -22,10 +22,10 @@ Where the code around an edit already follows a convention one of them differs f
 
 - Write processing as a method of the type that holds what it reads, and where several types do, of the most specific one.
   - A general type then needs no knowledge of a specific one.
-- Where no type fits, define one, holding no more than the processing reads.
-- Write a free function only in these two cases:
-  - what the processing reads is spread over types that are peers, none of them holding another
+- Where no type of the crate fits, the processing is a free function in these two cases and in no other:
+  - what it reads is spread over types that are peers, none of them holding another
   - the type that fits belongs to another crate
+- In every other case define a type for it, holding no more than the processing reads.
 - A function that is not private takes no `&mut` parameter other than `&mut self`; what has to change a value is a method of that value's type.
   - Only a private function has all its callers in the module, where which of them owns the value can be read.
 
