@@ -16,7 +16,8 @@ Where the code around an edit already follows a convention one of them differs f
 - A child module reads the parent's private fields, which Rust lets a descendant module do, so a field stays private rather than turning `pub(crate)` for a child's sake.
 - A child module does not call a private function of its parent.
   - Such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
-- `pub` against `pub(crate)` is left to the [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint, which is off by default: a crate you create sets it to `warn` under `[lints.rust]` in its `Cargo.toml`.
+- An item is `pub` only where something outside the crate uses it.
+  - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks this where it is on, and it is off by default: a crate you create sets it to `warn` under `[lints.rust]` in its `Cargo.toml`.
 
 ## Methods and functions
 
@@ -26,7 +27,8 @@ Where the code around an edit already follows a convention one of them differs f
   - what it reads is spread over types that are peers, none of them holding another
   - the type that fits belongs to another crate
 - In every other case define a type for it, holding no more than the processing reads.
-- A function that is not private takes no `&mut` parameter other than `&mut self`; what has to change a value is a method of that value's type.
+- A function that is not private takes no `&mut` parameter other than `&mut self`, unless a trait it implements fixes the signature.
+  - What has to change a value is a method of that value's type where the crate defines the type, and otherwise returns the new value.
   - Only a private function has all its callers in the module, where which of them owns the value can be read.
 
 ## Traits
