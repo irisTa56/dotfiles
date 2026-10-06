@@ -16,8 +16,8 @@ Where the code around an edit already follows a convention one of them differs f
 - A child module reads the parent's private fields, which Rust lets a descendant module do, so a field stays private rather than turning `pub(crate)` for a child's sake.
 - A child module does not call a private function of its parent.
   - Such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
-- An item is `pub` only where something outside the crate uses it.
-  - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks this where it is on, and it is off by default: a crate you create sets it to `warn`.
+- An item is private unless something outside its module uses it, and `pub` only where something outside the crate does.
+  - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks the second where it is on, and it is off by default: a crate you create sets it to `warn`. Nothing checks the first, and the lint's own fix is `pub(crate)`.
 
 ## Methods and functions
 
