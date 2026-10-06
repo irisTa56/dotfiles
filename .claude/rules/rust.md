@@ -17,7 +17,7 @@ Where the code around an edit already follows a convention one of them differs f
 - A child module does not call a private function of its parent.
   - Such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
 - An item is `pub` only where something outside the crate uses it.
-  - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks this where it is on, and it is off by default: a crate you create sets it to `warn` under `[lints.rust]` in its `Cargo.toml`.
+  - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks this where it is on, and it is off by default: a crate you create sets it to `warn`.
 
 ## Methods and functions
 
