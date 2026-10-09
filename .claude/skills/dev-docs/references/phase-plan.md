@@ -77,7 +77,7 @@ The IDs are local to the plan.
   - Write "the page shows the area coloured by last-edit date" rather than "the renderer is implemented", since the phase is done when its outcomes are observable, not when its tasks are complete.
   - The Check says how someone outside the code can observe it, such as a command and its expected output, or a page and what it shows.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
-    - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example; only what is left without one stays with the eye.
+    - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example.
   - Every R and every unverified A appears in at least one item, or the plan says why not.
 - **Open questions**: only questions whose answer will not change this plan.
   - One that could change a requirement, a decision, or a Done when item cannot wait, so resolve it before committing the plan.
