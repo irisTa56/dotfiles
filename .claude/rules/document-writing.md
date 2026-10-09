@@ -18,6 +18,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
+- A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
 
 ## Sources
 
