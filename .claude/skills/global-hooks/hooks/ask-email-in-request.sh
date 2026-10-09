@@ -4,8 +4,10 @@
 # APIs that ask callers to identify themselves, where a name alone would do. The
 # hook asks rather than blocks because some services do require the address, and
 # the command does not say which kind this is.
-# Only the forms seen in use are matched: a request made from another program,
-# or an address assembled from pieces, passes unasked.
+# Only a bare `curl` or `wget` with the address written out is matched, which
+# covers the forms seen in use. A path such as /usr/bin/curl, a quote or a
+# backtick right before the word, a request made from another program, and an
+# address assembled from pieces all pass unasked.
 
 email=$(git config --global user.email) || exit 0
 local_part=${email%%@*}
