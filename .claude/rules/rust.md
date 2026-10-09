@@ -13,7 +13,7 @@ Where the code around an edit already follows a convention one of them differs f
 
 - Build a module around a struct or a trait: the parent module defines it, and its child modules provide the processing, as `impl` blocks and trait implementations.
   - A child then depends on its parent only for the abstraction, and the parent names nothing a child defines.
-- A child module reads the parent's private fields, which Rust lets a descendant module do, so a field stays private rather than turning `pub(crate)` for a child's sake.
+- A field is private. A child module reads its parent's private fields, which Rust lets a descendant module do; any other module builds and reads the value through the type's methods.
 - A child module does not call a private function of its parent.
   - Such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
 - An item is private unless something outside its module uses it, and `pub` only where something outside the crate does.
