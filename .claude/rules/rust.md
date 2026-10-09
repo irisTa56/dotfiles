@@ -1,5 +1,5 @@
 ---
-description: How to lay out Rust modules, methods, traits and visibility
+description: How to lay out Rust modules, methods, traits and visibility, and when to take a dependency
 paths:
   - "**/*.rs"
 ---
@@ -37,3 +37,7 @@ Where the code around an edit already follows a convention one of them differs f
   - a type whose contents may be replaced while its behaviour stays
   - a parameter several functions take that should be one thing, such as a closure given a name
 - A trait wanted only as a return type has come from the implementing side, so question it before adding it.
+
+## Dependencies
+
+- Where the standard library, a crate the code already depends on, or a widely used crate with few dependencies of its own does a job, use it rather than writing the job out by hand.
