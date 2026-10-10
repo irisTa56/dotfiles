@@ -52,6 +52,7 @@
 ### When building or replacing something in a codebase
 
 - Look first at what is already there — a feature or helper that does the same job, the arrangement the change would replace — and build on it where it is sound, or, before building anything else, say what building on it cannot fix.
+- Leave out of a comment, and of the documentation beside the code, what stops telling its reader anything once time passes — a version floor every install will soon be past, a state that held only while the change was landing. Keep the reason that holds for as long as the code does.
 
 ### Showing a change
 
