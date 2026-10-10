@@ -46,7 +46,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 - Drops `~/.dircolors` and `~/.config/git/ignore`, each overwritten with canonical content.
 - Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
 - Sets npm's `min-release-age` in `~/.npmrc`.
-- Sets Hex's `cooldown` in `~/.hex/hex.config`.
+- Updates Hex and sets its `cooldown` in `~/.hex/hex.config`.
 - Sets pitchfork's `general.shell` and `boot.executable` in `~/.config/pitchfork/config.toml`.
 - Encrypts rclone's config with a password it keeps in the login keychain.
 
@@ -75,8 +75,8 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
   - Hex's likewise sits below a project's `mix.exs`, and any `mix` reads it, whatever shell starts it.
     - It covers `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
-    - Hex itself is updated with `mix local.hex --force` whenever mise installs an Elixir, by that tool's [`postinstall`](https://mise.jdx.dev/dev-tools/) in the global config: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
-    - That updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
+    - The script updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
+    - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
