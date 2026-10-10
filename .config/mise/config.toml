@@ -1,5 +1,7 @@
 [tools]
-elixir = "1.20"
+# A new install has no Hex archive, and the one in ~/.mix, which a shell without mise's
+# environment uses, is built for one Erlang/OTP and can fail to load under the next.
+elixir = { version = "1.20", postinstall = "mix local.hex --force && env -u MIX_HOME -u MIX_ARCHIVES mix local.hex --force" }
 erlang = "29"
 node = "24"
 python = "3.14"

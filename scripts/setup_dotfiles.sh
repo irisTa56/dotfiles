@@ -57,13 +57,7 @@ npm config set min-release-age=1 --location=user
 # as after an Elixir or Erlang upgrade.
 # Global config for npm's reason: HEX_COOLDOWN would outrank a project's mix.exs.
 # Every mix reads it, whatever shell or agent starts it.
-# Hex is updated first: its archive is built for one Erlang/OTP,
-# so an older one can fail to load after an upgrade.
-# Twice, since there are two archives: mise points MIX_HOME into the Elixir
-# install, and a shell that has mix on PATH without mise's environment,
-# as an agent's can, falls back to ~/.mix. The config is one file for both.
-mix local.hex --force
-env -u MIX_HOME -u MIX_ARCHIVES mix local.hex --force
+# Hex itself is kept current where Elixir is installed, in .config/mise/config.toml.
 mix hex.config cooldown 1d
 
 # launchd starts the pitchfork supervisor with no shell environment,
