@@ -87,7 +87,6 @@ Two defects reward looking for them by name, because each sits in a path that re
 Others are worth a pass of their own:
 
 - **What the tests leave unpinned.** Where you can see the suite, name any externally observable behavior it does not pin that the change introduces or alters, or that code the change rewrote has to go on producing.
-  - A rewrite meant to change no behavior rests on the suite staying green, which shows the behavior was kept only where the suite pins it.
   - "The suite does not pin this" is a claim about what the suite would do against a different implementation, so reading the suite cannot settle it.
   - Break the behavior where an outside caller can see the difference — remove the guard, invert the filter, rename the constant — in a scratch copy, the tree under review being one you do not edit, and run the suite against that; one that stays green has pinned nothing.
   - A test passes against the bug it is named for where every exemplar it uses gives the same result under the old code and the new; name an input whose result the change alters and the test does not use.
