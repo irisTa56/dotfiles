@@ -76,6 +76,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
   - Hex's likewise sits below a project's `mix.exs`, and any `mix` reads it, whatever shell starts it.
     - It covers `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
     - The script updates Hex first with `mix local.hex --force`: `cooldown` needs Hex 2.5, and the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
+    - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.

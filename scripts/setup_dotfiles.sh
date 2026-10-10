@@ -59,7 +59,11 @@ npm config set min-release-age=1 --location=user
 # Every mix reads it, whatever shell or agent starts it.
 # Hex is updated first: the setting needs Hex 2.5, and the archive is built
 # for one Erlang/OTP, so an older one can fail to load after an upgrade.
+# Twice, since there are two archives: mise points MIX_HOME into the Elixir
+# install, and a shell that has mix on PATH without mise's environment,
+# as an agent's can, falls back to ~/.mix. The config is one file for both.
 mix local.hex --force
+env -u MIX_HOME -u MIX_ARCHIVES mix local.hex --force
 mix hex.config cooldown 1d
 
 # launchd starts the pitchfork supervisor with no shell environment,
