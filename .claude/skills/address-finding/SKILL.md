@@ -106,10 +106,10 @@ Where several findings are in play, you MUST ask the three questions of them tog
 - **Meet the bar the fix will be judged against.** It is `finding-bar`'s, which the reviewer of a calling workflow weighs too, together with whatever that workflow states alongside it.
   - That is a narrowing of the bar, an addition to it, or a constraint the fix must keep.
   - Read that statement and hold the fix to the result, rather than learning what it asks for from the next review's findings.
-- **Pin the failure before the fix.** Where the finding is that code behaves wrongly and its suite can be run, a fresh subagent writes the regression test before you touch the fix, since [a test written from the fixed code describes the patch](https://blog.yokerhood.com/aggressive-regression) rather than the symptom.
+- **Pin the failure before the fix.** Where the finding is that code behaves wrongly and its suite can be run, a fresh subagent, spawned synchronously, writes the regression test before you touch the fix, since [a test written from the fixed code describes the patch](https://blog.yokerhood.com/aggressive-regression) rather than the symptom.
   - Its prompt carries the symptom and what is owed, and neither the fix the finding proposes nor the one §4 chose; spawn it on the `sonnet` tier.
     - State what is owed without choosing a fix — "a write never reports success while a reader still sees the old value; whether it takes effect or refuses is the fixer's choice" — or the test assumes one shape of fix and fails after another.
-  - It writes a test that fails, and confirms that it fails for that reason.
+  - It writes a test that fails, and confirms that the failure is the symptom.
   - Change the code until that test passes, and do not rewrite the test.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
