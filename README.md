@@ -80,7 +80,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
-  - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, `UV_EXCLUDE_NEWER=false uvx …`, or `HEX_COOLDOWN=0d mix deps.update <dep>` (`HEX_COOLDOWN=0d elixir <script>` for `Mix.install`).
+  - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, `UV_EXCLUDE_NEWER=false uvx …`, or `HEX_COOLDOWN=0d mix deps.update <dep>` (`HEX_COOLDOWN=0d MIX_INSTALL_FORCE=1 elixir <script>` for `Mix.install`, which otherwise loads what it cached).
 - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
 ## Agent Instructions
