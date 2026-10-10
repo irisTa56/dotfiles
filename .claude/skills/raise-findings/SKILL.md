@@ -27,6 +27,7 @@ Without it a careful reviewer generates findings without end.
 A round where nothing clears it returns nothing, which is a correct result rather than a review that failed to do its job.
 
 Propose a removal where you see one in what is under review, under the removal bar `finding-bar` states in place of that one, since a rule that has outlived its reason is easier to see for someone who did not write it.
+Hold what the change itself removed or replaced to that bar as well.
 
 Hunt by name for a defect a diff never shows as a wrong answer: what should not be reachable becoming reachable, and what is stored ceasing to be right or to be there, are two of those rather than the whole of it.
 
