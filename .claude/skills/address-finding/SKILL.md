@@ -107,7 +107,7 @@ Where several findings are in play, you MUST ask the three questions of them tog
   - That is a narrowing of the bar, an addition to it, or a constraint the fix must keep.
   - Read that statement and hold the fix to the result, rather than learning what it asks for from the next review's findings.
 - **Pin the failure before the fix.** Where the finding is that code behaves wrongly and its suite can be run, a fresh subagent on the `sonnet` tier, spawned synchronously, writes the regression test before you touch the fix, since [a test written from the fixed code describes the patch](https://blog.yokerhood.com/aggressive-regression) rather than the symptom.
-  - Its prompt carries the symptom and what is owed, and neither the fix the finding proposes nor the one §4 chose.
+  - Of the finding and the fix chosen for it, its prompt carries only the symptom and what is owed.
     - State what is owed without choosing a fix — "a write never reports success while a reader still sees the old value; whether it takes effect or refuses is the fixer's choice" — or the test assumes one shape of fix and fails after another.
   - It writes a test that fails, and confirms that the failure is the symptom.
   - Change the code until that test passes, and do not rewrite the test.
