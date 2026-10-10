@@ -110,7 +110,7 @@ Where several findings are in play, you MUST ask the three questions of them tog
   - Of the finding and the fix chosen for it, its prompt carries only the symptom and what is owed.
     - State what is owed without choosing a fix — "a write never reports success while a reader still sees the old value; whether it takes effect or refuses is the fixer's choice" — or the test assumes one shape of fix and fails after another.
   - It writes a test that fails, and confirms that the failure is the symptom.
-    - Where none can be made to fail, the symptom is not established, and §1's verdict reopens.
+    - Where none can be made to fail, reproduce the symptom yourself: §1's verdict reopens where it does not reproduce, and where it does the fix goes ahead without the test, which you say.
   - Change the code until that test passes, and do not rewrite the test.
     - Where the test rules out the fix §4 chose without the symptom requiring it — it assumed another shape, or calls what a removal takes away — a fresh writer redoes it from a corrected statement of what is owed.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
