@@ -106,6 +106,13 @@ Where several findings are in play, you MUST ask the three questions of them tog
 - **Meet the bar the fix will be judged against.** It is `finding-bar`'s, which the reviewer of a calling workflow weighs too, together with whatever that workflow states alongside it.
   - That is a narrowing of the bar, an addition to it, or a constraint the fix must keep.
   - Read that statement and hold the fix to the result, rather than learning what it asks for from the next review's findings.
+- **Pin the failure before the fix.** Where the finding is that code behaves wrongly and its suite can be run, a fresh subagent on the `sonnet` tier, spawned synchronously, writes the regression test before you touch the fix, since [a test written from the fixed code describes the patch](https://blog.yokerhood.com/aggressive-regression) rather than the symptom.
+  - Of the finding and the fix chosen for it, its prompt carries only the symptom and what is owed.
+    - State what is owed without choosing a fix — "a write never reports success while a reader still sees the old value; whether it takes effect or refuses is the fixer's choice" — or the test assumes one shape of fix and fails after another.
+  - It writes a test that fails, and confirms that the failure is the symptom.
+    - Where none can be made to fail, reproduce the symptom yourself: §1's verdict reopens where it does not reproduce, and where it does the fix goes ahead without the test, which you say.
+  - Change the code until that test passes, and do not rewrite the test.
+    - Where the test rules out the fix §4 chose without the symptom requiring it — it assumed another shape, or calls what a removal takes away — a fresh writer, with the fix set aside, redoes it from a corrected statement of what is owed.
 - **No silent reversal.** Check the fix against the decisions already taken in this piece of work, and not only the most recent. When it undoes one of them, say so and argue why the reversal is right; when it is not right, take a fix that leaves the earlier decision standing.
   - By default the piece of work is the change in hand together with any fixes made on top of it.
   - A calling workflow may name a wider scope.
