@@ -78,6 +78,8 @@ Start from the notes the planning session left for this plan in the private work
 Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside.
 The test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
 Where a test-driven development skill is available, work that red-green loop through it.
+Where an item states a law that holds over a whole input domain, such as a decode that returns whatever was encoded, write its test as a property over generated inputs rather than as examples at chosen ones.
+Have the property assert the law at the strength the item states it, not a weaker consequence of it, and constrain the result without recomputing it the way the code does.
 
 The plan has already settled requirements, assumptions, decisions, and what counts as done, so none of those is by itself a reason to enter plan mode.
 Enter plan mode only when how to build it is still open:
