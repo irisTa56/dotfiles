@@ -46,6 +46,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 - Drops `~/.dircolors` and `~/.config/git/ignore`, each overwritten with canonical content.
 - Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
 - Sets npm's `min-release-age` in `~/.npmrc`.
+- Updates Hex and sets its `cooldown` in `~/.hex/hex.config`.
 - Sets pitchfork's `general.shell` and `boot.executable` in `~/.config/pitchfork/config.toml`.
 - Encrypts rclone's config with a password it keeps in the login keychain.
 
@@ -69,13 +70,16 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 - A config already encrypted with another password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it.
   - Decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password; for a config copied from another Mac, the password command prints it there.
   - Without the password, as when the keychain item is gone, move the config aside and add the remotes again.
-- It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)); mise and pnpm 11 already wait a day by default.
+- It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)) and Hex through its global one ([`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html)); mise and pnpm 11 already wait a day by default.
   - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
+  - Hex's likewise sits below a project's `mix.exs`, and any `mix` reads it, whatever shell starts it.
+    - It covers `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
+    - The script updates Hex first with `mix local.hex --force`: `cooldown` needs Hex 2.5, and the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
-  - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, or `UV_EXCLUDE_NEWER=false uvx …`.
+  - To take a fix released within the day, override it for that command: `npm install --min-release-age=0`, `UV_EXCLUDE_NEWER=false uvx …`, or `HEX_COOLDOWN=0d mix deps.update <dep>` (`HEX_COOLDOWN=0d elixir <script>` for `Mix.install`).
 - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
 ## Agent Instructions

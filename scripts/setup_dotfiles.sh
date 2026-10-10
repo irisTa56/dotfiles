@@ -52,6 +52,16 @@ done
 # One key set in place: the file may also hold registry auth.
 npm config set min-release-age=1 --location=user
 
+# Hex gets the same window, which matters most for a script's Mix.install:
+# it has no lockfile, and resolves again whenever its cache is gone,
+# as after an Elixir or Erlang upgrade.
+# Global config for npm's reason: HEX_COOLDOWN would outrank a project's mix.exs.
+# Every mix reads it, whatever shell or agent starts it.
+# Hex is updated first: the setting needs Hex 2.5, and the archive is built
+# for one Erlang/OTP, so an older one can fail to load after an upgrade.
+mix local.hex --force
+mix hex.config cooldown 1d
+
 # launchd starts the pitchfork supervisor with no shell environment,
 # and its default `sh -c` reads no startup file, so a daemon running rclone
 # would get no RCLONE_PASSWORD_COMMAND and stall on the password prompt.
