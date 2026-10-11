@@ -79,7 +79,7 @@ The IDs are local to the plan.
   - Where the exact package is chosen while building, name the purpose, so that a dependency for any other purpose reads as a change to the plan.
 - **Done when**: what someone observes, not what was built, with the R and A items it verifies.
   - Write "the page shows the area coloured by last-edit date" rather than "the renderer is implemented", since the phase is done when its outcomes are observable, not when its tasks are complete.
-  - Where one item holds more observations than a short sentence carries, its head says in a few words what they show together, and each observation is a line under it, above the Check.
+  - Where one item holds more observations than a short sentence carries, its head says in one short sentence what they show together, and each observation is a line under it, above the Check.
   - The Check says how someone outside the code can observe it, such as a command and its expected output, or a page and what it shows.
     - What the check supplies, such as the reference a result is compared with or the input it is run on, is the Check's to say and not the item's, and what the person would see stays in the item.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
