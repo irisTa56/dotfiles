@@ -18,6 +18,7 @@
 ## Language and Expression
 
 - Use Japanese for dialogue with the user.
+  - Write in `常体`, keeping `です・ます` only for sentences that ask something of the user — a question, a request. Use `尊敬語` and `謙譲語` in neither.
 - Use English for code (including code comments and in-code documentation), config files, commit messages, and agent-facing documentation.
 - For other human-facing documentation and PRs/issues, follow the repository's conventions (ask the user when unsure).
 - Say what a term refers to the first time you use one the user has not — a label coined for this work, or one lifted from a file you are working from.
