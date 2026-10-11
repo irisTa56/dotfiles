@@ -48,7 +48,7 @@ includes = ["tasks"]
 [dotfiles]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
-"~/.config/uv/.python-version" = { source = ".config/uv/.python-version", mode = "symlink" }
+"~/.config/uv/.python-version" = { content = "3.14\n" }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
@@ -77,7 +77,7 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
 # `python:check-uv-pin` sits outside `qa:` because only a commit made here changes the two
-# files it compares.
+# values it compares.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
 depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "python:check-uv-pin"]
@@ -141,9 +141,9 @@ run = [
 description = "Check that uv's global Python pin matches the python in the global mise config"
 run = '''
 mise_python="$(yq '.tools.python' .config/mise/config.toml)"
-uv_pin="$(cat .config/uv/.python-version)"
+uv_pin="$(yq '.dotfiles["~/.config/uv/.python-version"].content' mise.toml)"
 test "$mise_python" = "$uv_pin" || {
-  echo "uv pins Python $uv_pin (.config/uv/.python-version), but mise uses $mise_python (.config/mise/config.toml)" >&2
+  echo "uv pins Python $uv_pin (mise.toml), but mise uses $mise_python (.config/mise/config.toml)" >&2
   exit 1
 }
 '''
