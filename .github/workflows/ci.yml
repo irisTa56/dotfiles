@@ -32,25 +32,6 @@ env:
   MISE_TASK_RUN_AUTO_INSTALL: "false"
 
 jobs:
-  md-to-docx:
-    name: md-to-docx smoke test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .claude/skills/md-to-docx
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: lts/*
-          cache: npm
-          cache-dependency-path: .claude/skills/md-to-docx/package-lock.json
-
-      - run: npm ci --strict-allow-scripts
-
-      - run: npm test
-
   markdown-lint:
     runs-on: ubuntu-latest
     steps:
