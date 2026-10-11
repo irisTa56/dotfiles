@@ -75,7 +75,10 @@ The IDs are local to the plan.
   - Where the exact package is chosen while building, name the purpose, so that a dependency for any other purpose reads as a change to the plan.
 - **Done when**: what someone observes, not what was built, with the R and A items it verifies.
   - Write "the page shows the area coloured by last-edit date" rather than "the renderer is implemented", since the phase is done when its outcomes are observable, not when its tasks are complete.
+  - An item holds one observation: where a semicolon would join two, they are two items, each naming its Check even where it is the same one.
+  - What a requirement already states, the item cites by its ID, as in "the map's data holds each feature R002 says is drawn", and spells out only what the requirement leaves open, such as the situation it is observed in.
   - The Check says how someone outside the code can observe it, such as a command and its expected output, or a page and what it shows.
+    - How the check is set up, such as what a result is compared with, is the Check's to say and not the item's.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
     - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example.
   - Every R and every unverified A appears in at least one item, or the plan says why not.
