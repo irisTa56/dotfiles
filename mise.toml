@@ -76,11 +76,11 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
-# `python:check-uv-pin` sits outside `qa:` because only a commit made here changes the two
+# `py:check-uv-pin` sits outside `qa:` because only a commit made here changes the two
 # values it compares.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "python:check-uv-pin"]
+depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "py:check-uv-pin"]
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
@@ -137,7 +137,7 @@ run = [
   "! find -L .claude/evals -type l | grep .",
 ]
 
-[tasks."python:check-uv-pin"]
+[tasks."py:check-uv-pin"]
 description = "Check that uv's global Python pin matches the python in the global mise config"
 run = '''
 mise_python="$(yq '.tools.python' .config/mise/config.toml)"
