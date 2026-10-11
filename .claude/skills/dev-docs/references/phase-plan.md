@@ -51,6 +51,10 @@ The IDs are local to the plan.
 
 - **<what is observed>** — verifies R001, A002.
   - Check: <how it is observed>
+- **<what several observations show together>** — verifies R003, R004.
+  - <one observation>
+  - <another observation>
+  - Check: <how they are observed>
 
 ## Open questions
 
@@ -75,7 +79,9 @@ The IDs are local to the plan.
   - Where the exact package is chosen while building, name the purpose, so that a dependency for any other purpose reads as a change to the plan.
 - **Done when**: what someone observes, not what was built, with the R and A items it verifies.
   - Write "the page shows the area coloured by last-edit date" rather than "the renderer is implemented", since the phase is done when its outcomes are observable, not when its tasks are complete.
+  - Where one item holds more observations than a short sentence carries, its head says in one sentence what they show together, and each observation is a line under it, above the Check.
   - The Check says how someone outside the code can observe it, such as a command and its expected output, or a page and what it shows.
+    - What the check supplies, such as the reference a result is compared with or the input it is run on, is the Check's to say and not the item's, and what the person would see stays in the item.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
     - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example.
   - Every R and every unverified A appears in at least one item, or the plan says why not.
