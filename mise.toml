@@ -48,6 +48,11 @@ includes = ["tasks"]
 [dotfiles]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
+# uv's global Python pin, which `uvx` and `uv tool install` read. Without one they take
+# the newest Python uv manages, and when a tool's dependency has no wheel for that
+# Python yet, `uvx` settles on an older release of the tool without saying so.
+# pre-commit holds the pin to the `python` in .config/mise/config.toml.
+"~/.config/uv/.python-version" = { source = ".config/uv/.python-version", mode = "symlink" }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
@@ -68,6 +73,7 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
 # Claude Code CLI, and `mix format` an Elixir toolchain, neither of which CI installs.
+# The last step compares two files that only a commit made here changes.
 # `ts:types` needs that CLI too, so it is no `qa:` task either; it is a task of its own
 # because it is the slow one, which `depends` runs beside the rest, and the one worth
 # running alone while editing the module.
@@ -82,6 +88,7 @@ run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
   "mix format --check-formatted scripts/*.exs",
+  "test \"$(yq '.tools.python' .config/mise/config.toml)\" = \"$(cat .config/uv/.python-version)\" || { echo 'uv pin (.config/uv/.python-version) differs from python in .config/mise/config.toml' >&2; exit 1; }",
 ]
 
 [tasks."qa:md"]
