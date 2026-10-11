@@ -27,6 +27,7 @@ Tests written in a batch describe the design as imagined before any of it ran, a
 - Ask only where the instruction leaves open something that changes what gets built, and do not stop partway through to confirm what it settles.
 - Test a module through what it offers its callers, and give no test of its own to a function the module keeps private, such as a `defp` in Elixir.
   - The public function that uses it is where its behavior is tested, which keeps the tests few and lets the inside be restructured without rewriting them.
+- Replace with a test double only what lies outside the system, such as the network, the clock, or a third-party service, and let the project's own modules run for real.
 
 ## A law over a whole input domain
 
