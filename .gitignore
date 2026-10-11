@@ -15,7 +15,7 @@
 !/.claude/skills/support-pr-review/
 !/.claude/skills/sweep-branches/
 !/.claude/skills/sync-base/
-!/.claude/skills/test-first/
+!/.claude/skills/test-drive/
 
 # APM dependencies
 apm_modules/

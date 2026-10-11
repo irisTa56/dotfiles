@@ -77,7 +77,7 @@ Treat the phase plan as the instruction: implement toward its Done when items an
 Start from the notes the planning session left for this plan in the private workspace, under that session's branch and not yours ([Research](#research)), and check a finding there again before code rests on it.
 Write each check that can be automated as a test alongside the code it verifies, end to end where the item describes behavior seen from outside.
 The test is how the item is verified now, and it keeps guarding the behavior once the plan is closed and no longer updated.
-Build each item test first, through the `test-first` skill.
+Build each item through the `test-drive` skill.
 
 The plan has already settled requirements, assumptions, decisions, and what counts as done, so none of those is by itself a reason to enter plan mode.
 Enter plan mode only when how to build it is still open:
