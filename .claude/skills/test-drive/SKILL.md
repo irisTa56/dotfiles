@@ -5,8 +5,9 @@ description: "Build or change behavior by test-driven development as Kent Beck d
 
 # Test Drive
 
-Build the change by test-driven development as Kent Beck describes it in [Canon TDD](https://newsletter.kentbeck.com/p/canon-tdd): write each test just before the code it asks for, and write no production code a failing test has not asked for.
-[A test written after the code mirrors what that code happens to do](https://blog.yokerhood.com/aggressive-regression), so it passes against the code's own bugs and breaks when the inside is restructured.
+Build the change by test-driven development as Kent Beck describes it in [Canon TDD](https://newsletter.kentbeck.com/p/canon-tdd).
+Write each test just before the code it asks for, and write no production code a failing test has not asked for.
+A test written after the code mirrors what that code happens to do, so it passes against the code's own bugs and breaks when the inside is restructured.
 One written first states what a caller needs, and has been seen to fail without it.
 
 ## The loop
