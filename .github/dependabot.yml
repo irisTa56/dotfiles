@@ -7,3 +7,12 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(ci)"
+    # One pull request for all of a week's updates. Auto-merge runs on
+    # GITHUB_TOKEN, which has no `workflows` permission: once one update to a
+    # workflow file has merged, GitHub refuses to merge a second pull request
+    # that was branched before it and touches the same file, and disables its
+    # auto-merge.
+    groups:
+      actions:
+        patterns:
+          - "*"
