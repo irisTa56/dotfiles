@@ -94,18 +94,20 @@ description = "Lint and check formatting of TypeScript"
 run = "biome ci"
 
 # The declarations are those of the installed CLI. The engine writes them, git-ignored,
-# beside a plugin it loads with `--plugin-dir` and not beside one it loads from the
-# skills directory, so the first step loads the module that way: `/cost` is a command
-# that runs without a model call, and the rest keeps the run from connecting MCP servers
-# and making startup requests, which is most of its time, and from waiting on a stdin
-# that is open and silent.
+# beside a plugin in a `--plugin-dir` folder the session watches for saves, and not
+# beside one it loads from the skills directory, so the first step loads the module that
+# way. A `-p` run watches the folder only under `CLAUDE_CODE_PLUGIN_DIR_WATCH`, and
+# writes nothing without it. `/cost` is a command that runs without a model call, and
+# the rest keeps the run from connecting MCP servers and making startup requests, which
+# is most of its time, and from waiting on a stdin that is open and silent.
 # The run exits 0 whether or not it wrote anything, so the old declarations go first:
 # `tsc` then fails on a run that wrote none instead of passing against stale ones.
 [tasks."ts:types"]
 description = "Type-check the function-hooks module against the installed Claude Code CLI"
+env = { CLAUDE_CODE_PLUGIN_DIR_WATCH = "1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1" }
 run = [
   "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
-  "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
+  "claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
   "tsc --noEmit -p .claude/skills/global-hooks",
 ]
 
