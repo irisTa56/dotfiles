@@ -29,7 +29,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config and file tasks, uv's global Python pin, and the agent instructions below, into place, and adds the line that imports them to `~/.claude/CLAUDE.md`.
+- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds the line that imports them to `~/.claude/CLAUDE.md`.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
