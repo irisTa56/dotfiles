@@ -48,6 +48,7 @@ includes = ["tasks"]
 [dotfiles]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
+"~/.config/uv/.python-version" = { content = "3.14\n" }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
@@ -75,9 +76,11 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
+# `py:check-uv-pin` sits outside `qa:` because only a commit made here changes the two
+# values it compares.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged"]
+depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "py:check-uv-pin"]
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
@@ -133,6 +136,17 @@ run = [
   # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
   "! find -L .claude/evals -type l | grep .",
 ]
+
+[tasks."py:check-uv-pin"]
+description = "Check that uv's global Python pin matches the python in the global mise config"
+run = '''
+mise_python="$(yq '.tools.python' .config/mise/config.toml)"
+uv_pin="$(yq '.dotfiles["~/.config/uv/.python-version"].content' mise.toml)"
+test "$mise_python" = "$uv_pin" || {
+  echo "uv pins Python $uv_pin (mise.toml), but mise uses $mise_python (.config/mise/config.toml)" >&2
+  exit 1
+}
+'''
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm and Hex release windows, pitchfork shell and boot path, rclone config encryption)"
