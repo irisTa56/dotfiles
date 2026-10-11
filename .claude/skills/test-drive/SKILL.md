@@ -32,4 +32,5 @@ Tests written in a batch describe the design as imagined before any of it ran, a
 
 Where the behavior is a law that holds over a whole input domain, such as a decode that returns whatever was encoded, write its test as a property over generated inputs rather than as examples at chosen ones.
 Have the property assert the law at the strength it was stated, not a weaker consequence of it, and constrain the result without recomputing it the way the code does.
-Where the project has no library that generates inputs, do not add one unasked: generate the inputs exhaustively over a bounded domain with what the language has, and report that a library would widen it.
+Where an edge of the domain is already known, pin it as an example beside the property, since generated inputs may not reach it.
+Where the project has no library that generates inputs, do not add one unasked: generate the inputs exhaustively with what the language has, over a bounded domain drawn from the whole input type and not only from the values the law names, and report that a library would widen it.
