@@ -157,11 +157,14 @@ git diff --quiet @{push} -- <changed-files> && git rev-parse --short @{push}
 
 ### 9. Post Reply
 
-Post the approved reply with `gh` CLI, replying to the review comment thread.
+Before posting, fetch the thread again with Step 2's command.
+Where it holds a comment Step 2 did not read, post nothing and resolve nothing, and tell the user: the reply was drafted without that comment, and resolving over it closes the thread on whoever wrote it.
+
+Post the approved reply with `gh` CLI, replying to the thread's first comment, Step 2's `{root_id}`, since [GitHub accepts no reply to a reply](https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment).
 Write the approved reply body to a temporary file first, then pass it with `-F body=@<file>` so backticks, `$`, and newlines in the reply are never interpreted by the shell:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/{number}/comments/{root_id}/replies \
   -F body=@<reply-body-file>
 ```
 
@@ -252,7 +255,8 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
   - A commit that fails stops the sequence before the next `git add`: its files stay staged, and the next commit would carry them under its own subject.
   - Before the push, `git log --reverse --format='%h %s' @{push}..HEAD` lists the commits it will carry: each reply cites the one holding its fix, and a fix with no commit there did not land.
   - Step 8's check runs over every changed file and gates Step 9 as before.
-- Step 9 posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` the listing returned rather than fetching the threads again.
+- Step 9 runs the listing once more in place of each thread's own fetch, and holds back any thread with a comment the first listing lacked.
+  - It then posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` that second listing returned.
 
 ### Asking Copilot for another pass
 
