@@ -263,10 +263,10 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
 - Step 9 runs the listing once more in place of each thread's own fetch, and holds back any thread with a comment the first listing lacked.
   - It then posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` that second listing returned.
 
-### Asking Copilot for another pass
+## Requesting Copilot's re-review
 
-Where a thread answered here is Copilot's, or the review whose summary was addressed is, Step 7 also asks whether to request its re-review.
-The request follows Step 9:
+Do not offer this or ask about it: whether another pass is worth requesting is the user's to say.
+Where they ask for one, make the request once Step 9 is done:
 
 ```bash
 gh pr edit {number} --repo {owner}/{repo} --add-reviewer @copilot
