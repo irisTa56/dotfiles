@@ -96,6 +96,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 `~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
 `mise bootstrap` links them, adds the `@INSTRUCTIONS.md` line to that file, leaving any other line in it, and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes.
 Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/INSTRUCTIONS.md` says of `rtk proxy`.
+`[dotfiles]` writes rtk's config with git [excluded from the rewrite](https://www.rtk-ai.app/docs/getting-started/configuration/), since a worktree-isolated session refuses a git command that runs through rtk.
 
 ## Agent Skills
 

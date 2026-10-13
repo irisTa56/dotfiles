@@ -49,6 +49,10 @@ includes = ["tasks"]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
 "~/.config/uv/.python-version" = { content = "3.14\n" }
+# The rtk hook leaves git as written: a worktree-isolated session refuses `rtk git …`,
+# unable to read where a wrapped git runs. The whole file, so a setting rtk writes
+# into it lasts only until the next run.
+"~/Library/Application Support/rtk/config.toml" = { content = "[hooks]\nexclude_commands = [\"git\"]\n" }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
