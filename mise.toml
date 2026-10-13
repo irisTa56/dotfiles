@@ -163,7 +163,10 @@ run = [
   { task = "setup:dotfiles" },
   # Hook only: the RTK.md a plain `rtk init -g` writes and imports is regenerated on
   # every run, and its rule on `rtk proxy` contradicts .claude/INSTRUCTIONS.md's.
-  "rtk init -g --hook-only --auto-patch",
+  # The variable stops it asking about telemetry: `[dotfiles]` has just written rtk's
+  # config without an answer, so from a terminal it would ask on every run and
+  # write the answer, with every default, over that file.
+  "RTK_TELEMETRY_DISABLED=1 rtk init -g --hook-only --auto-patch",
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
