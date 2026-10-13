@@ -49,21 +49,21 @@ From the response, extract:
 - `diff_hunk` — the surrounding diff context
 - `in_reply_to_id` — if this is part of a thread, the parent comment ID
 
-After extraction, set a tentative reply target type without interrupting the user:
-
-- Prefer `ai-bot` when any of the following is true:
-  - `user.type == "Bot"`
-  - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
-- Otherwise, set `human`.
-
-Treat this as provisional and finalize at Step 7.
-
-If the comment is part of a thread, also fetch the full thread:
+Fetch the thread the comment belongs to, whether it is the thread's first comment or a reply; `{root_id}` is its `in_reply_to_id`, or its own `id` where that is null:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/comments \
-  | jq '[.[] | select(.in_reply_to_id == {parent_id} or .id == {parent_id})]'
+gh api --paginate repos/{owner}/{repo}/pulls/{number}/comments \
+  --jq '.[] | select(.id == {root_id} or .in_reply_to_id == {root_id})'
 ```
+
+Then set a tentative reply target type without interrupting the user, from every comment in the thread but this account's (`gh api user --jq .login`):
+
+- `ai-bot` where each of them is a bot's:
+  - `user.type == "Bot"`
+  - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
+- `human` where any is not, so a thread a bot started and a human then spoke in stays open.
+
+Treat this as provisional and finalize at Step 7.
 
 ### 3. Understand the Context
 
@@ -231,7 +231,8 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
   - One this account answered last is waiting on the reviewer, so it is left out.
 - A review URL keeps only the threads whose first comment has `pullRequestReview.databaseId` equal to `review_id`; a reply carries a review ID of its own.
 - A thread's first comment is the one Step 2 reads and Step 9 replies to.
-  - Step 2 fetches the rest of a thread only from a reply, so read a thread's later comments from this listing: what is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
+  - The listing already holds what Step 2's thread fetch returns, so take the thread's comments from it, and a bot's from `author.__typename` being `Bot`.
+  - What is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
 - Where no thread is open, say so and stop, unless the URL is a review's and its summary carries a point of its own.
 
 ### A review's summary
@@ -244,7 +245,6 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
 
 ### What changes in the steps
 
-- Step 2 takes the reply target type from the whole thread: `ai-bot` only where every comment in it but this account's has an `author.__typename` of `Bot`, so a thread Copilot started and a human then spoke in is `human` and stays open.
 - Step 3 reads the PR's purpose once for the set.
 - Step 7 stays the single checkpoint, showing every comment's verdict, diff and draft reply together.
 - Step 8 commits once per comment whose fix landed, and pushes once.
