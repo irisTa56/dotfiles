@@ -15,7 +15,7 @@ One of three GitHub URLs:
 - A review comment, addressed on its own:
   - `https://github.com/{owner}/{repo}/pull/{number}#discussion_r{comment_id}`
   - `https://github.com/{owner}/{repo}/pull/{number}/files#r{comment_id}`
-- A review, `https://github.com/{owner}/{repo}/pull/{number}#pullrequestreview-{review_id}`: the open threads that review started, and what its summary says beyond them.
+- A review, `https://github.com/{owner}/{repo}/pull/{number}#pullrequestreview-{review_id}`: the open threads that review commented in, and what its summary says beyond them.
 - A PR, `https://github.com/{owner}/{repo}/pull/{number}`: every open thread on it.
 
 The Procedure is written for one comment; [Several comments at once](#several-comments-at-once) says what a review or a PR changes in it.
@@ -229,7 +229,7 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
 
 - A thread is open while it is not `isResolved` and its last comment's author is not `viewer.login`.
   - One this account answered last is waiting on the reviewer, so it is left out.
-- A review URL keeps only the threads whose first comment has `pullRequestReview.databaseId` equal to `review_id`; a reply carries a review ID of its own.
+- A review URL keeps only the threads holding a comment whose `pullRequestReview.databaseId` is `review_id`, whether that review started the thread or replied in it.
 - A thread's first comment is the one Step 2 reads and Step 9 replies to.
   - The listing already holds what Step 2's thread fetch returns, so take the thread's comments from it, and a bot's from `author.__typename` being `Bot`.
   - What is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
