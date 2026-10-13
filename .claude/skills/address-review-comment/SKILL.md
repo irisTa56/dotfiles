@@ -218,8 +218,8 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
       pullRequest(number:$number) {
         reviewThreads(first:100) {
           nodes {
-            isResolved
-            comments(first:100) { nodes { databaseId author { login } pullRequestReview { databaseId } } }
+            id isResolved viewerCanResolve
+            comments(first:100) { nodes { databaseId body author { login } pullRequestReview { databaseId } } }
           }
         }
       }
@@ -231,7 +231,8 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
   - One this account answered last is waiting on the reviewer, so it is left out.
 - A review URL keeps only the threads whose first comment has `pullRequestReview.databaseId` equal to `review_id`; a reply carries a review ID of its own.
 - A thread's first comment is the one Step 2 reads and Step 9 replies to.
-- Where nothing is open, say so and stop.
+  - Step 2 fetches the rest of a thread only from a reply, so read a thread's later comments from this listing: what is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
+- Where no thread is open, say so and stop, unless the URL is a review's and its summary carries a point of its own.
 
 ### A review's summary
 
@@ -249,7 +250,7 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
   - Two fixes that cannot be staged apart share a commit, which both replies cite.
   - Before the push, `git log --reverse --format='%h %s' @{push}..HEAD` lists the commits it will carry: each reply cites the one holding its fix, and a fix with no commit there did not land.
   - Step 8's check runs over every changed file and gates Step 9 as before.
-- Step 9 posts each reply to its own thread and applies the resolution policy thread by thread.
+- Step 9 posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` the listing returned rather than fetching the threads again.
 
 ### Asking Copilot for another pass
 
