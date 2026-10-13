@@ -1,6 +1,3 @@
-# `[dotfiles]` uses a merge edit, which an older mise takes for a path to link at.
-min_version = "2026.10.4"
-
 [tools]
 biome = "latest"
 gitleaks = "latest"
