@@ -1,0 +1,15 @@
+__pycache__/
+__tmp*
+_tmp*/
+.DS_Store
+.env.local
+.git/
+.ipynb_checkpoints/
+.pytest_cache/
+.tmp.drive*
+**/.claude/settings.local.json
+*uncommitted*/
+CLAUDE.local.md
+erl_crash.dump
+fnox.local.toml
+mise.local.toml

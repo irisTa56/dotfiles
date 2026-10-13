@@ -30,6 +30,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
 - `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds the line that imports them to `~/.claude/CLAUDE.md`.
+  - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
@@ -43,7 +44,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 
 `mise bootstrap` runs `mise run setup:dotfiles`, which does the following:
 
-- Drops `~/.dircolors` and `~/.config/git/ignore`, each overwritten with canonical content.
+- Drops `~/.dircolors`, overwritten with canonical content.
 - Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
 - Sets npm's `min-release-age` in `~/.npmrc`.
 - Updates Hex and sets its `cooldown` in `~/.hex/hex.config`.
@@ -223,7 +224,7 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
   mise run secrets:add <NAME>
   ```
 
-  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
+  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise bootstrap` copies into place keeps out of every repository, and has fnox add the key's entry there.
   - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the task prints it for you to place instead.
   - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
 - Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.

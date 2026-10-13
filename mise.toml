@@ -49,6 +49,7 @@ includes = ["tasks"]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
 "~/.config/uv/.python-version" = { content = "3.14\n" }
+"~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
 # Its keys only: rtk keeps its own settings in the same file.
 "~/Library/Application Support/rtk/config.toml/hooks" = { source = ".config/rtk/config.toml", merge = true }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
@@ -151,7 +152,7 @@ test "$mise_python" = "$uv_pin" || {
 '''
 
 [tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, gitignore, shell startup files, npm and Hex release windows, pitchfork shell and boot path, rclone config encryption)"
+description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, pitchfork shell and boot path, rclone config encryption)"
 run = "scripts/setup_dotfiles.sh"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
