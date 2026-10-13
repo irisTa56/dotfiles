@@ -65,6 +65,7 @@ State what this change is for before the first round, and hold every later round
   - Derive it, where none of those named one, from what the branch shows, taking the first of these that describes where this change starts and asking the user where neither does:
     - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
     - the point the branch left the default branch.
+  - Where it is a closed record's commit and that commit holds fixes landed after the last round whose reviewer returned, no round read them: say so to the user and ask whether this change starts before them, waiting for the answer.
   - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
