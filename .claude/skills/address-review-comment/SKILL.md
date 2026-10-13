@@ -219,7 +219,7 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
         reviewThreads(first:100) {
           nodes {
             id isResolved viewerCanResolve
-            comments(first:100) { nodes { databaseId body author { login } pullRequestReview { databaseId } } }
+            comments(first:100) { nodes { databaseId body author { __typename login } pullRequestReview { databaseId } } }
           }
         }
       }
@@ -244,10 +244,12 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
 
 ### What changes in the steps
 
+- Step 2 takes the reply target type from the whole thread: `ai-bot` only where every comment in it but this account's has an `author.__typename` of `Bot`, so a thread Copilot started and a human then spoke in is `human` and stays open.
 - Step 3 reads the PR's purpose once for the set.
 - Step 7 stays the single checkpoint, showing every comment's verdict, diff and draft reply together.
 - Step 8 commits once per comment whose fix landed, and pushes once.
   - Two fixes that cannot be staged apart share a commit, which both replies cite.
+  - A commit that fails stops the sequence before the next `git add`: its files stay staged, and the next commit would carry them under its own subject.
   - Before the push, `git log --reverse --format='%h %s' @{push}..HEAD` lists the commits it will carry: each reply cites the one holding its fix, and a fix with no commit there did not land.
   - Step 8's check runs over every changed file and gates Step 9 as before.
 - Step 9 posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` the listing returned rather than fetching the threads again.
