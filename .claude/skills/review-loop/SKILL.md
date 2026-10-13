@@ -43,6 +43,7 @@ What a round enters, and how the record ends:
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
   - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit.
+  - Where the user closes over fixes no round read, note the commit the last round read instead, so the next loop's change starts with those fixes.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
