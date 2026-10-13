@@ -43,7 +43,6 @@ What a round enters, and how the record ends:
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
 - **Closing the record.** Append one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
   - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit.
-  - Where that commit holds fixes landed after the last round whose reviewer returned, no round read them: the next loop says so to the user and asks whether its change starts before them, waiting for the answer.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
@@ -66,6 +65,7 @@ State what this change is for before the first round, and hold every later round
   - Derive it, where none of those named one, from what the branch shows, taking the first of these that describes where this change starts and asking the user where neither does:
     - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
     - the point the branch left the default branch.
+  - Where it is a closed record's commit and that commit holds fixes landed after the last round whose reviewer returned, no round read them: say so to the user and ask whether this change starts before them, waiting for the answer.
   - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
 - **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
   - the user;
