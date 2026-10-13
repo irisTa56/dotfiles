@@ -1,19 +1,24 @@
 ---
 name: address-review-comment
-description: "Address a single GitHub PR review comment end-to-end. Use when the user provides a link to a PR review comment. Reads the comment via gh CLI (never WebFetch or fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
+description: "Address GitHub PR review comments end-to-end: one comment, one review, or every open thread on a PR. Use when the user provides a link to a PR review comment, a review, or a PR. Reads each comment via gh CLI (never WebFetch or fetch_webpage), evaluates validity, applies fixes, commits, drafts a reply, and posts it."
 disable-model-invocation: true
 ---
 
 # Address Review Comment
 
-Handle a single GitHub PR review comment end-to-end: read → evaluate → fix → commit → reply.
+Handle a GitHub PR review comment end-to-end: read → evaluate → fix → commit → reply.
 
 ## Input
 
-A GitHub PR review comment URL, e.g.:
+One of three GitHub URLs:
 
-- `https://github.com/{owner}/{repo}/pull/{number}#discussion_r{comment_id}`
-- `https://github.com/{owner}/{repo}/pull/{number}/files#r{comment_id}`
+- A review comment, addressed on its own:
+  - `https://github.com/{owner}/{repo}/pull/{number}#discussion_r{comment_id}`
+  - `https://github.com/{owner}/{repo}/pull/{number}/files#r{comment_id}`
+- A review, `https://github.com/{owner}/{repo}/pull/{number}#pullrequestreview-{review_id}`: the open threads that review commented in, and what its summary says beyond them.
+- A PR, `https://github.com/{owner}/{repo}/pull/{number}`: every open thread on it.
+
+The Procedure is written for one comment; [Several comments at once](#several-comments-at-once) says what a review or a PR changes in it.
 
 ## Procedure
 
@@ -21,10 +26,13 @@ A GitHub PR review comment URL, e.g.:
 
 ### 1. Parse the URL
 
-Extract from the comment link:
+Extract from the link:
 
 - `owner`, `repo`, PR `number`
-- `comment_id` from the URL fragment (`#discussion_r{id}` or `#r{id}`)
+- from the URL fragment, whichever the link carries:
+  - `comment_id` (`#discussion_r{id}` or `#r{id}`)
+  - `review_id` (`#pullrequestreview-{id}`)
+  - nothing, where the link is a PR's
 
 ### 2. Read the Comment
 
@@ -44,21 +52,21 @@ From the response, extract:
 - `diff_hunk` — the surrounding diff context
 - `in_reply_to_id` — if this is part of a thread, the parent comment ID
 
-After extraction, set a tentative reply target type without interrupting the user:
-
-- Prefer `ai-bot` when any of the following is true:
-  - `user.type == "Bot"`
-  - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
-- Otherwise, set `human`.
-
-Treat this as provisional and finalize at Step 7.
-
-If the comment is part of a thread, also fetch the full thread:
+Fetch the thread the comment belongs to, whether it is the thread's first comment or a reply; `{root_id}` is its `in_reply_to_id`, or its own `id` where that is null:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/comments \
-  | jq '[.[] | select(.in_reply_to_id == {parent_id} or .id == {parent_id})]'
+gh api --paginate repos/{owner}/{repo}/pulls/{number}/comments \
+  --jq '.[] | select(.id == {root_id} or .in_reply_to_id == {root_id})'
 ```
+
+Then set a tentative reply target type without interrupting the user, from who wrote the thread's comments:
+
+- `ai-bot` where a bot started the thread and every later comment is a bot's or this account's (`gh api user --jq .login`). A comment is a bot's where either holds:
+  - `user.type == "Bot"`
+  - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
+- `human` otherwise, so a thread a bot started and someone else then spoke in stays open.
+
+Treat this as provisional and finalize at Step 7.
 
 ### 3. Understand the Context
 
@@ -152,11 +160,14 @@ git diff --quiet @{push} -- <changed-files> && git rev-parse --short @{push}
 
 ### 9. Post Reply
 
-Post the approved reply with `gh` CLI, replying to the review comment thread.
+Before posting, fetch the thread again with Step 2's command.
+Where it holds a comment Step 2 did not read, post nothing and resolve nothing, and tell the user: the reply was drafted without that comment, and resolving over it closes the thread on whoever wrote it.
+
+Post the approved reply with `gh` CLI, replying to the thread's first comment, Step 2's `{root_id}`, since [GitHub accepts no reply to a reply](https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment).
 Write the approved reply body to a temporary file first, then pass it with `-F body=@<file>` so backticks, `$`, and newlines in the reply are never interpreted by the shell:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/{number}/comments/{root_id}/replies \
   -F body=@<reply-body-file>
 ```
 
@@ -195,6 +206,80 @@ Resolve flow for `ai-bot` — resolve the review thread via GraphQL:
   ```
 
 - If no matching thread is found, or `viewerCanResolve` is `false`, skip resolving and keep only the posted reply.
+
+## Several comments at once
+
+A review URL or a PR URL names a set of threads.
+Each open one goes through the Procedure as its own comment, with the differences this section states.
+
+### Which threads are open
+
+List the PR's threads once:
+
+```bash
+gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
+  query($owner:String!, $repo:String!, $number:Int!) {
+    viewer { login }
+    repository(owner:$owner, name:$repo) {
+      pullRequest(number:$number) {
+        reviewThreads(first:100) {
+          nodes {
+            id isResolved viewerCanResolve
+            comments(first:100) { nodes { databaseId body author { __typename login } pullRequestReview { databaseId } } }
+          }
+        }
+      }
+    }
+  }'
+```
+
+- A thread is open while it is not `isResolved` and its last comment's author is not `viewer.login`.
+  - One this account answered last is waiting on the reviewer, so it is left out.
+- A review URL keeps only the threads that review commented in or its summary links.
+  - It commented in a thread holding a comment whose `pullRequestReview.databaseId` is `review_id`, whether it started the thread or replied in it.
+  - Its summary links a thread by a `#discussion_r{id}` URL in the review's `body`, which is how a later Copilot round lists a finding still open from an earlier one while adding no comment of its own.
+- A thread's first comment is the one Step 2 reads and Step 9 replies to.
+  - The listing already holds what Step 2's thread fetch returns, so take the thread's comments from it, and a bot's from `author.__typename` being `Bot`.
+  - What is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
+- Where no thread is open, say so and stop, unless the URL is a review's and its summary carries a point of its own.
+
+### A review's summary
+
+Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review_id}`.
+
+- A point its `body` makes by linking a thread is that thread: an open one is in the set, and one already answered keeps its answer rather than taking a second verdict.
+- A point no thread carries goes through Steps 3-5 as a comment would.
+  - It has no thread, so Step 6 drafts nothing for it and Step 9 posts nothing; Step 7 reports its verdict.
+
+### What changes in the steps
+
+- Step 3 reads the PR's purpose once for the set.
+- Step 7 stays the single checkpoint, showing every comment's verdict, diff and draft reply together.
+- Step 8 commits once per comment whose fix landed, and pushes once.
+  - Two fixes that cannot be staged apart share a commit, which both replies cite.
+  - A commit that fails stops the sequence before the next `git add`: its files stay staged, and the next commit would carry them under its own subject.
+  - Before the push, `git log --reverse --format='%h %s' @{push}..HEAD` lists the commits it will carry: each reply cites the one holding its fix, and a fix with no commit there did not land.
+  - Step 8's check runs over every changed file and gates Step 9 as before.
+- Step 9 runs the listing once more in place of each thread's own fetch, and holds back any thread with a comment the first listing lacked.
+  - It then posts each reply to its own thread and applies the resolution policy thread by thread, resolving by the `id` and `viewerCanResolve` that second listing returned.
+
+## Requesting Copilot's re-review
+
+Do not offer this or ask about it: whether another pass is worth requesting is the user's to say.
+Where they ask for one, make the request once Step 9 is done:
+
+```bash
+gh pr edit {number} --repo {owner}/{repo} --add-reviewer @copilot
+```
+
+- The command can exit 0 with nothing registered, so list the `review_requested` events before and after it and confirm a new one:
+
+  ```bash
+  gh api --paginate repos/{owner}/{repo}/issues/{number}/timeline \
+    --jq '.[] | select(.event == "review_requested") | .created_at'
+  ```
+
+- Where none appears, ask the user to request it from the PR page rather than retrying.
 
 ## Important Rules
 
