@@ -23,7 +23,7 @@ Of two entries defining the same task the later wins, which is how a repository 
 An extensionless one is a task of another name, since mise [keeps the extension in a file task's name](https://github.com/jdx/mise/blob/v2026.9.15/src/config/mod.rs#L5491-L5492), dropping it only for display.
 It takes the bare name whatever the order, which `mise run <name>` [resolves to ahead of the extension-stripped match](https://github.com/jdx/mise/blob/v2026.9.15/src/task/mod.rs#L3956-L3961), and the shared task stays runnable as `<name>.sh`.
 
-An inline `[tasks.<name>]` in the consuming repository [configures the shared task under either name](https://mise.jdx.dev/tasks/task-configuration.html#configuring-file-tasks-from-toml).
+An inline `[tasks.<name>]` in the consuming repository [configures the shared task under either name](https://mise.jdx.dev/tasks/task-discovery.html#configuring-file-tasks-from-toml).
 Declare only metadata in it, such as a `description`, an `env` or `depends`: the shared script stays the task's command and runs after whatever `depends` names.
 A block carrying `run`, `run_windows` or `file` replaces the shared task instead, and `<name>.sh` stops existing as well, which makes it an override by another route rather than a way to configure the shared one.
 
@@ -113,5 +113,5 @@ Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of 
 Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
-[`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/#environment-variables-passed-to-tasks) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
+[`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/running-tasks.html#task-environment) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
