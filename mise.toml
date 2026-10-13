@@ -49,10 +49,8 @@ includes = ["tasks"]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
 "~/.config/uv/.python-version" = { content = "3.14\n" }
-# The rtk hook leaves git as written: a worktree-isolated session refuses `rtk git …`,
-# unable to read where a wrapped git runs. The whole file, so a setting rtk writes
-# into it lasts only until the next run.
-"~/Library/Application Support/rtk/config.toml" = { content = "[hooks]\nexclude_commands = [\"git\"]\n" }
+# Its keys only: rtk keeps its own settings in the same file.
+"~/Library/Application Support/rtk/config.toml/hooks" = { source = ".config/rtk/config.toml", merge = true }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
@@ -163,10 +161,7 @@ run = [
   { task = "setup:dotfiles" },
   # Hook only: the RTK.md a plain `rtk init -g` writes and imports is regenerated on
   # every run, and its rule on `rtk proxy` contradicts .claude/INSTRUCTIONS.md's.
-  # The variable stops it asking about telemetry: `[dotfiles]` has just written rtk's
-  # config without an answer, so from a terminal it would ask on every run and
-  # write the answer, with every default, over that file.
-  "RTK_TELEMETRY_DISABLED=1 rtk init -g --hook-only --auto-patch",
+  "rtk init -g --hook-only --auto-patch",
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`

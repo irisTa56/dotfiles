@@ -1,0 +1,6 @@
+# The keys `[dotfiles]` merges into rtk's config, which stays machine-local otherwise.
+
+# The hook leaves git as written: a worktree-isolated session refuses `rtk git …`,
+# unable to read where a wrapped git runs.
+[hooks]
+exclude_commands = ["git"]
