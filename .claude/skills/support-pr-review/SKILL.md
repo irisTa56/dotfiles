@@ -103,4 +103,4 @@ Present the drafts and stop. Do not post.
 - `raise-findings` — the source of truth for what to raise, which this skill reuses.
 - `address-finding` — the source of truth for the finding-addressing mindset this skill reuses when judging findings.
 - `review-loop` — reviews *your own* changes in a fix-and-re-review loop; what it adds for its reviewer has no counterpart in a PR review.
-- `address-review-comment` — the posting counterpart: responds to and resolves a single existing review comment.
+- `address-review-comment` — the posting counterpart: responds to and resolves existing review comments.
