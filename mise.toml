@@ -49,6 +49,8 @@ includes = ["tasks"]
 "~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/tasks" = { source = ".config/mise/tasks", mode = "symlink" }
 "~/.config/uv/.python-version" = { content = "3.14\n" }
+# Its keys only: rtk keeps its own settings in the same file.
+"~/Library/Application Support/rtk/config.toml/hooks" = { source = ".config/rtk/config.toml", merge = true }
 "~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
