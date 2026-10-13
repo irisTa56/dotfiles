@@ -71,7 +71,8 @@
 
 ### When a conclusion rests on a command's output
 
-- The `rtk` hook rewrites many Bash commands, and the command you wrote does not tell you whether yours is one of them. What comes back is then the substitute's result rather than the command's own, and it does not always say so.
+- The `rtk` hook rewrites many Bash commands, and the command you wrote does not tell you whether yours is one of them.
+  - What comes back is then the substitute's result rather than the command's own, and it does not always say so.
   - git is not one: the hook leaves it as written, so it needs no `rtk proxy`.
 - Where a conclusion rests on the command's own result rather than a summary of it, run that command through `rtk proxy`.
 - The Bash tool's shell is zsh, which [does not split an unquoted `$var` into words](https://zsh.sourceforge.io/FAQ/zshfaq03.html#l19) as `sh` and `bash` do. A command built from a variable holding several arguments receives them as one, and may error or may return a result that reads as a real one, empty or not.
