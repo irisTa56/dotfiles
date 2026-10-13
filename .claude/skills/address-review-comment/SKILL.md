@@ -26,10 +26,13 @@ The Procedure is written for one comment; [Several comments at once](#several-co
 
 ### 1. Parse the URL
 
-Extract from the comment link:
+Extract from the link:
 
 - `owner`, `repo`, PR `number`
-- `comment_id` from the URL fragment (`#discussion_r{id}` or `#r{id}`)
+- from the URL fragment, whichever the link carries:
+  - `comment_id` (`#discussion_r{id}` or `#r{id}`)
+  - `review_id` (`#pullrequestreview-{id}`)
+  - nothing, where the link is a PR's
 
 ### 2. Read the Comment
 
@@ -232,7 +235,9 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
 
 - A thread is open while it is not `isResolved` and its last comment's author is not `viewer.login`.
   - One this account answered last is waiting on the reviewer, so it is left out.
-- A review URL keeps only the threads holding a comment whose `pullRequestReview.databaseId` is `review_id`, whether that review started the thread or replied in it.
+- A review URL keeps only the threads that review commented in or its summary links.
+  - It commented in a thread holding a comment whose `pullRequestReview.databaseId` is `review_id`, whether it started the thread or replied in it.
+  - Its summary links a thread by a `#discussion_r{id}` URL in the review's `body`, which is how a later Copilot round lists a finding still open from an earlier one while adding no comment of its own.
 - A thread's first comment is the one Step 2 reads and Step 9 replies to.
   - The listing already holds what Step 2's thread fetch returns, so take the thread's comments from it, and a bot's from `author.__typename` being `Bot`.
   - What is answered is what the reviewer said since this account's last reply, or the whole thread where there is none.
@@ -242,7 +247,7 @@ gh api graphql -f owner={owner} -f repo={repo} -F number={number} -f query='
 
 Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review_id}`.
 
-- A point its `body` makes by linking a thread is that thread, and takes the thread's verdict rather than a second one, whether the thread is open or already answered.
+- A point its `body` makes by linking a thread is that thread: an open one is in the set, and one already answered keeps its answer rather than taking a second verdict.
 - A point no thread carries goes through Steps 3-5 as a comment would.
   - It has no thread, so Step 6 drafts nothing for it and Step 9 posts nothing; Step 7 reports its verdict.
 
@@ -260,7 +265,7 @@ Read the review with `gh api repos/{owner}/{repo}/pulls/{number}/reviews/{review
 
 ### Asking Copilot for another pass
 
-Where a thread answered here is Copilot's, Step 7 also asks whether to request its re-review.
+Where a thread answered here is Copilot's, or the review whose summary was addressed is, Step 7 also asks whether to request its re-review.
 The request follows Step 9:
 
 ```bash
