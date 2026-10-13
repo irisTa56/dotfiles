@@ -224,7 +224,7 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
   mise run secrets:add <NAME>
   ```
 
-  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise run setup:dotfiles` writes keeps out of every repository, and has fnox add the key's entry there.
+  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise bootstrap` copies into place keeps out of every repository, and has fnox add the key's entry there.
   - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the task prints it for you to place instead.
   - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
 - Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
