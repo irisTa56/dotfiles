@@ -56,12 +56,12 @@ gh api --paginate repos/{owner}/{repo}/pulls/{number}/comments \
   --jq '.[] | select(.id == {root_id} or .in_reply_to_id == {root_id})'
 ```
 
-Then set a tentative reply target type without interrupting the user, from every comment in the thread but this account's (`gh api user --jq .login`):
+Then set a tentative reply target type without interrupting the user, from who wrote the thread's comments:
 
-- `ai-bot` where each of them is a bot's:
+- `ai-bot` where a bot started the thread and every later comment is a bot's or this account's (`gh api user --jq .login`). A comment is a bot's where either holds:
   - `user.type == "Bot"`
   - `user.login` matches common bot naming patterns (e.g., ends with `[bot]`)
-- `human` where any is not, so a thread a bot started and a human then spoke in stays open.
+- `human` otherwise, so a thread a bot started and someone else then spoke in stays open.
 
 Treat this as provisional and finalize at Step 7.
 
