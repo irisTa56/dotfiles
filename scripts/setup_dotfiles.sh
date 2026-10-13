@@ -6,25 +6,6 @@ set -euxo pipefail
 curl -fsSL -o ~/.dircolors.new https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS
 mv ~/.dircolors.new ~/.dircolors
 
-mkdir -p ~/.config/git
-cat <<'EOF' >~/.config/git/ignore
-__pycache__/
-__tmp*
-_tmp*/
-.DS_Store
-.env.local
-.git/
-.ipynb_checkpoints/
-.pytest_cache/
-.tmp.drive*
-**/.claude/settings.local.json
-*uncommitted*/
-CLAUDE.local.md
-erl_crash.dump
-fnox.local.toml
-mise.local.toml
-EOF
-
 # Each startup file sources its fragment from the main checkout,
 # so an edit there reaches the next shell without rerunning this script,
 # and lines an installer appends to the file stay.
