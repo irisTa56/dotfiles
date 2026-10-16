@@ -21,7 +21,8 @@ Run `gh pr checks <N>`, and where a check fails or is still running, say which b
 
 The subject is the title followed by a space and `(#<N>)`, as GitHub writes it for a pull request with more than one commit.
 
-The body is the pull request's body as it stands, since it is written to describe the change once its review has closed, while each commit's message describes that commit and a later one can falsify it.
+The body is the pull request's body, since it describes the change as a whole, while each commit's message describes that commit and a later one can falsify it.
+A fix pushed after the body was written can falsify it too, so read it against `git diff origin/<base>...<headRefOid>` first, and where a claim no longer holds, propose the corrected body, which also replaces the pull request's with `gh pr edit <N> --body-file <file>` on the user's yes, so the two say the same.
 Follow it with a blank line and the trailers the commits carry, each once, oldest commit first, as GitHub's own squash message orders them:
 
 ```shell
@@ -34,10 +35,10 @@ These are what a squash would otherwise lose: co-authors, and the `Entire-Checkp
 ## Merging
 
 Show the user the subject and the body in full, and merge only on their yes.
-Then write the body to a file in the scratchpad and run:
+Then write the subject and the body to files in the scratchpad, since a title can hold a quote the shell would read, and run:
 
 ```shell
-gh pr merge <N> --squash --subject '<subject>' --body-file <file> --match-head-commit <headRefOid>
+gh pr merge <N> --squash --subject "$(cat <subject file>)" --body-file <body file> --match-head-commit <headRefOid>
 ```
 
 `--match-head-commit` refuses the merge where the head moved after the user saw the message.
