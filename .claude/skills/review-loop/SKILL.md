@@ -192,7 +192,7 @@ The loop proposes that close and the user makes it.
   - Enter in the last round's verdict group what each check read or ran and what it returned, so a later selector or reader of the record does not take the item as still open.
   - Carry a settled item only where what the check found still leaves the user something to act on.
     - Name each item it withdraws in one line, with what settled it, so the user can say otherwise: no round reported it, as one did a rejected or floored finding.
-  - Where the check finds the change wrong, take that as a finding and run another round.
+  - Where the check finds the change wrong, judge that as a finding: run another round only where a fix lands, and otherwise report the verdict in the close, as a round reports one.
   - Carry the rest as it came.
 
 ### Waiting on the user
