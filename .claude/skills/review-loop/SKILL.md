@@ -189,7 +189,7 @@ The loop proposes that close and the user makes it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
       - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
 - **Check what it selected.** Settle, by reading or by running what writes nothing in the tree, each item of the selector's answer that this session can settle, since the selector was barred from doing so.
-  - Enter in the last round's verdict group what each check read or ran and what it returned, so a later selector or reader of the record does not take the item as still open.
+  - Enter what each check read or ran and what it returned in the background, as a fact a round established, and the item's disposal in the last round's verdict group, so no later reviewer, selector or reader of the record takes the item as still open.
   - Carry a settled item only where what the check found still leaves the user something to act on.
     - Name each item it withdraws in one line, with what settled it, so the user can say otherwise: no round reported it, as one did a rejected or floored finding.
   - Where the check finds the change wrong, judge that as a finding: run another round only where a fix lands, and otherwise report the verdict in the close, as a round reports one.
