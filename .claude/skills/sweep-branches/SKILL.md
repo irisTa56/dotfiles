@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Sweep branches
 
-Run `mise run git:sweep` and report what it deleted, with the SHA it prints for each branch, since nothing else brings one back.
+Run `mise run git:sweep` and report what it deleted: each branch `gh-poi` deleted with the pull request it lists for it, and each branch deleted after that with the SHA `git branch -D` prints, since nothing else brings one back.
 It runs `gh-poi`, which deletes a branch its merged pull request holds, restorable from that pull request, and force-removes that branch's worktree, ignored files included, unless it has changes or untracked files.
 It then deletes every branch the default branch already holds whole, except one checked out in a worktree or held by `gh-poi lock`.
 Where the task fails, report what it says rather than working around it.
