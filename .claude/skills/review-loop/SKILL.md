@@ -181,13 +181,17 @@ The loop proposes that close and the user makes it.
 - **What the close carries.** What the user has to act on, reaching them with the close and not after it:
   - the behaviour the rounds added, altered or removed;
   - what the last round did to the record, which no reviewer read;
-  - the carry-over, which the selection below settles rather than the loop.
-- **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then. Drop it from the selector's answer, which is otherwise carried as it came.
+  - the carry-over, which the selection below derives rather than the loop, and which the check after it narrows.
+- **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then, so drop it from the selector's answer.
 - **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier.
   - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
   - **What it gets**, and nothing else of yours: the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
       - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
+- **Check what it selected.** Settle, by reading or running, each item of the selector's answer that this session can settle, since the selector was barred from doing so.
+  - Carry a settled item only where what the check found still leaves the user something to act on.
+  - Where the check finds the change wrong, take that as a finding and run another round.
+  - Carry the rest as it came.
 
 ### Waiting on the user
 
