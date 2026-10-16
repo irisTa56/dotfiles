@@ -22,11 +22,11 @@ Run `gh pr checks <N>`, and where a check fails or is still running, say which b
 The subject is the title followed by a space and `(#<N>)`, as GitHub writes it for a pull request with more than one commit.
 
 The body is the pull request's body as it stands, since it is written to describe the change once its review has closed, while each commit's message describes that commit and a later one can falsify it.
-Follow it with a blank line and the trailers the commits carry, each once, in the order they first appear:
+Follow it with a blank line and the trailers the commits carry, each once, oldest commit first, as GitHub's own squash message orders them:
 
 ```shell
 git fetch origin pull/<N>/head <base>
-git log --format='%(trailers:only,unfold)' <headRefOid> --not origin/<base> | awk 'NF && !seen[$0]++'
+git log --reverse --format='%(trailers:only,unfold)' <headRefOid> --not origin/<base> | awk 'NF && !seen[$0]++'
 ```
 
 These are what a squash would otherwise lose: co-authors, and the `Entire-Checkpoint` that `entire why` reads on the base branch.
