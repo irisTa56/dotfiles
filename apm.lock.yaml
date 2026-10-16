@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-10-11T02:29:30.224593+00:00'
+generated_at: '2026-10-16T11:17:13.895480+00:00'
 apm_version: 0.32.0
 dependencies:
 - repo_url: anthropics/skills
@@ -250,15 +250,15 @@ dependencies:
   alias: japanese-tech-writing
   name: japanese-tech-writing
   host: gist.github.com
-  resolved_commit: 9bdffcc1b10dab64e93461c72666aa48e8c345a4
+  resolved_commit: cc853cfc0a771ea5e1118c379caaad6cebd59a0e
   version: unknown
   package_type: claude_skill
   deployed_files:
   - .claude/skills/japanese-tech-writing
   - .claude/skills/japanese-tech-writing/SKILL.md
   deployed_file_hashes:
-    .claude/skills/japanese-tech-writing/SKILL.md: sha256:6208199bb7dd665b7e63aea65dcb41d6522858c8143f2e175df9b8414fdeca51
-  content_hash: sha256:afcf516a1a36e8222e62794a7b6a3cd482de1fa678325153f9d119fa20272b53
+    .claude/skills/japanese-tech-writing/SKILL.md: sha256:c04ac614f43b531770d1da15fb8c937b937695532a12a203c10d1fbeb77a1eb7
+  content_hash: sha256:3ec99569c5e0b1e4fd077e3cecf4eb5bedbd8166226f978a0e53af22ffb03e16
 - repo_url: mattpocock/skills
   name: handoff
   host: github.com
@@ -590,7 +590,7 @@ deployments:
   owners:
   - gist.github.com/irisTa56/4f4492cc558997fae5692cb3b5137f6a
   active_owner: gist.github.com/irisTa56/4f4492cc558997fae5692cb3b5137f6a
-  content_hash: sha256:6208199bb7dd665b7e63aea65dcb41d6522858c8143f2e175df9b8414fdeca51
+  content_hash: sha256:c04ac614f43b531770d1da15fb8c937b937695532a12a203c10d1fbeb77a1eb7
 - kind: project-relative
   target: claude
   value: .claude/skills/memory-curate
