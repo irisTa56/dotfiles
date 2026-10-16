@@ -82,5 +82,6 @@ Re-read the draft and check:
 - Is each exception framed against the rule it breaks, so it does not look arbitrary?
 - Did I restate anything already obvious from the diff?
 - Is any summary claim broader than what is strictly true?
+- If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
