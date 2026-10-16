@@ -16,4 +16,4 @@
   - It also leaves out skill evals, which spend plan usage; [skill-evals.md](.claude/rules/skill-evals.md) says when an edit to a skill calls for them.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
 - PR bodies are English prose, and there is no template to fill in.
-- The squashed subject on `main` is the commit's when the PR has one commit and the PR title when it has more, so write both as Conventional Commits.
+- The squashed subject on `main` is the PR title, which `merge-pr` sets, so write the title as a Conventional Commit, and each commit's subject too, since a merge from GitHub's page takes a one-commit PR's subject from its commit.
