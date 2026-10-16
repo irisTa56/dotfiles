@@ -190,6 +190,7 @@ The loop proposes that close and the user makes it.
       - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
 - **Check what it selected.** Settle, by reading or running, each item of the selector's answer that this session can settle, since the selector was barred from doing so.
   - Carry a settled item only where what the check found still leaves the user something to act on.
+    - Name each item it withdraws in one line, with what settled it, so the user can say otherwise: no round reported it, as one did a rejected or floored finding.
   - Where the check finds the change wrong, take that as a finding and run another round.
   - Carry the rest as it came.
 
