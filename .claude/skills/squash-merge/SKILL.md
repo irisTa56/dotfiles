@@ -12,7 +12,10 @@ Read what the merge needs:
 
 ```shell
 gh pr view <N> --json number,title,body,baseRefName,headRefOid,isDraft
+git fetch origin pull/<N>/head <base>
 ```
+
+`<base>` is the `baseRefName` it prints, and the fetch brings the head and the current base, which the commands below read.
 
 Where the pull request is a draft, or `gh api repos/{owner}/{repo} --jq .allow_squash_merge` prints `false`, report that and stop.
 Run `gh pr checks <N>`, and where a check fails or is still running, say which before asking.
@@ -26,7 +29,6 @@ A fix pushed after the body was written can falsify it too, so read it against `
 Follow it with a blank line and the trailers the commits carry, each once, oldest commit first, as GitHub's own squash message orders them:
 
 ```shell
-git fetch origin pull/<N>/head <base>
 git log --reverse --format='%(trailers:only,unfold)' <headRefOid> --not origin/<base> | awk 'NF && !seen[$0]++'
 ```
 
