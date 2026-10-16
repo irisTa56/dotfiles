@@ -7,11 +7,11 @@
 !/.claude/skills/finding-bar/
 !/.claude/skills/global-hooks/
 !/.claude/skills/investigation-report/
-!/.claude/skills/merge-pr/
 !/.claude/skills/orchestrate-handoff/
 !/.claude/skills/pr-description/
 !/.claude/skills/raise-findings/
 !/.claude/skills/review-loop/
+!/.claude/skills/squash-merge/
 !/.claude/skills/support-pr-review/
 !/.claude/skills/sweep-branches/
 !/.claude/skills/sync-base/

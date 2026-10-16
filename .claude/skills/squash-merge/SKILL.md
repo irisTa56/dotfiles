@@ -1,11 +1,11 @@
 ---
-name: merge-pr
+name: squash-merge
 description: Squash-merge a pull request with the pull request's title and body as the commit message, keeping the trailers its commits carry, such as Co-Authored-By and Entire-Checkpoint, so the commit messages written along the way, which later commits can falsify, stay off the base branch.
 argument-hint: "[pull request number] — omit for the current branch's"
 disable-model-invocation: true
 ---
 
-# Merge PR
+# Squash merge
 
 The pull request is the argument where one is given, and otherwise the current branch's.
 Read what the merge needs:
