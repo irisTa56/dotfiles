@@ -66,4 +66,10 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
   fi
 done
 
+# Said once, after every ref's hits: the marker that clears a false positive
+# clears a real secret too, so a push made on someone's behalf asks them first.
+if [ "$status" -ne 0 ]; then
+  printf '%s\n' "A trufflehog:ignore comment on a reported line lets it through, and lets a real secret through as readily; an agent pushing for someone shows them these hits and adds one only on their confirmation." >&2
+fi
+
 exit "$status"
