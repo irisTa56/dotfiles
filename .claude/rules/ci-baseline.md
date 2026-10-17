@@ -16,6 +16,9 @@ A repository departs from it only where a comment in its workflow says why.
 - CI runs the repository's local `mise run pre-commit` checks by calling the same `qa:` tasks, and `pre-commit` depends on `qa:**`. What a check runs is then the repository's `mise.toml` to say, in one place.
   - Every `qa:` task runs in exactly one CI job, named there or reached through an aggregate task, such as a `qa:py` that depends on `qa:py:*`. A `qa:` task no job reaches runs only locally, so adding one means giving it a job or an aggregate a job already runs.
 - Jobs that run a `qa:` task install their tools with `jdx/mise-action` and `cache: false`, so a tool tracked at `latest` runs at its current release rather than at the one a cache was first saved with.
+- Each job that sets up mise installs only the tools its task calls, named in `install_args`, or none with `install: false`, so a tool added to `mise.toml` for local use costs no job anything.
+  - The workflow sets `MISE_TASK_RUN_AUTO_INSTALL: "false"`, so `mise run` does not install a tool its job left out, and the task fails on the missing command.
+    - The runner image's own copy of a command hides that failure: a job that runs cargo without `rust` among its tools runs the image's toolchain, not `mise.toml`'s.
 - Every job that gates a pull request is a required check in the main ruleset. A Dependabot PR that auto-merges waits on those checks and nothing else.
 
 ## Secret scanning
