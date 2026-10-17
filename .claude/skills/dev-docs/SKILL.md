@@ -140,6 +140,7 @@ Keep the process apart from what it found, and a finding a document rests on apa
 
 - **The process**: its working files, such as notes, code written only to try something out, and downloaded data, stay out of the repository, in the private workspace that [references/private-workspace.md](references/private-workspace.md) describes.
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
+  - What the repository publishes, such as a document, a commit message or a pull request body, does not point to them, since its readers cannot open them; it says what it leaves out, not where that went.
 - **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
   - A finding claims no more than was examined: where it speaks of a set, such as every file of a dataset or every library for a job, it names the members read, as in "the two files read hold no such column", and says "none", "every" or a range only where the whole set was read.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
