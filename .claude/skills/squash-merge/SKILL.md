@@ -1,6 +1,6 @@
 ---
 name: squash-merge
-description: Squash-merge a pull request with the pull request's title and body as the commit message, keeping the trailers its commits carry, such as Co-Authored-By and Entire-Checkpoint, so the commit messages written along the way, which later commits can falsify, stay off the base branch.
+description: Squash-merge a pull request with a commit message drawn from the pull request's title and body for whoever reads the base branch's history rather than for the reviewer, keeping the trailers its commits carry, such as Co-Authored-By and Entire-Checkpoint, so the commit messages written along the way, which later commits can falsify, stay off the base branch.
 argument-hint: "[pull request number] — omit for the current branch's"
 disable-model-invocation: true
 ---
@@ -24,9 +24,11 @@ Run `gh pr checks <N>`, and where a check fails or is still running, say which b
 
 The subject is the title followed by a space and `(#<N>)`, as GitHub writes it for a pull request with more than one commit.
 
-The body is the pull request's body, since it describes the change as a whole, while each commit's message describes that commit and a later one can falsify it.
-A fix pushed after the body was written can falsify it too, so read it against `git diff origin/<base>...<headRefOid>` first, and where a claim no longer holds, propose the corrected body, which also replaces the pull request's with `gh pr edit <N> --body-file <file>` on the user's yes, so the two say the same.
-Follow it with a blank line and the trailers the commits carry, each once, oldest commit first, as GitHub's own squash message orders them:
+The body is drawn from the pull request's body, since it describes the change as a whole, while each commit's message describes that commit and a later one can falsify it.
+It is not a copy of that body, though: the pull request's body is written for the reviewer judging the change now, and the commit message for whoever reads the base branch's history later, so leave out what only helps a reviewer judge, such as how the change was verified or where to look in review.
+A fix pushed after the pull request's body was written can falsify it too, so read it against `git diff origin/<base>...<headRefOid>` first, and where a claim no longer holds, draw the commit message from the corrected text.
+Propose that correction for the pull request's body as well, shown in full apart from the commit message, since the two no longer match; on the user's yes, write it to a file of its own and run `gh pr edit <N> --body-file <that file>`, so the pull request does not keep a claim the change no longer makes.
+Follow the commit message's body with a blank line and the trailers the commits carry, each once, oldest commit first, as GitHub's own squash message orders them:
 
 ```shell
 git log --reverse --format='%(trailers:only,unfold)' <headRefOid> --not origin/<base> | awk 'NF && !seen[$0]++'
