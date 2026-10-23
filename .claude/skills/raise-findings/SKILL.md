@@ -20,6 +20,16 @@ Where the two together still do not settle what changed, say what you could not 
 Read past the diff into what surrounds it: what the change calls or cites, and what calls or cites the change.
 A defect a change introduces often shows at a line the diff leaves untouched, which is exactly the line the diff cannot show you.
 
+## Built-in reviews, where asked
+
+Where the invoking side asks for the built-in reviews, run Claude Code's own review skills through the Skill tool before raising anything, so the angles they carry, which Claude Code keeps current, underlie what follows here.
+
+- `code-review`, with `${CLAUDE_EFFORT}` as its only argument: the effort this review runs at, passed so the skill neither falls back to a level someone last typed nor reaches past this one.
+- `security-review`, where the change reaches anything besides prose, since it reads no documentation.
+
+What they return are candidates, not findings: hold each to the bar below and check it as you would your own before raising it, and raise one they share with you once.
+Neither takes the baseline you were given — `code-review` reads the branch against its upstream or `main` with uncommitted changes, `security-review` only the commits ahead of `origin/HEAD` — so where either range differs from yours, say what that left unread.
+
 ## What to raise
 
 Raise only what clears the bar the `finding-bar` skill states.
