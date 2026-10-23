@@ -28,7 +28,7 @@ Where the invoking side asks for the built-in reviews, run Claude Code's own rev
 - `security-review`, where the change reaches anything besides prose, since it reads no documentation.
 
 What they return are candidates, not findings: hold each to the bar below and check it as you would your own before raising it, and raise one they share with you once.
-Neither takes the baseline you were given — `code-review` reads the branch against its upstream or `main` with uncommitted changes, `security-review` only the commits ahead of `origin/HEAD` — so where either range differs from yours, say what that left unread.
+Neither takes the baseline you were given — `code-review` reads the branch against its upstream, else `main`, else only the last commit, adding uncommitted changes; `security-review` only the commits ahead of `origin/HEAD` — so where either range differs from yours, say what that left unread.
 
 ## What to raise
 
