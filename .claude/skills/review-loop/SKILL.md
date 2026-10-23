@@ -106,7 +106,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
 - **The common git dir and the record directory.** Bar it from touching either.
-- **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section, plus one line where this round reads a large change:
+- **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section, plus one line where this round reads much of the change afresh:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
     - Send the baseline the record pinned, whatever the rounds have committed since.
@@ -114,7 +114,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
-  - on a round that reads a large change, the line asking for the built-in reviews `raise-findings` names: the loop's first round, and the round after one whose fixes reshaped, consolidated or cut the change or whose settlement re-pinned the purpose.
+  - on a round that reads much of the change afresh, the line asking for the built-in reviews `raise-findings` names, as the loop's first round does and as one does after fixes that added or rewrote a large part of the change, or a settlement that re-pinned the purpose.
 - **Nothing of your own.** Compose no review instructions on top, and put none on that list.
 
 Report the findings to the user as the subagent returned them, and take the round on to its outcome in the same turn.
