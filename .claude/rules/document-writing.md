@@ -6,7 +6,7 @@ paths:
 
 # Writing Prose
 
-These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in [~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md#writing-prose).
+These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in [~/.claude/CLAUDE.md](../CLAUDE.md#writing-prose).
 Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
 Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
@@ -39,7 +39,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Where another file owns some content and keeps it updated, do not restate that content; carry a pointer and whatever yours adds.
   - Write the pointer as a relative markdown link wherever its target is a file this repository tracks, carrying the anchor where it names one section of that file — a link checker then catches it once the target moves.
     - A section of the file you are in takes the anchor alone, which also survives the file being renamed.
-    - The link text may keep the path the reader knows the file by, as `[~/.claude/INSTRUCTIONS.md](../INSTRUCTIONS.md)` does, so long as the target stays relative.
+    - The link text may keep the path the reader knows the file by, as `[~/.claude/CLAUDE.md](../CLAUDE.md)` does, so long as the target stays relative.
     - A skill's name stays in backticks even where its file is tracked, since a skill is reached by invoking the name rather than by opening the file.
   - Attributing a claim of your own is [Sources](#sources), not a restatement this bars; reproducing what the other file maintains as its content is.
   - The copy is what goes wrong, not the extra words: it stops matching, and a reader with it in front of them acts on it instead of going to the source.

@@ -29,7 +29,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place, and adds the line that imports them to `~/.claude/CLAUDE.md`.
+- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
@@ -91,12 +91,14 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
-- `.claude/INSTRUCTIONS.md` — user-scoped principles (shareable), symlinked to `~/.claude/INSTRUCTIONS.md`.
-- `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`.
+- `.claude/CLAUDE.md` — user-scoped principles (shareable), symlinked to `~/.claude/CLAUDE.md`.
+- `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`, symlinked to `~/.claude/rules`.
 
-`~/.claude/CLAUDE.md` is a thin, machine-local entry point that imports the user-scoped parts.
-`mise bootstrap` links them, adds the `@INSTRUCTIONS.md` line to that file, leaving any other line in it, and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/INSTRUCTIONS.md` assumes.
-Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/INSTRUCTIONS.md` says of `rtk proxy`.
+A session in this repository finds both of those as project instructions too.
+In the main checkout each resolves to the file it already loaded as user instructions, which Claude Code reads once; a worktree holds copies of its own, which `.claude/settings.json` excludes through `claudeMdExcludes` so they do not load a second time.
+
+`mise bootstrap` links them and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/CLAUDE.md` assumes.
+Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/CLAUDE.md` says of `rtk proxy`.
 
 ## Agent Skills
 

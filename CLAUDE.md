@@ -2,8 +2,8 @@
 
 ## Project Guidelines
 
-- This file loads only for sessions working inside this repository, so a rule that should hold in every project goes in `.claude/INSTRUCTIONS.md`, or in `.claude/rules/` when it is path-scoped.
-- `~/.claude/skills`, `~/.claude/rules`, and `~/.claude/INSTRUCTIONS.md` are symlinks into this repository, so editing what they point at changes agent behavior in every project rather than only here.
+- This file loads only for sessions working inside this repository, so a rule that should hold in every project goes in `.claude/CLAUDE.md`, or in `.claude/rules/` when it is path-scoped.
+- `~/.claude/skills`, `~/.claude/rules`, and `~/.claude/CLAUDE.md` are symlinks into this repository, so editing what they point at changes agent behavior in every project rather than only here.
   - A worktree of this repository is not what those symlinks point at, so a skill edited there is not the skill running.
 - `tasks/` is published: other repositories clone it through `task_config.includes` and run what is in it, so a file added there reaches them. What may go in it, and what happens to a file that should not, is in [tasks/README.md](tasks/README.md#writing-one).
 - Only the skill directories that `.gitignore` unignores are tracked here, so an edit to any other exists on this machine alone and no clone carries it.

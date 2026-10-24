@@ -3,7 +3,6 @@ description: Keep agent instruction and rule files necessary and sufficient
 paths:
   - "**/AGENTS.md"
   - "**/CLAUDE.md"
-  - "**/INSTRUCTIONS.md"
   - "**/.claude/rules/*.md"
 ---
 

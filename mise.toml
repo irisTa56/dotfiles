@@ -52,11 +52,9 @@ includes = ["tasks"]
 "~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
 # Its keys only: rtk keeps its own settings in the same file.
 "~/Library/Application Support/rtk/config.toml/hooks" = { source = ".config/rtk/config.toml", merge = true }
-"~/.claude/INSTRUCTIONS.md" = { source = ".claude/INSTRUCTIONS.md", mode = "symlink" }
+"~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
-# A line rather than the whole file, which stays machine-local.
-"~/.claude/CLAUDE.md/instructions" = { line = "@INSTRUCTIONS.md" }
 
 [bootstrap.hooks]
 pre-dotfiles = '''
@@ -161,7 +159,7 @@ description = "Finish machine setup after `mise bootstrap` links dotfiles and in
 run = [
   { task = "setup:dotfiles" },
   # Hook only: the RTK.md a plain `rtk init -g` writes and imports is regenerated on
-  # every run, and its rule on `rtk proxy` contradicts .claude/INSTRUCTIONS.md's.
+  # every run, and its rule on `rtk proxy` contradicts .claude/CLAUDE.md's.
   "rtk init -g --hook-only --auto-patch",
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
