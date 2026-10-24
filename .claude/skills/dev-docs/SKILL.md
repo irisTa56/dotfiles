@@ -23,6 +23,12 @@ Each document holds one kind of information, chosen by how long that information
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan.
   - When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
 
+Wherever these documents give the reason for a decision, they say what the reason is, not who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
+
+- A reason that states a fact, such as that one option runs faster, is a finding, with its source and the date it was checked, as [Research](#research) says.
+  - What the person observed is a source, as a page or a command is, and a fact nothing can check is recorded as unverified, as a plan's assumptions are.
+- A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "one dependency fewer, at the cost of more code to maintain".
+
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
 
@@ -59,9 +65,6 @@ Read the reference for each document you write or change, and only those:
 3. Take the person through each decision that sets what the phase delivers or what it is built on before writing the plan, one decision at a time, with the candidates, what the research found for each, and the one you would pick.
    - A draft written on your own picks, with the questions beside it, has the person answer inside a direction they have not examined, and a review started on it reviews what their answers then overturn.
    - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
-     - Record what the reason says, not who gave it or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
-     - A reason that states a fact, such as that one option runs faster, is a finding like any other, checked and sourced before it is recorded, and one nothing can check is recorded as unverified, as a plan's assumptions are.
-     - A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "one dependency fewer, at the cost of more code to maintain".
 4. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision the person steers by stays in the plan as one line, with the finding it rests on beside it, even when it took research.
