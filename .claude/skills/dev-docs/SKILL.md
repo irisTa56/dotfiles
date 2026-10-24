@@ -17,11 +17,17 @@ Each document holds one kind of information, chosen by how long that information
 - **Architecture overview**: the current structure, its invariants, a short list of behavior visible from outside, and links to the decisions behind them.
   - It changes when the structure does.
 - **Decision record (ADR)**: one decision, the findings it rests on, the alternatives it rejected and why, and what it costs.
-  - It never changes except for its status, as when it is superseded.
+  - It never changes except for its status, as when it is superseded, and for a correction while it is still Proposed ([references/adr.md](references/adr.md#status-and-superseding)).
 - **Phase plan**: what one phase must achieve and how anyone will know it did.
   - A person steers the phase with it, and once the phase closes, it is a record.
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan.
   - When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
+
+These documents give each decision's reason by what it is, not by who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
+A reason is one of two kinds:
+
+- A reason that states a fact, such as that one option runs faster, is sourced and checked as [Research](#research) says.
+- A reason that is a preference is recorded as one, as in "a preference for Rust".
 
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
@@ -142,6 +148,7 @@ Keep the process apart from what it found, and a finding a document rests on apa
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
   - What the repository publishes, such as a document, a commit message or a pull request body, does not point to them, since its readers cannot open them; it says what it leaves out, not where that went.
 - **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
+  - For what the person themself does, such as how they work, the person's confirmation is the source; any other fact is checked against a source of its own, and only a plan's assumption may wait for its check, marked Unverified.
   - A finding claims no more than was examined: where it speaks of a set, such as every file of a dataset or every library for a job, it names the members read, as in "the two files read hold no such column", and says "none", "every" or a range only where the whole set was read.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
