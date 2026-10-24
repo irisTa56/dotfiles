@@ -47,7 +47,7 @@
 
 ## Delegation
 
-- Choose the lowest-cost model that can still do the delegated work well, Sonnet or below unless a skill names another, and pass it as `model` to every subagent but Plan.
+- Pass a subagent `model: "haiku"` where Haiku can still do the delegated work well, and the model the user or a skill names where one does; pass no other model.
   - Give Haiku a task that reaches an external system, or needs to write outside a scratch or temporary directory, only where the brief names each command or call that does so.
 - Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
 
