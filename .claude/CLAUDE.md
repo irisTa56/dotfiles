@@ -15,7 +15,7 @@
     - Put beside each the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
-- Write a draft of text that will leave the session — a PR body, a comment or message, a prompt for another session — to a file once it runs to five lines or more, and revise it there with edits; the reply names the file instead of presenting the text.
+- Write a draft the user is to review before it leaves the session — a PR body, a comment or message, a prompt for another session — to a file once it runs to five lines or more, and revise it there with edits; the reply names the file instead of presenting the text.
   - A draft re-presented in chat after each revision leaves every earlier version in context beside the current one, and a file lets the user comment on its lines.
   - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
   - An external write sends that file as it stands when the user approves, since they may have edited it: send it from the file, or read it again first.
