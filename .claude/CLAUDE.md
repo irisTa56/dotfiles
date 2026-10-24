@@ -15,9 +15,9 @@
     - Put beside each the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
-- Present a draft the user is to review before it leaves the session in the reply while it is under five lines, as a title or a commit subject is; once it reaches five — a PR body, a comment or message, a prompt for another session — write it to a file and revise it there with edits, and the reply names the file instead of presenting the text.
+- Present a draft the user is to review before it leaves the session — a title, a PR body, a comment or message, a prompt for another session — in the reply while it is under five lines; once it reaches five, write it to a file and revise it there with edits, and the reply names the file instead of presenting the text.
   - A draft re-presented in chat after each revision leaves every earlier version in context beside the current one, and a file lets the user comment on its lines.
-  - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
+  - Naming a file this rule put a draft in is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
   - An external write sends that file as it stands when the user approves, since they may have edited it: send it from the file, or read it again first.
   - Put the file in your scratchpad directory, since inside a working tree it would show as a change to commit.
   - A change to a file in a repository, new or existing, is not such a draft: make it as an uncommitted edit, which the user reviews as its diff.
