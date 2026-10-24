@@ -14,19 +14,19 @@ The last two both go to the user, and "Waiting on the user" governs both.
 
 ## The record
 
-The loop keeps its state in a file, so it survives a compaction and a session that ends mid-loop; re-read it whenever your own context no longer holds what it says.
-It lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
-The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
+The loop keeps its state in files, so it survives a compaction and a session that ends mid-loop; re-read them whenever your own context no longer holds what they say.
+Its verdict section lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/`, and its background at the same path under "the background directory", `$HOME/.claude/review-loop-background/` in place of `$HOME/.claude/review-loop/` (create the leading directories).
+Each directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
 
-It has two sections, and the headings are bookkeeping that stays in the file:
+It has two sections, each a file of its own, so a reviewer can be handed the background without the verdicts:
 
-- `## Background (sent to the reviewer)` — what is true of the change and why it has this shape, each reason carrying whose it is, covering what only this side knows and the diff does not show:
+- The background — what is true of the change and why it has this shape, each reason carrying whose it is, covering what only this side knows and the diff does not show:
   - the pinned purpose;
   - the use the change is built for;
   - the constraints the deliverable must keep, a decision's outcome among them where it constrains what the change may be;
   - what the change deliberately does not cover;
   - what the rounds established about the change or what it runs against, each fact carrying what established it.
-- `## Verdicts` — the title the change would go up under, the baseline the rounds read the change against, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
+- The verdict section, under a `## Verdicts` heading — the title the change would go up under, the baseline the rounds read the change against, and entries grouped by round, the group noting the fixes the round landed and what it wrote into the background, and each entry holding:
   - what was raised;
   - what was decided;
   - the reason, written to be weighed rather than taken on trust, and the alternatives a design choice was chosen over;
@@ -41,7 +41,7 @@ What a round enters, and how the record ends:
 - **Every outcome.** Enter it in the verdict section.
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
-- **Closing the record.** Append one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
+- **Closing the record.** Append to the verdict section one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
   - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit.
 - **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
   - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
@@ -52,7 +52,8 @@ State what this change is for before the first round, and hold every later round
 
 - **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
-  - A record whose last line opens `## Closed` is a finished loop's: set it aside under a name that says which loop it was.
+  - A record whose last line opens `## Closed` is a finished loop's: set both its files aside under a name that says which loop it was.
+  - A record holding both sections in one file is an older loop's: move its background into the background directory before anything reads it.
   - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
@@ -108,7 +109,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
     - Send the baseline the record pinned, whatever the rounds have committed since.
-  - the background section's contents, copied whole;
+  - the background file's path, for it to read whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
@@ -135,7 +136,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it before accepting a finding whose harm is a reader act nothing has yet produced; establishing the mechanism that would make the act possible is not producing the act, nor is the reviewer's own reading of the text. Two things exit it: the floor already covering the finding, and a reader you cannot put the text to.
-  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir or the record directory, and read the wrong act off what it produces.
+  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, the record directory or the background directory, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
 - **A finding against the background.** A valid one against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
@@ -166,7 +167,7 @@ A cut to the change, a consolidation, or a reshape goes through `address-finding
 
 Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run the next round.
 
-- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — MUST go into the background in the record, and not only into the prompt that copies it, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
+- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — MUST go into the background file, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
   - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
   - A reviewer's argument is not one of those: establish it yourself before entering it as one — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
 - **Justification.** A decision's justification lives in the record, and the loop MUST NOT also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
@@ -184,7 +185,7 @@ The loop proposes that close and the user makes it.
 - **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then, so drop it from the selector's answer.
 - **Who selects the carry-over.** Spawn a fresh subagent synchronously, at the reviewer's effort.
   - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
-  - **What it gets**, and nothing else of yours: the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
+  - **What it gets**, and nothing else of yours: both files of the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
       - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
 - **Check what it selected.** Settle, by reading or by running what writes nothing in the tree, each item of the selector's answer that this session can settle, since the selector was barred from doing so.
