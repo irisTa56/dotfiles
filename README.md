@@ -119,6 +119,7 @@ The same `hooks/hooks.json` names one function-hooks module under `modules`, `ho
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach.
 
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
+Plan, and an agent whose definition names its own model, are outside that cap: Plan runs on the session's model, and a definition's model outranks the variable.
 `hooks/ask-subagent-model.sh` covers the model an agent does pass, asking the user before one above Sonnet.
 
 The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them against the installed CLI's declarations (`mise run ts:types`); Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
