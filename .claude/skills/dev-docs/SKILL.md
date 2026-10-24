@@ -24,6 +24,7 @@ Each document holds one kind of information, chosen by how long that information
   - When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
 
 These documents give each decision's reason by what it is, not by who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
+A reason is one of two kinds:
 
 - A reason that states a fact, such as that one option runs faster, is sourced and checked as [Research](#research) says.
 - A reason that is a preference is recorded as one, as in "a preference for Rust".
