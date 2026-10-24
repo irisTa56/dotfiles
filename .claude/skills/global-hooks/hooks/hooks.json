@@ -18,15 +18,6 @@
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/ask-email-in-request.sh\""
           }
         ]
-      },
-      {
-        "matcher": "Agent",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/ask-subagent-model.sh\""
-          }
-        ]
       }
     ],
     "UserPromptSubmit": [
