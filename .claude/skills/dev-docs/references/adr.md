@@ -53,6 +53,8 @@ Write one when someone changing that part later would need the reason: the decis
   - An Accepted decision that stops holding, with nothing replacing it, becomes Deprecated, with a line in its Context saying why.
 - To change a decision, write a new ADR whose Context says what changed and begins with `Supersedes [NNNN](NNNN-<slug>.md)`.
   - Then change the old one's status line and nothing else.
+- A Proposed ADR's text may be corrected where the decision stays as it is, such as a reason restated or a claim found false, since nothing has been settled on it yet and the commit shows what changed.
+  - A change to the decision itself still takes a new ADR.
 
 ## Where it is linked from
 

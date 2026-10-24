@@ -17,7 +17,7 @@ Each document holds one kind of information, chosen by how long that information
 - **Architecture overview**: the current structure, its invariants, a short list of behavior visible from outside, and links to the decisions behind them.
   - It changes when the structure does.
 - **Decision record (ADR)**: one decision, the findings it rests on, the alternatives it rejected and why, and what it costs.
-  - It never changes except for its status, as when it is superseded.
+  - It never changes except for its status, as when it is superseded, and for a correction while it is still Proposed ([references/adr.md](references/adr.md#status-and-superseding)).
 - **Phase plan**: what one phase must achieve and how anyone will know it did.
   - A person steers the phase with it, and once the phase closes, it is a record.
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan.
@@ -59,6 +59,9 @@ Read the reference for each document you write or change, and only those:
 3. Take the person through each decision that sets what the phase delivers or what it is built on before writing the plan, one decision at a time, with the candidates, what the research found for each, and the one you would pick.
    - A draft written on your own picks, with the questions beside it, has the person answer inside a direction they have not examined, and a review started on it reviews what their answers then overturn.
    - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
+     - Record what the reason says, not who gave it or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
+     - A reason that states a fact, such as that one option runs faster, is a finding like any other, checked and sourced before it is recorded.
+     - A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "left out, since assembling it ourselves would be the largest piece of the program".
 4. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision the person steers by stays in the plan as one line, with the finding it rests on beside it, even when it took research.
