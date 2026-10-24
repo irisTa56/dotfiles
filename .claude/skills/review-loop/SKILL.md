@@ -110,8 +110,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
     - Send the baseline the record pinned, whatever the rounds have committed since.
-  - the background section, as the path of a file the reviewer reads whole, written before each spawn by `awk '/^## /{bg = /^## Background/; next} bg' <record> > <your scratchpad>/review-loop-background.md`;
-    - Run that command rather than copying the text into the prompt: a copy is retyped every round, can drift from the record, and leaves one more copy of the background in your context each time.
+  - the background section's contents, copied whole;
   - the settled list this round derives from the verdict section, a line for each finding a round disposed of without landing a fix, giving what was raised and the ground it went on;
     - The ground is whatever disposed of the finding, the floor and an objection's setting-aside included, and not only a verdict on its merits.
     - Write each line as what happened rather than as a verdict to honour, and in terms its reader can weigh without this file: "raised in round 2, left at the floor: the change is built for a base one person reads, so a second confirmation costs more than the state it catches", not "X is not a problem".
@@ -169,7 +168,7 @@ A cut to the change, a consolidation, or a reshape goes through `address-finding
 
 Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run the next round.
 
-- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — MUST go into the background in the record, which the next round's background file is written from, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
+- **Facts into the background.** A fact a round established rather than argued — `address-finding`'s work to settle a fix included — MUST go into the background in the record, and not only into the prompt that copies it, so the next reviewer reads it rather than deriving it again; whatever verdict it served stays in the verdict section.
   - Each such fact carries what established it — the command and what it returned, the test that covers the behavior, the probe's task — or a later reviewer cannot tell whether its own concern is the one that was answered.
   - A reviewer's argument is not one of those: establish it yourself before entering it as one — run the command, run the test, run the probe, or read the text — since what the background states is read as settled by every round after and none of them can see it was never checked.
 - **Justification.** A decision's justification lives in the record, and the loop MUST NOT also write it into the change: a sentence a reader who never saw this review would not need is there to answer the last round, and belongs in the record.
