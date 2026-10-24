@@ -37,8 +37,7 @@ Leave out everything else, including:
 Before spawning, write down your own verdict on each claim, in the same three terms the checker uses, from everything the conversation holds and anything you check now.
 Keep it out of the brief, and fix it before the checker's result arrives, so that result does not pull yours toward it.
 
-Spawn one subagent with the list and the instructions below.
-It runs commands on the user's machine, so choose the lowest-cost model that both settles the claims well and keeps to the read-only limit reliably, which means no smaller than Sonnet.
+Spawn one subagent with the list and the instructions below, passing `effort: high`.
 
 ### What the checker is told
 

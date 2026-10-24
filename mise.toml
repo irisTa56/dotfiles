@@ -51,7 +51,9 @@ includes = ["tasks"]
 "~/.config/uv/.python-version" = { content = "3.14\n" }
 "~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
 # Its keys only: rtk keeps its own settings in the same file.
-"~/Library/Application Support/rtk/config.toml/hooks" = { source = ".config/rtk/config.toml", merge = true }
+"~/Library/Application Support/rtk/config.toml/dotfiles" = { source = ".config/rtk/config.toml", merge = true }
+# Its keys only: Claude Code writes the same file itself.
+"~/.claude/settings.json/dotfiles" = { source = ".config/claude/settings.json", merge = true }
 "~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
