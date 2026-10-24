@@ -19,7 +19,7 @@
   - A draft re-presented in chat after each revision leaves every earlier version in context beside the current one, and a file lets the user comment on its lines.
   - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
   - An external write sends that file as it stands when the user approves, since they may have edited it: send it from the file, or read it again first.
-  - Put the file in your scratchpad directory, or elsewhere outside any repository's working tree, where it would show as a change to commit and move a tree a review is reading.
+  - Put a draft of a file a repository keeps at that file's own path, and any other draft in your scratchpad directory or elsewhere outside the working tree, since inside the tree it would show as a change to commit and move a tree a review is reading.
 
 ## Language and Expression
 
