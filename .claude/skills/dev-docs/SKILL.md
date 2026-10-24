@@ -28,7 +28,7 @@ Where the diff adds or changes these documents, the person also reads it, since 
 
 - Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as the list above and its reference state them.
   - A reviewer who is not told raises whatever the building session might trip on, and since each such finding is true, taking findings on their truth turns a plan into an implementation plan and a decision record into a list of a tool's behaviours.
-- Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge has to be corrected in a change of its own.
+- Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge can only be superseded.
 
 ## Fit the repository first
 
@@ -60,7 +60,7 @@ Read the reference for each document you write or change, and only those:
    - A draft written on your own picks, with the questions beside it, has the person answer inside a direction they have not examined, and a review started on it reviews what their answers then overturn.
    - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
      - Record what the reason says, not who gave it or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
-     - A reason that states a fact, such as that one option runs faster, is a finding like any other, checked and sourced before it is recorded.
+     - A reason that states a fact, such as that one option runs faster, is a finding like any other, checked and sourced before it is recorded, and one nothing can check is recorded as unverified, as a plan's assumptions are.
      - A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "left out of this phase, accepting that those features go undrawn".
 4. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
