@@ -25,7 +25,7 @@ Each document holds one kind of information, chosen by how long that information
 
 Wherever these documents give the reason for a decision, they say what the reason is, not who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
 
-- A reason that states a fact, such as that one option runs faster, is a finding, with its source and the date it was checked, as [Research](#research) says, and one nothing can check is recorded as unverified, as a plan's assumptions are.
+- A reason that states a fact, such as that one option runs faster, is a finding, sourced and checked as [Research](#research) says.
 - A reason that is a preference is recorded as one, as in "a preference for Rust".
 
 Before any pull request opens, run `review-loop` on its diff yourself.
@@ -147,6 +147,7 @@ Keep the process apart from what it found, and a finding a document rests on apa
   - No commit to the repository can pick them up there, and removing a worktree does not delete them.
   - What the repository publishes, such as a document, a commit message or a pull request body, does not point to them, since its readers cannot open them; it says what it leaves out, not where that went.
 - **A finding a decision or an assumption rests on**: goes beside it, with its source and the date you checked it.
+  - For a fact about the person themself, such as how they work or what they need, the person's confirmation is the source; any other fact is checked against a source of its own, and one nothing can check is marked Unverified, as a plan's assumptions are.
   - A finding claims no more than was examined: where it speaks of a set, such as every file of a dataset or every library for a job, it names the members read, as in "the two files read hold no such column", and says "none", "every" or a range only where the whole set was read.
   - Where the decision has an ADR, that is the ADR's context, and otherwise it is the phase plan.
   - Which decisions get an ADR is settled in [Starting a phase](#starting-a-phase), and for a choice the roadmap makes in [references/roadmap.md](references/roadmap.md), not by the finding.
