@@ -17,6 +17,7 @@
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
 - Write a draft the user is to review — a PR body, a comment or message, a prompt for another session — to a file once it runs to five lines or more, and revise it there with edits; the reply names the file instead of presenting the text.
   - A draft re-presented in chat after each revision leaves every earlier version in context beside the current one, and a file lets the user comment on its lines.
+  - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
   - Put the file in your scratchpad directory, or elsewhere outside any repository's working tree, where it would show as a change to commit and move a tree a review is reading.
 
 ## Language and Expression
@@ -63,8 +64,8 @@
 - Where the work is in a repository, commit each step — a review round, or the work of one instruction — so the step has a diff of its own and a state to return to.
 - An explanation of a change says what is different now, and why: what the thing as a whole now does, or asserts, that it did not. Which lines moved is not that, and neither is a list of the wording fixes.
 - Fix the comparison baseline first. Confirm with the user only when it is ambiguous whether they mean changes made within the session or changes from a baseline such as the main branch.
-- Restate a comment the user leaves on a line of the working tree before acting on it, with its text and `<sha> <path>:<line>` read off the commit the tree is then at, since your own edits land between the comment and the answer.
-  - Leave the `<sha>` out where that path has uncommitted edits, which no commit holds.
+- Restate a comment the user leaves on a line of a file before acting on it, with its text and `<sha> <path>:<line>` read off the commit the tree is then at, since your own edits land between the comment and the answer.
+  - Leave the `<sha>` out where no commit holds that path as it stands: it has uncommitted edits, or it lies outside any repository.
   - Where several arrive at once, say which restatement an answer takes up.
 
 ### When a search is the evidence
