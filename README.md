@@ -94,7 +94,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 - `.claude/CLAUDE.md` — user-scoped principles (shareable), symlinked to `~/.claude/CLAUDE.md`.
 - `.claude/rules/` — path-scoped rules, loaded when Claude works with files matching each rule's `paths`, symlinked to `~/.claude/rules`.
 
-A session in a worktree of this repository also finds the worktree's own copies of both as project instructions, which `.claude/settings.json` excludes through `claudeMdExcludes` so they do not load a second time.
+A session in a worktree of this repository also finds the worktree's own copies of both as project instructions, which `.claude/settings.json` excludes through `claudeMdExcludes`, so the main checkout's, reached through those links, are the ones that load there.
 
 `mise bootstrap` links them and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/CLAUDE.md` assumes.
 Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/CLAUDE.md` says of `rtk proxy`.
