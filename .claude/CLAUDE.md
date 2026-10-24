@@ -49,7 +49,6 @@
 
 - Choose the lowest-cost model that can still do the delegated work well, Sonnet or below unless a skill names another, and pass it as `model` to every subagent but Plan.
   - Give Haiku a task that reaches an external system, or needs to write outside a scratch or temporary directory, only where the brief names each command or call that does so.
-- Start a session for a task that does not build on this conversation with `fresh` context.
 - Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
 
 ## Task-specific policies
