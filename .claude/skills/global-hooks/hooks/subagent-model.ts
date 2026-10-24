@@ -19,23 +19,28 @@ export const register: Register = (on) => {
   // Only the user or a skill names a model above Sonnet, so a prompt the user
   // did not expect shows the agent choosing one itself; it asks rather than
   // blocks because one of them may have named it. The model leads the
-  // description, which the permission prompt shows as its heading.
-  on("classic.PreToolUse", (_, e, next) => {
+  // description, which the permission prompt shows as its heading. The hooks
+  // beneath still run on that input, and a deny from one of them stands.
+  on("classic.PreToolUse", async (_, e, next) => {
     if (e.tool !== "Agent") return next(e);
-    const { tool, tool_use_id, ...input } = e as typeof e & {
+    const { model, description } = e as typeof e & {
       model?: string;
       description?: string;
     };
-    const model = input.model;
     if (model === undefined || /haiku|sonnet/.test(model)) return next(e);
+    const described = {
+      ...e,
+      description: description
+        ? `Runs on ${model}: ${description}`
+        : `Runs on ${model}`,
+    };
+    const below = await next(described);
+    if (below.deny !== undefined) return below;
+    const { tool, tool_use_id, ...input } = described;
     return {
       ask: `It runs the subagent on ${model}: allow it only if you or a skill named that model.`,
-      updatedInput: {
-        ...input,
-        description: input.description
-          ? `Runs on ${model}: ${input.description}`
-          : `Runs on ${model}`,
-      },
+      updatedInput: below.updatedInput ?? input,
+      additionalContext: below.additionalContext,
     };
   });
 };
