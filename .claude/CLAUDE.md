@@ -18,6 +18,7 @@
 - Write a draft the user is to review — a PR body, a comment or message, a prompt for another session — to a file once it runs to five lines or more, and revise it there with edits; the reply names the file instead of presenting the text.
   - A draft re-presented in chat after each revision leaves every earlier version in context beside the current one, and a file lets the user comment on its lines.
   - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
+  - An external write sends that file as it stands when the user approves, since they may have edited it: send it from the file, or read it again first.
   - Put the file in your scratchpad directory, or elsewhere outside any repository's working tree, where it would show as a change to commit and move a tree a review is reading.
 
 ## Language and Expression
