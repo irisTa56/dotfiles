@@ -25,9 +25,8 @@ Each document holds one kind of information, chosen by how long that information
 
 Wherever these documents give the reason for a decision, they say what the reason is, not who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
 
-- A reason that states a fact, such as that one option runs faster, is a finding, with its source and the date it was checked, as [Research](#research) says.
-  - What the person observed is a source, as a page or a command is, and a fact nothing can check is recorded as unverified, as a plan's assumptions are.
-- A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "one dependency fewer, at the cost of more code to maintain".
+- A reason that states a fact, such as that one option runs faster, is a finding, with its source and the date it was checked, as [Research](#research) says, and one nothing can check is recorded as unverified, as a plan's assumptions are.
+- A reason that is a preference is recorded as one, as in "a preference for Rust".
 
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
