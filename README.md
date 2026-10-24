@@ -34,7 +34,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
-- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `rtk init`, `apm install`, and the `basic-memory` MCP server.
+- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `apm install`, and the `basic-memory` MCP server.
 
 The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
 
@@ -96,8 +96,8 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 
 A session in a worktree of this repository also finds the worktree's own copies of both as project instructions, which `.claude/settings.json` excludes through `claudeMdExcludes`, so the main checkout's, reached through those links, are the ones that load there.
 
-`mise bootstrap` links them and runs `rtk init -g --hook-only --auto-patch` for the [rtk hook](https://www.rtk-ai.app/) that `.claude/CLAUDE.md` assumes.
-Hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/CLAUDE.md` says of `rtk proxy`.
+`mise bootstrap` links them but leaves out the [rtk hook](https://www.rtk-ai.app/) that `.claude/CLAUDE.md` describes, since every rerun would put back a hook that was taken out.
+Install it by hand with `rtk init -g --hook-only --auto-patch`: hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/CLAUDE.md` says of `rtk proxy`.
 
 ## Agent Skills
 
