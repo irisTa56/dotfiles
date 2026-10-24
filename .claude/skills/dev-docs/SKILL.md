@@ -23,7 +23,7 @@ Each document holds one kind of information, chosen by how long that information
 - **Not written**: a specification of current behavior, and a committed step-by-step implementation plan.
   - When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
 
-Wherever these documents give the reason for a decision, they say what the reason is, not who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
+These documents give each decision's reason by what it is, not by who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
 
 - A reason that states a fact, such as that one option runs faster, is sourced and checked as [Research](#research) says.
 - A reason that is a preference is recorded as one, as in "a preference for Rust".
