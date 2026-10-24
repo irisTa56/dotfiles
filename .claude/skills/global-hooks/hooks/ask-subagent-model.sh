@@ -6,7 +6,7 @@
 # The model goes at the head of the call's description, which the permission
 # prompt shows as its heading, as ask-email-in-request.sh explains.
 
-jq 'select((.tool_input.model // "haiku") | test("haiku|sonnet") | not) | {
+jq 'select(.tool_input.model and (.tool_input.model | test("haiku|sonnet") | not)) | {
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
     permissionDecision: "ask",
