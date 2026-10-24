@@ -15,8 +15,8 @@ The last two both go to the user, and "Waiting on the user" governs both.
 ## The record
 
 The loop keeps its state in files, so it survives a compaction and a session that ends mid-loop; re-read them whenever your own context no longer holds what they say.
-Its verdict section lives at `$(git rev-parse --abbrev-ref HEAD).md` and its background beside it at `$(git rev-parse --abbrev-ref HEAD).background.md`, under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/` (create the leading directories).
-The record directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
+Its verdict section lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/`, and its background at the same path under "the background directory", `$HOME/.claude/review-loop-background/` in place of `$HOME/.claude/review-loop/` (create the leading directories).
+Each directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
 
 It has two sections, each a file of its own, so a reviewer can be handed the background without the verdicts:
 
@@ -53,7 +53,7 @@ State what this change is for before the first round, and hold every later round
 - **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
   - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
   - A record whose last line opens `## Closed` is a finished loop's: set both its files aside under a name that says which loop it was.
-  - A record holding both sections in one file is an older loop's: move its background into the background file before anything reads it.
+  - A record holding both sections in one file is an older loop's: move its background into the background directory before anything reads it.
   - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
   - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
   - Nothing found means a fresh loop: create the record.
@@ -106,7 +106,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
   - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
-- **The common git dir and the record directory.** Bar it from touching either, save reading this loop's background file.
+- **The common git dir and the record directory.** Bar it from touching either.
 - **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section, plus one line where this round reads much of the change afresh:
   - the changes, meaning the diff baseline to read them against and whatever no diff reaches, which `raise-findings`' own scoping section lists;
     - Check yourself, before each spawn, that the diff that baseline produces and whatever no diff reaches are this change and nothing else.
