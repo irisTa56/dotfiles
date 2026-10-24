@@ -41,10 +41,9 @@
 
 ## Delegation
 
-- Choose the lowest-cost model that can still do the delegated work well, Sonnet or below unless a skill names another, and pass it as `model` to every subagent but a fork or Plan: Explore ignores the default subagent model that settings set, so one spawned without it runs on the main conversation's model.
-  - Plan keeps the main conversation's model, since the plan it writes is what the rest of the work is built on.
-  - Give Haiku a task that reaches an external system, or needs to write outside a scratch directory it creates, only where the brief names each command or call that does so, since a Haiku subagent has been seen to run a write its brief forbade.
-- Start a session for a task that does not build on this conversation with `fresh` context: a fork carries the whole conversation and cannot take a cheaper model.
+- Choose the lowest-cost model that can still do the delegated work well, Sonnet or below unless a skill names another, and pass it as `model` to every subagent but Plan.
+  - Give Haiku a task that reaches an external system, or needs to write outside a scratch or temporary directory, only where the brief names each command or call that does so.
+- Start a session for a task that does not build on this conversation with `fresh` context.
 - Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
 
 ## Task-specific policies
