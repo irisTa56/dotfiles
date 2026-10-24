@@ -20,7 +20,7 @@
   - Naming the file is the showing that a step asking to show a draft in full, or the content an external write will send, calls for.
   - An external write sends that file as it stands when the user approves, since they may have edited it: send it from the file, or read it again first.
   - Put the file in your scratchpad directory, since inside a working tree it would show as a change to commit.
-  - A change to a file a repository keeps is not such a draft: make it as an uncommitted edit, which the user reviews as its diff.
+  - A change to a file in a repository, new or existing, is not such a draft: make it as an uncommitted edit, which the user reviews as its diff.
 
 ## Language and Expression
 
