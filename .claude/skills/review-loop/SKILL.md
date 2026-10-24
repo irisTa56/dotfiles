@@ -101,9 +101,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
 - **In its own session**, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
 - **Inside a subagent**, pass `run_in_background: false` and hold the turn: a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
 - **A reviewer that did not review** is replaced: spawn afresh inside the round.
-- **The reviewer's model.** Choose it rather than letting it inherit, since inheritance takes the tier of whatever spawned it.
-  - Spawn the reviewer on the `opus` tier, unless the user or the invoking workflow named a higher one for this reviewer.
-  - Where the running model family offers no such tier, name the tiers it does offer and ask, rather than picking one.
+- **The reviewer's effort.** Pass `effort: high`, whatever effort this session runs at, unless the user or the invoking workflow named another for this reviewer.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
 - **The common git dir and the record directory.** Bar it from touching either.
 - **What the prompt carries.** Beyond the skill it names for the reviewer and those run constraints, it carries three things, each taken from a source outside this file, and nothing else out of the verdict section, plus one line where this round reads much of the change afresh:
@@ -184,7 +182,7 @@ The loop proposes that close and the user makes it.
   - what the last round did to the record, which no reviewer read;
   - the carry-over, which the selection below derives rather than the loop, and which the check after it narrows.
 - **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then, so drop it from the selector's answer.
-- **Who selects the carry-over.** Spawn a fresh subagent synchronously, on the reviewer's tier.
+- **Who selects the carry-over.** Spawn a fresh subagent synchronously, at the reviewer's effort.
   - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
   - **What it gets**, and nothing else of yours: the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
