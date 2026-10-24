@@ -42,7 +42,7 @@ git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning
 [task_config]
 includes = ["tasks"]
 
-# `mise bootstrap` sets a machine up from this checkout: these links and lines,
+# `mise bootstrap` sets a machine up from this checkout: these dotfiles,
 # then the tools, then the bootstrap task below. Each source resolves from this
 # file's directory, so a run from a worktree would link into a directory that goes away.
 [dotfiles]
