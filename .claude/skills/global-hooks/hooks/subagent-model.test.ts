@@ -36,6 +36,17 @@ describe("the Explore model", () => {
     );
   });
 
+  test("is left to its definition for an Explore that is not the built-in", async ($, on) => {
+    engine(on);
+    expect(
+      (
+        await $.agent.spawn(
+          spawn({ provider: { plugin: "flag", tier: "user" } }),
+        )
+      ).model,
+    ).toBe("claude-opus-5-5");
+  });
+
   test("is left alone for any other subagent", async ($, on) => {
     engine(on);
     expect(
