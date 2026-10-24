@@ -61,7 +61,7 @@ Read the reference for each document you write or change, and only those:
    - The reason recorded for a decision is one the person gave or a finding shows, so ask for a reason you would otherwise have to supply.
      - Record what the reason says, not who gave it or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
      - A reason that states a fact, such as that one option runs faster, is a finding like any other, checked and sourced before it is recorded, and one nothing can check is recorded as unverified, as a plan's assumptions are.
-     - A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "left out of this phase, accepting that those features go undrawn".
+     - A preference, or a judgment that a cost is worth bearing, is recorded as that, with the cost it accepts, as in "a preference for Rust" or "one dependency fewer, at the cost of more code to maintain".
 4. Write the phase plan, and record each decision it makes by whether someone changing that part later would need the reason.
    - A decision that is costly to reverse, or whose reason the code does not show, gets an ADR.
    - Any other decision the person steers by stays in the plan as one line, with the finding it rests on beside it, even when it took research.
