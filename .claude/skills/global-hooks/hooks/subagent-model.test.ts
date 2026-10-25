@@ -238,7 +238,7 @@ describe("a call to a tool other than Agent that carries model: opus", () => {
 });
 
 describe("a permission decision beneath the plugin that asks with its own reason", () => {
-  test("still asks, and the user is shown that reason", async ($, on) => {
+  test("still asks, keeping that reason", async ($, on) => {
     on("tool.check", { tool: "Agent" }, () => ({
       decision: "ask",
       reason: "beneath has its own concern",

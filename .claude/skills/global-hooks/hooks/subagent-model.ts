@@ -21,7 +21,9 @@ export const register: Register = (on) => {
   );
 
   // The model leads an Agent call's description, since the desktop app's
-  // permission prompt shows the description and not the ask's reason.
+  // permission prompt shows the description and not the ask's reason, as
+  // anthropics/claude-code#102892 reports for Write; once the reason shows,
+  // this rewrite can go.
   on("tool.call", { tool: "Agent" }, (_, e, next) => {
     const { model, description } = e as typeof e & {
       model?: unknown;
