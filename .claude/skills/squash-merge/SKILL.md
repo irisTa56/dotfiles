@@ -38,7 +38,7 @@ These are what a squash would otherwise lose: co-authors, and the `Entire-Checkp
 
 ## Merging
 
-Show the user the subject and the body in full, and merge only on their yes.
+Show the user the subject in the reply and the body in full, and merge only on their yes.
 Then write the subject and the body to files in the scratchpad, since a title can hold a quote the shell would read, and run:
 
 ```shell
