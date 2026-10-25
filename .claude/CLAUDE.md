@@ -13,7 +13,6 @@
 - Close with a summary of the answer, and the questions you need answered after it. The end of a turn is what the user reliably reads, while an opening gets buried under progress output.
   - List those questions, numbered, rather than leaving them in prose, so the user can answer each by its number. One buried in prose gets skimmed past, and the work proceeds on a default the user never chose.
     - Put beside a question that asks for a decision the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
-      - Leave a question that asks for a fact bare, since knowing what each answer would change can bend the answer.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
 - Present a draft the user is to review before it leaves the session — a title, a PR body, a comment or message, a prompt for another session — in the reply while it is under five lines; once it reaches five, write it to a file and revise it there with edits, and the reply names the file instead of presenting the text.
