@@ -70,6 +70,7 @@ const run = async (
   $: { tool: { call: (input: never) => Promise<unknown> } },
   on: On,
   model: string | undefined,
+  described = true,
 ): Promise<Observed> => {
   const seen: Observed = { asked: false, description: undefined };
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
@@ -85,7 +86,7 @@ const run = async (
     .call({
       tool: "Agent",
       prompt: "p",
-      description: "Review the change",
+      ...(described ? { description: "Review the change" } : {}),
       subagent_type: "general-purpose",
       ...(model === undefined ? {} : { model }),
     } as never)
@@ -99,7 +100,19 @@ describe("an Agent call that names a model above Sonnet", () => {
       expect((await run($, on, model)).asked).toBe(true);
     });
 
-    test(`names ${model} in the reason the user is shown`, async ($, on) => {
+    test(`puts ${model} in front of the description the prompt shows`, async ($, on) => {
+      expect((await run($, on, model)).description).toBe(
+        `Runs on ${model}: Review the change`,
+      );
+    });
+
+    test(`shows only the model of a ${model} call that has no description`, async ($, on) => {
+      expect((await run($, on, model, false)).description).toBe(
+        `Runs on ${model}`,
+      );
+    });
+
+    test(`names ${model} in the ask's reason`, async ($, on) => {
       on("tool.check", { tool: "Agent" }, () => ({ decision: "allow" }));
       const verdict = await $.tool.check({
         tool: "Agent",
@@ -225,7 +238,7 @@ describe("a call to a tool other than Agent that carries model: opus", () => {
 });
 
 describe("a permission decision beneath the plugin that asks with its own reason", () => {
-  test("still asks, and the user is shown that reason", async ($, on) => {
+  test("still asks, keeping that reason", async ($, on) => {
     on("tool.check", { tool: "Agent" }, () => ({
       decision: "ask",
       reason: "beneath has its own concern",

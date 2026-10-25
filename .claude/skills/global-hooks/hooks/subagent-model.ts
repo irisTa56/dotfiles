@@ -20,11 +20,29 @@ export const register: Register = (on) => {
     ),
   );
 
-  // Puts an Agent call that names a model above Sonnet to the user, the reason
-  // naming the model, so a prompt they did not expect shows the agent choosing
-  // it itself. It asks rather than blocks because the user or a skill may have
-  // named that model. A deny the rules, the mode or a PreToolUse hook reached
-  // stands, and an ask they reached keeps its own reason beside this one.
+  // The model leads an Agent call's description, since the desktop app's
+  // permission prompt for an Agent call shows the description and not the
+  // ask's reason. Once an Agent call passing a model above Sonnet is prompted
+  // with the reason in sight, this rewrite can go.
+  on("tool.call", { tool: "Agent" }, (_, e, next) => {
+    const { model, description } = e as typeof e & {
+      model?: unknown;
+      description?: string;
+    };
+    if (!aboveSonnet(model)) return next(e);
+    return next({
+      ...e,
+      description: description
+        ? `Runs on ${model}: ${description}`
+        : `Runs on ${model}`,
+    });
+  });
+
+  // Puts an Agent call that names a model above Sonnet to the user, so a prompt
+  // they did not expect shows the agent choosing it itself. It asks rather than
+  // blocks because the user or a skill may have named that model. A deny the
+  // rules, the mode or a PreToolUse hook reached stands, and an ask they
+  // reached keeps its own reason beside this one.
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
     const verdict = await next(e);
     const { model } = e.input as { model?: unknown };

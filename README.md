@@ -116,7 +116,7 @@ An edit to it takes effect after `/reload-plugins` or a restart.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
-- `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet.
+- `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
 
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
