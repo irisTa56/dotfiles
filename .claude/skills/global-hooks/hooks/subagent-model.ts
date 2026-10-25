@@ -20,10 +20,11 @@ export const register: Register = (on) => {
     ),
   );
 
-  // A prompt the user did not expect shows the agent choosing such a model
-  // itself, and its reason names the model; it asks rather than blocks because the user or a skill may have
-  // named it. A deny the rules, the mode or a PreToolUse hook reached stands,
-  // and an ask they reached keeps its own reason beside this one.
+  // Puts an Agent call that names a model above Sonnet to the user, the reason
+  // naming the model, so a prompt they did not expect shows the agent choosing
+  // it itself. It asks rather than blocks because the user or a skill may have
+  // named that model. A deny the rules, the mode or a PreToolUse hook reached
+  // stands, and an ask they reached keeps its own reason beside this one.
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
     const verdict = await next(e);
     const { model } = e.input as { model?: unknown };
