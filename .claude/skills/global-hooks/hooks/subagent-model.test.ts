@@ -211,3 +211,23 @@ describe("a call to a tool other than Agent that carries model: opus", () => {
     expect(seen.model).toBe("opus");
   });
 });
+
+describe("a permission decision beneath the plugin that asks with its own reason", () => {
+  test("still asks, and the user is shown that reason", async ($, on) => {
+    on("tool.check", { tool: "Agent" }, () => ({
+      decision: "ask",
+      reason: "beneath has its own concern",
+    }));
+    const verdict = await $.tool.check({
+      tool: "Agent",
+      input: {
+        prompt: "p",
+        description: "Review the change",
+        subagent_type: "general-purpose",
+        model: "opus",
+      },
+    });
+    expect(verdict.decision).toBe("ask");
+    expect(verdict.reason).toContain("beneath has its own concern");
+  });
+});

@@ -38,14 +38,18 @@ export const register: Register = (on) => {
 
   // A prompt the user did not expect shows the agent choosing such a model
   // itself; it asks rather than blocks because the user or a skill may have
-  // named it. A deny the rules, the mode or a PreToolUse hook reached stands.
+  // named it. A deny the rules, the mode or a PreToolUse hook reached stands,
+  // and an ask they reached keeps its own reason beside this one.
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
     const verdict = await next(e);
     const { model } = e.input as { model?: unknown };
     if (verdict.decision === "deny" || !aboveSonnet(model)) return verdict;
-    return {
-      decision: "ask",
-      reason: `It runs the subagent on ${model}: allow it only if you or a skill named that model.`,
-    };
+    const reason = `It runs the subagent on ${model}: allow it only if you or a skill named that model.`;
+    return verdict.decision === "ask"
+      ? {
+          ...verdict,
+          reason: verdict.reason ? `${verdict.reason} ${reason}` : reason,
+        }
+      : { decision: "ask", reason };
   });
 };
