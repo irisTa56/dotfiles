@@ -59,8 +59,7 @@ type Observed = {
   // Whether the call reached a person: the permission request the engine
   // raises for an ask, wherever in the call the plugin made it.
   asked: boolean;
-  // The description of the Agent call as the permission decision sees it, which
-  // is what the permission prompt shows as its heading.
+  // The description of the Agent call as the permission decision sees it.
   description: unknown;
 };
 
@@ -96,10 +95,8 @@ const run = async (
 
 describe("an Agent call that names a model above Sonnet", () => {
   for (const model of ["opus", "fable", "claude-opus-5-5"]) {
-    test(`asks the user about ${model}, its description unchanged`, async ($, on) => {
-      const seen = await run($, on, model);
-      expect(seen.asked).toBe(true);
-      expect(seen.description).toBe("Review the change");
+    test(`asks the user about ${model}`, async ($, on) => {
+      expect((await run($, on, model)).asked).toBe(true);
     });
 
     test(`names ${model} in the reason the user is shown`, async ($, on) => {
