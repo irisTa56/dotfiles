@@ -20,24 +20,8 @@ export const register: Register = (on) => {
     ),
   );
 
-  // The model leads an Agent call's description, which the permission prompt
-  // shows as its heading.
-  on("tool.call", { tool: "Agent" }, (_, e, next) => {
-    const { model, description } = e as typeof e & {
-      model?: unknown;
-      description?: string;
-    };
-    if (!aboveSonnet(model)) return next(e);
-    return next({
-      ...e,
-      description: description
-        ? `Runs on ${model}: ${description}`
-        : `Runs on ${model}`,
-    });
-  });
-
   // A prompt the user did not expect shows the agent choosing such a model
-  // itself; it asks rather than blocks because the user or a skill may have
+  // itself, and its reason names the model; it asks rather than blocks because the user or a skill may have
   // named it. A deny the rules, the mode or a PreToolUse hook reached stands,
   // and an ask they reached keeps its own reason beside this one.
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {

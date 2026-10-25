@@ -96,10 +96,25 @@ const run = async (
 
 describe("an Agent call that names a model above Sonnet", () => {
   for (const model of ["opus", "fable", "claude-opus-5-5"]) {
-    test(`asks the user about ${model}, the description leading with it`, async ($, on) => {
+    test(`asks the user about ${model}, its description unchanged`, async ($, on) => {
       const seen = await run($, on, model);
       expect(seen.asked).toBe(true);
-      expect(seen.description).toBe(`Runs on ${model}: Review the change`);
+      expect(seen.description).toBe("Review the change");
+    });
+
+    test(`names ${model} in the reason the user is shown`, async ($, on) => {
+      on("tool.check", { tool: "Agent" }, () => ({ decision: "allow" }));
+      const verdict = await $.tool.check({
+        tool: "Agent",
+        input: {
+          prompt: "p",
+          description: "Review the change",
+          subagent_type: "general-purpose",
+          model,
+        },
+      });
+      expect(verdict.decision).toBe("ask");
+      expect(verdict.reason).toContain(model);
     });
   }
 });
