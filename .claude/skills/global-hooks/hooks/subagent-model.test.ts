@@ -56,35 +56,41 @@ describe("the Explore model", () => {
 });
 
 type Observed = {
-  // The engine's verdict on the call before the mode settles an ask.
-  decision: string | undefined;
+  // Whether the call reached a person: the permission request the engine
+  // raises for an ask, wherever in the call the plugin made it.
+  asked: boolean;
   // The description of the Agent call as the permission decision sees it, which
   // is what the permission prompt shows as its heading.
   description: unknown;
 };
 
-// Runs the call and reports what the engine decided and what the permission
-// decision saw. The tool itself is stubbed, so no subagent starts.
+// Runs the call and reports whether it was put to a person and what the
+// permission decision saw. The tool itself is stubbed, so no subagent starts,
+// and the request is answered with a deny, so nothing waits on a person.
 const run = async (
   $: { tool: { call: (input: never) => Promise<unknown> } },
   on: On,
   model: string | undefined,
 ): Promise<Observed> => {
-  const seen: Observed = { decision: undefined, description: undefined };
+  const seen: Observed = { asked: false, description: undefined };
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
     seen.description = (e.input as { description?: unknown }).description;
-    const verdict = await next(e);
-    seen.decision = verdict.decision;
-    return verdict;
+    return next(e);
+  });
+  on("classic.PermissionRequest", () => {
+    seen.asked = true;
+    return { decision: { behavior: "deny", message: "no person in a test" } };
   });
   on("tool.call", { tool: "Agent" }, () => ({ result: "ok" }));
-  await $.tool.call({
-    tool: "Agent",
-    prompt: "p",
-    description: "Review the change",
-    subagent_type: "general-purpose",
-    ...(model === undefined ? {} : { model }),
-  } as never);
+  await $.tool
+    .call({
+      tool: "Agent",
+      prompt: "p",
+      description: "Review the change",
+      subagent_type: "general-purpose",
+      ...(model === undefined ? {} : { model }),
+    } as never)
+    .catch(() => undefined);
   return seen;
 };
 
@@ -92,7 +98,7 @@ describe("an Agent call that names a model above Sonnet", () => {
   for (const model of ["opus", "fable", "claude-opus-5-5"]) {
     test(`asks the user about ${model}, the description leading with it`, async ($, on) => {
       const seen = await run($, on, model);
-      expect(seen.decision).toBe("ask");
+      expect(seen.asked).toBe(true);
       expect(seen.description).toBe(`Runs on ${model}: Review the change`);
     });
   }
@@ -102,7 +108,7 @@ describe("an Agent call that names Sonnet, Haiku or no model", () => {
   for (const model of ["sonnet", "haiku", "claude-haiku-5-5", undefined]) {
     test(`is not asked about for ${model ?? "no model"}`, async ($, on) => {
       const seen = await run($, on, model);
-      expect(seen.decision).not.toBe("ask");
+      expect(seen.asked).toBe(false);
       expect(seen.description).toBe("Review the change");
     });
   }
@@ -141,11 +147,44 @@ describe("a PreToolUse hook beneath the plugin", () => {
   });
 });
 
+describe("a permission decision beneath the plugin that denies", () => {
+  test("still denies an Agent call that names opus, without asking", async ($, on) => {
+    const seen = { asked: false, toolRan: false };
+    on("tool.check", { tool: "Agent" }, () => ({
+      decision: "deny",
+      reason: "denied beneath",
+    }));
+    on("classic.PermissionRequest", () => {
+      seen.asked = true;
+      return { decision: { behavior: "deny", message: "no person in a test" } };
+    });
+    on("tool.call", { tool: "Agent" }, () => {
+      seen.toolRan = true;
+      return { result: "ok" };
+    });
+    const outcome = await $.tool
+      .call({
+        tool: "Agent",
+        prompt: "p",
+        description: "Review the change",
+        subagent_type: "general-purpose",
+        model: "opus",
+      } as never)
+      .catch((error: unknown) => error);
+    expect(seen.asked).toBe(false);
+    expect(seen.toolRan).toBe(false);
+    expect(outcome).toMatchObject({
+      isError: true,
+      text: expect.stringContaining("denied beneath"),
+    });
+  });
+});
+
 describe("a call to a tool other than Agent that carries model: opus", () => {
   test("is not asked about and reaches the permission decision unchanged", async ($, on) => {
     const tool = "mcp__other__spawn";
     const seen = {
-      decision: undefined as unknown,
+      asked: false,
       description: undefined as unknown,
       model: undefined as unknown,
     };
@@ -153,17 +192,21 @@ describe("a call to a tool other than Agent that carries model: opus", () => {
       const input = e.input as { description?: unknown; model?: unknown };
       seen.description = input.description;
       seen.model = input.model;
-      const verdict = await next(e);
-      seen.decision = verdict.decision;
-      return verdict;
+      return next(e);
+    });
+    on("classic.PermissionRequest", () => {
+      seen.asked = true;
+      return { decision: { behavior: "deny", message: "no person in a test" } };
     });
     on("tool.call", { tool }, () => ({ result: "ok" }));
-    await $.tool.call({
-      tool,
-      description: "Review the change",
-      model: "opus",
-    } as never);
-    expect(seen.decision).not.toBe("ask");
+    await $.tool
+      .call({
+        tool,
+        description: "Review the change",
+        model: "opus",
+      } as never)
+      .catch(() => undefined);
+    expect(seen.asked).toBe(false);
     expect(seen.description).toBe("Review the change");
     expect(seen.model).toBe("opus");
   });

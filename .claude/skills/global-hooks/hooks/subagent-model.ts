@@ -1,5 +1,9 @@
 import type { Register } from "claude-code";
 
+// A model above Sonnet, which only the user or a skill names.
+const aboveSonnet = (model: unknown): model is string =>
+  typeof model === "string" && !/haiku|sonnet/.test(model);
+
 // Keeps a subagent off a model above Sonnet that nobody named, alongside
 // CLAUDE_CODE_SUBAGENT_MODEL, which caps a subagent passed no model.
 export const register: Register = (on) => {
@@ -16,31 +20,32 @@ export const register: Register = (on) => {
     ),
   );
 
-  // Only the user or a skill names a model above Sonnet, so a prompt the user
-  // did not expect shows the agent choosing one itself; it asks rather than
-  // blocks because one of them may have named it. The model leads the
-  // description, which the permission prompt shows as its heading. The hooks
-  // beneath still run on that input, and a deny from one of them stands.
-  on("classic.PreToolUse", async (_, e, next) => {
-    if (e.tool !== "Agent") return next(e);
+  // The model leads an Agent call's description, which the permission prompt
+  // shows as its heading.
+  on("tool.call", { tool: "Agent" }, (_, e, next) => {
     const { model, description } = e as typeof e & {
-      model?: string;
+      model?: unknown;
       description?: string;
     };
-    if (model === undefined || /haiku|sonnet/.test(model)) return next(e);
-    const described = {
+    if (!aboveSonnet(model)) return next(e);
+    return next({
       ...e,
       description: description
         ? `Runs on ${model}: ${description}`
         : `Runs on ${model}`,
-    };
-    const below = await next(described);
-    if (below.deny !== undefined) return below;
-    const { tool, tool_use_id, ...input } = described;
+    });
+  });
+
+  // A prompt the user did not expect shows the agent choosing such a model
+  // itself; it asks rather than blocks because the user or a skill may have
+  // named it. A deny the rules, the mode or a PreToolUse hook reached stands.
+  on("tool.check", { tool: "Agent" }, async (_, e, next) => {
+    const verdict = await next(e);
+    const { model } = e.input as { model?: unknown };
+    if (verdict.decision === "deny" || !aboveSonnet(model)) return verdict;
     return {
-      ask: `It runs the subagent on ${model}: allow it only if you or a skill named that model.`,
-      updatedInput: below.updatedInput ?? input,
-      additionalContext: below.additionalContext,
+      decision: "ask",
+      reason: `It runs the subagent on ${model}: allow it only if you or a skill named that model.`,
     };
   });
 };
