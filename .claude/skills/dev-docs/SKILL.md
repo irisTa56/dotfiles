@@ -24,10 +24,13 @@ Each document holds one kind of information, chosen by how long that information
   - When the steps need planning, plan mode produces a throwaway plan (see [Working in a phase](#working-in-a-phase)).
 
 These documents give each decision's reason by what it is, not by who decided or when, since a later reader weighs whether the reason still holds, and a name and a date give them nothing to weigh.
-A reason is one of two kinds:
+A reason is one of three kinds:
 
 - A reason that states a fact, such as that one option runs faster, is sourced and checked as [Research](#research) says.
 - A reason that is a preference is recorded as one, as in "a preference for Rust".
+- A reason that is a judgment, an inference the person holds that no source settles, is recorded with the inference stated and marked as unchecked, as in "on the judgment, not checked against any source, that features missing along the area's edge change little of what a mapper looks for".
+  - Unlike a preference, it can turn out wrong, and stating it lets a later reader see when it has.
+  - Unlike a plan's Unverified assumption, no check is pending on it; one that a source could settle is a fact, and is checked.
 
 Before any pull request opens, run `review-loop` on its diff yourself.
 Where the diff adds or changes these documents, the person also reads it, since the documents are where they steer.
