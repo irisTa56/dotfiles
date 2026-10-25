@@ -21,9 +21,9 @@ export const register: Register = (on) => {
   );
 
   // The model leads an Agent call's description, since the desktop app's
-  // permission prompt shows the description and not the ask's reason, as
-  // anthropics/claude-code#102892 reports for Write; once the reason shows,
-  // this rewrite can go.
+  // permission prompt for an Agent call shows the description and not the
+  // ask's reason. Once an Agent call passing a model above Sonnet is prompted
+  // with the reason in sight, this rewrite can go.
   on("tool.call", { tool: "Agent" }, (_, e, next) => {
     const { model, description } = e as typeof e & {
       model?: unknown;
@@ -40,8 +40,9 @@ export const register: Register = (on) => {
 
   // Puts an Agent call that names a model above Sonnet to the user, so a prompt
   // they did not expect shows the agent choosing it itself. It asks rather than
-  // blocks because the user or a skill may have named that model. A deny the rules, the mode or a PreToolUse hook reached
-  // stands, and an ask they reached keeps its own reason beside this one.
+  // blocks because the user or a skill may have named that model. A deny the
+  // rules, the mode or a PreToolUse hook reached stands, and an ask they
+  // reached keeps its own reason beside this one.
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
     const verdict = await next(e);
     const { model } = e.input as { model?: unknown };
