@@ -113,8 +113,15 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
-The same `hooks/hooks.json` names a function-hooks module under `modules`, `hooks/review-loop.ts`, which supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
-The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the module's tests with `claude plugin test` and type-checks it against the installed CLI's declarations (`mise run ts:types`); Biome lints and formats it (`mise run qa:ts`, `mise run format-ts`), in CI as well.
+The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
+
+- `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
+- `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet.
+
+The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
+Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
+
+The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them against the installed CLI's declarations (`mise run ts:types`); Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
 The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
