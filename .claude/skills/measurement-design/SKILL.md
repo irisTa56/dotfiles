@@ -8,45 +8,66 @@ description: Design a measurement whose numbers will decide something — a benc
 A number counts only if a reader who was not in the conversation reaches the same conclusion from it.
 Everything below serves that reader: they cannot ask which step produced the number, what else changed, or why this run and not another.
 
-When a person executes the run from a page, the page carries every part of the design below that the executor acts on or records, and is written with the `runbook` skill.
+The sections follow the measurement through design, run and reading.
+Every decision is taken in the first, before any run: the later two say how the run and the reading use what the design fixed, so a design that leaves one of them open has left a choice to be made after seeing a result.
+
+Write the design down before running it; a number from a step that was not written down is not data.
+When a person executes the run from a page, that page carries every part of the design the executor acts on or records, and is written with the `runbook` skill.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
-## Fix the design before the run
+## Design
 
-- Write the procedure down before running it.
-  - A number from a step that was not written down is not data. Note it as what changed the plan, and keep it out of the results.
-- Fix in advance what each outcome leads to, with the threshold a difference must clear to count.
-  - Choosing what to run next from a result is not a procedure: the choice bends towards the hypothesis, and a reader cannot tell which runs were planned.
-  - A result that fits none of the fixed branches sends you back to the design, not on to an improvised run.
-  - Results already in hand when no branches were fixed, such as numbers someone pastes or a run you just made, are exploration: they may suggest the next design, but that design fixes its branches and threshold before its own runs, and only those runs count as evidence for it.
-- Fix in advance what voids a run, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and have each run record what shows it. A voided run is repeated, not read, within a limit fixed with it.
-  - Record every voided run with its cause, per condition. A condition that voids more often than the others is itself a result about that condition, and reaching the limit sends you back to the design.
-- Keep an instrument that the no-difference branch would need, such as a counter showing the changed path was exercised at all. Without it, "no difference" cannot be told apart from "the change never took effect".
-- State the assumption behind a time estimate, such as the time per iteration and where that figure came from, so whoever plans around the estimate can see when it no longer holds.
-
-## Choose what to vary
+### What to vary
 
 - Vary one factor per condition, so that a difference has one cause.
   - A change that is going out anyway does not ride along with the factor under test; give it a condition of its own or leave it out.
 - Vary only factors that have a counterpart in the system the decision is about: a setting it can be given, a version it can run.
   - A knob that exists only in the test setup produces a number nobody can act on.
-- Re-run the baseline in the same sequence as the conditions rather than reusing an earlier one, and alternate the conditions within the sequence rather than running each as one block. Load from elsewhere, warm caches and versions drift over time, and whatever drift lines up with one condition becomes part of the difference.
 
-## Choose what to measure
+### What to measure
 
 - Prefer a quantity read directly over one inferred from data already at hand: a counter the system keeps, or a ceiling measured with the same tool that measures the demand.
   - An inference stacks assumptions the reader has to accept, and a direct reading needs none.
 - A vendor's published figure is not evidence about this environment. Where the decision rests on a ceiling, measure it here.
+- Keep an instrument that the no-difference branch would need, such as a counter showing the changed path was exercised at all.
+  - Without it, "no difference" cannot be told apart from "the change never took effect".
 
-## Size the run
+### How the conditions are run
 
-- Size the run to the effect it has to resolve: enough repeats that the uncertainty of each condition's summary, such as its median, is small next to the threshold.
-  - Take the run-to-run spread this needs from earlier runs or a pilot the plan names, and where there is neither, say that the count is a guess.
-- Fix the number of repeats before the run, and do not add repeats after seeing the spread: stopping where the result looks settled is choosing from a result.
-- Keep the repeat count the same across every condition the plan compares, rounded up to a round number from the largest count any compared condition needs. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
+- Re-run the baseline in the same sequence as the other conditions rather than reusing an earlier result.
+  - Load from elsewhere, warm caches and versions drift over time, so a baseline from another session carries that drift into the difference.
+- Interleave the conditions within the sequence, in a shuffled order each round, rather than running each condition as one block.
+  - Drift within a session lines up with whichever condition runs during it, so blocks still let it into the difference.
+- Decide how warm-up is handled, such as discarding the first runs after a restart or measuring start-up as a quantity of its own, and handle it the same way in every condition.
 
-## Draw the conclusion
+### How many runs
 
-- Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence. Where the runs at hand do not, say what they cannot show, and name the run that would show it.
+- Size the run to the effect it has to resolve: enough repeats that the uncertainty of the difference between conditions is small next to the threshold.
+  - Take the run-to-run spread this needs from earlier runs or a pilot the plan names. Where there is neither, say that the count is a guess.
+- Give every compared condition the same repeat count: the largest any of them needs, rounded up to a round number.
+  - The same count lets runs compare directly.
+  - A round count shows the reader it was set in advance rather than where the runs happened to stop.
+- State the assumption behind a time estimate, such as the time per run and where that figure came from, so whoever plans around the estimate can see when it no longer holds.
+
+### What the results will decide
+
+- Fix what each outcome leads to, with the threshold a difference must clear to count.
+- Fix what makes a run unusable, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and what each run records to show it.
+- Fix how many times a condition may be re-run to replace unusable runs before the measurement stops.
+
+## Run
+
+- Run what the design lists and nothing else.
+  - A result never adds a run, a repeat or a condition, since a choice made from a result bends towards the hypothesis and a reader cannot tell which runs were planned. What a result suggests goes into the next design.
+- Replace an unusable run with a new one rather than reading it, and record it with its cause, per condition.
+- Stop at the re-run limit, and take the design back up rather than running on.
+  - A condition whose runs keep becoming unusable may be showing what that condition does, such as the new setting making the service restart. Report how often each condition's runs were unusable as a result in its own right, rather than replacing the runs until that disappears.
+
+## Reading
+
+- Read the result through the outcomes fixed before the run, and say which one it fell in. A result that fits none of them sends you back to the design.
+- Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence.
+  - Where the runs at hand do not, say what they cannot show, and name the run that would show it.
 - Give a quantity as the measured number or range, with the number of runs behind it, rather than as an adjective such as "faster" or "about the same".
-- Read the result through the branches fixed before the run, and say which one it fell in.
+- Treat results gathered with no outcomes fixed beforehand, such as numbers someone pastes or a run you just made, as exploration.
+  - They may suggest the next design, but only that design's own runs count as evidence for it.
