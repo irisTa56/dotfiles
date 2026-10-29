@@ -22,6 +22,8 @@ Take that outline from what the change actually has to say.
 
 ## Be self-contained at the overview level
 
+- Make the title say what the PR does.
+  - Leave out identifiers from the plan the work followed, such as a session number or a task or step id from a plan document; a reader who has not seen the plan cannot decode them, and they say nothing about the change.
 - Convey the change at an overview level in the body itself. The reviewer should grasp what changed and why without opening the linked ticket, issue, or prior PR.
 - Open the body with that overview: what the change does, stated as its effect, and why it is needed.
   - Mechanism, the exact scope of the old behavior, and alternatives come after it; a reviewer who stops after the opening should already know what they are judging.
@@ -53,6 +55,11 @@ Take that outline from what the change actually has to say.
 
 - Do not fill sections mechanically. If a section (design rationale, review focus, …) holds nothing useful to a reviewer, write the template's "none" marker when the section is required, and omit only sections the template leaves optional. An honest "none" beats a paragraph of filler.
 - Merge sections when the content sits better together. Often the one risk worth flagging belongs in the same place as the verification that clears it, rather than split across "review focus" and "notes".
+- Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (attempts abandoned, sessions it took).
+  - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
+- When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
+  - Ask only what the diff can confirm. A question about how the change behaves once deployed, or about a result outside the repository, gets a guess back.
+  - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
 ## State verification as a judgment, not a metrics dump
 
@@ -75,6 +82,7 @@ Take that outline from what the change actually has to say.
 Re-read the draft and check:
 
 - Does the draft satisfy every section and checklist item the repository requires?
+- Does the title say what the PR does, with no identifier from the plan the work followed?
 - Does the opening alone tell a reviewer what the change does and why?
 - Can a reviewer see the shape of the change without reading the whole body?
 - Would a reviewer who cannot open the linked ticket still understand the change?
@@ -84,4 +92,6 @@ Re-read the draft and check:
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
+- Did any run result, estimate, or progress history stay in the body instead of where the work is tracked?
+- If an AI reviewer will read the review focus, can the diff answer each question it asks, and is each term explained at its first use?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
