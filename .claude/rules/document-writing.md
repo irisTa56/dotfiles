@@ -15,7 +15,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it.
-- Do not refer to anything by a label from a plan or a session the reader cannot open, such as a task or step identifier; say what it stands for.
+- Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
