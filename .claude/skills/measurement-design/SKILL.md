@@ -43,7 +43,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 ### What the results will decide
 
 - Fix what each outcome leads to, the threshold a difference must clear, and what has to clear it: the interval of the difference for a stated statistic, built in a stated way, not the point estimate alone.
-- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the check that runs after each run decide it, record it with its cause, and exit non-zero, so nobody judges a printed verdict.
+- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the check that runs after each run decide it, record it with its cause, and exit non-zero, so nobody judges a printed verdict; the next scheduled run goes ahead.
 
 ## Run
 
