@@ -13,7 +13,6 @@
 - Close with a summary of the answer, and the questions you need answered after it. The end of a turn is what the user reliably reads, while an opening gets buried under progress output.
   - List those questions, numbered, rather than leaving them in prose, so the user can answer each by its number. One buried in prose gets skimmed past, and the work proceeds on a default the user never chose.
     - Put beside a question that asks for a decision the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
-  - Ask once: put every question in that one list, rather than asking each as you reach it.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
 - Present a draft the user is to review before it leaves the session — a title, a PR body, a comment or message, a prompt for another session — in the reply while it is under five lines; once it reaches five, write it to a file and revise it there with edits, and the reply names the file instead of presenting the text.
@@ -37,9 +36,7 @@
   - Where that content is a post others will read — a comment, a reply, a message — it closes with `*AI-assisted — Tool: Claude Code; model: anthropic/<model ID>.*`, unless Claude Code adds its own attribution line to it (as it does to a pull request's body) or the destination's own convention sets another.
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
-- Read-only is not harmless: before a command on a remote or shared machine that could load it, run long, or otherwise disturb it — a recursive search, a scan of a large tree — ask the user, saying what it runs, where, and what it could cost.
-  - Bound every command on a remote machine with `timeout` run on that machine (`ssh host timeout 60 cmd`), so it stops within that bound even if the session that started it ends; a local `timeout` around `ssh` ends only the local client.
-  - When a remote command times out, moves to the background, or is stopped on this side, say so at once, and say whether a process may still be running there.
+- Read-only is not harmless: ask before a command that could load a remote or shared machine or run long there, saying what it runs, where, and what it could cost; if one is cut short on this side, say so at once and whether it may still be running there.
 - Don't force-push to a PR's branch after it has been marked ready.
 - Don't offer Auto-fix on a pull request.
 
@@ -82,7 +79,6 @@
 
 ### When a conclusion rests on a command's output
 
-- Verify a lint, format or test claim through the project's task runner where it defines a task for it, not by running the bare tool: a direct invocation skips the runner's file selection and task composition, and can report a pass the runner would not.
 - The `rtk` hook rewrites many Bash commands, and the command you wrote does not tell you whether yours is one of them.
   - What comes back is then the substitute's result rather than the command's own, and it does not always say so.
   - git is not one: the hook leaves it as written, so it needs no `rtk proxy`.
