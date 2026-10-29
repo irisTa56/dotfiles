@@ -4,7 +4,8 @@ max_turns: 8
 allowed_tools: [Skill]
 ---
 
-Turn my notes into a run sheet in Markdown that an on-call engineer will follow on the bench host tomorrow without me. Reply with the run sheet only.
+Turn my notes into a run sheet in Markdown that an on-call engineer will follow on the bench host tomorrow without me.
+Reply with the run sheet only.
 
 My notes:
 

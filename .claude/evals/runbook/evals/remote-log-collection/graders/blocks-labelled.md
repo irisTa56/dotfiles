@@ -2,7 +2,8 @@
 type: llm
 ---
 
-Look at every block of commands the user is to run. A block that shows file contents to type into an editor is not a command block.
+Look at every block of commands the user is to run.
+A block that shows file contents to type into an editor is not a command block.
 
 A label counts when it sits on the block itself or on the step heading or step text the block belongs to, such as "On app-3:" at the start of a numbered step; it covers every command block in that step.
 
