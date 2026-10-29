@@ -7,12 +7,11 @@ description: Design a measurement whose numbers will decide something — a benc
 
 A number counts only if a reader who was not in the conversation reaches the same conclusion from it.
 
-Take every decision in the design, before the first measured run; the only run allowed earlier is a pilot the design names.
+Take every decision in the design, before the first measured run.
 The run and the reading then use what the design fixed, and anything it leaves open becomes a choice made after seeing a result.
 Write the design down; a number from a step that was not written down is not a result the measurement can report.
 
-When a person executes the run from a page, write that page with the `runbook` skill: it carries every part of the design the executor acts on or records, under runbook's rules.
-For an unusable run that means what shows it, what to record and where the replacement goes; how to repair its cause waits until it has happened, as runbook says of a situation not yet seen.
+When a person executes the run from a page, write that page with the `runbook` skill.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Design
@@ -36,28 +35,24 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ### How many runs
 
-- Size the run so that the uncertainty of the difference between conditions is small next to the threshold.
-  - Take the run-to-run spread from earlier runs, or from a pilot run before the design is finished; a pilot's runs are not pooled with the measured ones.
-  - Write the count into the design as a number. "10 runs, or 20 if the first runs scatter widely" is not yet a count, since whoever runs it then picks the count from results: run that check while designing.
-  - Where no spread is known and no pilot runs, the guess itself is the count: write it as the number and tell whoever approves the design that it is a guess. The executor's page states the count without that caveat.
+- Size the run so that the uncertainty of the difference between conditions is small next to the threshold, taking the run-to-run spread from earlier runs or a pilot.
+- Write the count into the design as one number. "10 runs, or 20 if the first runs scatter widely" is not yet a count, since whoever runs it then picks the count from results. Where no spread is known, the guess is the count: tell whoever approves the design that it is a guess, and keep that caveat off the executor's page.
 - Give every compared condition the same repeat count: the largest any of them needs, rounded up to a round number, so the reader sees it was set in advance rather than where the runs stopped.
 - State what a time estimate assumes, such as the time per run.
 
 ### What the results will decide
 
-- Fix what each outcome leads to, with the threshold a difference must clear and what has to clear it: the interval of the difference, not its point estimate alone. Fix the statistic compared, such as the median of each condition, and how the interval is built and at what level.
-- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the program that checks each run decide it: the check records the run as unusable with its cause and exits non-zero, so the reading step does not run on it and nobody judges a printed verdict.
-- Fix how many unusable runs a condition may replace before the measurement stops, and where in the order a replacement goes, the last round included.
+- Fix what each outcome leads to, the threshold a difference must clear, and what has to clear it: the interval of the difference for a stated statistic, built in a stated way, not the point estimate alone.
+- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the check that runs after each run decide it, record it with its cause, and exit non-zero, so nobody judges a printed verdict.
 
 ## Run
 
 - Run what the design lists and nothing else. A result never adds a run, a repeat or a condition; what it suggests goes into a revision of the design, written before any further run, which can be a few lines added to this one. The runs under a revision are read on their own against its outcomes, not pooled with the runs that prompted it.
-- Replace an unusable run where the design placed replacements, and record it with its cause, per condition.
-- Stop at the replacement limit and take the design back up. Report how often each condition's runs were unusable, since a condition whose runs keep failing may be showing what that condition does.
+- An unusable run is not read and not replaced. Report each condition's usable and unusable counts, since a condition whose runs keep failing may be showing what that condition does; where too few runs are usable to decide, that goes into a revision.
 
 ## Reading
 
 - Say which outcome fixed before the run the result fell in. A result that fits none sends you back to the design.
 - Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence. Otherwise say what they cannot show, and name the run that would show it.
 - Give a quantity as the measured number or range with the number of runs behind it, and a difference with its interval, rather than an adjective such as "faster".
-- Treat results gathered with no outcomes fixed beforehand, such as numbers someone pastes or a run you just made, as exploration: they may suggest the next design, but only its own runs count as evidence for it.
+- Treat results gathered with no outcomes fixed beforehand, such as numbers someone pastes, a pilot, or a run you just made, as exploration: they may suggest the next design, but only its own runs count as evidence for it.
