@@ -32,7 +32,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Re-run the baseline in the same sequence as the other conditions rather than reusing an earlier result.
 - [Interleave the conditions](https://research.spec.org/icpe_proceedings/2017/proceedings/p287.pdf) in a shuffled order each round rather than running each as one block, and write the order for every round into the design before the first run.
-- Decide how [warm-up is handled](https://blog.acolyer.org/2017/11/06/statistically-rigorous-java-performance-evaluation/), and handle it the same way in every condition.
+- Decide how [warm-up is handled](https://dri.es/files/oopsla07-georges.pdf), and handle it the same way in every condition.
 
 ### How many runs
 
