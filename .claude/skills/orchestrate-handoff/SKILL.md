@@ -1,6 +1,6 @@
 ---
 name: orchestrate-handoff
-description: Resume a multi-issue batch from a handoff document as the orchestrator — delegate each issue to a worktree subagent and mediate with the user, without writing code yourself.
+description: Start or resume a multi-issue batch from a handoff document as the orchestrator — start one Claude Desktop session per issue, which the user can open and steer, and settle with the user what spans issues, without writing code yourself.
 argument-hint: "path to the handoff document"
 disable-model-invocation: true
 ---
@@ -9,24 +9,19 @@ disable-model-invocation: true
 
 Read the handoff document at the given path before anything else.
 
+The batch runs on the Claude Desktop app's sessions, each a conversation the user can open and steer themselves.
+Outside the Desktop app, say so and stop.
+
 You are the orchestrator for this batch:
 
-- Stand up one worktree-isolated subagent per issue, in the background so that it can message you while it runs, and delegate to it:
-  - reading the sources;
-  - writing the code and the tests;
-  - running the gates;
-  - running the review loop;
-  - committing its work.
-- Keep every write that leaves this machine — the branch push and the pull request — with yourself, under a branch name you chose rather than the one a worktree subagent was handed.
-  - A subagent's messages reach you and not the user, so you are its only way to them.
-  - Have each subagent return whatever those writes need from it, then make them once you have shown the user what will leave and they have said to go ahead.
-  - Everything else a subagent owes the user travels the same way, its review loop's close report and record path included; carry that to them with the issue's result.
-- When you delegate further work on an issue that already has a review loop, send it by name to the subagent that ran the loop, which resumes with its context whole.
-  - Only a subagent that did not run it needs the loop's record path, since its own branch name will not lead it there.
+- Start one session per issue, each in a worktree of its own.
+  - Invoking this skill is the user's request for those sessions, so start each one when the batch reaches its issue rather than proposing it.
+  - Its brief points at the handoff document and names the issue, so the session reads the sources itself.
+  - The session carries the issue to the end: the code and tests, the gates, the review loop, the commits, and the push and pull request once the user approves them there.
 - Do not write code yourself.
-  - Work that belongs to an issue belongs to that issue's subagent, however small it looks from here.
-- Go to the user when a decision is needed and carry the answer back; you are the intermediary rather than the decider.
-- Settle each specification the handoff leaves undecided with the user no later than the point at which the handoff schedules it, where it does, and always before delegating an issue that depends on it.
-  - An open decision reaches the subagent as an inference, and the review loop then spends rounds discovering it.
-  - A decision taken just before the issues it governs are delegated is made with the earlier issues' pull requests and review loops in hand, which can answer it or change the answer; settling it up front decides with the least information.
+  - Work that belongs to an issue goes to that issue's session, however small it looks from here, so the context it builds stays in one place.
+- Leave a decision that comes up inside one issue's session to that session and the user, who can talk to each other directly; take up with the user what spans issues.
+- Settle each specification the handoff leaves undecided with the user no later than the point at which the handoff schedules it, where it does, and always before starting the session for an issue that depends on it.
+  - An open decision reaches the session as an inference, and its review loop then spends rounds discovering it.
+  - A decision taken just before the issues it governs start is made with the earlier issues' pull requests and review loops in hand, which can answer it or change the answer; settling it up front decides with the least information.
   - Among them is how the issues may run alongside each other: ask when the handoff states no strategy, rather than working out for yourself which of them collide.
