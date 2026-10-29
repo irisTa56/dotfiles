@@ -59,7 +59,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Run what the design lists and nothing else.
   - A result never adds a run, a repeat or a condition, since a choice made from a result bends towards the hypothesis and a reader cannot tell which runs were planned. What a result suggests goes into the next design.
-- Replace an unusable run with a new one rather than reading it, and record it with its cause, per condition.
+- Replace an unusable run with a new one in the next round's shuffle rather than reading it, and record it with its cause, per condition.
+  - Placing the replacement in the next round, rather than after the last, keeps it as close in time to the rest of its condition's runs as the interleaving keeps the others.
 - Stop at the re-run limit, and take the design back up rather than running on.
   - A condition whose runs keep becoming unusable may be showing what that condition does, such as the new setting making the service restart. Report how often each condition's runs were unusable as a result in its own right, rather than replacing the runs until that disappears.
 

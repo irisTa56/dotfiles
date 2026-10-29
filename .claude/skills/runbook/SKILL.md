@@ -21,10 +21,7 @@ Write its prose by [document-writing.md](../../rules/document-writing.md), and w
   - A figure from a past run can still help as what to expect, such as how long a step takes.
 - Write no procedure for a situation not yet seen on the machine.
   - An unexercised procedure reads like a tested one; keep the thinking in the record and write the steps when the situation shows up.
-- Where the procedure runs an experiment, keep its substance on the page, settled beforehand with the `measurement-design` skill:
-  - what is varied, and why that;
-  - how each outcome reads, and the threshold a difference must clear;
-  - what invalidates the comparison.
+- Where the procedure runs an experiment, the page carries every part of its design the executor acts on or records, as the `measurement-design` skill settles it beforehand, such as what is varied and why, how each outcome reads, and what invalidates the comparison.
   - Send incidental explanation — how a machine step is implemented, a tool's behaviour, a defence of the method — to a code comment or the plan.
 
 ## Structure the page
