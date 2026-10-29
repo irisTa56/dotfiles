@@ -14,6 +14,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
+- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it.
+- Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
@@ -22,6 +24,10 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Sources
 
+- Take each value and fact specific to the work, such as a number or a path, from its record when you write it, by reading the record again rather than restating it from your memory of the conversation.
+  - A record is wherever the value was written down or produced, the user's message included.
+  - A record holds for what it was taken on: a fact recorded about one machine or environment is unknown for another.
+  - Where no record settles a value, leave it out and ask the user.
 - When a statement relies on information that is not common knowledge, link the relevant phrase to a primary or authoritative source.
   - Common knowledge (no link): widely known facts, basic language/framework features documented in every tutorial.
   - Non-obvious (link needed): specific API behavior, numeric claims (benchmarks, statistics, thresholds), design rationale behind a tool, changes introduced in a particular version, conclusions from a paper or blog post.
@@ -64,6 +70,8 @@ Sections within a document are levels, and so are files under the one that index
 - Sentences may share a line where together they fit within 100 half-width characters, however many they are.
   - A full-width character counts as two, so Japanese prose reaches the limit at 50.
 - An item's prose sits on one line however far past that it runs.
+- Shorten a line, or a bullet [grown long](#give-a-list-the-shape-its-content-has), by changing its form, not its content: keep every clause, qualifier and emphasis the reader needs.
+  - Splitting a sentence or a bullet is a change of form where the parts together still say what the one did.
 
 ## Give a list the shape its content has
 
