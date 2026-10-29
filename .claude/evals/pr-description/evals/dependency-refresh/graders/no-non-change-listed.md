@@ -2,7 +2,8 @@
 type: llm
 ---
 
-The author left eslint pinned at `<9`, unchanged. That is a decision not to change something, not a change.
+The author left eslint pinned at `<9`, unchanged.
+That is a decision not to change something, not a change.
 
 Decide by where eslint is mentioned, not by how it is worded.
 

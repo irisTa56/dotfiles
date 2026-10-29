@@ -4,7 +4,8 @@ max_turns: 10
 allowed_tools: [Skill]
 ---
 
-Review the change below by running the raise-findings skill. There is no git repository here: the diff below is the change, and it shows every file it touches in full.
+Review the change below by running the raise-findings skill.
+There is no git repository here: the diff below is the change, and it shows every file it touches in full.
 
 The change adds a job that pushes local notes to the team's sync server.
 
