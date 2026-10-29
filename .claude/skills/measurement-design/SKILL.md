@@ -8,7 +8,7 @@ description: Design a measurement whose numbers will decide something — a benc
 A number counts only if a reader who was not in the conversation reaches the same conclusion from it.
 Everything below serves that reader: they cannot ask which step produced the number, what else changed, or why this run and not another.
 
-When a person executes the run from a page, write that page with the `runbook` skill; this skill decides what the page has to carry.
+This skill settles the design; when a person executes the run from a page, write that page with the `runbook` skill, which says what of the design the page keeps.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Fix the design before the run
@@ -18,6 +18,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 - Fix in advance what each outcome leads to, with the threshold a difference must clear to count.
   - Choosing what to run next from a result is not a procedure: the choice bends towards the hypothesis, and a reader cannot tell which runs were planned.
   - A result that fits none of the fixed branches sends you back to the design, not on to an improvised run.
+- Fix in advance what voids a run, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and have each run record what shows it. A voided run is repeated, not read.
 - Keep an instrument that the no-difference branch would need, such as a counter showing the changed path was exercised at all. Without it, "no difference" cannot be told apart from "the change never took effect".
 - State the assumption behind a time estimate, such as the time per iteration and where that figure came from, so whoever plans around the estimate can see when it no longer holds.
 
@@ -37,11 +38,12 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ## Size the run
 
-- Size the run to the effect it has to resolve: enough repeats that the spread between them is small next to the threshold, and no more.
-- Keep the iteration count a round number and the same across every condition of a phase, so that runs compare directly and a reader does not wonder why one condition got more.
+- Size the run to the effect it has to resolve: enough repeats that the spread between them is small next to the threshold.
+- Fix the number of repeats before the run, and do not add repeats after seeing the spread: stopping where the result looks settled is choosing from a result.
+- Keep the repeat count a round number and the same across every condition of a phase. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
 
 ## Draw the conclusion
 
-- Draw a conclusion only from runs that differ in one factor and come from the same sequence. Where the runs at hand do not, say what they cannot show, and name the run that would show it.
+- Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence. Where the runs at hand do not, say what they cannot show, and name the run that would show it.
 - Give a quantity as the measured number or range, with the number of runs behind it, rather than as an adjective such as "faster" or "about the same".
 - Read the result through the branches fixed before the run, and say which one it fell in.
