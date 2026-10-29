@@ -9,7 +9,7 @@ A number counts only if a reader who was not in the conversation reaches the sam
 Everything below serves that reader: they cannot ask which step produced the number, what else changed, or why this run and not another.
 
 The sections follow the measurement through design, run and reading.
-Every decision is taken in the first, before any run: the later two say how the run and the reading use what the design fixed, so a design that leaves one of them open has left a choice to be made after seeing a result.
+Every decision is taken in the first, before the first measured run, and the only run allowed before the design is final is a pilot it names: the later two say how the run and the reading use what the design fixed, so a design that leaves one of them open has left a choice to be made after seeing a result.
 
 Write the design down before running it; a number from a step that was not written down is not data.
 When a person executes the run from a page, that page carries every part of the design the executor acts on or records, and is written with the `runbook` skill.
@@ -36,9 +36,10 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Re-run the baseline in the same sequence as the other conditions rather than reusing an earlier result.
   - Load from elsewhere, warm caches and versions drift over time, so a baseline from another session carries that drift into the difference.
-- Interleave the conditions within the sequence, in a shuffled order each round, rather than running each condition as one block.
+- [Interleave the conditions](https://research.spec.org/icpe_proceedings/2017/proceedings/p287.pdf) within the sequence, in a shuffled order each round, rather than running each condition as one block.
+  - Draw the order for every round before the first run and write it into the design, so the run follows it and a reader can see it.
   - Drift within a session lines up with whichever condition runs during it, so blocks still let it into the difference.
-- Decide how warm-up is handled, such as discarding the first runs after a restart or measuring start-up as a quantity of its own, and handle it the same way in every condition.
+- Decide how [warm-up is handled](https://blog.acolyer.org/2017/11/06/statistically-rigorous-java-performance-evaluation/), such as discarding the first runs after a restart or measuring start-up as a quantity of its own, and handle it the same way in every condition.
 
 ### How many runs
 
