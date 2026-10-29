@@ -55,17 +55,19 @@ Take that outline from what the change actually has to say.
 
 - Do not fill sections mechanically. If a section (design rationale, review focus, …) holds nothing useful to a reviewer, write the template's "none" marker when the section is required, and omit only sections the template leaves optional. An honest "none" beats a paragraph of filler.
 - Merge sections when the content sits better together. Often the one risk worth flagging belongs in the same place as the verification that clears it, rather than split across "review focus" and "notes".
-- Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (attempts abandoned, sessions it took).
+- Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (the order things were tried in, the sessions it took).
   - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
+  - An alternative the change did not take, stated with why, is design rationale rather than history, and stays.
 - When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
   - Ask only what the diff can confirm. A question about how the change behaves once deployed, or about a result outside the repository, gets a guess back.
+    - State such a question in the verification judgment instead, as what has not been checked, so the human reviewer still sees it.
   - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
 ## State verification as a judgment, not a metrics dump
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
-  - Name the check the judgment rests on, not the figures it produced, even where those figures are the evidence, such as a load test's failure rates; they are run results, which go where the project tracks the work.
+  - Name the check the judgment rests on, not the figures it produced, even where those figures are the evidence, such as a load test's failure rates; they are run results, which [Earn every section and claim](#earn-every-section-and-claim) keeps out of the body.
 
 ## Keep each claim as narrow as the truth
 
