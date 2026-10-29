@@ -15,18 +15,19 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs and to the document's existing entries of the same kind, not to the work that went into it.
-- Write the settled result, not the work that led to it: no deciding in public, no run history, no identifiers from the plan that produced it.
+- Where a document states a result or a decision, write that result, not the work that reached it: leave out options the reader is not asked to choose between, attempts that did not hold, and labels from a plan or a session that the reader cannot open.
+  - A document whose job is to account for the work, such as an investigation report or a decision record's rejected alternatives, keeps that account.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
 - A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
-- Where a formatting rule collides with what you decided to write, change the form, not the content.
-  - Deleting the emphasis, splitting the sentence, or dropping the clause to satisfy the rule loses what you judged worth writing.
+- Where a formatting rule collides with what you decided to write, change the form, not the content: keep every clause, qualifier and emphasis the reader needs, and reshape the text around them.
+  - Splitting a sentence or a bullet is a change of form where the parts together still say what the one did.
 
 ## Sources
 
-- Take every value and fact from its record when you write it — a log, a data file, a draft, the plan, the user's words — never from your memory of the conversation.
+- Take each value and fact specific to the work — a number, a name, a path, a version, a state, a result — from its record when you write it: a log, a data file, a draft, the plan, the user's message read again. Restating it from your memory of the conversation is not taking it from the record.
   - A record holds for what it was taken on: a fact recorded about one machine or environment is unknown for another.
   - Where no record settles a value, leave it out and ask the user.
 - When a statement relies on information that is not common knowledge, link the relevant phrase to a primary or authoritative source.
