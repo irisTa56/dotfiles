@@ -10,7 +10,7 @@ disable-model-invocation: true
 Read the handoff document at the given path before anything else.
 
 The batch runs on the Claude Desktop app's sessions, each a conversation the user can open and steer themselves.
-Where this session has no tool to start one, say so and stop rather than delegating to subagents, whose work the user cannot see.
+Outside the Desktop app, say so and stop: do not start background sessions from the shell with `claude --bg`, and do not delegate to subagents, whose work the user cannot see.
 
 You are the orchestrator for this batch:
 
