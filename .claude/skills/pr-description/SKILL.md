@@ -59,7 +59,7 @@ Take that outline from what the change actually has to say.
   - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
   - An alternative the change did not take, stated with why, is design rationale rather than history, and stays.
 - When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
-  - Ask only what the diff can confirm. A question about how the change behaves once deployed, or about a result outside the repository, gets a guess back.
+  - Ask only what the diff can confirm. A question whose answer rests on something the repository does not hold, such as production traffic or a measured outcome, gets a guess back.
     - State such a question in the verification judgment instead, as what has not been checked, so the human reviewer still sees it.
   - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 

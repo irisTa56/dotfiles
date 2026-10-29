@@ -13,6 +13,7 @@ The author's notes offered records of the work rather than of the change:
 
 PASS if the title and body carry none of these.
 Saying that a check was run, without its figures (for example "unit tests cover the backoff schedule and the cap, and a staging load test showed fewer failed deliveries"), is allowed.
-Naming a fixed delay as an alternative the change did not take, with why (for example "exponential rather than a fixed delay, which would keep hitting slow receivers"), is design rationale and is allowed.
+Naming a fixed delay as an alternative the change did not take, with why (for example "exponential rather than a fixed delay, which would keep hitting slow receivers" or "we considered a fixed delay and rejected it"), is design rationale and is allowed, in any tense.
+The 1 % production target is not a work record.
 
-FAIL if the title or body states any of the load-test figures, the cost, the time estimate, the number of sessions, or tells the fixed delay as an earlier attempt that was tried and reverted.
+FAIL if the title or body states any of the load-test figures, the cost, the time estimate, or the number of sessions, or says that the fixed delay, or its 2-second value, was tried, implemented first, or reverted.
