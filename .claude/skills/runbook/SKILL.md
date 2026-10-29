@@ -70,5 +70,5 @@ These hold for commands in a document and for commands you hand the user in a re
     - a reason that does not lead to a step;
     - a table that contradicts the text introducing it;
     - a demonstrative with no referent on the page.
-- Commands handed over in a reply get your own read-back alone.
 - Fix what it returns, then read the whole procedure against its purpose again, not only the lines changed.
+- Commands handed over in a reply get your own read-back alone.
