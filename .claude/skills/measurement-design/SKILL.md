@@ -45,8 +45,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ### What the results will decide
 
-- Fix what each outcome leads to, with the threshold a difference must clear and what has to clear it: the interval of the difference, not its point estimate alone.
-- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the program that checks each run decide it: the check records the run as unusable with its cause and exits non-zero, so the reading step does not run on it and nobody judges a printed verdict.
+- Fix what each outcome leads to, with the threshold a difference must clear and what has to clear it: the interval of the difference, not its point estimate alone. Fix the statistic compared, such as the median of each condition, and how the interval is built and at what level.
+- Fix what makes a run unusable, such as the load generator reaching its own limit or a service restarting mid-run, and have the program that checks each run decide it: the check records the run as unusable with its cause and exits non-zero, so the reading step does not run on it and nobody judges a printed verdict. The same check stops the measurement once a condition's unusable runs reach the limit below, so nobody counts them by hand.
 - Fix how many unusable runs a condition may replace before the measurement stops, and where in the order a replacement goes, the last round included.
 
 ## Run
