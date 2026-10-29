@@ -57,20 +57,25 @@ Take that outline from what the change actually has to say.
 - Merge sections when the content sits better together. Often the one risk worth flagging belongs in the same place as the verification that clears it, rather than split across "review focus" and "notes".
 - Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (such as the order things were tried in, or the sessions it took).
   - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
-  - A result the reviewer can reproduce, such as a benchmark run by a command in the repository, is evidence for a claim rather than a record of the work: when the change rests on it, state it with its figures and how to rerun it.
-    - Leave it out where its figures or setup would expose context that must stay private, such as an internal environment described in a public repository.
+  - A result a claim of the body rests on is evidence for that claim rather than a record of the work.
+    - Where the reviewer can reproduce it, such as a benchmark run by a command in the repository, state it with its figures and how to rerun it.
+    - Where they cannot, [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) says how to support the claim instead.
+    - Leave out figures or setup that would expose context that must stay private, such as an internal environment described in a public repository.
   - An alternative the change did not take, stated with why, is design rationale rather than history, and stays.
     - Write it as a property of the design ("a fixed delay would keep hitting slow receivers"), not as something tried and reverted.
 - When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
   - Ask only what the diff, or information anyone can look up such as a library's public documentation, can confirm. A question whose answer rests on something neither holds, such as production traffic or a measured outcome, gets a guess back.
-    - State such a question in the verification judgment instead, as what has not been checked, so the human reviewer still sees it.
+    - Check before opening the PR whatever can be checked before merge. State in the verification judgment only what cannot be checked until after merge, such as production behavior, with how it will be checked then, so the human reviewer still sees it.
   - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
 ## State verification as a judgment, not a metrics dump
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
-  - Name the check the judgment rests on, not the figures it produced, even where those figures are the evidence, such as a staging load test's failure rates; they are run results, which [Earn every section and claim](#earn-every-section-and-claim) keeps out of the body unless the reviewer can reproduce them.
+- A result the reviewer cannot reproduce, such as a load test on an environment they cannot reach, supports nothing on its own, whether it is stated with its figures or reduced to a verdict. Give the claim it stands behind a route the reviewer can follow, as far as the change allows:
+  - argue the claim from the change's own logic;
+  - rest it on general knowledge, such as how the technique is known to behave;
+  - describe the system as far as it can be written, and give the premises the result depends on before stating the result.
 
 ## Keep each claim as narrow as the truth
 
@@ -98,6 +103,7 @@ Re-read the draft and check:
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
-- Did any run result the reviewer cannot reproduce, estimate, or progress history stay in the body instead of where the work is tracked?
+- Did any estimate or progress history stay in the body instead of where the work is tracked?
+- Does each result a claim rests on either say how to rerun it, or come after the premises or argument that let the reviewer follow it?
 - If an AI reviewer will read the review focus, can the diff or public information answer each question it asks, and is each term explained at its first use?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
