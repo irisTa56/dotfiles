@@ -1,0 +1,5 @@
+{
+  "name": "runbook",
+  "description": "Links the runbook skill so its eval suite runs with it loaded",
+  "version": "0.0.0"
+}
