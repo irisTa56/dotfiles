@@ -22,6 +22,7 @@ Take that outline from what the change actually has to say.
 
 ## Be self-contained at the overview level
 
+- Make the title say what the PR does, with no identifier from the plan the work followed (a session number, a task or step id), which a reader who has not seen the plan cannot decode.
 - Convey the change at an overview level in the body itself. The reviewer should grasp what changed and why without opening the linked ticket, issue, or prior PR.
 - Open the body with that overview: what the change does, stated as its effect, and why it is needed.
   - Mechanism, the exact scope of the old behavior, and alternatives come after it; a reviewer who stops after the opening should already know what they are judging.
@@ -53,11 +54,28 @@ Take that outline from what the change actually has to say.
 
 - Do not fill sections mechanically. If a section (design rationale, review focus, …) holds nothing useful to a reviewer, write the template's "none" marker when the section is required, and omit only sections the template leaves optional. An honest "none" beats a paragraph of filler.
 - Merge sections when the content sits better together. Often the one risk worth flagging belongs in the same place as the verification that clears it, rather than split across "review focus" and "notes".
+- Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (such as the order things were tried in, or the sessions it took).
+  - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
+  - A result a claim of the body rests on is evidence for that claim, not a record of the work.
+    - A check the verification judgment rests on is named without its counts or timings, as [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) says.
+    - A measurement of the effect the change claims, such as a latency drop, that the reviewer can reproduce, such as a benchmark run by a command in the repository, is stated with its figures and how to rerun it.
+      - Leave out figures or setup that would expose context that must stay private.
+    - A result the reviewer cannot reproduce is supported as [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) says.
+  - An alternative the change did not take stays as design rationale, written as a property of the design ("polling would delay each update by up to one interval") rather than as something tried and reverted.
+- When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
+  - Ask only what the diff, or information anyone can look up, can confirm. A question whose answer rests on something neither holds, such as production traffic or a measured outcome, gets a guess back.
+    - Check before opening the PR whatever can be checked before merge, so that what stays unchecked is only what cannot be checked until after merge, such as production behavior. State that in the verification judgment beside the checks that passed, with how it will be checked then, so the human reviewer still sees it.
+  - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
 ## State verification as a judgment, not a metrics dump
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
+- A result the reviewer cannot reproduce, such as a measurement on a machine or dataset they cannot access, supports nothing on its own, with its figures or as a bare verdict.
+  - Give the claim it would support a route the reviewer can follow instead, in ways such as these:
+    - argue the claim from the change's own logic;
+    - rest it on general knowledge, such as how the technique is known to behave;
+    - describe the system as far as it can be written, and state the premises the result depends on before stating the result.
 
 ## Keep each claim as narrow as the truth
 
@@ -75,13 +93,18 @@ Take that outline from what the change actually has to say.
 Re-read the draft and check:
 
 - Does the draft satisfy every section and checklist item the repository requires?
+- Does the title say what the PR does, with no identifier from the plan the work followed?
 - Does the opening alone tell a reviewer what the change does and why?
 - Can a reviewer see the shape of the change without reading the whole body?
 - Would a reviewer who cannot open the linked ticket still understand the change?
-- Does every change bullet describe an actual change, with no non-changes or self-inflicted caveats?
+- Does every change bullet describe an actual change, with no non-changes, self-inflicted caveats, or internal details nobody would otherwise question?
 - Is each exception framed against the rule it breaks, so it does not look arbitrary?
 - Did I restate anything already obvious from the diff?
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
+- Is the body free of records of the work: run results no claim of the body rests on, the cost or time the work took or is estimated to take, and progress history?
+- Does each measurement of the change's claimed effect either say how to rerun it, or come after what lets a reviewer who cannot rerun it follow the claim?
+- If an AI reviewer will read the review focus, can the diff or public information answer each question it asks?
+- If an AI reviewer will read the review focus, is each term it uses explained at its first use?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
