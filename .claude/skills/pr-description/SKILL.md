@@ -67,7 +67,11 @@ Take that outline from what the change actually has to say.
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
-- A result the reviewer cannot reproduce, such as a measurement on a machine or dataset they cannot access, supports nothing on its own, with its figures or as a bare verdict. Give the claim behind it a route the reviewer can follow: argue it from the change's logic, rest it on general knowledge, or describe the system as far as it can be written and state the premises the result depends on before the result.
+- A result the reviewer cannot reproduce, such as a measurement on a machine or dataset they cannot access, supports nothing on its own, with its figures or as a bare verdict.
+  - Give the claim it would support a route the reviewer can follow instead, in one of these ways:
+    - argue the claim from the change's own logic;
+    - rest it on general knowledge, such as how the technique is known to behave;
+    - describe the system as far as it can be written, and state the premises the result depends on before stating the result.
 
 ## Keep each claim as narrow as the truth
 
@@ -95,7 +99,8 @@ Re-read the draft and check:
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
-- Did any record of the work (a run result that does not measure the change's claimed effect, a cost or time figure, progress history) stay in the body, and can the reviewer rerun or follow each result that does?
+- Is the body free of records of the work: run results that do not measure the change's claimed effect, cost or time figures, and progress history?
+- Does each result that does measure that effect either say how to rerun it, or come after what lets a reviewer who cannot rerun it follow the claim?
 - If an AI reviewer will read the review focus, can the diff or public information answer each question it asks?
-- If so, is each term the review focus uses explained at its first use?
+- If an AI reviewer will read the review focus, is each term it uses explained at its first use?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
