@@ -21,7 +21,7 @@ Write its prose by [document-writing.md](../../rules/document-writing.md), and w
   - A figure from a past run can still help as what to expect, such as how long a step takes.
 - Write no procedure for a situation not yet seen on the machine.
   - An unexercised procedure reads like a tested one; keep the thinking in the record and write the steps when the situation shows up.
-- Where the procedure runs an experiment, the page carries every part of its design the executor acts on or records, as the `measurement-design` skill settles it beforehand, such as what is varied and why, how each outcome reads, the threshold a difference must clear, and what invalidates the comparison.
+- Where the procedure runs an experiment, settle its design with the `measurement-design` skill before writing the page. The page carries every part of that design the executor acts on or records, such as what is varied and why, how each outcome reads, the threshold a difference must clear, and what invalidates the comparison.
   - Send incidental explanation — how a machine step is implemented, a tool's behaviour, a defence of the method — to a code comment or the plan.
 
 ## Structure the page
@@ -42,6 +42,7 @@ These hold for commands in a document and for commands you hand the user in a re
 - Label each code block with where it runs: the local machine, or which host.
 - Avoid making the executor compose or edit a command by hand: give every command complete, with its paths and values filled in or drawn from variables.
   - A value only the executor knows goes on a variable line at the head of the code block, as a `<...>` placeholder; the commands below refer to the variable, and none has a `<...>` to replace mid-line.
+  - This holds for every command on the page, including one in a recovery note or a script's usage comment: give a command that finds its own target, such as `pkill -f bin/server` rather than `kill <pid>`, and show a script run with the variables it takes rather than a `<arg>` usage line.
   - Give a variable used across code blocks a full, descriptive name (`cache_size_mb`, not `sz`), and set it again in a code block that runs in another shell or on another host.
 - Never have a person verify or retype what the program already knows: the program compares, and fails when the comparison fails.
   - Chain the command that depends on a check on it with `&&`, whether the check is inline or a script that exits non-zero. A pasted code block runs on past a failed line, so without the chain the next command runs on bad data.
