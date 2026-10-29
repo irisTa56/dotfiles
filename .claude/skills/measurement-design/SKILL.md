@@ -1,6 +1,6 @@
 ---
 name: measurement-design
-description: Design a measurement whose numbers will decide something — a benchmark, a performance or configuration comparison, a load test, a capacity or ceiling check — before it runs, and draw conclusions from its results. Use whenever planning such a run, whether you or a person will run it, whenever choosing what to run next after seeing a result, and whenever saying what measured numbers show, even when nobody says "experiment" or "benchmark".
+description: Design a measurement whose numbers will decide something — a benchmark, a performance or configuration comparison, a load test, a capacity or ceiling check — before it runs, and draw conclusions from its results. Use whenever planning such a run, whether you or a person will run it, whenever choosing what to run next after seeing a result, and whenever saying what measured numbers show about a comparison or a decision, even when nobody says "experiment" or "benchmark".
 ---
 
 # Designing a measurement
