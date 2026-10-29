@@ -4,7 +4,9 @@ max_turns: 8
 allowed_tools: [Skill]
 ---
 
-Write the pull request description for this change. There is no PR template; the team writes PR bodies in English. Reply with the PR body only.
+Write the pull request description for this change.
+There is no PR template; the team writes PR bodies in English.
+Reply with the PR body only.
 
 My notes on the change:
 

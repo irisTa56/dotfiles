@@ -4,7 +4,8 @@ max_turns: 12
 allowed_tools: [Skill, Read, Grep, Glob]
 ---
 
-Review the change below by running the raise-findings skill. There is no git repository here: the diff below is the change, and it shows every file it touches in full.
+Review the change below by running the raise-findings skill.
+There is no git repository here: the diff below is the change, and it shows every file it touches in full.
 
 The change is for letting `todo set <key> <value>` persist a setting across runs.
 
