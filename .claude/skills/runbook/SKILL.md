@@ -42,7 +42,7 @@ These hold for commands in a document and for commands you hand the user in a re
 - Label each code block with where it runs: the local machine, or which host.
 - Avoid making the executor compose or edit a command by hand: give every command complete, with its paths and values filled in or drawn from variables.
   - A value only the executor knows goes on a variable line at the head of the code block, as a `<...>` placeholder; the commands below refer to the variable, and none has a `<...>` to replace mid-line.
-  - This holds for every command on the page, including one in a note or a script's usage comment.
+    - This holds for every command on the page, including one in a note or a script's usage comment.
   - Give a variable used across code blocks a full, descriptive name (`cache_size_mb`, not `sz`), and set it again in a code block that runs in another shell or on another host.
 - Never have a person verify or retype what the program already knows: the program compares, and fails when the comparison fails.
   - Chain the command that depends on a check on it with `&&`, whether the check is inline or a script that exits non-zero. A pasted code block runs on past a failed line, so without the chain the next command runs on bad data.
