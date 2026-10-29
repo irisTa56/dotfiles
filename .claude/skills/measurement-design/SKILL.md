@@ -11,7 +11,7 @@ Take every decision in the design, before the first measured run.
 The run and the reading then use what the design fixed, and anything it leaves open becomes a choice made after seeing a result.
 Write the design down; a number from a step that was not written down is not a result the measurement can report.
 
-When a person executes the run from a page, write that page with the `runbook` skill.
+When a person executes the run from a page, write that page with the `runbook-writing` skill.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Design

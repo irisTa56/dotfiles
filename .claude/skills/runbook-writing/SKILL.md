@@ -1,5 +1,5 @@
 ---
-name: runbook
+name: runbook-writing
 description: Write a procedure that a person executes from the page — a runbook, a setup or migration guide, an operating procedure, a run sheet for an experiment — or hand the user commands to run on their machine or a remote host. Use whenever drafting, restructuring, or finalizing such a document, and whenever a reply gives the user a sequence of commands to run and report back on, even when nobody says "runbook". Not for a script that runs unattended.
 ---
 

@@ -1,5 +1,0 @@
-{
-  "name": "runbook",
-  "description": "Links the runbook skill, and the measurement-design skill it points to, so its eval suite runs with them loaded",
-  "version": "0.0.0"
-}
