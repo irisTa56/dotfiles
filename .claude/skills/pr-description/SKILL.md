@@ -103,7 +103,7 @@ Re-read the draft and check:
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
-- Is the body free of records of the work: run results no claim of the body rests on, cost or time figures, and progress history?
+- Is the body free of records of the work: run results no claim of the body rests on, the cost or time the work took or is estimated to take, and progress history?
 - Does each measurement of the change's claimed effect either say how to rerun it, or come after what lets a reviewer who cannot rerun it follow the claim?
 - If an AI reviewer will read the review focus, can the diff or public information answer each question it asks?
 - If an AI reviewer will read the review focus, is each term it uses explained at its first use?
