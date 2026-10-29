@@ -8,7 +8,7 @@ description: Design a measurement whose numbers will decide something — a benc
 A number counts only if a reader who was not in the conversation reaches the same conclusion from it.
 Everything below serves that reader: they cannot ask which step produced the number, what else changed, or why this run and not another.
 
-When a person executes the run from a page, the page carries the whole design — the conditions in their order, the repeat count, what each run records, and the branches with their threshold — and is written with the `runbook` skill.
+When a person executes the run from a page, the page carries every part of the design below that the executor acts on or records, and is written with the `runbook` skill.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Fix the design before the run
@@ -41,7 +41,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Size the run to the effect it has to resolve: enough repeats that the spread between them is small next to the threshold.
 - Fix the number of repeats before the run, and do not add repeats after seeing the spread: stopping where the result looks settled is choosing from a result.
-- Keep the repeat count a round number and the same across every condition of a phase. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
+- Keep the repeat count the same across every condition the plan compares, rounded up from what the sizing needs to a round number. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
 
 ## Draw the conclusion
 
