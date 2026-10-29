@@ -9,9 +9,10 @@ A number counts only if a reader who was not in the conversation reaches the sam
 
 Take every decision in the design, before the first measured run; the only run allowed earlier is a pilot the design names.
 The run and the reading then use what the design fixed, and anything it leaves open becomes a choice made after seeing a result.
-Write the design down; a number from a step that was not written down is not data.
+Write the design down; a number from a step that was not written down is not a result the measurement can report.
 
-When a person executes the run from a page, write that page with the `runbook` skill: it carries every part of the design the executor acts on or records, under runbook's rules. For an unusable run that means what shows it, what to record and where the replacement goes; how to repair its cause waits until it has happened, as runbook says of a situation not yet seen.
+When a person executes the run from a page, write that page with the `runbook` skill: it carries every part of the design the executor acts on or records, under runbook's rules.
+For an unusable run that means what shows it, what to record and where the replacement goes; how to repair its cause waits until it has happened, as runbook says of a situation not yet seen.
 Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
 
 ## Design
@@ -37,8 +38,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Size the run so that the uncertainty of the difference between conditions is small next to the threshold.
   - Take the run-to-run spread from earlier runs, or from a pilot run before the design is finished; a pilot's runs are not pooled with the measured ones.
-  - Write the count into the design as a number. "10, or 20 if the spread is wide" is not yet a count: run that check while designing.
-  - Where no spread is known and no pilot runs, the guess itself is the count: write it as the number, with no condition on a later check, and tell whoever approves the design that it is a guess. The executor's page states the count without that caveat.
+  - Write the count into the design as a number. "10 runs, or 20 if the first runs scatter widely" is not yet a count, since whoever runs it then picks the count from results: run that check while designing.
+  - Where no spread is known and no pilot runs, the guess itself is the count: write it as the number and tell whoever approves the design that it is a guess. The executor's page states the count without that caveat.
 - Give every compared condition the same repeat count: the largest any of them needs, rounded up to a round number, so the reader sees it was set in advance rather than where the runs stopped.
 - State what a time estimate assumes, such as the time per run.
 
@@ -50,7 +51,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ## Run
 
-- Run what the design lists and nothing else. A result never adds a run, a repeat or a condition; what it suggests goes into the next design.
+- Run what the design lists and nothing else. A result never adds a run, a repeat or a condition; what it suggests goes into a revision of the design, written before any further run, which can be a few lines added to this one.
 - Replace an unusable run where the design placed replacements, and record it with its cause, per condition.
 - Stop at the replacement limit and take the design back up. Report how often each condition's runs were unusable, since a condition whose runs keep failing may be showing what that condition does.
 
