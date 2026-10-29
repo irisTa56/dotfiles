@@ -2,7 +2,6 @@
 name: cold-check
 description: Have a fresh subagent, which saw none of the conversation, test a set of claims — a conclusion reached in this conversation, or the user's own understanding or draft — claim by claim for whether each holds and where it stops holding, and set its verdicts beside the ones the conversation's own context reaches.
 argument-hint: "What to check — omit for the last conclusion, or paste an understanding, a draft, or a path"
-disable-model-invocation: true
 ---
 
 # Cold check
