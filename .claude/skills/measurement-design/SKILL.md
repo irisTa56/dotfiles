@@ -45,7 +45,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 - Size the run to the effect it has to resolve: enough repeats that the uncertainty of the difference between conditions is small next to the threshold.
   - Take the run-to-run spread this needs from earlier runs, or from a pilot run as a step of its own before the design is finished. Where there is neither, say that the count is a guess.
-  - Either way the count goes into the design as a number before the first measured run. A pilot's runs are exploration and are not pooled with the measured ones.
+  - Either way the count goes into the design as a number before the first measured run. A count that a check may still change, such as "10, or 20 if the spread is wide", is not yet a count: run the check while writing the design and write its outcome.
+  - A pilot's runs are exploration and are not pooled with the measured ones.
 - Give every compared condition the same repeat count: the largest any of them needs, rounded up to a round number.
   - The same count lets runs compare directly.
   - A round count shows the reader it was set in advance rather than where the runs happened to stop.

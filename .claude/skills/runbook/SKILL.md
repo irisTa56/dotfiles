@@ -63,7 +63,6 @@ These hold for commands in a document and for commands you hand the user in a re
   - every demonstrative resolvable on the page.
 - Before handing over a procedure document you wrote or restructured, also have a cold reader read the whole document with nothing else, since your own read-back shares the context that fills the gaps a reader without it meets.
   - The cold reader is a general-purpose subagent at `effort: high` that has seen none of the conversation and is told to make no edits.
-  - Commands handed over in a reply get your own read-back alone.
   - This is a reader's pass, not a `raise-findings` review: it returns each of these it finds, with where it sits.
     - a term, flag, column or number used before it is defined, or without its base (a fraction or multiple of what);
     - a fact true only of this environment, stated as general;
@@ -71,4 +70,5 @@ These hold for commands in a document and for commands you hand the user in a re
     - a reason that does not lead to a step;
     - a table that contradicts the text introducing it;
     - a demonstrative with no referent on the page.
+- Commands handed over in a reply get your own read-back alone.
 - Fix what it returns, then read the whole procedure against its purpose again, not only the lines changed.
