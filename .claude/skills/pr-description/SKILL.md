@@ -56,12 +56,12 @@ Take that outline from what the change actually has to say.
 - Merge sections when the content sits better together. Often the one risk worth flagging belongs in the same place as the verification that clears it, rather than split across "review focus" and "notes".
 - Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (such as the order things were tried in, or the sessions it took).
   - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
-  - A result a claim rests on is evidence, not a record: where the reviewer can reproduce it, such as a benchmark run by a command in the repository, state it with its figures and how to rerun it, unless that would expose context that must stay private; where they cannot, [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) applies.
+  - A result that measures the effect the change claims, such as a latency drop, is evidence, not a record: where the reviewer can reproduce it, such as a benchmark run by a command in the repository, state it with its figures and how to rerun it, unless that would expose context that must stay private; where they cannot, [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) applies.
   - An alternative the change did not take stays as design rationale, written as a property of the design ("polling would delay each update by up to one interval") rather than as something tried and reverted.
-- Write a review focus that an AI reviewer with no context beyond the PR will read, such as an automated PR reviewer, for that reader:
-  - Ask only what the diff or public information, such as a library's documentation, can confirm; a question resting on what neither holds, such as production traffic, gets a guess back.
-    - Check before opening the PR what can be checked before merge, and state in the verification judgment only what cannot, with how it will be checked after merge.
-  - Explain each term, such as an environment variable or a metric name, at its first use.
+- When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
+  - Ask only what the diff, or information anyone can look up such as a library's public documentation, can confirm. A question whose answer rests on something neither holds, such as production traffic or a measured outcome, gets a guess back.
+    - Check before opening the PR whatever can be checked before merge. State in the verification judgment only what cannot be checked until after merge, such as production behavior, with how it will be checked then, so the human reviewer still sees it.
+  - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
 ## State verification as a judgment, not a metrics dump
 
@@ -95,6 +95,7 @@ Re-read the draft and check:
 - Is any summary claim broader than what is strictly true?
 - If I edited the body after it was last checked against the code, shortening included, did I check each claim I changed against the code again?
 - Does each section earn its place, or is it filled for form's sake?
-- Did any record of the work (a result no claim rests on, a cost or time figure, progress history) stay in the body, and can the reviewer rerun or follow each result a claim does rest on?
-- If an AI reviewer will read the review focus, can the diff or public information answer each question it asks, and is each term explained at its first use?
+- Did any record of the work (a run result that does not measure the change's claimed effect, a cost or time figure, progress history) stay in the body, and can the reviewer rerun or follow each result that does?
+- If an AI reviewer will read the review focus, can the diff or public information answer each question it asks?
+- If so, is each term the review focus uses explained at its first use?
 - Is verification phrased as a judgment ("safe because …"), not a pile of metrics?
