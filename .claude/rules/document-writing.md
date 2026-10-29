@@ -14,14 +14,21 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
+- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs and to the document's existing entries of the same kind, not to the work that went into it.
+- Write the settled result, not the work that led to it: no deciding in public, no run history, no identifiers from the plan that produced it.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
 - A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
+- Where a formatting rule collides with what you decided to write, change the form, not the content.
+  - Deleting the emphasis, splitting the sentence, or dropping the clause to satisfy the rule loses what you judged worth writing.
 
 ## Sources
 
+- Take every value and fact from its record when you write it — a log, a data file, a draft, the plan, the user's words — never from your memory of the conversation.
+  - A record holds for what it was taken on: a fact recorded about one machine or environment is unknown for another.
+  - Where no record settles a value, leave it out and ask the user.
 - When a statement relies on information that is not common knowledge, link the relevant phrase to a primary or authoritative source.
   - Common knowledge (no link): widely known facts, basic language/framework features documented in every tutorial.
   - Non-obvious (link needed): specific API behavior, numeric claims (benchmarks, statistics, thresholds), design rationale behind a tool, changes introduced in a particular version, conclusions from a paper or blog post.
