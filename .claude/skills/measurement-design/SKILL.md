@@ -1,0 +1,47 @@
+---
+name: measurement-design
+description: Design a measurement whose numbers will decide something — a benchmark, a performance or configuration comparison, a load test, a capacity or ceiling check — before it runs, and draw conclusions from its results. Use whenever planning such a run, whether you or a person will run it, whenever choosing what to run next after seeing a result, and whenever saying what measured numbers show, even when nobody says "experiment" or "benchmark".
+---
+
+# Designing a measurement
+
+A number counts only if a reader who was not in the conversation reaches the same conclusion from it.
+Everything below serves that reader: they cannot ask which step produced the number, what else changed, or why this run and not another.
+
+When a person executes the run from a page, write that page with the `runbook` skill; this skill decides what the page has to carry.
+Write the prose of a plan by [document-writing.md](../../rules/document-writing.md), and when it is in Japanese, compose it with the `japanese-tech-writing` skill as well.
+
+## Fix the design before the run
+
+- Write the procedure down before running it.
+  - A number from a step that was not written down is not data. Note it as what changed the plan, and keep it out of the results.
+- Fix in advance what each outcome leads to, with the threshold a difference must clear to count.
+  - Choosing what to run next from a result is not a procedure: the choice bends towards the hypothesis, and a reader cannot tell which runs were planned.
+  - A result that fits none of the fixed branches sends you back to the design, not on to an improvised run.
+- Keep an instrument that the no-difference branch would need, such as a counter showing the changed path was exercised at all. Without it, "no difference" cannot be told apart from "the change never took effect".
+- State the assumption behind a time estimate, such as the time per iteration and where that figure came from, so whoever plans around the estimate can see when it no longer holds.
+
+## Choose what to vary
+
+- Vary one factor per condition, so that a difference has one cause.
+  - A change that is going out anyway does not ride along with the factor under test; give it a condition of its own or leave it out.
+- Vary only factors that have a counterpart in the system the decision is about: a setting it can be given, a version it can run.
+  - A knob that exists only in the test setup produces a number nobody can act on.
+- Re-run the baseline in the same sequence as the conditions rather than reusing an earlier one. Load from elsewhere, warm caches and versions drift between sessions, and the drift becomes part of the difference.
+
+## Choose what to measure
+
+- Prefer a quantity read directly over one inferred from data already at hand: a counter the system keeps, or a ceiling measured with the same tool that measures the demand.
+  - An inference stacks assumptions the reader has to accept, and a direct reading needs none.
+- A vendor's published figure is not evidence about this environment. Where the decision rests on a ceiling, measure it here.
+
+## Size the run
+
+- Size the run to the effect it has to resolve: enough repeats that the spread between them is small next to the threshold, and no more.
+- Keep the iteration count a round number and the same across every condition of a phase, so that runs compare directly and a reader does not wonder why one condition got more.
+
+## Draw the conclusion
+
+- Draw a conclusion only from runs that differ in one factor and come from the same sequence. Where the runs at hand do not, say what they cannot show, and name the run that would show it.
+- Give a quantity as the measured number or range, with the number of runs behind it, rather than as an adjective such as "faster" or "about the same".
+- Read the result through the branches fixed before the run, and say which one it fell in.

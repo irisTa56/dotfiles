@@ -19,7 +19,7 @@ Write its prose by [document-writing.md](../../rules/document-writing.md), and w
   - Keep the deliberation itself off the page, but give a short reason wherever the executor would otherwise stop to wonder why a step or a value is what it is.
 - Write a procedure, not a log of the run that produced it. A figure from a past run can help as what to expect, such as how long a step takes, but the page reads as steps to take rather than as an account of what happened.
 - Write no procedure for a situation not yet seen on the machine. An unexercised procedure reads like a tested one; keep the thinking in the record and write the steps when the situation shows up.
-- Where the procedure runs an experiment, keep its substance on the page: what is varied and why that, how each outcome reads, the threshold a difference must clear, and what invalidates the comparison.
+- Where the procedure runs an experiment, keep its substance on the page: what is varied and why that, how each outcome reads, the threshold a difference must clear, and what invalidates the comparison. Settle these with the `measurement-design` skill before writing them down.
   - Send incidental explanation — how a machine step is implemented, a tool's behaviour, a defence of the method — to a code comment or the plan.
 
 ## Structure the page
