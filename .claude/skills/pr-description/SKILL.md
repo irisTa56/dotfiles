@@ -59,7 +59,7 @@ Take that outline from what the change actually has to say.
   - A result that measures the effect the change claims, such as a latency drop, is evidence, not a record: where the reviewer can reproduce it, such as a benchmark run by a command in the repository, state it with its figures and how to rerun it, unless that would expose context that must stay private; where they cannot, [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) applies.
   - An alternative the change did not take stays as design rationale, written as a property of the design ("polling would delay each update by up to one interval") rather than as something tried and reverted.
 - When a review focus will be read by an AI reviewer that has no context beyond the PR, such as an automated PR reviewer, write it for that reader.
-  - Ask only what the diff, or information anyone can look up such as a library's public documentation, can confirm. A question whose answer rests on something neither holds, such as production traffic or a measured outcome, gets a guess back.
+  - Ask only what the diff, or information anyone can look up, can confirm. A question whose answer rests on something neither holds, such as production traffic or a measured outcome, gets a guess back.
     - Check before opening the PR whatever can be checked before merge. State in the verification judgment only what cannot be checked until after merge, such as production behavior, with how it will be checked then, so the human reviewer still sees it.
   - Explain each term at its first use, such as an environment variable or a metric name, since the reviewer has not seen the conversation that coined or used it.
 
@@ -89,7 +89,7 @@ Re-read the draft and check:
 - Does the opening alone tell a reviewer what the change does and why?
 - Can a reviewer see the shape of the change without reading the whole body?
 - Would a reviewer who cannot open the linked ticket still understand the change?
-- Does every change bullet describe an actual change, with no non-changes or self-inflicted caveats?
+- Does every change bullet describe an actual change, with no non-changes, self-inflicted caveats, or internal details nobody would otherwise question?
 - Is each exception framed against the rule it breaks, so it does not look arbitrary?
 - Did I restate anything already obvious from the diff?
 - Is any summary claim broader than what is strictly true?
