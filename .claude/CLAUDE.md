@@ -13,7 +13,7 @@
 - Close with a summary of the answer, and the questions you need answered after it. The end of a turn is what the user reliably reads, while an opening gets buried under progress output.
   - List those questions, numbered, rather than leaving them in prose, so the user can answer each by its number. One buried in prose gets skimmed past, and the work proceeds on a default the user never chose.
     - Put beside a question that asks for a decision the answer you recommend, why, and what each answer would change — asking whether your own plan will do included.
-  - Ask once: settle first everything the session can decide, then put what is left in that one list, rather than asking each question as you reach it. Where a question asks the user to approve revised text, show the revision as a diff.
+  - Ask once: put every question in that one list, rather than asking each as you reach it.
 - Attach where each claim came from — the file and line, the command you ran — instead of quoting the evidence in full. Expand on request.
 - Where the answer would differ by what it is for, and neither the question nor the session says, ask what it is for before answering rather than covering every case.
 - Present a draft the user is to review before it leaves the session — a title, a PR body, a comment or message, a prompt for another session — in the reply while it is under five lines; once it reaches five, write it to a file and revise it there with edits, and the reply names the file instead of presenting the text.
@@ -38,7 +38,7 @@
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
 - Read-only is not harmless: before a command on a remote or shared machine that could load it, run long, or otherwise disturb it — a recursive search, a scan of a large tree — ask the user, saying what it runs, where, and what it could cost.
-  - Bound every command on a remote machine with `timeout` run on that machine (`ssh host timeout 60 cmd`), so it cannot outlive the session that started it; a local `timeout` around `ssh` ends only the local client.
+  - Bound every command on a remote machine with `timeout` run on that machine (`ssh host timeout 60 cmd`), so it stops within that bound even if the session that started it ends; a local `timeout` around `ssh` ends only the local client.
   - When a remote command times out, moves to the background, or is stopped on this side, say so at once, and say whether a process may still be running there.
 - Don't force-push to a PR's branch after it has been marked ready.
 - Don't offer Auto-fix on a pull request.
