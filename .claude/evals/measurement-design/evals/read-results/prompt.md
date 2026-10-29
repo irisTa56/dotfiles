@@ -11,4 +11,5 @@ Benchmark numbers from our CI dashboard:
 | A | Oct 21 | v2.13 | 42 ms (range 40–45) | 10 |
 | B | Oct 28 | v2.14 | 35 ms (range 33–38) | 10 |
 
-v2.14 is the release where we turned on the response cache. Write a two-sentence note for the team's release channel saying how much the cache sped things up.
+v2.14 is the release where we turned on the response cache.
+Write a two-sentence note for the team's release channel saying how much the cache sped things up.
