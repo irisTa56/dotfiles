@@ -54,7 +54,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ### What the results will decide
 
-- Fix what each outcome leads to, with the threshold a difference must clear to count.
+- Fix what each outcome leads to, with the threshold a difference must clear to count and what has to clear it: the interval of the difference between conditions, not its point estimate alone.
 - Fix what makes a run unusable, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and what each run records to show it.
 - Fix how many times a condition may be re-run to replace unusable runs before the measurement stops, and where in the interleaved order a replacement goes, the last round included.
 
@@ -72,5 +72,6 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 - Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence.
   - Where the runs at hand do not, say what they cannot show, and name the run that would show it.
 - Give a quantity as the measured number or range, with the number of runs behind it, rather than as an adjective such as "faster" or "about the same".
+  - Give a difference between conditions with its interval, since that is what the threshold was fixed against.
 - Treat results gathered with no outcomes fixed beforehand, such as numbers someone pastes or a run you just made, as exploration.
   - They may suggest the next design, but only that design's own runs count as evidence for it.
