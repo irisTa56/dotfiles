@@ -38,7 +38,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 - Size the run so that the uncertainty of the difference between conditions is small next to the threshold.
   - Take the run-to-run spread from earlier runs, or from a pilot run before the design is finished; a pilot's runs are not pooled with the measured ones.
   - Write the count into the design as a number. "10, or 20 if the spread is wide" is not yet a count: run that check while designing.
-  - Where no spread is known, tell whoever approves the design that the count is a guess; the executor's page states the count without that caveat.
+  - Where no spread is known and no pilot runs, the guess itself is the count: write it as the number, with no condition on a later check, and tell whoever approves the design that it is a guess. The executor's page states the count without that caveat.
 - Give every compared condition the same repeat count: the largest any of them needs, rounded up to a round number, so the reader sees it was set in advance rather than where the runs stopped.
 - State what a time estimate assumes, such as the time per run.
 
