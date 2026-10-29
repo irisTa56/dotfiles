@@ -57,7 +57,7 @@ Take that outline from what the change actually has to say.
 - Leave out what records the work rather than the change: run results, cost or time estimates, and the history of how the work progressed (such as the order things were tried in, or the sessions it took).
   - Those belong where the project tracks the work, such as a note on the ticket; the body is what the reviewer judges the change from.
   - A result a claim rests on is evidence, not a record: where the reviewer can reproduce it, such as a benchmark run by a command in the repository, state it with its figures and how to rerun it, unless that would expose context that must stay private; where they cannot, [State verification as a judgment](#state-verification-as-a-judgment-not-a-metrics-dump) applies.
-  - An alternative the change did not take stays as design rationale, written as a property of the design ("a fixed delay would keep hitting slow receivers") rather than as something tried and reverted.
+  - An alternative the change did not take stays as design rationale, written as a property of the design ("polling would delay each update by up to one interval") rather than as something tried and reverted.
 - Write a review focus that an AI reviewer with no context beyond the PR will read, such as an automated PR reviewer, for that reader:
   - Ask only what the diff or public information, such as a library's documentation, can confirm; a question resting on what neither holds, such as production traffic, gets a guess back.
     - Check before opening the PR what can be checked before merge, and state in the verification judgment only what cannot, with how it will be checked after merge.
@@ -67,7 +67,7 @@ Take that outline from what the change actually has to say.
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
-- A result the reviewer cannot reproduce, such as a load test on an environment they cannot reach, supports nothing on its own, with its figures or as a bare verdict. Give the claim behind it a route the reviewer can follow: argue it from the change's logic, rest it on general knowledge, or describe the system as far as it can be written and state the premises the result depends on before the result.
+- A result the reviewer cannot reproduce, such as a measurement on a machine or dataset they cannot access, supports nothing on its own, with its figures or as a bare verdict. Give the claim behind it a route the reviewer can follow: argue it from the change's logic, rest it on general knowledge, or describe the system as far as it can be written and state the premises the result depends on before the result.
 
 ## Keep each claim as narrow as the truth
 
