@@ -36,6 +36,7 @@
   - Where that content is a post others will read — a comment, a reply, a message — it closes with `*AI-assisted — Tool: Claude Code; model: anthropic/<model ID>.*`, unless Claude Code adds its own attribution line to it (as it does to a pull request's body) or the destination's own convention sets another.
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
+- Read-only is not harmless: ask before a command that could load a remote or shared machine or run long there, saying what it runs, where, and what it could cost; if one is cut short on this side, say so at once and whether it may still be running there.
 - Don't force-push to a PR's branch after it has been marked ready.
 - Don't offer Auto-fix on a pull request.
 
