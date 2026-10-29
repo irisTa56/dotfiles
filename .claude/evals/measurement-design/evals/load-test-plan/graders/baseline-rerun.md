@@ -2,8 +2,8 @@
 type: llm
 ---
 
-The author's notes propose reusing last week's pool 20 result (p95 180 ms) as the baseline.
+The pool 20 numbers in the notes come from last Thursday, before staging was upgraded to v2.14, which changed the JSON serializer.
 
-PASS if the plan runs pool 20 again as part of this test, in the same session as the pool 40 runs, and compares against that rather than against last week's number.
+PASS if the plan runs pool 20 again as part of this test, on the same build and in the same session as the pool 40 runs, and compares pool 40 against that.
 
-FAIL if the plan compares pool 40 against last week's 180 ms, or leaves it open whether the baseline is re-run.
+FAIL if the plan compares pool 40 against last Thursday's 180 ms, or leaves it optional whether pool 20 is re-run.

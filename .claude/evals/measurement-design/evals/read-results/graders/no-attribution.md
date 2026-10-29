@@ -2,8 +2,8 @@
 type: llm
 ---
 
-The two setups differ in two changes (runtime upgrade and cache layer) and were measured on different days.
+Runs A and B differ by build (v2.13 against v2.14, which may hold other changes besides the cache) and by date, so they cannot show what the cache alone did.
 
-PASS if the response does not let the user attribute the difference to the cache layer, and gives as the reason that more than one thing changed between the runs (two changes, or the changes and the different day).
+PASS if the response does not credit the cache with the difference as a measured fact: it either declines to, or attributes the difference to the v2.14 release as a whole and says that the cache's own share was not isolated.
 
-FAIL if the response endorses the claim that the cache layer makes requests about 17% faster, or endorses it with only a mild caveat while still calling the attribution fair.
+FAIL if the response, in the note or outside it, states that the cache sped requests up by some amount (such as "the cache cut median latency by 17%") without saying that the comparison does not isolate the cache.

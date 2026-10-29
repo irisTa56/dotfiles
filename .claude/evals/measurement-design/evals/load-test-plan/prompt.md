@@ -1,17 +1,16 @@
 ---
-description: Notes for a load-test plan that change two factors at once, reuse an old baseline, include a test-only knob, lean on a vendor figure, leave the next step to the first result, and mix iteration counts
+description: Notes for a load-test plan whose traps are not flagged — last week's numbers on an older build, a capacity figure from the instance rating, an open-ended next step, an open-ended run count, and a bare time estimate
 max_turns: 8
 allowed_tools: [Skill]
 ---
 
-We're deciding whether to raise our web service's database connection pool from 20 to 40 in production, and I want a load test on the staging cluster to settle it. Write me the test plan in Markdown. Reply with the plan only.
+We're deciding whether to raise our web service's database connection pool from 20 to 40 in production. Write me a plan for a load test on staging to settle it, in Markdown. Reply with the plan only.
 
-My notes:
+Some context:
 
-- Last week's load test at pool size 20 gave a p95 latency of 180 ms, so we can use that as the baseline and only run pool 40 this time.
-- The pool 40 run will also switch the app to the new JSON serializer, since that is going out next month anyway.
-- Also try pool 40 with the `--turbo` flag; it only exists in the test build, but it might look good.
-- The database vendor's datasheet says the instance handles 5,000 connections, so the database side won't be the bottleneck.
-- Run pool 40 for 37 iterations, and the turbo run for 50.
-- We'll look at the first result and decide what to try next.
-- The whole thing should take about an hour.
+- Pool 20 numbers are already on the dashboard from last Thursday's load test: p95 180 ms at 2,000 rps.
+- Staging was upgraded to v2.14 on Monday; that release ships the new JSON serializer.
+- DB headroom is fine: the instance class is rated for 5,000 connections.
+- Do 10 runs at pool 40, and add more if it looks noisy.
+- After pool 40 we'll see whether 30 or 60 is worth trying.
+- It should take about an hour.

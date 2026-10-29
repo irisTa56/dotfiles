@@ -2,8 +2,8 @@
 type: llm
 ---
 
-The author's notes say the whole test should take about an hour.
+The notes say the test should take about an hour.
 
-PASS if the plan either gives no time estimate, or gives one together with what it assumes, such as the duration of one iteration or run and the number of runs it multiplies.
+PASS if the plan either gives no time estimate, or gives one together with what it is built from, such as the duration of one run and the number of runs.
 
 FAIL if the plan gives a time estimate, such as "about an hour", with nothing stating what it is based on.

@@ -2,8 +2,8 @@
 type: llm
 ---
 
-The author's notes rely on the database vendor's datasheet to say the database side won't be the bottleneck.
+The notes take the instance class's rating of 5,000 connections as showing the database has headroom.
 
-PASS if the plan does not take the datasheet as settling that, and instead measures something on the database side during the test, such as its active connection count, connection waits, or CPU.
+PASS if the plan measures something on the database side during the test, such as its active connection count, connection waits, or CPU, rather than relying on the rating.
 
-FAIL if the plan states or assumes, on the strength of the datasheet, that the database will not be the bottleneck, and measures nothing on the database side.
+FAIL if the plan measures nothing on the database side, or states on the strength of the rating that the database will not be the bottleneck.

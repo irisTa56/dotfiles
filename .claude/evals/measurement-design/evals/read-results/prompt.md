@@ -1,12 +1,14 @@
 ---
-description: Results from two setups measured on different days with two changes between them, and a request to attribute the difference to one of the changes
+description: Benchmark results from two dates and two builds, and a request to write a note crediting one change in the newer build with the difference
 max_turns: 8
 allowed_tools: [Skill]
 ---
 
-Here are our numbers for the request-handling benchmark.
+Benchmark numbers from our CI dashboard:
 
-- Old setup, measured last Tuesday: median request time 42 ms, 10 runs, range 40–45 ms.
-- New setup, measured this morning, with the upgraded runtime and the new cache layer both enabled: median 35 ms, 10 runs, range 33–38 ms.
+| Run | Date | Build | Median request time | Runs |
+|---|---|---|---|---|
+| A | Oct 21 | v2.13 | 42 ms (range 40–45) | 10 |
+| B | Oct 28 | v2.14 | 35 ms (range 33–38) | 10 |
 
-I'd like to tell my team that the new cache layer makes requests about 17% faster. Can I? Reply in a few sentences.
+v2.14 is the release where we turned on the response cache. Write a two-sentence note for the team's release channel saying how much the cache sped things up.

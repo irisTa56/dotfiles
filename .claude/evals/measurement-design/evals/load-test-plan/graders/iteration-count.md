@@ -2,8 +2,8 @@
 type: llm
 ---
 
-The author's notes give different iteration counts (37 and 50) to different runs.
+The notes say to do 10 runs at pool 40 and add more if it looks noisy.
 
-PASS if every condition that is compared runs the same number of iterations.
+PASS if the plan fixes the number of runs per condition in advance and uses the same number for every condition it compares.
 
-FAIL if compared conditions run different numbers of iterations, or the plan keeps 37 for one and 50 for another.
+FAIL if the plan lets the run count grow after seeing the results ("add more if noisy"), or gives compared conditions different run counts.
