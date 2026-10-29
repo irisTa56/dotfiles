@@ -65,6 +65,7 @@ Take that outline from what the change actually has to say.
 
 - Make a claim the reviewer can accept or challenge: "this includes major updates, but it passed <these checks>, so I judge the migration safe."
 - Do not paste exhaustive evidence — test counts, timings, HTTP statuses, coverage percentages. Decorative precision does not aid review and buries the claim.
+  - Name the check the judgment rests on, not the figures it produced, even where those figures are the evidence, such as a load test's failure rates; they are run results, which go where the project tracks the work.
 
 ## Keep each claim as narrow as the truth
 
