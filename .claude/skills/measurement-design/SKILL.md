@@ -42,7 +42,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 - Size the run to the effect it has to resolve: enough repeats that the uncertainty of each condition's summary, such as its median, is small next to the threshold.
   - Take the run-to-run spread this needs from earlier runs or a pilot the plan names, and where there is neither, say that the count is a guess.
 - Fix the number of repeats before the run, and do not add repeats after seeing the spread: stopping where the result looks settled is choosing from a result.
-- Keep the repeat count the same across every condition the plan compares, rounded up from what the sizing needs to a round number. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
+- Keep the repeat count the same across every condition the plan compares, rounded up to a round number from the largest count any compared condition needs. The same count lets runs compare directly, and a round one shows the reader it was set in advance rather than where the runs happened to stop.
 
 ## Draw the conclusion
 
