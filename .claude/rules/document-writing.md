@@ -24,7 +24,8 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 ## Sources
 
-- Take each value and fact specific to the work — a number, a name, a path, a version, a state, a result — from its record when you write it: a log, a data file, a draft, the plan, the user's message read again. Restating it from your memory of the conversation is not taking it from the record.
+- Take each value and fact specific to the work, such as a number or a path, from its record when you write it, by reading the record again rather than restating it from your memory of the conversation.
+  - A record is wherever the value was written down or produced, the user's message included.
   - A record holds for what it was taken on: a fact recorded about one machine or environment is unknown for another.
   - Where no record settles a value, leave it out and ask the user.
 - When a statement relies on information that is not common knowledge, link the relevant phrase to a primary or authoritative source.
