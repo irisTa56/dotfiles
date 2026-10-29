@@ -38,7 +38,7 @@
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
 - Read-only is not harmless: before a command on a remote or shared machine that could load it, run long, or otherwise disturb it — a recursive search, a scan of a large tree — ask the user, saying what it runs, where, and what it could cost.
-  - Bound every command on a remote machine with `timeout`, so it cannot outlive the session that started it.
+  - Bound every command on a remote machine with `timeout` run on that machine (`ssh host timeout 60 cmd`), so it cannot outlive the session that started it; a local `timeout` around `ssh` ends only the local client.
   - When a remote command times out, moves to the background, or is stopped on this side, say so at once, and say whether a process may still be running there.
 - Don't force-push to a PR's branch after it has been marked ready.
 - Don't offer Auto-fix on a pull request.
