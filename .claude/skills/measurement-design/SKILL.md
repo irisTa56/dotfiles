@@ -19,7 +19,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
   - Choosing what to run next from a result is not a procedure: the choice bends towards the hypothesis, and a reader cannot tell which runs were planned.
   - A result that fits none of the fixed branches sends you back to the design, not on to an improvised run.
   - Results already in hand when no branches were fixed, such as numbers someone pastes or a run you just made, are exploration: they may suggest the next design, but that design fixes its branches and threshold before its own runs, and only those runs count as evidence for it.
-- Fix in advance what voids a run, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and have each run record what shows it. A voided run is repeated, not read.
+- Fix in advance what voids a run, such as the load generator reaching its own limit, a service restarting mid-run, or a build other than the one planned, and have each run record what shows it. A voided run is repeated, not read, within a limit fixed with it.
+  - Record every voided run with its cause, per condition. A condition that voids more often than the others is itself a result about that condition, and reaching the limit sends you back to the design.
 - Keep an instrument that the no-difference branch would need, such as a counter showing the changed path was exercised at all. Without it, "no difference" cannot be told apart from "the change never took effect".
 - State the assumption behind a time estimate, such as the time per iteration and where that figure came from, so whoever plans around the estimate can see when it no longer holds.
 
