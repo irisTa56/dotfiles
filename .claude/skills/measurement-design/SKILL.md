@@ -51,7 +51,7 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ## Run
 
-- Run what the design lists and nothing else. A result never adds a run, a repeat or a condition; what it suggests goes into a revision of the design, written before any further run, which can be a few lines added to this one.
+- Run what the design lists and nothing else. A result never adds a run, a repeat or a condition; what it suggests goes into a revision of the design, written before any further run, which can be a few lines added to this one. The runs under a revision are read on their own against its outcomes, not pooled with the runs that prompted it.
 - Replace an unusable run where the design placed replacements, and record it with its cause, per condition.
 - Stop at the replacement limit and take the design back up. Report how often each condition's runs were unusable, since a condition whose runs keep failing may be showing what that condition does.
 
