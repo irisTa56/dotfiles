@@ -15,15 +15,12 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs and to the document's existing entries of the same kind, not to the work that went into it.
-- Where a document states a result or a decision, write that result, not the work that reached it: leave out options the reader is not asked to choose between, attempts that did not hold, and labels from a plan or a session that the reader cannot open.
-  - A document whose job is to account for the work, such as an investigation report or a decision record's rejected alternatives, keeps that account.
+- Do not refer to anything by a label from a plan or a session the reader cannot open, such as a task or step identifier; say what it stands for.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
 - A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
-- Where a formatting rule collides with what you decided to write, change the form, not the content: keep every clause, qualifier and emphasis the reader needs, and reshape the text around them.
-  - Splitting a sentence or a bullet is a change of form where the parts together still say what the one did.
 
 ## Sources
 
@@ -72,6 +69,8 @@ Sections within a document are levels, and so are files under the one that index
 - Sentences may share a line where together they fit within 100 half-width characters, however many they are.
   - A full-width character counts as two, so Japanese prose reaches the limit at 50.
 - An item's prose sits on one line however far past that it runs.
+- Shorten a line, or a bullet [grown long](#give-a-list-the-shape-its-content-has), by changing its form, not its content: keep every clause, qualifier and emphasis the reader needs.
+  - Splitting a sentence or a bullet is a change of form where the parts together still say what the one did.
 
 ## Give a list the shape its content has
 
