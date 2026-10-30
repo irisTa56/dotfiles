@@ -1,7 +1,8 @@
 ---
 name: squash-merge
-description: Squash-merge a pull request with a commit message drawn from the pull request's title and body for whoever reads the base branch's history rather than for the reviewer, keeping the trailers its commits carry, such as Co-Authored-By and Entire-Checkpoint, so the commit messages written along the way, which later commits can falsify, stay off the base branch.
+description: Squash-merge a pull request with a commit message drawn from the pull request's title and body for whoever reads the base branch's history rather than for the reviewer, keeping the trailers its commits carry, such as Co-Authored-By and Entire-Checkpoint, so the commit messages written along the way, which later commits can falsify, stay off the base branch. Once merged, it brings the local base up to date.
 argument-hint: "[pull request number] — omit for the current branch's"
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/../sync-base/scripts/sync-base.sh *)
 disable-model-invocation: true
 ---
 
@@ -48,3 +49,6 @@ gh pr merge <N> --squash --subject "$(cat <subject file>)" --body-file <body fil
 `--match-head-commit` refuses the merge where the head moved after the user saw the message.
 Where it refuses, read the pull request again and show the new message rather than retrying.
 Where the merge fails for another reason, report what `gh` says rather than working around it.
+
+Once the merge succeeds, run `${CLAUDE_SKILL_DIR}/../sync-base/scripts/sync-base.sh <base>`, and report what the base moved to and which branch this checkout is on, since continuing work wants a fresh branch off the base.
+Where that fails, report what git says and that the merge itself went through, rather than working around it.
