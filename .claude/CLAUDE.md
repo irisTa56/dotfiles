@@ -58,7 +58,7 @@
 
 - Lay out the alternatives neutrally alongside the recommendation only when the decision is hard to reverse and the alternatives would lead to materially different work.
 
-### When building or replacing something
+### When building or changing something
 
 - Look first at what is already there, and build on it where it is sound, or, before building anything else, say what building on it cannot fix; reinventing the wheel is not undone by finding it afterwards.
   - Inside the codebase: a feature or helper that does the same job, the arrangement the change would replace.
