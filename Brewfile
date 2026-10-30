@@ -1,5 +1,3 @@
-# Automatic configure script builder
-brew "autoconf"
 # Container runtimes on MacOS (and Linux) with minimal setup
 brew "colima"
 # GNU File, Shell, and Text utilities
@@ -10,14 +8,12 @@ brew "docker"
 brew "docker-buildx"
 # Isolated development environments using Docker
 brew "docker-compose"
-# TIFF library and utilities
-brew "libtiff"
-# Play, record, convert, and stream audio and video
-brew "ffmpeg@7", link: true
 # Collection of GNU find, xargs, and locate
 brew "findutils"
 # GNU awk utility
 brew "gawk"
+# TIFF library and utilities
+brew "libtiff"
 # GitHub command-line tool
 brew "gh"
 # GNU implementation of the famous stream editor
@@ -41,7 +37,7 @@ brew "tree"
 # Anthropic's official Claude AI desktop app
 cask "claude"
 # OpenJDK distribution from Amazon
-cask "corretto@17"
+cask "corretto"
 # Online diagram software
 cask "drawio"
 # Web browser
@@ -54,8 +50,6 @@ cask "livebook"
 cask "maccy"
 # Knowledge base that works on top of a local folder of plain text Markdown files
 cask "obsidian"
-# Move and resize windows using keyboard shortcuts or snap areas
-cask "rectangle"
 # Plugin for AWS CLI to start and end sessions that connect to managed instances
 cask "session-manager-plugin"
 # Open-source code editor

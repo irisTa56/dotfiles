@@ -10,6 +10,7 @@ yq = "latest"
 "pipx:apm-cli" = "latest"
 
 [env]
+HOMEBREW_BUNDLE_DUMP_NO_CARGO = "1"
 HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
 HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
