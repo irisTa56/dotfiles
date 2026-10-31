@@ -32,11 +32,11 @@ const ran = async (
   return JSON.stringify(called).includes('"result":"ran"');
 };
 
-describe("a browser tool in a scheduled run", () => {
+describe("a Chrome tool in a scheduled run", () => {
   test("is denied in the main conversation", async ($, on) => {
     engine(on);
     await prompt($, "scheduled-trigger");
-    expect(await ran($, BUILT_IN)).toBe(false);
+    expect(await ran($, CHROME)).toBe(false);
   });
 
   for (const kind of ["composer", "bridge", "slack-ping"] as const) {
@@ -44,7 +44,7 @@ describe("a browser tool in a scheduled run", () => {
       engine(on);
       await prompt($, "scheduled-trigger");
       await prompt($, kind);
-      expect(await ran($, BUILT_IN)).toBe(true);
+      expect(await ran($, CHROME)).toBe(true);
     });
   }
 
@@ -66,20 +66,20 @@ describe("a browser tool in a scheduled run", () => {
       engine(on);
       await prompt($, "scheduled-trigger");
       await prompt($, kind);
-      expect(await ran($, BUILT_IN)).toBe(false);
+      expect(await ran($, CHROME)).toBe(false);
     });
   }
 
   test("is denied inside a subagent", async ($, on) => {
     engine(on);
     await prompt($, "scheduled-trigger");
-    expect(await ran($, BUILT_IN, "a1")).toBe(false);
+    expect(await ran($, CHROME, "a1")).toBe(false);
   });
 
-  test("is denied for Chrome too", async ($, on) => {
+  test("leaves the built-in browser alone", async ($, on) => {
     engine(on);
     await prompt($, "scheduled-trigger");
-    expect(await ran($, CHROME)).toBe(false);
+    expect(await ran($, BUILT_IN)).toBe(true);
   });
 
   test("leaves any other tool alone", async ($, on) => {
@@ -89,18 +89,18 @@ describe("a browser tool in a scheduled run", () => {
   });
 });
 
-describe("a browser tool in a session a person started", () => {
+describe("a Chrome tool in a session a person started", () => {
   test("runs in the main conversation", async ($, on) => {
     engine(on);
     await prompt($, "composer");
-    expect(await ran($, BUILT_IN)).toBe(true);
+    expect(await ran($, CHROME)).toBe(true);
   });
 
   test("runs after a /loop firing in that session", async ($, on) => {
     engine(on);
     await prompt($, "composer");
     await prompt($, "scheduled-trigger");
-    expect(await ran($, BUILT_IN)).toBe(true);
+    expect(await ran($, CHROME)).toBe(true);
   });
 
   test("runs inside a subagent", async ($, on) => {
