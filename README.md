@@ -113,6 +113,7 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
+A `PreToolUse` entry in that file asks the user before any claude.ai connector tool whose name does not mark it as a read, since the desktop app [does not pass on an organization's `ask` setting](https://code.claude.com/docs/en/mcp#organization-controls-on-connector-tools); its matcher recognizes a connector by the UUID server name a Desktop session gives it, so a server registered by name stays out.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
