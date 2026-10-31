@@ -34,7 +34,7 @@ These points decide whether the research behind a decision can be found again.
 Checkpoints hold prompts, responses, and file contents verbatim, and Entire's own redaction is best-effort ([security and privacy](https://github.com/entireio/cli/blob/main/docs/security-and-privacy.md)).
 The repository sends them to its companion repository ([private-workspace.md](private-workspace.md)) and never to `origin`, and no file it commits names that repository:
 
-- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli#checkpoint-remote).
+- **Committed**: `.entire/settings.json` sets `strategy_options.checkpoint_push_remote` to `checkpoints`, the name of a git remote, [which is fail-closed](https://github.com/entireio/cli/blob/main/docs/architecture/sessions-and-checkpoints.md#committed-checkpoints).
 - **In each clone**: `git remote add checkpoints <URL of the companion repository>`, and two untracked files in the main checkout.
   - `.entire/settings.local.json` sets `strategy_options.checkpoint_remote` to the companion repository's provider and name.
   - `.worktreeinclude` lists `.entire/settings.local.json`, which Claude Code [copies into each worktree it creates](https://code.claude.com/docs/en/worktrees#copy-gitignored-files-into-worktrees).
