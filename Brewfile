@@ -20,8 +20,6 @@ brew "gh"
 brew "gnu-sed"
 # GNU version of the tar archiving utility
 brew "gnu-tar"
-# CLI for Drive, Gmail, Calendar, Sheets, Docs, Chat, Admin, and more
-brew "googleworkspace-cli"
 # Graph visualization software from AT&T and Bell Labs
 brew "graphviz"
 # GNU grep, egrep and fgrep
