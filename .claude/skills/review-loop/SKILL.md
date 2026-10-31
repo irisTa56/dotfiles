@@ -99,8 +99,8 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, and an instruction goes into the round's verdict group, which the close reports where the loop left it undone.
     - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
     - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
-- **In its own session**, pass `run_in_background: true` and end your turn on the spawn rather than holding it open until the findings land.
-- **Inside a subagent**, pass `run_in_background: false` and hold the turn: a subagent returns on ending its turn, and merely keeping the turn open gets it the spawn rather than the findings.
+- **In its own session**, spawn with no `run_in_background` and end your turn on the launch rather than holding it open until the findings land.
+- **Inside a subagent**, pass `run_in_background: false` where your Agent tool declares it, and wait for the findings: where the call still returns a launch, end your turn without delivering your result, and the reviewer reports back to you. A subagent's run ends on delivering its result, so delivering it on the launch gets its caller the spawn rather than the findings.
 - **A reviewer that did not review** is replaced: spawn afresh inside the round.
 - **The reviewer's effort.** Pass `effort: high`, whatever effort this session runs at, unless the user or the invoking workflow named another for this reviewer.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
@@ -136,7 +136,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
 - **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
   - Run it before accepting a finding whose harm is a reader act nothing has yet produced; establishing the mechanism that would make the act possible is not producing the act, nor is the reviewer's own reading of the text. Two things exit it: the floor already covering the finding, and a reader you cannot put the text to.
-  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned synchronously, whose prompt bars it from changing anything or reading under the common git dir, the record directory or the background directory, and read the wrong act off what it produces.
+  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned and waited for as the reviewer is, whose prompt bars it from changing anything or reading under the common git dir, the record directory or the background directory, and read the wrong act off what it produces.
   - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
   - A run that never engaged the task shows nothing and is replaced.
 - **A finding against the background.** A valid one against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
@@ -183,7 +183,7 @@ The loop proposes that close and the user makes it.
   - what the last round did to the record, which no reviewer read;
   - the carry-over, which the selection below derives rather than the loop, and which the check after it narrows.
 - **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then, so drop it from the selector's answer.
-- **Who selects the carry-over.** Spawn a fresh subagent synchronously, at the reviewer's effort.
+- **Who selects the carry-over.** Spawn a fresh subagent and wait for it as the reviewer is, at the reviewer's effort.
   - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
   - **What it gets**, and nothing else of yours: both files of the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
     - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
