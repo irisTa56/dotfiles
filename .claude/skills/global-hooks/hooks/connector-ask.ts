@@ -8,7 +8,8 @@ const CONNECTOR_TOOL = /^mcp__[0-9a-f-]{36}__/;
 // mode's classifier would otherwise settle with no prompt. It asks by default,
 // so a tool added later is covered without anyone listing it, and lets through
 // what the server declares a read, since a prompt on every read would teach the
-// user to approve without looking. A deny beneath stands. An ask beneath is
+// user to approve without looking. Only that declaration exempts a tool: an allow
+// rule beneath does not settle the call. A deny beneath stands. An ask beneath is
 // answered anew rather than handed up, since only an ask a plugin made is kept
 // from the classifier.
 export const register: Register = (on) => {
