@@ -99,8 +99,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, and an instruction goes into the round's verdict group, which the close reports where the loop left it undone.
     - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
     - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
-- **In its own session**, spawn with no `run_in_background` and end your turn on the launch rather than holding it open until the findings land.
-- **Inside a subagent**, pass `run_in_background: false` where your Agent tool declares it, and wait for the findings: where the call still returns a launch, end your turn without delivering your result, and the reviewer reports back to you. A subagent's run ends on delivering its result, so delivering it on the launch gets its caller the spawn rather than the findings.
+- **The wait.** Spawn with no `run_in_background`, and where the call returns a launch, end your turn without delivering a result rather than holding it open until the findings land: the reviewer's report resumes you, and a subagent's run ends on delivering its result, so delivering it on the launch gets its caller the spawn rather than the findings.
 - **A reviewer that did not review** is replaced: spawn afresh inside the round.
 - **The reviewer's effort.** Pass `effort: high`, whatever effort this session runs at, unless the user or the invoking workflow named another for this reviewer.
 - **What the reviewer may do.** It returns findings only, makes no edits, and runs nothing that writes the change under review.
@@ -199,7 +198,6 @@ The loop proposes that close and the user makes it.
 
 Where the round needs the user, everything it needs them for goes to them together, in one message.
 
-- **Inside a subagent that can message the session that spawned it**, send that session what the round puts to the user as the round ends, rather than leaving it for your result: the result reaches it only when the run ends, and the user only through it.
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
   - **Where none comes**, record the held state — what was put to them, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the held state as its result.
 - **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
