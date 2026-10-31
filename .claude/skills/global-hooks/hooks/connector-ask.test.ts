@@ -25,6 +25,12 @@ describe("a connector tool", () => {
     expect(verdict.decision).toBe("allow");
   });
 
+  test("keeps the engine's verdict where an allow rule settled it", async ($, on) => {
+    on("tool.check", () => ({ decision: "allow", rule: "a rule" }));
+    const verdict = await $.tool.check({ tool: CONNECTOR_TOOL, input: {} });
+    expect(verdict.decision).toBe("allow");
+  });
+
   test("is still denied where the engine denies it", async ($, on) => {
     on("tool.check", () => ({ decision: "deny", reason: "a deny rule" }));
     const verdict = await $.tool.check({ tool: CONNECTOR_TOOL, input: {} });
