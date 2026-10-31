@@ -38,6 +38,16 @@ describe("a connector tool", () => {
     expect(verdict.reason).toBe("a deny rule");
   });
 
+  test("is still denied where its server declares it a read", async ($, on) => {
+    on("tool.check", () => ({ decision: "deny", reason: "a deny rule" }));
+    const verdict = await $.tool.check({
+      tool: CONNECTOR_TOOL,
+      input: {},
+      isReadOnly: true,
+    } as never);
+    expect(verdict.decision).toBe("deny");
+  });
+
   test("becomes this plugin's ask where the engine would ask", async ($, on) => {
     on("tool.check", () => ({
       decision: "ask",
