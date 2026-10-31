@@ -96,6 +96,13 @@ describe("a browser tool in a session a person started", () => {
     expect(await ran($, BUILT_IN)).toBe(true);
   });
 
+  test("runs after a /loop firing in that session", async ($, on) => {
+    engine(on);
+    await prompt($, "composer");
+    await prompt($, "scheduled-trigger");
+    expect(await ran($, BUILT_IN)).toBe(true);
+  });
+
   test("runs inside a subagent", async ($, on) => {
     engine(on);
     await prompt($, "composer");

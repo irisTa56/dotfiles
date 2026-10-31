@@ -13,10 +13,13 @@ const PERSON: readonly PromptOrigin["kind"][] = [
 // and in its subagents alike. These browsers can carry the user's logins, and a
 // run reads third-party pages. A person replying to the run is watching it again.
 export const register: Register = (on) => {
-  let scheduled = false;
+  let scheduled: boolean | undefined;
 
   on("prompt.submit", (_, e, next) => {
-    if (e.origin.kind === "scheduled-trigger") scheduled = true;
+    // Only the first prompt says so: a /loop firing in a person's session has
+    // the same origin as a scheduled task's.
+    if (scheduled === undefined)
+      scheduled = e.origin.kind === "scheduled-trigger";
     else if (PERSON.includes(e.origin.kind)) scheduled = false;
     return next(e);
   });
