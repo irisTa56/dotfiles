@@ -2,12 +2,10 @@ import type { PromptOrigin, Register } from "claude-code";
 
 const BROWSER_TOOL = /^mcp__(Claude_Browser|claude-in-chrome)__/;
 
-// The origins of a prompt a person sent. The desktop app hosts its sessions
-// through the SDK, so its composer arrives as "sdk".
+// The origins of a prompt a person sent.
 const PERSON: readonly PromptOrigin["kind"][] = [
   "composer",
   "bridge",
-  "sdk",
   "slack-ping",
 ];
 

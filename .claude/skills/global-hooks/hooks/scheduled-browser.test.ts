@@ -39,19 +39,36 @@ describe("a browser tool in a scheduled run", () => {
     expect(await ran($, BUILT_IN)).toBe(false);
   });
 
-  test("runs again once a person replies", async ($, on) => {
-    engine(on);
-    await prompt($, "scheduled-trigger");
-    await prompt($, "sdk");
-    expect(await ran($, BUILT_IN)).toBe(true);
-  });
+  for (const kind of ["composer", "bridge", "slack-ping"] as const) {
+    test(`runs again once a person replies through ${kind}`, async ($, on) => {
+      engine(on);
+      await prompt($, "scheduled-trigger");
+      await prompt($, kind);
+      expect(await ran($, BUILT_IN)).toBe(true);
+    });
+  }
 
-  test("stays denied after a subagent's notification", async ($, on) => {
-    engine(on);
-    await prompt($, "scheduled-trigger");
-    await prompt($, "task-notification");
-    expect(await ran($, BUILT_IN)).toBe(false);
-  });
+  for (const kind of [
+    "sdk",
+    "task-notification",
+    "peer",
+    "peer-send-message",
+    "projects-relay",
+    "channel",
+    "coordinator",
+    "observer",
+    "observer-activity",
+    "auto-continuation",
+    "unclassified",
+    "plugin",
+  ] as const) {
+    test(`stays denied after a ${kind} prompt`, async ($, on) => {
+      engine(on);
+      await prompt($, "scheduled-trigger");
+      await prompt($, kind);
+      expect(await ran($, BUILT_IN)).toBe(false);
+    });
+  }
 
   test("is denied inside a subagent", async ($, on) => {
     engine(on);
@@ -75,13 +92,13 @@ describe("a browser tool in a scheduled run", () => {
 describe("a browser tool in a session a person started", () => {
   test("runs in the main conversation", async ($, on) => {
     engine(on);
-    await prompt($, "sdk");
+    await prompt($, "composer");
     expect(await ran($, BUILT_IN)).toBe(true);
   });
 
   test("runs inside a subagent", async ($, on) => {
     engine(on);
-    await prompt($, "sdk");
+    await prompt($, "composer");
     expect(await ran($, CHROME, "a1")).toBe(true);
   });
 });
