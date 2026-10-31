@@ -115,6 +115,7 @@ That symlink carries user-global hooks.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
+- `hooks/connector-ask.ts` lays a base under the permission rules: even in [auto mode, whose classifier](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions) would otherwise settle the call with no prompt, a connector tool asks the user unless its server declares it a read, since it acts on outside services under the user's account; deny and allow rules sit on top of that base, and a tool added later is covered without anyone listing it.
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
 - `hooks/scheduled-chrome.ts` denies Claude in Chrome's tools in a run a scheduled task started, in its main conversation and in its subagents, until a person replies in that session; the built-in browser stays available.
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
