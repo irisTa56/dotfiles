@@ -9,9 +9,10 @@ const PERSON: readonly PromptOrigin["kind"][] = [
   "slack-ping",
 ];
 
-// Keeps the user's Chrome, which carries their logins, out of a run nobody is
-// watching, in its main conversation and in its subagents alike, since a run
-// reads third-party pages. A person replying to the run is watching it again.
+// Keeps the user's own Chrome out of a run nobody is watching, in its main
+// conversation and in its subagents alike, since a run reads third-party pages.
+// The built-in browser stays, by the user's choice. A person replying to the run
+// is watching it again.
 export const register: Register = (on) => {
   let scheduled: boolean | undefined;
 
@@ -27,7 +28,7 @@ export const register: Register = (on) => {
   on("tool.call", { tool: CHROME_TOOL }, (_, e, next) =>
     scheduled
       ? {
-          deny: "Blocked: a scheduled run may not use the user's Chrome, which carries their logins. Read the page with WebFetch or the built-in browser, or report it as unread and leave it for a person.",
+          deny: "Blocked: a scheduled run may not use the user's Chrome. Read the page with WebFetch or the built-in browser, or report it as unread and leave it for a person.",
         }
       : next(e),
   );
