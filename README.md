@@ -113,8 +113,7 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
-A `PreToolUse` entry in that file asks the user before a connector tool in a Desktop session that may need attention, meaning one whose name does not mark it as a read, since the desktop app [does not pass on an organization's `ask` setting](https://code.claude.com/docs/en/mcp#organization-controls-on-connector-tools); its matcher goes by the server's name alone, the UUID a Desktop session gives a connector, so a server registered by name stays out and any other server with such a name is asked about too.
-The first word of the tool's name decides, so `export` and other rarely called reads still ask on purpose, while `guide` and `query` pass: Claude Docs' `guide` is to be called before most operations on a doc, and `query` lists its comment history.
+A `PreToolUse` entry in that file asks the user before a connector tool that may need attention, since in auto mode [the classifier](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions) would otherwise decide such a call with no prompt.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
