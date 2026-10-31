@@ -43,6 +43,8 @@ const post = async (
   ]);
 };
 
+const REASONS = ["answer", "aborted", "refusal", "error"] as const;
+
 // Desktop's own "Scheduled task completed" banner fires for every run and can't
 // be told apart at a glance, so a one-time run's completion gets a banner of its
 // own. A lookup that fails says so in a banner too: staying silent would look
@@ -59,12 +61,14 @@ export const register: Register = (on) => {
     },
   );
 
-  on("turn.complete", { reason: "answer" }, async ($, e, next) => {
+  // Every reason is named because review-loop holds this event's matcherless slot.
+  on("turn.complete", { reason: REASONS }, async ($, e, next) => {
     if (e.agentId !== undefined) return next(e);
 
     const finished = taskId;
     taskId = undefined;
-    if (finished === undefined) return next(e);
+    // Desktop's own banner reads "Scheduled task failed" for the rest.
+    if (finished === undefined || e.reason !== "answer") return next(e);
 
     await isOneTime($, finished).then(
       (oneTime) =>

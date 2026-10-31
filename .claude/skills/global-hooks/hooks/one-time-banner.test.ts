@@ -64,12 +64,16 @@ const prompt = (
   text: string,
 ): Promise<unknown> => $.prompt.submit({ text, origin: { kind } } as never);
 
-const finish = ($: Engine, agentId?: string): Promise<unknown> =>
+const finish = (
+  $: Engine,
+  agentId?: string,
+  reason = "answer",
+): Promise<unknown> =>
   $.turn.complete({
-    answer: "done",
+    answer: reason === "answer" ? "done" : "",
     durationMs: 1,
     isAborted: false,
-    reason: "answer",
+    reason,
     turnId: "t1",
     ...(agentId === undefined ? {} : { agentId }),
   } as never);
@@ -94,6 +98,16 @@ describe("a one-time scheduled run", () => {
     await prompt($, "composer", "thanks, one more thing");
     await finish($);
     expect(w.banners.length).toBe(1);
+  });
+
+  test("posts nothing for a person's reply after its first turn failed", async ($, on) => {
+    const w = engine(on, [ONE_TIME]);
+    await prompt($, "scheduled-trigger", dispatch("check-a"));
+    await finish($, undefined, "error");
+    expect(w.banners).toEqual([]);
+    await prompt($, "composer", "what happened?");
+    await finish($);
+    expect(w.banners).toEqual([]);
   });
 
   test("waits for the main turn, not a subagent's", async ($, on) => {
