@@ -13,12 +13,6 @@ dependencies:
   - basicmachines-co/basic-memory/skills/memory-notes
   - github/awesome-copilot/skills/draw-io-diagram-generator
   - github/awesome-copilot/skills/drawio
-  - googleworkspace/cli/skills/gws-docs
-  - googleworkspace/cli/skills/gws-drive
-  - googleworkspace/cli/skills/gws-gmail
-  - googleworkspace/cli/skills/gws-shared
-  - googleworkspace/cli/skills/gws-sheets
-  - googleworkspace/cli/skills/gws-slides
   - mattpocock/skills/skills/productivity/handoff
   # A gist deploys under its hash unless given an alias.
   - git: https://gist.github.com/irisTa56/4f4492cc558997fae5692cb3b5137f6a.git
