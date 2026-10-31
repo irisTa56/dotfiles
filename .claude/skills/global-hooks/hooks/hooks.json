@@ -3,15 +3,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^mcp__[0-9a-f-]{36}__(?!(get|list|read|search|guide|query)(_|$))",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"connector tool that may need attention\"}}'"
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {

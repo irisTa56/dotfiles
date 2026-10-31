@@ -113,9 +113,9 @@ A plural `targets:` reads as unset, which makes uninstall auto-detect on-disk ta
 That symlink carries user-global hooks.
 `.claude/skills/global-hooks/` holds a `.claude-plugin/plugin.json`, so Claude Code loads it in place as the [skills-directory plugin](https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session) `global-hooks@skills-dir` in every project, and its `hooks/hooks.json` stays out of the machine-local `~/.claude/settings.json`.
 An edit to it takes effect after `/reload-plugins` or a restart.
-A `PreToolUse` entry in that file asks the user before a connector tool that may need attention, since in auto mode [the classifier](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions) would otherwise decide such a call with no prompt.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
+- `hooks/connector-ask.ts` asks the user before a connector tool unless its server declares it a read, so a tool added later is covered without anyone listing it, since such a tool acts on outside services under the user's account and [auto mode's classifier](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions) would otherwise settle the call with no prompt.
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
 - `hooks/scheduled-chrome.ts` denies Claude in Chrome's tools in a run a scheduled task started, in its main conversation and in its subagents, until a person replies in that session; the built-in browser stays available.
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
