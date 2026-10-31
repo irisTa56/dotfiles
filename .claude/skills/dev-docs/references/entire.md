@@ -12,15 +12,7 @@ These points decide whether the research behind a decision can be found again.
 
 ## Subagents
 
-- A subagent's own transcript is recorded only when the Agent call passes `run_in_background: true` explicitly, although Claude Code backgrounds subagents without it ([entireio/cli#2556](https://github.com/entireio/cli/issues/2556)).
-  - Pass it on every Agent call you want recorded.
-- With fork mode on, Claude Code removes that parameter from the Agent tool, so no subagent can be recorded ([fork mode](https://code.claude.com/docs/en/sub-agents#turn-fork-mode-on-or-off)).
-  - Fork mode is on by default in interactive sessions, and off with `-p` and in the Agent SDK.
-  - A repository that wants subagents recorded sets `CLAUDE_CODE_FORK_SUBAGENT=0`.
-  - If the Agent tool offers no `run_in_background` parameter, tell the person instead of assuming the research will be kept.
-- A subagent's final report reaches the parent transcript either way, so notes that carry each conclusion and its source keep what a decision rests on even when a subagent's working is lost.
-- The rules on `run_in_background` and fork mode hold for every session in the repository, not only for research, so they belong in its instructions (`CLAUDE.md`, `CLAUDE.local.md`, or the like).
-  - If the instructions lack them, propose adding them.
+A subagent's final report reaches the parent transcript, so notes that carry each conclusion and its source keep what a decision rests on even when a checkpoint lacks that subagent's own transcript.
 
 ## Finding the conversation after a squash merge
 
