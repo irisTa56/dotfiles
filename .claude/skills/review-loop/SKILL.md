@@ -95,7 +95,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
 - **The tree may not move.** However you spawn, the reviewer reads a working tree no one may move, since an edit landing under it attaches the round's findings and verdicts to a state that no longer exists: before this run's first spawn, tell a user you can reach not to move it until this run ends.
   - Note into the round's verdict group a digest of what the reviewer reads when you spawn, rather than a description of it, re-noting it after anything of your own writes there once you have judged.
   - Confirm that it still matches before you report the round's findings, before you judge them, and on any answer to a wait; where it does not, say so and discard them to spawn afresh, or report the mismatch with them where that answer was to stop.
-  - Where you ended the turn on the spawn: resume on the notification from the reviewer you spawned last, discarding one from a reviewer you replaced rather than polling for either.
+  - Where you ended the turn on a spawn: resume on the notification from the subagent you spawned last, discarding one from a reviewer you replaced rather than polling for either.
   - What the user sends while a round is in flight goes into the record before that round goes on: a correction to the background lands there in their own words, and an instruction goes into the round's verdict group, which the close reports where the loop left it undone.
     - What invalidates that round — what its reviewer read the change against, or a fix it has already landed — voids it, as does the tree moving before you judge, your own early application included: discard its findings and spawn afresh, stopping the reviewer first where one is still running.
     - Anything else is answered at once where it calls for no edit, and otherwise waits for the findings and is taken up once you have judged them; applying it sooner costs the round, so take that only where the user asks for it.
@@ -116,7 +116,7 @@ Spawn a general-purpose subagent (the `Agent` tool) and, in its prompt, instruct
   - on a round that reads much of the change afresh, the line asking for the built-in reviews `raise-findings` names, as the loop's first round does and as one does after fixes that added or rewrote a large part of the change, or a settlement that re-pinned the purpose.
 - **Nothing of your own.** Compose no review instructions on top, and put none on that list.
 
-Report the findings to the user as the subagent returned them, and take the round on to its outcome in the same turn.
+Report the findings to the user as the subagent returned them, and take the round on to its outcome in the same turn, or the next where a subagent it spawned ends this one on a launch.
 
 - **What goes with the findings.** Say which round this is, counting from the loop's start, and the consecutive-round tally as "Waiting on the user" counts it, every round and not only when the hold fires, so a recurrence cannot pass unremarked.
 
