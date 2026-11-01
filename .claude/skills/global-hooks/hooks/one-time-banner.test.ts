@@ -58,7 +58,8 @@ const engine = (
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
     const isNotify =
-      e.argv.slice(0, 5).join(" ") === "mise -C /home/u run utils:notify";
+      e.argv.slice(0, 6).join(" ") ===
+      "mise -C /home/u run --skip-tools utils:notify";
     if (isNotify) w.banners.push(e.argv.join(" "));
     if (isNotify && postExit === null) return { deny: "ENOENT" };
 

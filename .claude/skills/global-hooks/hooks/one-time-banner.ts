@@ -43,6 +43,7 @@ const post = async (
       "-C",
       home,
       "run",
+      "--skip-tools",
       "utils:notify",
       title,
       taskId,
