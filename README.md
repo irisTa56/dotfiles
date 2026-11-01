@@ -29,14 +29,14 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config and file tasks, the commands under `~/.local/bin`, and the agent instructions below, into place.
+- `[dotfiles]` symlinks the global mise config, the commands under `~/.local/bin`, and the agent instructions below, into place.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
 - The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `apm install`, and the `basic-memory` MCP server.
 
-The global config, `.config/mise/config.toml`, holds the tools, settings and tasks that reach every repository, and `.config/mise/tasks/` its file tasks; the root `mise.toml` pins the tools this repository's own tasks use.
+The global config, `.config/mise/config.toml`, holds the tools and settings that reach every repository; the root `mise.toml` pins the tools this repository's own tasks use.
 
 A few more steps stay by hand, since each needs a secret, a sign-in or a path only this machine knows: rclone's remotes below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
 
@@ -99,9 +99,9 @@ Take the first of these that fits:
    - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
    - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
    - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-3. It needs a tool mise installs, or a person runs it inside a repository: a mise task, where a broken config shows at once to whoever ran it.
-   - It reaches every repository from `.config/mise/tasks/`, and other repositories that take it from [`tasks/`](tasks/README.md).
-4. It is a shorthand a person types: an alias or function in `zsh_fragments/zshrc.sh`.
+3. It belongs to one repository, or other repositories take it: a mise task, in that repository's `mise.toml` or in [`tasks/`](tasks/README.md), where a broken config shows at once to whoever ran it.
+4. A person types it, wherever they are: an alias or function in `zsh_fragments/zshrc.sh`, with anything longer than a line in `scripts/`.
+   - A skill that also runs it keeps it in its own `scripts/` and calls it by path, since an agent's shell does not read `.zshrc`.
 
 ## Agent Instructions
 
@@ -246,11 +246,11 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
 - Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
 
   ```shell
-  mise run secrets:add <NAME>
+  secrets-add <NAME>
   ```
 
-  - The task declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise bootstrap` copies into place keeps out of every repository, and has fnox add the key's entry there.
-  - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the task prints it for you to place instead.
+  - The command declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise bootstrap` copies into place keeps out of every repository, and has fnox add the key's entry there.
+  - It also creates the root's `CLAUDE.local.md`, likewise ignored, with a line telling an agent there to run what needs a key through fnox; if the file already exists without that line, the command prints it for you to place instead.
   - The login keychain does not sync through iCloud, so another Mac needs the key stored again.
 - Run what needs the key as `fnox exec -- <command>`, which puts it in that command's environment alone; `fnox activate` would export it to everything run in the directory.
 - A worktree has no `fnox.local.toml` of its own. Claude Code puts worktrees under the main checkout's `.claude/worktrees/`, where fnox finds the main checkout's by searching upward; a worktree placed elsewhere does not.

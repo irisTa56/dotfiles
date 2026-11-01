@@ -1,16 +1,16 @@
 ---
 name: sweep-branches
 description: Delete the local branches whose work has reached the default branch, including the ones gh-poi keeps because no pull request holds their commits, then look into the branches and linked worktrees left and propose a keep-or-delete call on each, with its evidence.
-allowed-tools: Bash(mise run git:sweep)
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/sweep.sh)
 disable-model-invocation: true
 ---
 
 # Sweep branches
 
-Run `mise run git:sweep` and report what it deleted: each branch `gh-poi` deleted with the pull request it lists for it, and each branch deleted after that with the SHA `git branch -D` prints, since nothing else brings one back.
+Run `${CLAUDE_SKILL_DIR}/scripts/sweep.sh` and report what it deleted: each branch `gh-poi` deleted with the pull request it lists for it, and each branch deleted after that with the SHA `git branch -D` prints, since nothing else brings one back.
 It runs `gh-poi`, which deletes a branch its merged pull request holds, restorable from that pull request, and force-removes that branch's worktree, ignored files included, unless it has changes or untracked files.
 It then deletes every branch the default branch already holds whole, except one checked out in a worktree or held by `gh-poi lock`.
-Where the task fails, report what it says rather than working around it.
+Where the script fails, report what it says rather than working around it.
 
 ## What is left
 

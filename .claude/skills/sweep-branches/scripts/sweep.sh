@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-#MISE description="Run gh-poi, then delete the local branches it leaves that carry no commits of their own"
-#MISE dir="{{cwd}}"
 set -euo pipefail
 
+# Runs gh-poi, then deletes the local branches it leaves that carry no commits of their own.
 # gh-poi deletes a branch only once it finds a pull request holding the branch's commits,
 # so a branch that never got one stays however long ago its tip reached the default branch.
 # Here such a branch goes too. A branch `gh poi lock` holds is left alone by both.
