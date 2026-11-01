@@ -101,7 +101,6 @@ Take the first of these that fits:
    - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
 3. Anything else: an alias or function in `zsh_fragments/zshrc.sh` for a person to type, with anything longer than a line in `scripts/`.
    - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
-   - A script an agent runs reaches a tool mise installs through `mise exec --`, since `mise activate` in `.zshrc` is what puts those on `PATH`.
 
 ## Agent Instructions
 
