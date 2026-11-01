@@ -10,8 +10,8 @@ defmodule SkillsUpdate do
 
   The time comes from the pull request that merged the skill's last commit into the
   default branch, which GitHub records, since a commit's own date is whatever its
-  author set. A commit no such pull request holds is held too, and `apm update` is
-  the way past that.
+  author set. A commit no such pull request holds is held too. `apm update <package>`
+  followed by `apm install` is the way past a hold.
 
     --help, -h  print this message
   """

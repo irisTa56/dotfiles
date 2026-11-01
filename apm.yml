@@ -5,7 +5,8 @@ author: irisTa56
 includes: auto
 target: claude
 # Without this, an install merges a package's hooks into .claude/settings.json.
-allowExecutables: {}
+executables:
+  allow: {}
 dependencies:
   apm:
   - anthropics/skills/skills/skill-creator
