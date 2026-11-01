@@ -144,7 +144,7 @@ defmodule SkillsUpdate do
 
   defp findings do
     found = Enum.sort(outside_skills() ++ Enum.flat_map(roots(), &in_skill/1))
-    Enum.each(found, &IO.puts(:stderr, "[fail] #{&1}"))
+    Enum.each(found, &IO.puts(:stderr, "[fail] #{visible_controls(&1)}"))
     found
   end
 
@@ -154,7 +154,12 @@ defmodule SkillsUpdate do
     end
   end
 
+  # Not on disk, as in a new worktree, the skill would otherwise read as clean.
   defp in_skill(root) do
+    if File.exists?(root), do: in_deployed_skill(root), else: ["#{root}: not deployed here"]
+  end
+
+  defp in_deployed_skill(root) do
     # Compared in lower case: this filesystem folds case, so `Hooks/` is `hooks/`.
     files = Path.wildcard(root <> "/**", match_dot: true)
 

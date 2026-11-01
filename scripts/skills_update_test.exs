@@ -153,6 +153,33 @@ defmodule SkillsUpdateCheckTest do
     assert_clean(dir)
   end
 
+  test "a file name with control bytes is reported without the raw bytes", %{dir: dir} do
+    lock(dir)
+    write(dir, ".claude/skills/probe/SKILL.md", @skill)
+    name = "ok-before\e[2K\rok-after.json"
+    write(dir, ".claude/skills/probe/hooks/#{name}", "{}\n")
+
+    assert File.exists?(Path.join(dir, ".claude/skills/probe/hooks/#{name}")),
+           "fixture: the file was not written"
+
+    {out, code} = check(dir)
+
+    assert code == 1, out
+    assert out =~ "ok-before", out
+    assert out =~ "ok-after", out
+    refute out =~ "\e", inspect(out)
+    refute out =~ "\r", inspect(out)
+  end
+
+  test "a lockfile naming a skill directory that is missing is not a clean result", %{dir: dir} do
+    lock(dir)
+
+    {out, code} = check(dir)
+
+    assert code == 1, "exit #{code}, output #{inspect(out)}"
+    assert out =~ ".claude/skills/probe", out
+  end
+
   # The filesystem here folds case, so these are the usual names under another spelling.
   defp assert_same_file(dir, written, usual) do
     assert File.exists?(Path.join(dir, usual)), "fixture: #{written} is not #{usual} here"
