@@ -90,7 +90,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 
 ### Where a script goes
 
-What decides is who calls a script and what it has to change, not the language it is written in.
+For a script shared across this machine, wherever it is called from, what decides is who calls it and what it has to change, not the language it is written in.
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
@@ -99,9 +99,9 @@ Take the first of these that fits:
    - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
    - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
    - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-3. It belongs to one repository, or other repositories take it: a mise task, in that repository's `mise.toml` or in [`tasks/`](tasks/README.md), where a broken config shows at once to whoever ran it.
-4. A person types it, wherever they are: an alias or function in `zsh_fragments/zshrc.sh`, with anything longer than a line in `scripts/`.
-   - A skill that also runs it keeps it in its own `scripts/` and calls it by path, since an agent's shell does not read `.zshrc`.
+3. Anything else: an alias or function in `zsh_fragments/zshrc.sh` for a person to type, with anything longer than a line in `scripts/`.
+   - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
+   - A script an agent runs reaches a tool mise installs through `mise exec --`, since `mise activate` in `.zshrc` is what puts those on `PATH`.
 
 ## Agent Instructions
 
