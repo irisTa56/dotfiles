@@ -37,15 +37,20 @@ const post = async (
   // From the home directory, so the config of the repository the run sits in
   // can neither break the task nor replace it.
   const home = `${await $.env.get("HOME")}`;
-  await $.process.run([
-    "mise",
-    "-C",
-    home,
-    "run",
-    "utils:notify",
-    title,
-    taskId,
-  ]);
+  try {
+    const { exitCode, stderr } = await $.process.run([
+      "mise",
+      "-C",
+      home,
+      "run",
+      "utils:notify",
+      title,
+      taskId,
+    ]);
+    if (exitCode !== 0) throw new Error(`exit ${exitCode}: ${stderr}`);
+  } catch (error) {
+    $.ui.log(`"${title}" for ${taskId} did not post: ${error}`);
+  }
 };
 
 const REASONS = ["answer", "aborted", "refusal", "error"] as const;
@@ -78,7 +83,7 @@ export const register: Register = (on) => {
     await isOneTime($, finished).then(
       (oneTime) =>
         oneTime ? post($, "⏰ one-time 完了", finished) : undefined,
-      () => post($, "⚠ one-time 判定失敗", finished),
+      () => post($, "⚠️ one-time 判定失敗", finished),
     );
 
     return next(e);
