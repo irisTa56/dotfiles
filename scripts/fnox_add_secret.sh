@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-#MISE description="Store an API key in the keychain for this repository, through fnox"
-#MISE dir="{{cwd}}"
-#MISE raw=true
-#USAGE arg "<name>" help="Environment variable the key is passed as"
 set -euo pipefail
 
-# The README's Secrets section is the convention this task carries out.
-# raw keeps stdin on the terminal for fnox's prompt.
+# Usage: fnox-add-secret <NAME>
+# Stores an API key in the keychain for this repository, through fnox; NAME is the
+# environment variable the key is passed as.
+# The README's Secrets section is the convention this command carries out.
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: fnox-add-secret <NAME>" >&2
+  exit 1
+fi
 
 # Appending to a file whose last line lacks a newline would glue the two.
 end_line() { if [[ -s $1 && -n "$(tail -c1 "$1")" ]]; then echo >>"$1"; fi; }
@@ -21,7 +24,7 @@ touch fnox.local.toml
 # from parent directories and the global config too, and one of theirs
 # would store the key under their keychain service rather than this one's.
 # fnox does the parsing, so a declaration in any TOML form counts,
-# and a file it cannot parse stops the task.
+# and a file it cannot parse stops the command.
 provider="$(basename "$root")"
 providers="$(fnox provider list -c fnox.local.toml)"
 if ! grep -qxF "$provider" <<<"$providers"; then
@@ -47,7 +50,7 @@ note="$(
 EOF
 )"
 # An existing file has a structure of its own, and where the line belongs in it
-# is a call this task cannot make, so there the line is left to the user.
+# is a call this command cannot make, so there the line is left to the user.
 if [[ ! -e CLAUDE.local.md ]]; then
   printf '%s\n' "$note" >CLAUDE.local.md
 elif ! grep -qF 'fnox exec' CLAUDE.local.md; then
