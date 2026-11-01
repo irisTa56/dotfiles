@@ -9,7 +9,7 @@ set -euo pipefail
 git -c remote.origin.followRemoteHEAD=always fetch --prune origin
 # A worktree whose directory is gone stays registered, and holds its branch, until pruned.
 git worktree prune
-mise exec -- gh-poi
+gh-poi
 
 base=$(git symbolic-ref --short refs/remotes/origin/HEAD)
 
