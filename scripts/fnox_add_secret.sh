@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: secrets-add <NAME>
+# Usage: fnox-add-secret <NAME>
 # Stores an API key in the keychain for this repository, through fnox; NAME is the
 # environment variable the key is passed as.
 # The README's Secrets section is the convention this command carries out.
 
 if [[ $# -ne 1 ]]; then
-  echo "Usage: secrets-add <NAME>" >&2
+  echo "Usage: fnox-add-secret <NAME>" >&2
   exit 1
 fi
 

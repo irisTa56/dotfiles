@@ -246,7 +246,7 @@ API keys stay out of every file a repository keeps, `.env` and mise's `[env]` in
 - Store a key from anywhere in the repository, typing it at the prompt so it lands in neither shell history nor a process's arguments:
 
   ```shell
-  secrets-add <NAME>
+  fnox-add-secret <NAME>
   ```
 
   - The command declares a keychain provider named after the repository in a `fnox.local.toml` at the main checkout's root, which the global git ignore that `mise bootstrap` copies into place keeps out of every repository, and has fnox add the key's entry there.
