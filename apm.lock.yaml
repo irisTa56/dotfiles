@@ -1,11 +1,11 @@
 lockfile_version: '1'
-generated_at: '2026-10-31T06:38:33.933157+00:00'
-apm_version: 0.32.0
+generated_at: '2026-11-01T14:27:40.806641+00:00'
+apm_version: 0.35.0
 dependencies:
 - repo_url: anthropics/skills
   name: skill-creator
   host: github.com
-  resolved_commit: 34040c9c568585f6929bedeaad110ad08f079624
+  resolved_commit: ca45fc496a3436251f191354091d557da31c15b5
   version: unknown
   virtual_path: skills/skill-creator
   is_virtual: true
@@ -53,7 +53,7 @@ dependencies:
 - repo_url: basicmachines-co/basic-memory
   name: memory-curate
   host: github.com
-  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  resolved_commit: 27e6a155dc6b4149f53dfc921d5df46b8d198db2
   version: unknown
   virtual_path: skills/memory-curate
   is_virtual: true
@@ -62,12 +62,12 @@ dependencies:
   - .claude/skills/memory-curate
   - .claude/skills/memory-curate/SKILL.md
   deployed_file_hashes:
-    .claude/skills/memory-curate/SKILL.md: sha256:1d8239d1d6480d1379b381dc3303959a53caf6a32cab332e7fd5da18ad472798
-  content_hash: sha256:73e21ef17b37a7ba77d24b6d452230c81f933250fe36239bbbc3756777ee424f
+    .claude/skills/memory-curate/SKILL.md: sha256:9983b502ab0dccbe583ec4c0eb4a8506dc613e7cdd24001ae051ec6901ff1da0
+  content_hash: sha256:8ad7439d4fd378d85aeb0a08219e4b3c528d53722e071b0099037e5c52821a2f
 - repo_url: basicmachines-co/basic-memory
   name: memory-defrag
   host: github.com
-  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  resolved_commit: 27e6a155dc6b4149f53dfc921d5df46b8d198db2
   version: unknown
   virtual_path: skills/memory-defrag
   is_virtual: true
@@ -76,12 +76,12 @@ dependencies:
   - .claude/skills/memory-defrag
   - .claude/skills/memory-defrag/SKILL.md
   deployed_file_hashes:
-    .claude/skills/memory-defrag/SKILL.md: sha256:9833723b0feacdc2ea2b36d428b381e06d84a490a96fa5f884775e4f7764aedc
-  content_hash: sha256:82da4efe339bfb37fe68e97909df5a966d821fb790a4c0ab092a020f1252621e
+    .claude/skills/memory-defrag/SKILL.md: sha256:ce5b06350c6ad187f58a278530cf98b1217f37d233acf00f3328d93e151fbc9c
+  content_hash: sha256:70dc9f6f16b036ae06fdf3f3e921bcc272e7cc0a7474f813cbdcbd6243337e5c
 - repo_url: basicmachines-co/basic-memory
   name: memory-ingest
   host: github.com
-  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  resolved_commit: 27e6a155dc6b4149f53dfc921d5df46b8d198db2
   version: unknown
   virtual_path: skills/memory-ingest
   is_virtual: true
@@ -90,12 +90,12 @@ dependencies:
   - .claude/skills/memory-ingest
   - .claude/skills/memory-ingest/SKILL.md
   deployed_file_hashes:
-    .claude/skills/memory-ingest/SKILL.md: sha256:3dbd6517d53e19280c792cfe3e7153a3c7d8486291153d75554c544bb6935b52
-  content_hash: sha256:c1ecd6237ae2cba8073082f7bc9a54b06a41101bfe2643c3b302c66400f3d98b
+    .claude/skills/memory-ingest/SKILL.md: sha256:e82c150d7dafe2988603d0a43e5ab2a4d63f5be7b0c86b339b84caf8b1be5d58
+  content_hash: sha256:fa061db2eef16f6e49d3e085e0c93c897fd91360fcb6ab47e1a944f3fb66cba3
 - repo_url: basicmachines-co/basic-memory
   name: memory-notes
   host: github.com
-  resolved_commit: 22d31e96e2defa465d3703620a537c9125e7d364
+  resolved_commit: 27e6a155dc6b4149f53dfc921d5df46b8d198db2
   version: unknown
   virtual_path: skills/memory-notes
   is_virtual: true
@@ -104,12 +104,12 @@ dependencies:
   - .claude/skills/memory-notes
   - .claude/skills/memory-notes/SKILL.md
   deployed_file_hashes:
-    .claude/skills/memory-notes/SKILL.md: sha256:68a38d488900703cbd16e9f5dde8d5ac0500ed99959aecdda48dddd15c2b9c1e
-  content_hash: sha256:f1b167acaf5ea7d83cb10912189dc463675defdb100b237d65887688ef026842
+    .claude/skills/memory-notes/SKILL.md: sha256:7470f21b7fa11ea76195fad5a3ce58e5fd1270f1a13cfab9a70ec3ac6fa79683
+  content_hash: sha256:dae9b1ace14a7433dc47bd790603c1e416175ec46070cfdc37d7b65659eeafba
 - repo_url: github/awesome-copilot
   name: draw-io-diagram-generator
   host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
+  resolved_commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
   version: unknown
   virtual_path: skills/draw-io-diagram-generator
   is_virtual: true
@@ -147,7 +147,7 @@ dependencies:
 - repo_url: github/awesome-copilot
   name: drawio
   host: github.com
-  resolved_commit: 1f5644080a525d26a2e24f61a7609fb9b261c21a
+  resolved_commit: 5269f7ea2d6c3a9bfda5ed878b6726cf509121fd
   version: unknown
   virtual_path: skills/drawio
   is_virtual: true
@@ -178,7 +178,7 @@ dependencies:
 - repo_url: mattpocock/skills
   name: handoff
   host: github.com
-  resolved_commit: d81f3a183412e71a5b1e84ca21bc1a35eea03a60
+  resolved_commit: 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d
   version: unknown
   virtual_path: skills/productivity/handoff
   is_virtual: true
@@ -188,9 +188,9 @@ dependencies:
   - .claude/skills/handoff/SKILL.md
   - .claude/skills/handoff/agents/openai.yaml
   deployed_file_hashes:
-    .claude/skills/handoff/SKILL.md: sha256:7c62de979fdc7ac32fb5ddb2146156c917f80ee070d30fadc9d40343c4b6ed25
+    .claude/skills/handoff/SKILL.md: sha256:4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3
     .claude/skills/handoff/agents/openai.yaml: sha256:5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28
-  content_hash: sha256:57c3a6244da589bab282fdd546421b081d767f2e76b061cd756f1b4fdbd574c2
+  content_hash: sha256:16e5b77eadb689d69c816bfe52cae6b5f425180340b77235ab8a3f402cf4b6f3
 deployments:
 - kind: project-relative
   target: claude
@@ -371,7 +371,7 @@ deployments:
   owners:
   - mattpocock/skills/skills/productivity/handoff
   active_owner: mattpocock/skills/skills/productivity/handoff
-  content_hash: sha256:7c62de979fdc7ac32fb5ddb2146156c917f80ee070d30fadc9d40343c4b6ed25
+  content_hash: sha256:4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3
 - kind: project-relative
   target: claude
   value: .claude/skills/handoff/agents/openai.yaml
@@ -416,7 +416,7 @@ deployments:
   owners:
   - basicmachines-co/basic-memory/skills/memory-curate
   active_owner: basicmachines-co/basic-memory/skills/memory-curate
-  content_hash: sha256:1d8239d1d6480d1379b381dc3303959a53caf6a32cab332e7fd5da18ad472798
+  content_hash: sha256:9983b502ab0dccbe583ec4c0eb4a8506dc613e7cdd24001ae051ec6901ff1da0
 - kind: project-relative
   target: claude
   value: .claude/skills/memory-defrag
@@ -434,7 +434,7 @@ deployments:
   owners:
   - basicmachines-co/basic-memory/skills/memory-defrag
   active_owner: basicmachines-co/basic-memory/skills/memory-defrag
-  content_hash: sha256:9833723b0feacdc2ea2b36d428b381e06d84a490a96fa5f884775e4f7764aedc
+  content_hash: sha256:ce5b06350c6ad187f58a278530cf98b1217f37d233acf00f3328d93e151fbc9c
 - kind: project-relative
   target: claude
   value: .claude/skills/memory-ingest
@@ -452,7 +452,7 @@ deployments:
   owners:
   - basicmachines-co/basic-memory/skills/memory-ingest
   active_owner: basicmachines-co/basic-memory/skills/memory-ingest
-  content_hash: sha256:3dbd6517d53e19280c792cfe3e7153a3c7d8486291153d75554c544bb6935b52
+  content_hash: sha256:e82c150d7dafe2988603d0a43e5ab2a4d63f5be7b0c86b339b84caf8b1be5d58
 - kind: project-relative
   target: claude
   value: .claude/skills/memory-notes
@@ -470,7 +470,7 @@ deployments:
   owners:
   - basicmachines-co/basic-memory/skills/memory-notes
   active_owner: basicmachines-co/basic-memory/skills/memory-notes
-  content_hash: sha256:68a38d488900703cbd16e9f5dde8d5ac0500ed99959aecdda48dddd15c2b9c1e
+  content_hash: sha256:7470f21b7fa11ea76195fad5a3ce58e5fd1270f1a13cfab9a70ec3ac6fa79683
 - kind: project-relative
   target: claude
   value: .claude/skills/skill-creator
