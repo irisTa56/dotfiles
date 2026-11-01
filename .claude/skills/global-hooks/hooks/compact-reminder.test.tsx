@@ -69,9 +69,9 @@ test("a survey keeps the band", async ($, on) => {
 });
 
 test("a moved fill redraws the band, and other units do not", async ($, on) => {
-  let redraws = 0;
-  on("ui.invalidate", () => {
-    redraws += 1;
+  const redraws: string[] = [];
+  on("ui.invalidate", (_, e) => {
+    redraws.push(e.event);
 
     return { value: undefined };
   });
@@ -79,16 +79,16 @@ test("a moved fill redraws the band, and other units do not", async ($, on) => {
   const context = { tokens: 1, window: 1e6 };
 
   await $.session.measure({ context, rateLimits: [], changed: ["cost"] });
-  expect(redraws).toBe(0);
+  expect(redraws).toEqual([]);
 
   await $.session.measure({ context, rateLimits: [], changed: ["context"] });
-  expect(redraws).toBe(1);
+  expect(redraws).toEqual(["ui.render"]);
 });
 
 test("a compaction redraws the band", async ($, on) => {
-  let redraws = 0;
-  on("ui.invalidate", () => {
-    redraws += 1;
+  const redraws: string[] = [];
+  on("ui.invalidate", (_, e) => {
+    redraws.push(e.event);
 
     return { value: undefined };
   });
@@ -99,5 +99,5 @@ test("a compaction redraws the band", async ($, on) => {
     messages: [{ role: "user", text: "summary", toolUses: [] }],
   });
 
-  expect(redraws).toBe(1);
+  expect(redraws).toEqual(["ui.render"]);
 });
