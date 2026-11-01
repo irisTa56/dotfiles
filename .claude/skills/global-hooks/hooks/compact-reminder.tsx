@@ -27,10 +27,7 @@ export const register: Register = (on) => {
     const { Text } = $.ui.resolve(e);
 
     return (
-      <Text>
-        コンテキストが {Math.floor(tokens / 1000)}k に到達: 次の作業を指示して
-        /compact を
-      </Text>
+      <Text>Context at {Math.floor(tokens / 1000)}k: time to /compact</Text>
     );
   });
 };
