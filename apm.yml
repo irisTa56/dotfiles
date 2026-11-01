@@ -4,6 +4,9 @@ description: Personal dotfiles, shared agent skills, and tool config
 author: irisTa56
 includes: auto
 target: claude
+# Without this, an install merges a package's hooks into .claude/settings.json.
+executables:
+  allow: {}
 dependencies:
   apm:
   - anthropics/skills/skills/skill-creator
