@@ -39,7 +39,7 @@ const engine = (on: On, tasks: readonly unknown[] | string): World => {
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    if (e.argv.slice(0, 3).join(" ") === "mise run notify")
+    if (e.argv.slice(0, 5).join(" ") === "mise -C /home/u run utils:notify")
       w.banners.push(e.argv.join(" "));
 
     return {

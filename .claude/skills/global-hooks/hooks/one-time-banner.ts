@@ -34,7 +34,18 @@ const post = async (
   title: string,
   taskId: string,
 ): Promise<void> => {
-  await $.process.run(["mise", "run", "notify", title, taskId]);
+  // From the home directory, so the config of the repository the run sits in
+  // can neither break the task nor replace it.
+  const home = `${await $.env.get("HOME")}`;
+  await $.process.run([
+    "mise",
+    "-C",
+    home,
+    "run",
+    "utils:notify",
+    title,
+    taskId,
+  ]);
 };
 
 const REASONS = ["answer", "aborted", "refusal", "error"] as const;
