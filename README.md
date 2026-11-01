@@ -177,6 +177,7 @@ A skill can act on this machine in ways an install does not show: a `.claude-plu
 The task therefore prints the diff of the deployed files, with how long ago each package last changed upstream, and exits non-zero on what `apm audit` reports or on anything that runs without a person reading it first.
 None of this judges what the text asks for, so read the diff before merging.
 It refuses to run in the main checkout, since `~/.claude/skills` points there and an update would take effect before anyone read it; after the merge, `apm install` in the main checkout brings the new copies in.
+Until then the new copies stay in the worktree, where a session working in it can pick them up, so read the output before starting one there.
 `allowExecutables: {}` in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, but it does not stop their files from being deployed, which is what the task's check catches.
 
 ### Gist-sourced skills

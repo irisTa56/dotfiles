@@ -6,9 +6,11 @@ defmodule SkillsUpdate do
          skills-update --check
 
   Updates APM skills in a linked worktree, then shows what changed and fails on
-  anything in them that would run without a person reading it first. Nothing has
-  taken effect at that point: ~/.claude/skills is the main checkout, and it gets
-  the new copies only from an `apm install` there after the merge.
+  anything in them that would run without a person reading it first. Nothing
+  outside the worktree has taken effect at that point: ~/.claude/skills is the
+  main checkout, and it gets the new copies only from an `apm install` there after
+  the merge. A session working in the worktree can pick up its copies, so read
+  this output before starting one there.
 
     --check     only look at the skills apm.lock.yaml deploys here
     --help, -h  print this message
@@ -32,6 +34,10 @@ defmodule SkillsUpdate do
       ["-" <> _ | _] -> die(@usage, 2)
       packages -> update(packages)
     end
+  catch
+    {:die, message, code} ->
+      IO.puts(:stderr, message)
+      System.halt(code)
   end
 
   defp update(packages) do
@@ -45,20 +51,24 @@ defmodule SkillsUpdate do
 
     work = Path.join(System.tmp_dir!(), "skills-update-#{System.unique_integer([:positive])}")
 
-    try do
-      snapshot(Path.join(work, "before"))
-      apm!(["update", "--yes" | packages])
-      # `apm update` can leave deployed files removed, which only this restores.
-      apm!(["install"])
-      snapshot(Path.join(work, "after"))
+    code =
+      try do
+        snapshot(Path.join(work, "before"))
+        apm!(["update", "--yes" | packages])
+        # `apm update` can leave deployed files removed, which only this restores.
+        apm!(["install"])
+        snapshot(Path.join(work, "after"))
 
-      report_ages(pins)
-      diff(work)
-      audited = match?({_, 0}, apm(["audit"]))
-      System.halt(if audited and findings() == [], do: 0, else: 1)
-    after
-      File.rm_rf!(work)
-    end
+        report_ages(pins)
+        diff(work)
+        {_, audit} = apm(["audit"])
+        found = findings()
+        if audit == 0 and found == [], do: 0, else: 1
+      after
+        File.rm_rf!(work)
+      end
+
+    System.halt(code)
   end
 
   defp linked_worktree? do
@@ -105,10 +115,19 @@ defmodule SkillsUpdate do
     args = ["diff", "--no-index", "--no-ext-diff", "before", "after"]
 
     # `--no-index` exits 1 on a difference, as it means to here.
-    case System.cmd("git", args, cd: work, into: IO.stream()) do
-      {_, code} when code in [0, 1] -> :ok
+    case System.cmd("git", args, cd: work) do
+      {out, code} when code in [0, 1] -> IO.binwrite(visible_controls(out))
       {_, code} -> die("git diff failed (exit #{code})", code)
     end
+  end
+
+  # A terminal acts on these rather than showing them, so a line holding one could
+  # hide itself or rewrite another from the person reading, and `apm audit` passes
+  # them. The second branch is the C1 range as UTF-8.
+  defp visible_controls(text) do
+    Regex.replace(~r/[\x00-\x08\x0B-\x1F\x7F]|\xC2[\x80-\x9F]/, text, fn control ->
+      "\\x" <> Base.encode16(control)
+    end)
   end
 
   defp findings do
@@ -124,18 +143,23 @@ defmodule SkillsUpdate do
   end
 
   defp in_skill(root) do
+    # Compared in lower case: this filesystem folds case, so `Hooks/` is `hooks/`.
     files = Path.wildcard(root <> "/**", match_dot: true)
 
     active =
       for path <- files,
-          Enum.any?(Path.split(Path.relative_to(path, root)), &(&1 in @active_paths)),
+          active_path?(Path.relative_to(path, root)),
           File.regular?(path) do
         "#{path}: runs without being invoked"
       end
 
-    skills = Enum.filter(files, &(Path.basename(&1) == "SKILL.md"))
+    skills = Enum.filter(files, &(String.downcase(Path.basename(&1)) == "skill.md"))
 
     active ++ Enum.flat_map(skills, &in_skill_md/1)
+  end
+
+  defp active_path?(path) do
+    path |> Path.split() |> Enum.any?(&(String.downcase(&1) in @active_paths))
   end
 
   defp in_skill_md(path) do
@@ -155,7 +179,7 @@ defmodule SkillsUpdate do
     # An inline `!` runs only at the start of a line or after whitespace, so
     # `KEY=!` followed by a command stays literal, as Claude Code documents.
     commands =
-      if text =~ ~r/(^|\s)!`/m or text =~ ~r/^ {0,3}(`{3,}|~{3,})\s*!/m,
+      if text =~ ~r/(^|\s)!`/m or text =~ ~r/^ {0,3}(`{3,}|~{3,})[ \t]*!/m,
         do: ["#{path}: a command run on invocation"],
         else: []
 
@@ -196,10 +220,8 @@ defmodule SkillsUpdate do
     end
   end
 
-  defp die(message, code) do
-    IO.puts(:stderr, message)
-    System.halt(code)
-  end
+  # Thrown rather than halted here, since a halt would skip the snapshot's cleanup.
+  defp die(message, code), do: throw({:die, message, code})
 end
 
 SkillsUpdate.main(System.argv())

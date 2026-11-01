@@ -1,5 +1,12 @@
 #!/usr/bin/env elixir
 
+# A pre-commit hook sets these for the repository being committed to, and the fixtures'
+# git commands would inherit them and act on that repository instead of on the fixture.
+System.get_env()
+|> Map.keys()
+|> Enum.filter(&String.starts_with?(&1, "GIT_"))
+|> Enum.each(&System.delete_env/1)
+
 ExUnit.start()
 
 defmodule SkillsUpdateCheckTest do
@@ -24,20 +31,35 @@ defmodule SkillsUpdateCheckTest do
   # A lockfile deploying the skill, or `paths` where the test names its own.
   defp lock(dir, paths \\ [".claude/skills/probe", ".claude/skills/probe/SKILL.md"]) do
     listed = Enum.map_join(paths, "", &"  - #{&1}\n")
-    write(dir, "apm.lock.yaml", "dependencies:\n- name: probe\n  deployed_files:\n#{listed}")
+
+    write(
+      dir,
+      "apm.lock.yaml",
+      "dependencies:\n- name: probe\n  resolved_commit: abc\n  deployed_files:\n#{listed}"
+    )
   end
 
   # The fixture sits outside this repository, where mise's shim finds no yq version.
-  defp check(dir) do
+  # The fake apm directory comes first on PATH, and TMPDIR is the test's own.
+  defp run(dir, cwd, args, env \\ []) do
     {yq, 0} = System.cmd("mise", ["which", "yq"])
-    path = Path.dirname(String.trim(yq)) <> ":" <> System.get_env("PATH")
+    tmp = Path.join(dir, "tmp")
+    File.mkdir_p!(tmp)
 
-    System.cmd("elixir", [@script, "--check"],
-      cd: dir,
-      env: [{"PATH", path}],
+    path =
+      Enum.join(
+        [Path.join(dir, "bin"), Path.dirname(String.trim(yq)), System.get_env("PATH")],
+        ":"
+      )
+
+    System.cmd("elixir", [@script | args],
+      cd: cwd,
+      env: [{"PATH", path}, {"TMPDIR", tmp} | env],
       stderr_to_stdout: true
     )
   end
+
+  defp check(dir), do: run(dir, dir, ["--check"])
 
   defp assert_flagged(dir, text) do
     {out, code} = check(dir)
@@ -122,5 +144,151 @@ defmodule SkillsUpdateCheckTest do
     write(dir, ".claude/skills/global-hooks/.claude-plugin/plugin.json", "{}\n")
 
     assert_clean(dir)
+  end
+
+  # The filesystem here folds case, so these are the usual names under another spelling.
+  defp assert_same_file(dir, written, usual) do
+    assert File.exists?(Path.join(dir, usual)), "fixture: #{written} is not #{usual} here"
+  end
+
+  for {written, usual} <- [
+        {".Claude-Plugin/plugin.json", ".claude-plugin/plugin.json"},
+        {"Hooks/hooks.json", "hooks/hooks.json"}
+      ] do
+    test "#{written} is flagged as #{usual}", %{dir: dir} do
+      lock(dir)
+      write(dir, ".claude/skills/probe/SKILL.md", @skill)
+      write(dir, ".claude/skills/probe/#{unquote(written)}", "{}\n")
+
+      assert_same_file(dir, unquote(written), ".claude/skills/probe/#{unquote(usual)}")
+      assert_flagged(dir, ".claude/skills/probe/#{unquote(written)}")
+    end
+  end
+
+  for {name, content, text} <- [
+        {"hooks in its frontmatter", "---\nname: probe\nhooks: x\n---\nbody\n", "hooks"},
+        {"a command", @skill <> "!`id`\n", "command"}
+      ] do
+    test "skill.md with #{name} is flagged", %{dir: dir} do
+      lock(dir)
+      write(dir, ".claude/skills/probe/skill.md", unquote(content))
+
+      assert_same_file(dir, "skill.md", ".claude/skills/probe/SKILL.md")
+      assert_flagged(dir, unquote(text))
+    end
+  end
+
+  test "an image line after a closed fence is not a command", %{dir: dir} do
+    lock(dir)
+    write(dir, ".claude/skills/probe/SKILL.md", @skill <> "```sh\nls\n```\n![img](x.png)\n")
+
+    assert_clean(dir)
+  end
+
+  # The update path, run in a linked worktree with a fake apm.
+  defp git(cwd, args) do
+    base = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+    {_, 0} = System.cmd("git", base ++ args, cd: cwd, stderr_to_stdout: true)
+  end
+
+  defp repo(dir) do
+    main = Path.join(dir, "main")
+    File.mkdir_p!(main)
+    git(main, ["init", "-q"])
+    git(main, ["commit", "-q", "--allow-empty", "-m", "i"])
+    main
+  end
+
+  # `install` does nothing, `update` appends $APM_APPEND to the deployed skill, and
+  # `audit` exits $APM_AUDIT. Every call is logged to apm.log beside the repository.
+  defp fake_apm(dir) do
+    write(dir, "bin/apm", """
+    #!/bin/sh
+    echo "$1" >> "#{dir}/apm.log"
+    case "$1" in
+      update) printf '%s\\n' "${APM_APPEND:-changed}" >> .claude/skills/probe/SKILL.md ;;
+      audit) exit "${APM_AUDIT:-0}" ;;
+    esac
+    """)
+
+    File.chmod!(Path.join(dir, "bin/apm"), 0o755)
+  end
+
+  # Deploys the skill, plus a file outside the skills directory when `extra` is set,
+  # which the check reports.
+  defp worktree(dir, extra \\ []) do
+    main = repo(dir)
+    wt = Path.join(dir, "wt")
+    git(main, ["worktree", "add", "-q", "-b", "wt", wt])
+    fake_apm(dir)
+    lock(wt, [".claude/skills/probe", ".claude/skills/probe/SKILL.md"] ++ extra)
+    write(wt, ".claude/skills/probe/SKILL.md", @skill)
+    wt
+  end
+
+  defp update(dir, wt, env), do: run(dir, wt, [], env)
+
+  test "a failed audit still prints what the check reports", %{dir: dir} do
+    wt = worktree(dir, [".claude/rules/probe.md"])
+    write(wt, ".claude/rules/probe.md", "rule\n")
+
+    {out, code} = update(dir, wt, [{"APM_AUDIT", "1"}])
+
+    assert File.read!(Path.join(dir, "apm.log")) =~ "audit", "fixture: audit did not run"
+    assert code != 0, out
+    assert out =~ "[fail] .claude/rules/probe.md", out
+  end
+
+  for audit <- ["0", "1"] do
+    test "a run with audit exiting #{audit} leaves nothing in TMPDIR", %{dir: dir} do
+      wt = worktree(dir)
+
+      {out, _} = update(dir, wt, [{"APM_AUDIT", unquote(audit)}])
+
+      assert out =~ "+changed", "fixture: the update changed nothing\n" <> out
+      assert File.ls!(Path.join(dir, "tmp")) == []
+    end
+  end
+
+  test "control bytes in a changed line do not reach stdout raw", %{dir: dir} do
+    wt = worktree(dir)
+    line = "ok-before \e[8m ok-after"
+
+    {out, _} = update(dir, wt, [{"APM_APPEND", line}])
+
+    assert out =~ "ok-before"
+    assert out =~ "ok-after"
+    refute out =~ "\e[8m"
+    refute out =~ "\e"
+  end
+
+  test "a C1 control in a changed line does not reach stdout raw", %{dir: dir} do
+    wt = worktree(dir)
+    line = "ok-before \u009b8m ok-after"
+
+    {out, _} = update(dir, wt, [{"APM_APPEND", line}])
+
+    assert out =~ "ok-before"
+    assert out =~ "ok-after"
+    refute out =~ <<0xC2, 0x9B>>
+  end
+
+  test "tabs and newlines in a changed line stay as they are", %{dir: dir} do
+    wt = worktree(dir)
+
+    {out, _} = update(dir, wt, [{"APM_APPEND", "col1\tcol2\nsecond-line"}])
+
+    assert out =~ "+col1\tcol2\n+second-line"
+  end
+
+  test "outside a linked worktree it refuses and never calls apm", %{dir: dir} do
+    main = repo(dir)
+    fake_apm(dir)
+
+    {out, code} = run(dir, main, [])
+
+    assert code == 1, out
+    assert out =~ "Run this in a linked worktree"
+    refute File.exists?(Path.join(dir, "apm.log"))
   end
 end
