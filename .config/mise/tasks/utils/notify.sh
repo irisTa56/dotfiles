@@ -5,8 +5,6 @@
 #USAGE arg "<body>"
 set -euo pipefail
 
-# A caller that runs late, as a job missed during sleep does, posts a time other
-# than the one it was scheduled for, and the stamp is what shows that.
 # The text reaches AppleScript as arguments, so none of it needs escaping.
 osascript \
   -e 'on run argv' \
