@@ -220,16 +220,11 @@ done
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
-usage = 'arg "[pkg]" var=#true help="apm package path(s) to update; every package when none is named"'
-# $usage_pkg is unquoted for the reason skills:remove gives below.
-run = "scripts/skills_update.exs $usage_pkg"
+run = "scripts/skills_update.exs"
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"
-usage = 'arg "<pkg>" var=#true help="apm package path(s) to remove, e.g. blader/humanizer"'
 # No cleanup step: the singular `target: claude` pin (not plural `targets:`) confines
 # `apm uninstall` to .claude/skills/, so it never leaves a stray .agents/skills/ to prune.
 # Keep the pin singular and don't re-add `rm -rf`.
-# $usage_pkg is unquoted on purpose: a variadic arg arrives space-joined and must
-# word-split into one positional per package (apm paths have no spaces).
-run = "apm uninstall $usage_pkg"
+run = "apm uninstall"
