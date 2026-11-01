@@ -3,216 +3,96 @@
 defmodule SkillsUpdate do
   @usage """
   Usage: skills-update [package...]
-         skills-update --check
 
-  Updates APM skills in a linked worktree, then shows what changed and fails on
-  anything in them that would run without a person reading it first. Nothing
-  outside the worktree has taken effect at that point: ~/.claude/skills is the
-  main checkout, and it gets the new copies only from an `apm install` there after
-  the merge. A session working in the worktree can pick up its copies, so read
-  this output before starting one there.
+  Updates APM skills, every one or those named as `apm update` names them, holding
+  back any whose last change upstream merged less than a day ago, as the release
+  windows set for npm, uv and Hex do. APM has no such window of its own.
 
-    --check     only look at the skills apm.lock.yaml deploys here
+  The time comes from the pull request that merged the skill's last commit, which
+  GitHub records, since a commit's own date is whatever its author set. A commit no
+  merged pull request holds is held too, and `apm update` is the way past that.
+
     --help, -h  print this message
-
-  No check reads what a skill's text tells the agent to do, or what its scripts
-  do. That part is the diff, which the pull request does not show, because
-  .gitignore holds the skills out of the repository.
   """
 
-  @skills_dir ".claude/skills"
-
-  # What Claude Code or APM acts on by itself: a plugin manifest makes the folder a
-  # plugin loaded every session, and APM integrates the other three unless
-  # allowExecutables in apm.yml holds them back.
-  @active_paths [".claude-plugin", "hooks", "bin", ".mcp.json"]
+  @window_seconds 86_400
 
   def main(argv) do
     case argv do
-      ["--check"] -> System.halt(if findings() == [], do: 0, else: 1)
       [flag] when flag in ["--help", "-h"] -> IO.puts(@usage)
       ["-" <> _ | _] -> die(@usage, 2)
       packages -> update(packages)
     end
-  catch
-    {:die, message, code} ->
-      IO.puts(:stderr, message)
-      System.halt(code)
   end
 
   defp update(packages) do
-    unless linked_worktree?() do
-      die("Run this in a linked worktree: ~/.claude/skills is this checkout's copy.", 1)
-    end
+    {ready, held} =
+      packages |> chosen() |> Enum.map(&with_hold/1) |> Enum.split_with(&(&1.hold == nil))
 
-    # The diff reads from what is deployed when the run starts, so pins an earlier run
-    # already moved would come out as no change.
-    unless match?({_, 0}, System.cmd("git", ["diff", "--quiet", "HEAD", "--", "apm.lock.yaml"])) do
-      die(
-        "apm.lock.yaml already differs from HEAD, so this worktree holds an earlier update. " <>
-          "Commit it, or run `git checkout -- apm.lock.yaml` to see its diff again.",
-        1
-      )
-    end
+    Enum.each(held, &IO.puts("#{&1.dep["name"]}: held, #{&1.hold}"))
 
-    # A new worktree holds only the skills git tracks, and the diff needs the pins.
-    apm!(["install"])
-    pins = pins()
-
-    work = Path.join(System.tmp_dir!(), "skills-update-#{System.unique_integer([:positive])}")
-
-    code =
-      try do
-        snapshot(Path.join(work, "before"))
-        apm!(["update", "--yes" | packages])
-        # `apm update` can leave deployed files removed, which only this restores.
-        apm!(["install"])
-        snapshot(Path.join(work, "after"))
-
-        diff(work)
-        report_ages(pins)
-        {_, audit} = apm(["audit"])
-        found = findings()
-        if audit == 0 and found == [], do: 0, else: 1
-      after
-        File.rm_rf!(work)
-      end
-
-    System.halt(code)
-  end
-
-  defp linked_worktree? do
-    git!(["rev-parse", "--path-format=absolute", "--git-dir"]) !=
-      git!(["rev-parse", "--path-format=absolute", "--git-common-dir"])
-  end
-
-  defp snapshot(to) do
-    File.mkdir_p!(to)
-    Enum.each(roots(), &File.cp_r!(&1, Path.join(to, Path.basename(&1))))
-  end
-
-  defp report_ages(before) do
-    changed = Enum.reject(lock(), &(before[&1["name"]] == &1["resolved_commit"]))
-
-    if changed == [] do
-      IO.puts("No skill moved to a new revision.")
+    if ready == [] do
+      IO.puts("Nothing to update.")
     else
-      IO.puts("\nLast change upstream, by the commit's own date, which its author sets:")
-      Enum.each(changed, &IO.puts("  #{&1["name"]}: #{age(&1)}"))
-      IO.puts("")
+      apm!(["update", "--yes" | Enum.map(ready, &key(&1.dep))])
+      # `apm update` can leave deployed files removed, which only this restores.
+      apm!(["install"])
+      apm!(["audit"])
     end
   end
 
-  defp age(dep) do
-    {args, field} =
-      if dep["host"] == "gist.github.com" do
-        id = dep["repo_url"] |> String.split("/") |> List.last()
-        {"gists/#{id}/commits?per_page=1", ".[0].committed_at"}
-      else
-        query = if dep["virtual_path"], do: "path=#{dep["virtual_path"]}&", else: ""
-        {"repos/#{dep["repo_url"]}/commits?#{query}per_page=1", ".[0].commit.committer.date"}
-      end
+  defp chosen(packages) do
+    deps = lock()
 
-    with {out, 0} <- System.cmd("gh", ["api", args, "--jq", field]),
-         {:ok, date, _} <- DateTime.from_iso8601(String.trim(out)) do
-      "#{div(DateTime.diff(DateTime.utc_now(), date), 86_400)}d ago"
+    case packages -- Enum.map(deps, &key/1) do
+      [] -> Enum.filter(deps, &(packages == [] or key(&1) in packages))
+      unknown -> die("Not in apm.lock.yaml: #{Enum.join(unknown, " ")}", 1)
+    end
+  end
+
+  # What `apm update` takes: the path into the repository, or a gist's alias.
+  defp key(%{"virtual_path" => path, "repo_url" => repo}) when is_binary(path),
+    do: "#{repo}/#{path}"
+
+  defp key(dep), do: dep["name"]
+
+  defp with_hold(dep), do: %{dep: dep, hold: hold(dep)}
+
+  # A gist is the owner's own, and `skills:push` is what moves it.
+  defp hold(%{"host" => "gist.github.com"}), do: nil
+
+  defp hold(dep) do
+    query = if dep["virtual_path"], do: "path=#{dep["virtual_path"]}&", else: ""
+
+    with {:ok, sha} <-
+           gh("repos/#{dep["repo_url"]}/commits?#{query}per_page=1", ".[0].sha // empty"),
+         {:ok, merged} <-
+           gh(
+             "repos/#{dep["repo_url"]}/commits/#{sha}/pulls",
+             "[.[].merged_at | select(.)] | max // empty"
+           ),
+         {:ok, time, _} <- DateTime.from_iso8601(merged) do
+      if DateTime.diff(DateTime.utc_now(), time) >= @window_seconds,
+        do: nil,
+        else: "last change merged #{merged}"
     else
-      _ -> "?"
-    end
-  rescue
-    ErlangError -> "?"
-  end
-
-  defp diff(work) do
-    args = ["diff", "--no-index", "--no-ext-diff", "before", "after"]
-
-    # `--no-index` exits 1 on a difference, as it means to here.
-    case System.cmd("git", args, cd: work) do
-      {out, code} when code in [0, 1] -> IO.binwrite(visible_controls(out))
-      {_, code} -> die("git diff failed (exit #{code})", code)
+      {:error, reason} -> reason
+      _ -> "no readable merge time"
     end
   end
 
-  # A terminal acts on these rather than showing them, so a line holding one could
-  # hide itself or rewrite another from the person reading, and `apm audit` passes
-  # them. The second branch is the C1 range as UTF-8.
-  defp visible_controls(text) do
-    Regex.replace(~r/[\x00-\x08\x0B-\x1F\x7F]|\xC2[\x80-\x9F]/, text, fn control ->
-      "\\x" <> Base.encode16(control)
-    end)
-  end
+  defp gh(path, jq) do
+    case System.cmd("gh", ["api", path, "--jq", jq]) do
+      {out, 0} ->
+        case String.trim(out) do
+          "" -> {:error, "no merged pull request found"}
+          value -> {:ok, value}
+        end
 
-  defp findings do
-    found = Enum.sort(outside_skills() ++ Enum.flat_map(roots(), &in_skill/1))
-    Enum.each(found, &IO.puts(:stderr, "[fail] #{visible_controls(&1)}"))
-    found
-  end
-
-  defp outside_skills do
-    for path <- deployed(), not String.starts_with?(path, @skills_dir <> "/") do
-      "#{path}: deployed outside #{@skills_dir}"
+      {_, code} ->
+        {:error, "GitHub request failed (exit #{code})"}
     end
   end
-
-  # Not on disk, as in a new worktree, the skill would otherwise read as clean.
-  defp in_skill(root) do
-    if File.exists?(root), do: in_deployed_skill(root), else: ["#{root}: not deployed here"]
-  end
-
-  defp in_deployed_skill(root) do
-    # Compared in lower case: this filesystem folds case, so `Hooks/` is `hooks/`.
-    files = Path.wildcard(root <> "/**", match_dot: true)
-
-    active =
-      for path <- files,
-          active_path?(Path.relative_to(path, root)),
-          File.regular?(path) do
-        "#{path}: runs without being invoked"
-      end
-
-    skills = Enum.filter(files, &(String.downcase(Path.basename(&1)) == "skill.md"))
-
-    active ++ Enum.flat_map(skills, &in_skill_md/1)
-  end
-
-  defp active_path?(path) do
-    path |> Path.split() |> Enum.any?(&(String.downcase(&1) in @active_paths))
-  end
-
-  defp in_skill_md(path) do
-    text = File.read!(path)
-
-    frontmatter =
-      case Regex.run(~r/\A---\r?\n(.*?)^---/ms, text) do
-        [_, block] -> block
-        nil -> ""
-      end
-
-    keys =
-      for [_, key] <- Regex.scan(~r/^["']?(hooks|allowed-tools)["']?\s*:/m, frontmatter) do
-        "#{path}: #{key} in the frontmatter"
-      end
-
-    # An inline `!` runs only at the start of a line or after whitespace, so
-    # `KEY=!` followed by a command stays literal, as Claude Code documents.
-    commands =
-      if text =~ ~r/(^|\s)!`/m or text =~ ~r/^ {0,3}(`{3,}|~{3,})[ \t]*!/m,
-        do: ["#{path}: a command run on invocation"],
-        else: []
-
-    keys ++ commands
-  end
-
-  defp roots do
-    deployed()
-    |> Enum.filter(&String.starts_with?(&1, @skills_dir <> "/"))
-    |> Enum.map(&(&1 |> Path.split() |> Enum.take(3) |> Path.join()))
-    |> Enum.uniq()
-  end
-
-  defp deployed, do: Enum.flat_map(lock(), &Map.get(&1, "deployed_files", []))
-
-  defp pins, do: Map.new(lock(), &{&1["name"], &1["resolved_commit"]})
 
   defp lock do
     case System.cmd("yq", ["-o=json", "apm.lock.yaml"]) do
@@ -221,24 +101,17 @@ defmodule SkillsUpdate do
     end
   end
 
-  defp apm(args), do: System.cmd("apm", args, into: IO.stream(), stderr_to_stdout: true)
-
   defp apm!(args) do
-    case apm(args) do
+    case System.cmd("apm", args, into: IO.stream(), stderr_to_stdout: true) do
       {_, 0} -> :ok
       {_, code} -> die("apm #{Enum.join(args, " ")} failed (exit #{code})", code)
     end
   end
 
-  defp git!(args) do
-    case System.cmd("git", args) do
-      {out, 0} -> String.trim(out)
-      {_, code} -> die("git #{Enum.join(args, " ")} failed (exit #{code})", code)
-    end
+  defp die(message, code) do
+    IO.puts(:stderr, message)
+    System.halt(code)
   end
-
-  # Thrown rather than halted here, since a halt would skip the snapshot's cleanup.
-  defp die(message, code), do: throw({:die, message, code})
 end
 
 SkillsUpdate.main(System.argv())

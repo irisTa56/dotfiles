@@ -165,20 +165,17 @@ Audit deployed files against the lockfile, plus integrity and hidden-character c
 apm audit
 ```
 
-Show packages whose upstream advanced past the pinned ref, then update them from a linked worktree:
+Show packages whose upstream advanced past the pinned ref, then update them:
 
 ```shell
 apm outdated
 mise run skills:update [package...]
 ```
 
-A skill can act on this machine in ways an install does not show: a `.claude-plugin/plugin.json` makes its folder a plugin loaded in every session, frontmatter and `` !`command` `` lines run when it is invoked, and its text is what the agent follows.
-`.gitignore` holds the skills out of the repository, so a pull request shows only the new pins.
-The task therefore prints the diff of the deployed files, with how long ago each package last changed upstream, and exits non-zero on what `apm audit` reports or on anything that runs without a person reading it first.
-None of this judges what the text asks for, so read the diff before merging.
-It refuses to run in the main checkout, since `~/.claude/skills` points there and an update would take effect before anyone read it; after the merge, `apm install` in the main checkout brings the new copies in.
-Until then the new copies stay in the worktree, where a session working in it can pick them up, so read the output before starting one there.
-`allowExecutables: {}` in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, but it does not stop their files from being deployed, which is what the task's check catches.
+APM has no release window, so the task gives skills the one-day wait npm, uv and Hex have here.
+It holds back a skill whose path last changed in a pull request merged under a day ago, going by GitHub's merge time since a commit's own date is whatever its author set, and it holds one whose last commit no merged pull request contains.
+`apm update <package>` takes a held skill anyway.
+`allowExecutables: {}` in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, though a `.claude-plugin/plugin.json` still deploys and loads its folder as a plugin.
 
 ### Gist-sourced skills
 

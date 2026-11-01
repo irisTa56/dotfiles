@@ -219,7 +219,7 @@ done
 '''
 
 [tasks."skills:update"]
-description = "Update apm skill(s) in a linked worktree, show the diff, and fail on anything in them that runs unread"
+description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
 usage = 'arg "[pkg]" var=#true help="apm package path(s) to update; every package when none is named"'
 # $usage_pkg is unquoted for the reason skills:remove gives below.
 run = "scripts/skills_update.exs $usage_pkg"
