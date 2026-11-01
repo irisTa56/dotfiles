@@ -4,7 +4,6 @@ import { describe, expect, mock, test } from "claude-code/testing";
 const STORES =
   "/home/u/Library/Application Support/Claude/claude-code-sessions";
 const STORE = `${STORES}/a/b/scheduled-tasks.json`;
-const NOTIFY = "/home/u/.config/mise/tasks/notify.sh";
 
 type Engine = {
   prompt: { submit: (input: never) => Promise<unknown> };
@@ -40,7 +39,8 @@ const engine = (on: On, tasks: readonly unknown[] | string): World => {
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    if (e.argv[0] === NOTIFY) w.banners.push(e.argv.join(" "));
+    if (e.argv.slice(0, 3).join(" ") === "mise run notify")
+      w.banners.push(e.argv.join(" "));
 
     return {
       value: {
