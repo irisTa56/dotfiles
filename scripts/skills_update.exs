@@ -45,6 +45,16 @@ defmodule SkillsUpdate do
       die("Run this in a linked worktree: ~/.claude/skills is this checkout's copy.", 1)
     end
 
+    # The diff reads from what is deployed when the run starts, so pins an earlier run
+    # already moved would come out as no change.
+    unless match?({_, 0}, System.cmd("git", ["diff", "--quiet", "HEAD", "--", "apm.lock.yaml"])) do
+      die(
+        "apm.lock.yaml already differs from HEAD, so this worktree holds an earlier update. " <>
+          "Commit it, or run `git checkout -- apm.lock.yaml` to see its diff again.",
+        1
+      )
+    end
+
     # A new worktree holds only the skills git tracks, and the diff needs the pins.
     apm!(["install"])
     pins = pins()
@@ -59,8 +69,8 @@ defmodule SkillsUpdate do
         apm!(["install"])
         snapshot(Path.join(work, "after"))
 
-        report_ages(pins)
         diff(work)
+        report_ages(pins)
         {_, audit} = apm(["audit"])
         found = findings()
         if audit == 0 and found == [], do: 0, else: 1
@@ -109,6 +119,8 @@ defmodule SkillsUpdate do
     else
       _ -> "?"
     end
+  rescue
+    ErlangError -> "?"
   end
 
   defp diff(work) do

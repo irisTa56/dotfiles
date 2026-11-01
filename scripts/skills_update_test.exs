@@ -41,16 +41,23 @@ defmodule SkillsUpdateCheckTest do
 
   # The fixture sits outside this repository, where mise's shim finds no yq version.
   # The fake apm directory comes first on PATH, and TMPDIR is the test's own.
+  # A test that names its own PATH in `env` replaces the default one.
   defp run(dir, cwd, args, env \\ []) do
     {yq, 0} = System.cmd("mise", ["which", "yq"])
     tmp = Path.join(dir, "tmp")
     File.mkdir_p!(tmp)
 
+    own = List.keyfind(env, "PATH", 0)
+    env = List.keydelete(env, "PATH", 0)
+
     path =
-      Enum.join(
-        [Path.join(dir, "bin"), Path.dirname(String.trim(yq)), System.get_env("PATH")],
-        ":"
-      )
+      if own,
+        do: elem(own, 1),
+        else:
+          Enum.join(
+            [Path.join(dir, "bin"), Path.dirname(String.trim(yq)), System.get_env("PATH")],
+            ":"
+          )
 
     System.cmd("elixir", [@script | args],
       cd: cwd,
@@ -201,12 +208,18 @@ defmodule SkillsUpdateCheckTest do
 
   # `install` does nothing, `update` appends $APM_APPEND to the deployed skill, and
   # `audit` exits $APM_AUDIT. Every call is logged to apm.log beside the repository.
+  # With $APM_BUMP set, `update` also moves the lock's resolved_commit.
   defp fake_apm(dir) do
     write(dir, "bin/apm", """
     #!/bin/sh
     echo "$1" >> "#{dir}/apm.log"
     case "$1" in
-      update) printf '%s\\n' "${APM_APPEND:-changed}" >> .claude/skills/probe/SKILL.md ;;
+      update)
+        printf '%s\\n' "${APM_APPEND:-changed}" >> .claude/skills/probe/SKILL.md
+        if [ -n "$APM_BUMP" ]; then
+          sed 's/resolved_commit: abc/resolved_commit: def/' apm.lock.yaml > apm.lock.new
+          mv apm.lock.new apm.lock.yaml
+        fi ;;
       audit) exit "${APM_AUDIT:-0}" ;;
     esac
     """)
@@ -279,6 +292,91 @@ defmodule SkillsUpdateCheckTest do
     {out, _} = update(dir, wt, [{"APM_APPEND", "col1\tcol2\nsecond-line"}])
 
     assert out =~ "+col1\tcol2\n+second-line"
+  end
+
+  defp commit_lock(wt) do
+    git(wt, ["add", "apm.lock.yaml"])
+    git(wt, ["commit", "-q", "-m", "lock"])
+  end
+
+  # A PATH holding only what the run needs, which has no gh on it.
+  defp path_without_gh(dir) do
+    dirs =
+      for tool <- ["yq", "elixir", "erl"] do
+        {out, 0} = System.cmd("mise", ["which", tool])
+        Path.dirname(String.trim(out))
+      end
+
+    dirs = [Path.join(dir, "bin") | dirs] ++ ["/usr/bin", "/bin"]
+    refute Enum.any?(dirs, &File.exists?(Path.join(&1, "gh"))), "fixture: gh is on the PATH"
+    Enum.join(dirs, ":")
+  end
+
+  test "a lock that already differs from HEAD is not reported as no skill moved", %{dir: dir} do
+    wt = worktree(dir)
+    commit_lock(wt)
+    lock_text = File.read!(Path.join(wt, "apm.lock.yaml"))
+    File.write!(Path.join(wt, "apm.lock.yaml"), String.replace(lock_text, "abc", "def"))
+    assert git_status(wt) =~ "apm.lock.yaml", "fixture: the lock does not differ from HEAD"
+
+    {out, code} = update(dir, wt, [])
+
+    refute out =~ "No skill moved", out
+    assert out =~ ~r/uncommitted|already|differs|changes/i, out
+
+    if File.exists?(Path.join(dir, "apm.log")),
+      do: assert(code == 0, out),
+      else: assert(code != 0, out)
+  end
+
+  defp git_status(wt) do
+    {out, 0} = System.cmd("git", ["status", "--porcelain"], cd: wt)
+    out
+  end
+
+  test "without gh the diff, the audit and the findings still come out", %{dir: dir} do
+    wt = worktree(dir, [".claude/rules/probe.md"])
+    write(wt, ".claude/rules/probe.md", "rule\n")
+    commit_lock(wt)
+
+    {out, code} =
+      update(dir, wt, [{"PATH", path_without_gh(dir)}, {"APM_BUMP", "1"}, {"APM_AUDIT", "0"}])
+
+    refute out =~ "ErlangError", out
+    assert File.read!(Path.join(dir, "apm.log")) =~ "audit", "fixture: audit did not run\n" <> out
+    assert out =~ "+changed", out
+    assert out =~ "[fail] .claude/rules/probe.md", out
+    assert code == 1, out
+  end
+
+  for audit <- ["0", "1"] do
+    test "a clean skill exits by the audit alone (audit #{audit})", %{dir: dir} do
+      wt = worktree(dir)
+
+      {out, code} = update(dir, wt, [{"APM_AUDIT", unquote(audit)}])
+
+      assert File.read!(Path.join(dir, "apm.log")) =~ "audit", "fixture: audit did not run"
+      if unquote(audit) == "0", do: assert(code == 0, out), else: assert(code != 0, out)
+    end
+  end
+
+  test "a moved revision whose age gh cannot give is shown as ?", %{dir: dir} do
+    wt = worktree(dir)
+    write(dir, "bin/gh", "#!/bin/sh\nexit 1\n")
+    File.chmod!(Path.join(dir, "bin/gh"), 0o755)
+
+    {out, _} = update(dir, wt, [{"APM_BUMP", "1"}])
+
+    assert out =~ "Last change upstream", out
+    assert out =~ "probe: ?", out
+  end
+
+  test "with no revision moved it says so", %{dir: dir} do
+    wt = worktree(dir)
+
+    {out, _} = update(dir, wt, [])
+
+    assert out =~ "No skill moved", out
   end
 
   test "outside a linked worktree it refuses and never calls apm", %{dir: dir} do
