@@ -236,7 +236,7 @@ basic-memory project list
 ## Using from Other Repositories
 
 The sections above set this Mac up; the two below are for work inside another repository.
-[Secrets](#secrets) works only on a Mac set up from here, since its task comes with the global mise config, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
+[Secrets](#secrets) works only on a Mac set up from here, since its command comes with the shell fragments, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
 
 ### Secrets
 
