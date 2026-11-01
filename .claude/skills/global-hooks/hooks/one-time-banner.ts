@@ -34,8 +34,7 @@ const post = async (
   title: string,
   taskId: string,
 ): Promise<void> => {
-  // From the home directory, so the config of the repository the run sits in
-  // can neither break the task nor replace it.
+  // The call the task's own file gives, and says why.
   const home = `${await $.env.get("HOME")}`;
   try {
     const { exitCode, stderr } = await $.process.run([
