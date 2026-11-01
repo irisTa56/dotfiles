@@ -13,7 +13,7 @@ type Engine = {
 type World = { banners: string[]; reports: string[] };
 
 // The engine beneath the mod: Desktop's store holds the tasks, or a string where
-// it can't be read, and the notify task is recorded, exiting with `postExit`, or
+// it can't be read, and the notify command is recorded, exiting with `postExit`, or
 // failing to start where that is null.
 // Whatever the module shows the person (toast, transcript line, notice) lands in
 // `reports`.
@@ -57,9 +57,7 @@ const engine = (
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    const isNotify =
-      e.argv.slice(0, 6).join(" ") ===
-      "mise -C /home/u run --skip-tools utils:notify";
+    const isNotify = e.argv[0] === "/home/u/.local/bin/desktop-notify";
     if (isNotify) w.banners.push(e.argv.join(" "));
     if (isNotify && postExit === null) return { deny: "ENOENT" };
 

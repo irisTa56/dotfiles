@@ -34,19 +34,10 @@ const post = async (
   title: string,
   taskId: string,
 ): Promise<void> => {
-  // The call the task's own file gives, and says why.
-  const home = `${await $.env.get("HOME")}`;
+  // By its full path, since the engine's PATH need not hold ~/.local/bin.
+  const notify = `${await $.env.get("HOME")}/.local/bin/desktop-notify`;
   try {
-    const { exitCode, stderr } = await $.process.run([
-      "mise",
-      "-C",
-      home,
-      "run",
-      "--skip-tools",
-      "utils:notify",
-      title,
-      taskId,
-    ]);
+    const { exitCode, stderr } = await $.process.run([notify, title, taskId]);
     if (exitCode !== 0) throw new Error(`exit ${exitCode}: ${stderr}`);
   } catch (error) {
     $.ui.log(`"${title}" for ${taskId} did not post: ${error}`);
