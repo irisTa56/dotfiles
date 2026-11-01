@@ -29,7 +29,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config and file tasks, and the agent instructions below, into place.
+- `[dotfiles]` symlinks the global mise config and file tasks, the commands under `~/.local/bin`, and the agent instructions below, into place.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
@@ -87,6 +87,21 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
     - Hex, in a project: `HEX_COOLDOWN=0d mix deps.update <dep>`.
     - Hex, in a `Mix.install` script: `HEX_COOLDOWN=0d MIX_INSTALL_FORCE=1 elixir <script>`; without `MIX_INSTALL_FORCE` the script loads what it cached and resolves nothing.
 - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
+
+### Where a script goes
+
+What decides is who calls a script and what it has to change, not the language it is written in.
+Take the first of these that fits:
+
+1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
+2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, with its source in `scripts/` and its link in `[dotfiles]`.
+   - `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
+   - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
+   - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
+   - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
+3. It needs a tool mise installs, or a person runs it inside a repository: a mise task, where a broken config shows at once to whoever ran it.
+   - It reaches every repository from `.config/mise/tasks/`, and other repositories that take it from [`tasks/`](tasks/README.md).
+4. It is a shorthand a person types: an alias or function in `zsh_fragments/zshrc.sh`.
 
 ## Agent Instructions
 

@@ -35,7 +35,7 @@ const post = async (
   taskId: string,
 ): Promise<void> => {
   // By its full path, since the engine's PATH need not hold ~/.local/bin.
-  const notify = `${await $.env.get("HOME")}/.local/bin/desktop-notify`;
+  const notify = `${await $.env.get("HOME")}/.local/bin/notify_desktop`;
   try {
     const { exitCode, stderr } = await $.process.run([notify, title, taskId]);
     if (exitCode !== 0) throw new Error(`exit ${exitCode}: ${stderr}`);

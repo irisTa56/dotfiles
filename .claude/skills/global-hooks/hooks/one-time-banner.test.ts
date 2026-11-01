@@ -57,7 +57,7 @@ const engine = (
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    const isNotify = e.argv[0] === "/home/u/.local/bin/desktop-notify";
+    const isNotify = e.argv[0] === "/home/u/.local/bin/notify_desktop";
     if (isNotify) w.banners.push(e.argv.join(" "));
     if (isNotify && postExit === null) return { deny: "ENOENT" };
 
