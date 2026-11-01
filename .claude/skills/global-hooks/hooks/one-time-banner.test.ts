@@ -23,7 +23,11 @@ const engine = (
   postExit: number | null = 0,
 ): World => {
   const w: World = { banners: [], reports: [] };
-  on("ui.toast", (_, e, next) => (w.reports.push(e.text), next(e)));
+  on("ui.toast", (_, e, next) => {
+    w.reports.push(e.text);
+
+    return next(e);
+  });
   on("ui.log", (_, e, next) => {
     if (e.to !== "debug") w.reports.push(e.text);
 

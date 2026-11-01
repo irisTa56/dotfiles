@@ -99,7 +99,7 @@ run = "rumdl check"
 # biome.json names the files: the function-hooks module under global-hooks.
 [tasks."qa:ts"]
 description = "Lint and check formatting of TypeScript"
-run = "biome ci"
+run = "biome ci --error-on-warnings"
 
 # The declarations are those of the installed CLI. The engine writes them, git-ignored,
 # beside a plugin in a `--plugin-dir` folder the session watches for saves, and not
