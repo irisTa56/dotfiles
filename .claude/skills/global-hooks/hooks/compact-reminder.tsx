@@ -1,6 +1,6 @@
 import type { Register } from "claude-code";
 
-const REMIND_AT = 400_000;
+const REMIND_AT = 360_000;
 
 // Lowering the auto-compact window instead would compact there with no
 // instructions, and a good summary depends on saying what comes next. So the
