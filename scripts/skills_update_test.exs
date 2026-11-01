@@ -43,20 +43,30 @@ defmodule SkillsUpdateTest do
     File.chmod!(path, 0o755)
   end
 
-  # Answers for each skill, as the time its last commit's pull request merged: nil for
-  # a commit with no merged pull request, and :fail for a request that fails.
+  # Answers for each skill, as the pull request GitHub lists for its last commit: nil for
+  # a commit with no merged pull request, :fail for a request that fails, a date for a
+  # pull request merged then into the default branch, and {:other_branch, date} for one
+  # merged then into another branch. The fake gh serves JSON and applies the --jq
+  # filter it is given with jq, as gh does.
   defp github(dir, merged) do
+    File.mkdir_p!(Path.join(dir, "gh"))
+
     cases =
       Enum.map_join(merged, fn {skill, answer} ->
+        File.write!(Path.join(dir, "gh/#{skill}-commits.json"), ~s([{"sha": "sha-#{skill}"}]))
+
         pulls =
           case answer do
-            :fail -> "exit 1"
-            nil -> ":"
-            date -> "echo #{date}"
+            :fail ->
+              "exit 1"
+
+            answer ->
+              File.write!(Path.join(dir, "gh/#{skill}-pulls.json"), pulls_json(answer))
+              ~s(jq -r "$4" "#{dir}/gh/#{skill}-pulls.json")
           end
 
         """
-          *path=skills/#{skill}\\&*) echo sha-#{skill} ;;
+          *path=skills/#{skill}\\&*) jq -r "$4" "#{dir}/gh/#{skill}-commits.json" ;;
           */commits/sha-#{skill}/pulls*) #{pulls} ;;
         """
       end)
@@ -64,14 +74,27 @@ defmodule SkillsUpdateTest do
     fake(dir, "gh", "case \"$2\" in\n#{cases}  *) exit 1 ;;\nesac\n")
   end
 
-  defp run(dir, args \\ [], env \\ []) do
-    {yq, 0} = System.cmd("mise", ["which", "yq"])
+  defp pulls_json(nil), do: "[]"
+  defp pulls_json({:other_branch, date}), do: pulls_json(date, "dev")
+  defp pulls_json(date), do: pulls_json(date, "main")
 
-    path =
-      Enum.join(
-        [Path.join(dir, "bin"), Path.dirname(String.trim(yq)), System.get_env("PATH")],
-        ":"
-      )
+  defp pulls_json(date, base) do
+    JSON.encode!([
+      %{
+        "merged_at" => date,
+        "base" => %{"ref" => base, "repo" => %{"default_branch" => "main"}}
+      }
+    ])
+  end
+
+  defp run(dir, args \\ [], env \\ []) do
+    tool_dirs =
+      for tool <- ["yq", "jq"] do
+        {bin, 0} = System.cmd("mise", ["which", tool])
+        Path.dirname(String.trim(bin))
+      end
+
+    path = Enum.join([Path.join(dir, "bin") | tool_dirs] ++ [System.get_env("PATH")], ":")
 
     System.cmd("elixir", [@script | args],
       cd: dir,
@@ -115,6 +138,16 @@ defmodule SkillsUpdateTest do
 
     {out, _} = run(dir)
 
+    assert out =~ "recent: held"
+    assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  test "a commit whose only merged pull request went to another branch is held", %{dir: dir} do
+    github(dir, %{"old" => @old, "recent" => {:other_branch, @old}})
+
+    {out, code} = run(dir)
+
+    assert code == 0, out
     assert out =~ "recent: held"
     assert "update --yes o/r/skills/old own" in apm_calls(dir)
   end

@@ -8,9 +8,10 @@ defmodule SkillsUpdate do
   back any whose last change upstream merged less than a day ago, as the release
   windows set for npm, uv and Hex do. APM has no such window of its own.
 
-  The time comes from the pull request that merged the skill's last commit, which
-  GitHub records, since a commit's own date is whatever its author set. A commit no
-  merged pull request holds is held too, and `apm update` is the way past that.
+  The time comes from the pull request that merged the skill's last commit into the
+  default branch, which GitHub records, since a commit's own date is whatever its
+  author set. A commit no such pull request holds is held too, and `apm update` is
+  the way past that.
 
     --help, -h  print this message
   """
@@ -61,23 +62,23 @@ defmodule SkillsUpdate do
   # A gist is the owner's own, and `skills:push` is what moves it.
   defp hold(%{"host" => "gist.github.com"}), do: nil
 
+  # GitHub can list only the pull request that took a commit into another branch, whose
+  # merge time says nothing of when the commit reached the default one.
+  @merged_into_default "[.[] | select(.base.ref == .base.repo.default_branch) | .merged_at | select(.)] | max // empty"
+
   defp hold(dep) do
     query = if dep["virtual_path"], do: "path=#{dep["virtual_path"]}&", else: ""
 
     with {:ok, sha} <-
            gh("repos/#{dep["repo_url"]}/commits?#{query}per_page=1", ".[0].sha // empty"),
          {:ok, merged} <-
-           gh(
-             "repos/#{dep["repo_url"]}/commits/#{sha}/pulls",
-             "[.[].merged_at | select(.)] | max // empty"
-           ),
+           gh("repos/#{dep["repo_url"]}/commits/#{sha}/pulls", @merged_into_default),
          {:ok, time, _} <- DateTime.from_iso8601(merged) do
       if DateTime.diff(DateTime.utc_now(), time) >= @window_seconds,
         do: nil,
         else: "last change merged #{merged}"
     else
       {:error, reason} -> reason
-      _ -> "no readable merge time"
     end
   end
 
@@ -85,7 +86,7 @@ defmodule SkillsUpdate do
     case System.cmd("gh", ["api", path, "--jq", jq]) do
       {out, 0} ->
         case String.trim(out) do
-          "" -> {:error, "no merged pull request found"}
+          "" -> {:error, "no pull request into the default branch found"}
           value -> {:ok, value}
         end
 
