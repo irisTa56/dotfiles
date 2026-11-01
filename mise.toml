@@ -89,6 +89,7 @@ run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
   "mix format --check-formatted scripts/*.exs",
+  "scripts/skills_update_test.exs",
 ]
 
 [tasks."qa:md"]
@@ -216,6 +217,12 @@ find .claude/skills -mindepth 1 -maxdepth 1 | sort | while IFS= read -r p; do
   printf '%s\n' "$managed" | grep -qxF "$p" || echo "$p"
 done
 '''
+
+[tasks."skills:update"]
+description = "Update apm skill(s) in a linked worktree, show the diff, and fail on anything in them that runs unread"
+usage = 'arg "[pkg]" var=#true help="apm package path(s) to update; every package when none is named"'
+# $usage_pkg is unquoted for the reason skills:remove gives below.
+run = "scripts/skills_update.exs $usage_pkg"
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"

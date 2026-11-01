@@ -165,12 +165,19 @@ Audit deployed files against the lockfile, plus integrity and hidden-character c
 apm audit
 ```
 
-Show packages whose upstream advanced past the pinned ref, then update:
+Show packages whose upstream advanced past the pinned ref, then update them from a linked worktree:
 
 ```shell
 apm outdated
-apm install --update
+mise run skills:update [package...]
 ```
+
+A skill can act on this machine in ways an install does not show: a `.claude-plugin/plugin.json` makes its folder a plugin loaded in every session, frontmatter and `` !`command` `` lines run when it is invoked, and its text is what the agent follows.
+`.gitignore` holds the skills out of the repository, so a pull request shows only the new pins.
+The task therefore prints the diff of the deployed files, with how long ago each package last changed upstream, and exits non-zero on what `apm audit` reports or on anything that runs without a person reading it first.
+None of this judges what the text asks for, so read the diff before merging.
+It refuses to run in the main checkout, since `~/.claude/skills` points there and an update would take effect before anyone read it; after the merge, `apm install` in the main checkout brings the new copies in.
+`allowExecutables: {}` in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, but it does not stop their files from being deployed, which is what the task's check catches.
 
 ### Gist-sourced skills
 
