@@ -2,8 +2,6 @@ import type { EngineInterface, Register } from "claude-code";
 
 const STORES = "Library/Application Support/Claude/claude-code-sessions";
 
-// Desktop refuses any other characters in a task id, so the name needs no
-// escaping in the AppleScript string below.
 const TASK_NAME = /^<scheduled-task name="([a-z0-9_-]+)"/;
 
 // Desktop's own store, under two opaque ids. It is read directly because auto
@@ -36,11 +34,14 @@ const post = async (
   title: string,
   taskId: string,
 ): Promise<void> => {
-  await $.process.run([
-    "osascript",
-    "-e",
-    `display notification "${taskId}" with title "${title}" sound name "Glass"`,
-  ]);
+  // By its full path, since the engine's PATH need not hold ~/.local/bin.
+  const notify = `${await $.env.get("HOME")}/.local/bin/notify_desktop`;
+  try {
+    const { exitCode, stderr } = await $.process.run([notify, title, taskId]);
+    if (exitCode !== 0) throw new Error(`exit ${exitCode}: ${stderr}`);
+  } catch (error) {
+    $.ui.log(`"${title}" for ${taskId} did not post: ${error}`);
+  }
 };
 
 const REASONS = ["answer", "aborted", "refusal", "error"] as const;
@@ -73,7 +74,7 @@ export const register: Register = (on) => {
     await isOneTime($, finished).then(
       (oneTime) =>
         oneTime ? post($, "⏰ one-time 完了", finished) : undefined,
-      () => post($, "⚠ one-time 判定失敗", finished),
+      () => post($, "⚠️ one-time 判定失敗", finished),
     );
 
     return next(e);

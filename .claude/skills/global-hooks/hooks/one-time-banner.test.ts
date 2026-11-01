@@ -10,12 +10,34 @@ type Engine = {
   turn: { complete: (input: never) => Promise<unknown> };
 };
 
-type World = { banners: string[] };
+type World = { banners: string[]; reports: string[] };
 
 // The engine beneath the mod: Desktop's store holds the tasks, or a string where
-// it can't be read, and osascript is recorded.
-const engine = (on: On, tasks: readonly unknown[] | string): World => {
-  const w: World = { banners: [] };
+// it can't be read, and the notify command is recorded, exiting with `postExit`, or
+// failing to start where that is null.
+// Whatever the module shows the person (toast, transcript line, notice) lands in
+// `reports`.
+const engine = (
+  on: On,
+  tasks: readonly unknown[] | string,
+  postExit: number | null = 0,
+): World => {
+  const w: World = { banners: [], reports: [] };
+  on("ui.toast", (_, e, next) => {
+    w.reports.push(e.text);
+
+    return next(e);
+  });
+  on("ui.log", (_, e, next) => {
+    if (e.to !== "debug") w.reports.push(e.text);
+
+    return next(e);
+  });
+  on("ui.notice", (_, e, next) => {
+    if (e.text !== undefined) w.reports.push(e.text);
+
+    return next(e);
+  });
   on("prompt.submit", (_, e) => ({ text: e.text }));
   on("turn.complete", (_, e) => ({ text: e.answer }));
   mock.env(on, { HOME: "/home/u" });
@@ -39,11 +61,13 @@ const engine = (on: On, tasks: readonly unknown[] | string): World => {
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    if (e.argv[0] === "osascript") w.banners.push(e.argv.join(" "));
+    const isNotify = e.argv[0] === "/home/u/.local/bin/notify_desktop";
+    if (isNotify) w.banners.push(e.argv.join(" "));
+    if (isNotify && postExit === null) return { deny: "ENOENT" };
 
     return {
       value: {
-        exitCode: 0,
+        exitCode: isNotify ? (postExit ?? 0) : 0,
         stdout: "",
         stderr: "",
         isStdoutTruncated: false,
@@ -86,7 +110,6 @@ describe("a one-time scheduled run", () => {
     await prompt($, "scheduled-trigger", dispatch("check-a"));
     await finish($);
     expect(w.banners.length).toBe(1);
-    expect(w.banners[0]).toContain("osascript");
     expect(w.banners[0]).toContain("check-a");
     expect(w.banners[0]).toContain("⏰");
   });
@@ -120,13 +143,32 @@ describe("a one-time scheduled run", () => {
   });
 });
 
+describe("a one-time scheduled run whose banner fails to post", () => {
+  test("reports the failure and still completes the turn", async ($, on) => {
+    const w = engine(on, [ONE_TIME], 1);
+    await prompt($, "scheduled-trigger", dispatch("check-a"));
+    const result = await finish($);
+    expect(result).toEqual({ text: "done" });
+    expect(w.banners.length).toBe(1);
+    expect(w.reports.length).toBeGreaterThan(0);
+  });
+
+  test("reports a command that cannot start", async ($, on) => {
+    const w = engine(on, [ONE_TIME], null);
+    await prompt($, "scheduled-trigger", dispatch("check-a"));
+    const result = await finish($);
+    expect(result).toEqual({ text: "done" });
+    expect(w.reports.length).toBeGreaterThan(0);
+  });
+});
+
 describe("a scheduled run whose task cannot be looked up", () => {
   test("says so in a banner rather than staying silent", async ($, on) => {
     const w = engine(on, "unreadable");
     await prompt($, "scheduled-trigger", dispatch("check-a"));
     await finish($);
     expect(w.banners.length).toBe(1);
-    expect(w.banners[0]).toContain("⚠");
+    expect(w.banners[0]).toContain("⚠️");
     expect(w.banners[0]).toContain("check-a");
   });
 });
@@ -147,7 +189,7 @@ describe("a scheduled run the store does not list", () => {
     await prompt($, "scheduled-trigger", dispatch("check-a"));
     await finish($);
     expect(w.banners.length).toBe(1);
-    expect(w.banners[0]).toContain("⚠");
+    expect(w.banners[0]).toContain("⚠️");
   });
 });
 
