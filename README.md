@@ -173,7 +173,8 @@ mise run skills:update [package...]
 ```
 
 APM has no release window, so the task gives skills the one-day wait npm, uv and Hex have here.
-It holds back a skill whose path last changed in a pull request merged under a day ago, going by GitHub's merge time since a commit's own date is whatever its author set, and it holds one whose last commit no pull request into the default branch contains.
+It holds back a skill whose path last changed in a pull request merged under a day ago, going by GitHub's merge time since a commit's own date is whatever its author set.
+It also holds one when GitHub lists no such pull request for its last commit, though the list can miss one, so that hold is for checking by hand.
 `apm update <package>` followed by `apm install` takes a held skill anyway.
 `executables.allow` being empty in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, though a `.claude-plugin/plugin.json` still deploys and loads its folder as a plugin.
 

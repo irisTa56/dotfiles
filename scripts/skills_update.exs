@@ -10,7 +10,8 @@ defmodule SkillsUpdate do
 
   The time comes from the pull request that merged the skill's last commit into the
   default branch, which GitHub records, since a commit's own date is whatever its
-  author set. A commit no such pull request holds is held too. `apm update <package>`
+  author set. A commit GitHub lists no such pull request for is held too, though the
+  list can miss one, so that hold is for checking by hand. `apm update <package>`
   followed by `apm install` is the way past a hold.
 
     --help, -h  print this message
@@ -70,9 +71,17 @@ defmodule SkillsUpdate do
     query = if dep["virtual_path"], do: "path=#{dep["virtual_path"]}&", else: ""
 
     with {:ok, sha} <-
-           gh("repos/#{dep["repo_url"]}/commits?#{query}per_page=1", ".[0].sha // empty"),
+           gh(
+             "repos/#{dep["repo_url"]}/commits?#{query}per_page=1",
+             ".[0].sha // empty",
+             "no commit on this path"
+           ),
          {:ok, merged} <-
-           gh("repos/#{dep["repo_url"]}/commits/#{sha}/pulls", @merged_into_default),
+           gh(
+             "repos/#{dep["repo_url"]}/commits/#{sha}/pulls",
+             @merged_into_default,
+             "GitHub lists no merge into the default branch for its last commit; check by hand"
+           ),
          {:ok, time, _} <- DateTime.from_iso8601(merged) do
       if DateTime.diff(DateTime.utc_now(), time) >= @window_seconds,
         do: nil,
@@ -82,11 +91,11 @@ defmodule SkillsUpdate do
     end
   end
 
-  defp gh(path, jq) do
+  defp gh(path, jq, when_empty) do
     case System.cmd("gh", ["api", path, "--jq", jq]) do
       {out, 0} ->
         case String.trim(out) do
-          "" -> {:error, "no pull request into the default branch found"}
+          "" -> {:error, when_empty}
           value -> {:ok, value}
         end
 

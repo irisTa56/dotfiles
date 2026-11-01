@@ -46,29 +46,34 @@ defmodule SkillsUpdateTest do
   # Answers for each skill, as the pull request GitHub lists for its last commit: nil for
   # a commit with no merged pull request, :fail for a request that fails, a date for a
   # pull request merged then into the default branch, and {:other_branch, date} for one
-  # merged then into another branch. The fake gh serves JSON and applies the --jq
-  # filter it is given with jq, as gh does.
+  # merged then into another branch. :no_commit is a path whose commits list comes back
+  # empty, as when upstream moved or deleted it, so no pull request is asked about. The
+  # fake gh serves JSON and applies the --jq filter it is given with jq, as gh does.
   defp github(dir, merged) do
     File.mkdir_p!(Path.join(dir, "gh"))
 
     cases =
       Enum.map_join(merged, fn {skill, answer} ->
-        File.write!(Path.join(dir, "gh/#{skill}-commits.json"), ~s([{"sha": "sha-#{skill}"}]))
+        commits = if answer == :no_commit, do: "[]", else: ~s([{"sha": "sha-#{skill}"}])
+        File.write!(Path.join(dir, "gh/#{skill}-commits.json"), commits)
 
         pulls =
           case answer do
+            :no_commit ->
+              ""
+
             :fail ->
-              "exit 1"
+              "  */commits/sha-#{skill}/pulls*) exit 1 ;;\n"
 
             answer ->
               File.write!(Path.join(dir, "gh/#{skill}-pulls.json"), pulls_json(answer))
-              ~s(jq -r "$4" "#{dir}/gh/#{skill}-pulls.json")
+
+              ~s[  */commits/sha-#{skill}/pulls*) jq -r "$4" "#{dir}/gh/#{skill}-pulls.json" ;;\n]
           end
 
         """
           *path=skills/#{skill}\\&*) jq -r "$4" "#{dir}/gh/#{skill}-commits.json" ;;
-          */commits/sha-#{skill}/pulls*) #{pulls} ;;
-        """
+        """ <> pulls
       end)
 
     fake(dir, "gh", "case \"$2\" in\n#{cases}  *) exit 1 ;;\nesac\n")
@@ -149,6 +154,41 @@ defmodule SkillsUpdateTest do
 
     assert code == 0, out
     assert out =~ "recent: held"
+    assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  test "a path with no commit is held, and the reason says so", %{dir: dir} do
+    github(dir, %{"old" => @old, "recent" => :no_commit})
+
+    {out, code} = run(dir)
+
+    assert code == 0, out
+    assert "recent: held, no commit on this path" in String.split(out, "\n")
+    assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  @unlisted "GitHub lists no merge into the default branch for its last commit; check by hand"
+
+  test "a commit with no pull request listed is held with a reason that claims no more", %{
+    dir: dir
+  } do
+    github(dir, %{"old" => @old, "recent" => nil})
+
+    {out, code} = run(dir)
+
+    assert code == 0, out
+    assert "recent: held, #{@unlisted}" in String.split(out, "\n")
+    assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  test "a commit whose only pull request went to another branch is held with the same reason",
+       %{dir: dir} do
+    github(dir, %{"old" => @old, "recent" => {:other_branch, @old}})
+
+    {out, code} = run(dir)
+
+    assert code == 0, out
+    assert "recent: held, #{@unlisted}" in String.split(out, "\n")
     assert "update --yes o/r/skills/old own" in apm_calls(dir)
   end
 
