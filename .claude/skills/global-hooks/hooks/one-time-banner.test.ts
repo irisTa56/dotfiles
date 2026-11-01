@@ -4,6 +4,7 @@ import { describe, expect, mock, test } from "claude-code/testing";
 const STORES =
   "/home/u/Library/Application Support/Claude/claude-code-sessions";
 const STORE = `${STORES}/a/b/scheduled-tasks.json`;
+const NOTIFY = "/home/u/.config/mise/tasks/notify.sh";
 
 type Engine = {
   prompt: { submit: (input: never) => Promise<unknown> };
@@ -13,7 +14,7 @@ type Engine = {
 type World = { banners: string[] };
 
 // The engine beneath the mod: Desktop's store holds the tasks, or a string where
-// it can't be read, and osascript is recorded.
+// it can't be read, and the notify task is recorded.
 const engine = (on: On, tasks: readonly unknown[] | string): World => {
   const w: World = { banners: [] };
   on("prompt.submit", (_, e) => ({ text: e.text }));
@@ -39,7 +40,7 @@ const engine = (on: On, tasks: readonly unknown[] | string): World => {
   );
   on("process.run", (_, e) => {
     // review-loop, beside this module, runs git on every turn.
-    if (e.argv[0] === "osascript") w.banners.push(e.argv.join(" "));
+    if (e.argv[0] === NOTIFY) w.banners.push(e.argv.join(" "));
 
     return {
       value: {
@@ -86,7 +87,6 @@ describe("a one-time scheduled run", () => {
     await prompt($, "scheduled-trigger", dispatch("check-a"));
     await finish($);
     expect(w.banners.length).toBe(1);
-    expect(w.banners[0]).toContain("osascript");
     expect(w.banners[0]).toContain("check-a");
     expect(w.banners[0]).toContain("⏰");
   });

@@ -2,8 +2,10 @@ import type { EngineInterface, Register } from "claude-code";
 
 const STORES = "Library/Application Support/Claude/claude-code-sessions";
 
-// Desktop refuses any other characters in a task id, so the name needs no
-// escaping in the AppleScript string below.
+// The global `notify` mise task, run by its path: `mise run` would first have to
+// load the config of whichever repository the run sits in, and fail on a broken one.
+const NOTIFY = ".config/mise/tasks/notify.sh";
+
 const TASK_NAME = /^<scheduled-task name="([a-z0-9_-]+)"/;
 
 // Desktop's own store, under two opaque ids. It is read directly because auto
@@ -36,11 +38,7 @@ const post = async (
   title: string,
   taskId: string,
 ): Promise<void> => {
-  await $.process.run([
-    "osascript",
-    "-e",
-    `display notification "${taskId}" with title "${title}" sound name "Glass"`,
-  ]);
+  await $.process.run([`${await $.env.get("HOME")}/${NOTIFY}`, title, taskId]);
 };
 
 const REASONS = ["answer", "aborted", "refusal", "error"] as const;
