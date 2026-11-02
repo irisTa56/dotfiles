@@ -1,6 +1,6 @@
 ---
 name: gemini-handoff
-description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini instead of making it yourself — write the request as a Markdown file in the user's "Claude Outbox" Drive folder, make sure the target file exists, and give the user the target's link to run the request from Gemini's side panel there; then, once the user says it was processed, read the target and check it against the request. Use whenever the user asks for a Google Workspace change to go through Gemini, mentions Claude Outbox or a handoff to Gemini, or wants a Workspace file changed where your own connector cannot edit it, as on a machine whose organization allows Claude only to create and copy files.
+description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini instead of making it yourself — write the request as a Doc in the user's "Claude Outbox" Drive folder, make sure the target file exists, and give the user the target's link to run the request from Gemini's side panel there; then, once the user says it was processed, read the target and check it against the request. Use whenever the user asks for a Google Workspace change to go through Gemini, mentions Claude Outbox or a handoff to Gemini, or wants a Workspace file changed where your own connector cannot edit it, as on a machine whose organization allows Claude only to create and copy files.
 ---
 
 # Hand a Workspace change to Gemini
@@ -24,9 +24,9 @@ Your part is to write a request Gemini can act on without this conversation, to 
    - Sheet: `application/vnd.google-apps.spreadsheet`
    - Slides: `application/vnd.google-apps.presentation`
 3. **Write the request** in the [format below](#request-format).
-4. **Place the request** with the Drive connector's create tool in the outbox folder (`parentId`), `contentMimeType: "text/markdown"` and `disableConversionToGoogleType: true`, so it stays a `.md` file rather than becoming a Doc. Name it `YYYYMMDD-HHMM-<short-slug>.md`, taking the time from `date +%Y%m%d-%H%M` on the user's machine.
-5. **Read it back** with the Drive connector's read tool. The read returns Markdown with its markup escaped (`\#`, `\-`, `\_`), which is how the tool renders the text, not a change to the file; compare the content with that in mind.
-6. **Hand over.** Give the user the target file as a link, the request's file name to pick from the side panel, and one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there. A new request may not show among the panel's recent files right away.
+4. **Place the request** with the Drive connector's create tool in the outbox folder (`parentId`), and `contentMimeType: "text/markdown"`, leaving conversion on so Drive turns it into a Doc: a `.md` file did not show among the side panel's recent files right away, which stalls the user at the point of picking it. Name it `YYYYMMDD-HHMM-<short-slug>`, taking the time from `date +%Y%m%d-%H%M` on the user's machine.
+5. **Read it back** with the Drive connector's read tool and compare it with what you wrote.
+6. **Hand over.** Give the user the target file as a link, the request's file name to pick from the side panel, and one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there.
 7. **Check the result** when the user says the request was processed. They do not report what happened, so read the target yourself and check each completion criterion against what you read. Report which criteria hold, which do not, and any change outside the request you notice, such as a list item that lost its marker. Leave the fix to the user or to a new request; you do not edit the target.
 
 ## Request format
