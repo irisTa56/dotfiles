@@ -18,17 +18,15 @@ Your part is to write a request Gemini can act on without this conversation, to 
 
 ## Steps
 
-1. **Find the outbox.** Search Drive for a folder titled `Claude Outbox` (`title = 'Claude Outbox' and mimeType = 'application/vnd.google-apps.folder'`; Drive search takes `title`, not `name`). If none exists, create it in My Drive. If more than one matches, ask the user which to use.
-2. **Make sure the target exists.** For a change to an existing file, take its ID from the user's link or from a Drive search, and confirm the match with the user when more than one file fits. For a new file, create an empty one of the right type, with no content:
+1. **Find the outbox.** Search Drive for a folder titled `Claude Outbox` (`title = 'Claude Outbox' and mimeType = 'application/vnd.google-apps.folder'`; Drive search takes `title`, not `name`). If none exists, create it in My Drive.
+2. **Make sure the target exists.** For a change to an existing file, take its ID from the user's link or from a Drive search. For a new file, create an empty one of the right type, with no content:
    - Doc: `application/vnd.google-apps.document`
    - Sheet: `application/vnd.google-apps.spreadsheet`
    - Slides: `application/vnd.google-apps.presentation`
-
-   Only the Doc path has been tried end to end; for a Sheet or Slides target, tell the user that Gemini's side panel there has not yet been tried with a request file.
-3. **Write the request** in the [format below](#request-format), and show it to the user before placing it: placing it is a write to their Drive.
+3. **Write the request** in the [format below](#request-format).
 4. **Place the request** with the Drive connector's create tool in the outbox folder (`parentId`), `contentMimeType: "text/markdown"` and `disableConversionToGoogleType: true`, so it stays a `.md` file rather than becoming a Doc. Name it `YYYYMMDD-HHMM-<short-slug>.md`, taking the time from `date +%Y%m%d-%H%M` on the user's machine.
 5. **Read it back** with the Drive connector's read tool. The read returns Markdown with its markup escaped (`\#`, `\-`, `\_`), which is how the tool renders the text, not a change to the file; compare the content with that in mind.
-6. **Hand over.** Give the user the target file as a link, the request's file name to pick from the side panel, and one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there.
+6. **Hand over.** Give the user the target file as a link, the request's file name to pick from the side panel, and one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there. A new request may not show among the panel's recent files right away.
 7. **Check the result** when the user says the request was processed. They do not report what happened, so read the target yourself and check each completion criterion against what you read. Report which criteria hold, which do not, and any change outside the request you notice, such as a list item that lost its marker. Leave the fix to the user or to a new request; you do not edit the target.
 
 ## Request format
