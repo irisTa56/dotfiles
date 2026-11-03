@@ -215,7 +215,7 @@ Re-including the directory is enough — the exclusion above uses a single `*`, 
 
 ## MCP Servers
 
-The only stdio MCP server in use is `basic-memory`, already configured in Claude Desktop and Claude Code.
+The only stdio MCP server in use is `basic-memory`, configured in Claude Code; Claude Desktop needs no entry for it, since its Code tab uses Claude Code's.
 Claude Desktop's DXT extensions and remote connectors are managed in-app, not from this directory.
 
 `mise bootstrap` registers `basic-memory` in Claude Code's user scope when it is not there yet:
