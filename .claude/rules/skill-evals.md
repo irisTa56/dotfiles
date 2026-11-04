@@ -10,6 +10,7 @@ A repository may keep eval suites for its skills under `.claude/evals/<suite>/`,
 Before editing a skill, list the suites that load it with `ls -d .claude/evals/*/skills/<name>` from the root of the repository holding the skill.
 
 Once the edit is done, run each such suite with `claude plugin eval .claude/evals/<suite> --trust-plugin --no-publish --judge-model sonnet -j 6` where the edit could change what its graders check, or rewrites the skill at large.
+Before that run, read the graders and cases that test each rule the edit changed, and update any whose pass condition still follows the old rule or rejects a form the new rule allows.
 A run spends plan usage, so weigh the edit against what the cases can see:
 
 - A rule a grader tests is something they see.
