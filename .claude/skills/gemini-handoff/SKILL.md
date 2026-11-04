@@ -27,7 +27,7 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 2. **Read the target.** Take its ID from the user's link or from a Drive search, and read it.
    - The request's Keep section is written from what you read, and step 6 compares the result against it.
 3. **Name the request, and place any attachments.**
-   - Name the request `YYYYMMDD-HHMM-SHORT_SLUG`, with the time from `date +%Y%m%d-%H%M` on the user's machine.
+   - Name the request `YYYYMMDD-HHMM-[short-slug]`, with the time from `date +%Y%m%d-%H%M` on the user's machine.
    - Place each attachment in the outbox folder (`parentId`) with the Drive connector's create tool before writing the request, so its link exists for the request to name.
      - Name it after the request, with a suffix saying what it holds.
      - Pass its content's own type as `contentMimeType`, and leave conversion on.
@@ -46,35 +46,37 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 ## Request format
 
 ```markdown
-# SUMMARY
+# [What changes, in one line]
 
-- Target: TARGET_TITLE TARGET_URL
-- Supersedes: SUPERSEDED_REQUEST
-- Attachments: ATTACHMENTS
+- Target: [target file title] [target URL]
+- Supersedes: [file name of the request this replaces, or "none"]
+- Attachments: [title and URL of each attachment, or "none"]
 
 ## Change
 
-CHANGE
+<!--
+What to change, pointing at places by heading or by quoting the text.
+Give the outcome, and leave the means to Gemini where the user did not fix them (fonts, spacing, wording style).
+-->
 
 ## Keep
 
-KEEP
+<!--
+What must stay as it is, guarding what an edit tends to break in passing:
+the text that must stay word for word,
+and the structure that must survive, such as heading levels and order, the count and kind of list items, tables, links.
+-->
 
 ## Done when
 
-- CRITERION
+<!--
+Each criterion serves both the user deciding whether to accept and you checking afterwards, so it must be decidable by reading the target alone.
+Prefer "no empty paragraphs remain" to "reads cleanly".
+-->
+
+- [A criterion]
 ```
 
 Write it in the language the user works in with Gemini.
+Replace each bracketed placeholder, and drop the comments, which say what goes in their section.
 Put text quoted from the target in a code block, so the conversion to a Doc keeps its characters rather than reading them as Markdown.
-Replace each placeholder as follows.
-
-- `SUMMARY` says what changes, in one line.
-- `SUPERSEDED_REQUEST` is the file name of the request this one replaces, or `none`.
-- `ATTACHMENTS` gives the title and URL of each attachment, or `none`.
-- `CHANGE` is for Gemini: say what to change, pointing at places by heading or by quoting the text, and leave the means to the outcome to Gemini where the user did not fix them (fonts, spacing, wording style).
-- `KEEP` says what must stay as it is, guarding what an edit tends to break in passing.
-  - Name the text that must stay word for word.
-  - Name the structure that must survive, such as heading levels and order, the count and kind of list items, tables, links.
-- `CRITERION`, one line for each, serves both the user deciding whether to accept and you checking afterwards, so every criterion must be decidable by reading the target alone.
-  - Prefer "no empty paragraphs remain" to "reads cleanly".
