@@ -17,7 +17,7 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 - **The request has to stand alone.** Gemini sees the request, its attachments and the target, nothing of this conversation, so write in the request everything that decides the change.
   - What the change draws on that is not the request's own words, such as data to enter or a source document, goes beside it as an attachment.
 - **Read a Doc, Sheet or Slides file with its own product's connector**, not the Drive connector's read tool, whose Markdown rendering drops indentation, spacing and fonts.
-  - Where the session lacks that connector, read with the Drive connector's read tool, and limit Keep and the check to what its rendering shows.
+  - Where the session lacks that connector, read with the Drive connector's read tool, write Keep from what its rendering shows, and report a criterion it cannot show as unchecked rather than as holding or not.
 - **Gemini edits from the target's side panel.** The user opens the target, picks the request in its Gemini side panel, and runs it there, so you hand them the target's link rather than the request's.
 
 ## Steps
