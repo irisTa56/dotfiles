@@ -14,13 +14,18 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
-- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it.
+- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs and to the document's existing entries of the same kind, not to the work that went into it.
+  - The reader is not the person you work with in the session, so what the session raises is theirs until the document's purpose needs it.
+    - Answer their question about a passage in the conversation. Edit the passage only where the answer shows it wrong or unreadable to its reader, and then by the smallest change that fixes that.
+    - Keep what an investigation in the session turned up out of the document unless its purpose needs it; where it does, show the user the proposed text before adding it.
+    - After each round of edits, read the whole document against its purpose, as its reader meets it, not only the lines changed.
 - Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
 - A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
+- A sentence you wrote stays yours after the user's revision leaves it in, since keeping it does not make it their claim: where a check shows it wrong or unsupported, fix or remove it and report the change rather than asking them to rule on it.
 
 ## Sources
 
