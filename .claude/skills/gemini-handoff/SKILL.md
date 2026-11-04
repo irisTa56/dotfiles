@@ -6,7 +6,7 @@ description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini,
 # Hand a Workspace change to Gemini
 
 Make a change to a Google Workspace file with the connector tools wherever one can make it, as the `google-workspace` skill describes, and hand it to Gemini only where none can.
-A connector missing from the session counts as much as an operation missing from a connector, so go ahead with the handoff rather than asking the user to turn one on.
+A Docs, Sheets or Slides connector missing from the session counts as much as an operation missing from one, so go ahead with the handoff rather than asking the user to turn it on.
 Where a change has parts each way, make what the tools can and hand over the rest; a new file is created with the connectors first, so what they cannot put in it is a change like any other.
 Your part in a handoff is to write a request Gemini can act on without this conversation, to put the user one click from running it, and to check the result afterwards by reading the target.
 
@@ -17,6 +17,7 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 - **The request has to stand alone.** Gemini sees the request, its attachments and the target, nothing of this conversation, so write in the request everything that decides the change.
   - What the change draws on that is not the request's own words, such as data to enter or a source document, goes beside it as an attachment.
 - **Read a Doc, Sheet or Slides file with its own product's connector**, not the Drive connector's read tool, whose Markdown rendering drops indentation, spacing and fonts.
+  - Where the session lacks that connector, read with the Drive connector's read tool, and limit Keep and the check to what its rendering shows.
 - **Gemini edits from the target's side panel.** The user opens the target, picks the request in its Gemini side panel, and runs it there, so you hand them the target's link rather than the request's.
 
 ## Steps
@@ -40,7 +41,8 @@ Your part in a handoff is to write a request Gemini can act on without this conv
    - the titles of the request and its attachments, to pick from the side panel;
    - one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there.
 6. **Check the result** when the user says the request was processed.
-   - They do not report what happened, so read the target yourself and check against what you read each Keep entry, comparing with your step 2 read, and each completion criterion.
+   - They do not report what happened, so read the target yourself.
+   - Check each Keep entry by comparing that read with your step 2 read, and each completion criterion against that read alone.
    - Report which criteria hold, which do not, and any change outside the request you notice, such as a list item that lost its marker.
    - A fix is a change like any other: make it with the connector tools where one can, and with a new request where none can.
 
