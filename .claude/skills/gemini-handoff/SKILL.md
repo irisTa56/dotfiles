@@ -22,21 +22,21 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 
 1. **Find the outbox:** the folder titled `Claude Outbox` at the top of the user's My Drive.
    - Search Drive with `title = 'Claude Outbox' and mimeType = 'application/vnd.google-apps.folder' and parentId = 'root'`.
-   - A folder of that name elsewhere is not the outbox.
+   - A folder of that title elsewhere is not the outbox.
    - If none exists there, create it in My Drive with the Drive connector's create tool and `contentMimeType: "application/vnd.google-apps.folder"`.
 2. **Read the target.** Take its ID from the user's link or from a Drive search, and read it.
    - The request's Keep section is written from what you read, and step 6 compares the result against it.
-3. **Name the request, and place any attachments.**
-   - Name the request `YYYYMMDD-HHMM-[short-slug]`, with the time from `date +%Y%m%d-%H%M` on the user's machine.
+3. **Title the request, and place any attachments.**
+   - Title the request `YYYYMMDD-HHMM-<short-slug>`, with the time from `date +%Y%m%d-%H%M` on the user's machine.
    - Place each attachment in the outbox folder (`parentId`) with the Drive connector's create tool before writing the request, so its link exists for the request to name.
-     - Name it after the request, with a suffix saying what it holds.
+     - Title it after the request, with a suffix saying what it holds.
      - Pass its content's own type as `contentMimeType`, and leave conversion on.
-4. **Write and place the request** in the [format below](#request-format), in the outbox folder, under the name from step 3.
+4. **Write and place the request** in the [format below](#request-format), in the outbox folder, under the title from step 3.
    - Pass it with `contentMimeType: "text/markdown"` and leave conversion on, so Drive turns it into a Doc.
      - A `.md` file is slow to appear among the side panel's recent files, which stalls the user at the point of picking it.
 5. **Hand over.** Give the user:
    - the target file as a link;
-   - the file names of the request and its attachments, to pick from the side panel;
+   - the titles of the request and its attachments, to pick from the side panel;
    - one line saying they run it from the target's Gemini side panel and accept or reject its suggestions there.
 6. **Check the result** when the user says the request was processed.
    - They do not report what happened, so read the target yourself and check against what you read each Keep entry, comparing with your step 2 read, and each completion criterion.
@@ -48,8 +48,8 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 ```markdown
 # [What changes, in one line]
 
-- Target: [target file title] [target URL]
-- Supersedes: [file name of the request this replaces, or "none"]
+- Target: [title and URL of the target file]
+- Supersedes: [title of the request this replaces, or "none"]
 - Attachments: [title and URL of each attachment, or "none"]
 
 ## Change
@@ -63,18 +63,17 @@ Give the outcome, and leave the means to Gemini where the user did not fix them 
 
 <!--
 What must stay as it is, guarding what an edit tends to break in passing:
-the text that must stay word for word,
-and the structure that must survive, such as heading levels and order, the count and kind of list items, tables, links.
+- the text that must stay word for word;
+- the structure that must survive, such as heading levels and order, the count and kind of list items, tables, links.
 -->
 
 ## Done when
 
 <!--
+One criterion per list item.
 Each criterion serves both the user deciding whether to accept and you checking afterwards, so it must be decidable by reading the target alone.
 Prefer "no empty paragraphs remain" to "reads cleanly".
 -->
-
-- [A criterion]
 ```
 
 Write it in the language the user works in with Gemini.
