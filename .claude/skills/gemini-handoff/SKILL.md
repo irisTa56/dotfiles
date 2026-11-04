@@ -12,7 +12,7 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 ## The rules the handoff rests on
 
 - **The outbox is append only.** A request or attachment file is never changed or removed after it is placed.
-  - To withdraw or correct one, place a new request that names the old file in its `Supersedes` line.
+  - To correct one, place a new request and hand over its title; to withdraw one, tell the user not to run it.
 - **The request has to stand alone.** Gemini sees the request, its attachments and the target, nothing of this conversation, so write in the request everything that decides the change.
   - What the change draws on that is not the request's own words, such as data to enter or a source document, goes beside it as an attachment.
 - **Read a Doc, Sheet or Slides file with its own product's connector**, not the Drive connector's read tool, whose Markdown rendering drops indentation, spacing and fonts.
@@ -49,7 +49,6 @@ Your part in a handoff is to write a request Gemini can act on without this conv
 # [What changes, in one line]
 
 - Target: [title and URL of the target file]
-- Supersedes: [title of the request this replaces, or "none"]
 - Attachments: [title and URL of each attachment, or "none"]
 
 ## Change
