@@ -14,11 +14,11 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
-- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs and to the document's existing entries of the same kind, not to the work that went into it.
-  - The reader is not the person you work with in the session, so what the session raises is theirs until the document's purpose needs it.
-    - Answer their question about a passage in the conversation. Edit the passage only where the answer shows it wrong or unreadable to its reader, and then by the smallest change that fixes that.
-    - Keep what an investigation in the session turned up out of the document unless its purpose needs it; where it does, show the user the proposed text before adding it.
-    - After each round of edits, read the whole document against its purpose, as its reader meets it, not only the lines changed.
+- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it; a new entry runs no longer than the document's existing entries of the same kind unless its reader needs more.
+  - Where the reader is someone other than the user you work with in the session, what the session raises answers the user, not the reader.
+    - Answer the user's question about a passage in the conversation. Edit the passage only where the answer shows it wrong or unreadable to its reader, and then by the smallest change that fixes that.
+    - Add what an investigation in the session turned up only where the document's purpose needs it, and name the addition to the user.
+- After each round of edits, read the whole document against its purpose, not only the lines changed.
 - Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
