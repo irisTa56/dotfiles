@@ -19,7 +19,7 @@ Your part is to write a request Gemini can act on without this conversation, to 
 ## Steps
 
 1. **Find the outbox.** Search Drive for a folder titled `Claude Outbox` (`title = 'Claude Outbox' and mimeType = 'application/vnd.google-apps.folder'`; Drive search takes `title`, not `name`). If none exists, create it in My Drive.
-2. **Make sure the target exists.** For a change to an existing file, take its ID from the user's link or from a Drive search. For a new file, create an empty one of the right type, with no content:
+2. **Make sure the target exists.** For a change to an existing file, take its ID from the user's link or from a Drive search, and read it with the Drive connector's read tool: the request's Keep section is written from what is there, and step 7 compares the result against it. For a new file, create an empty one of the right type, with no content:
    - Doc: `application/vnd.google-apps.document`
    - Sheet: `application/vnd.google-apps.spreadsheet`
    - Slides: `application/vnd.google-apps.presentation`
