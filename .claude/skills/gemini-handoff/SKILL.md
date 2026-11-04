@@ -1,11 +1,12 @@
 ---
 name: gemini-handoff
-description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini, through a request placed in the user's "Claude Outbox" Drive folder, where no connector tool in the session can make it. Use whenever a Google Workspace change runs into something the connector tools cannot do, or the user mentions Claude Outbox or a handoff to Gemini.
+description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini, through a request placed in the user's "Claude Outbox" Drive folder, where no connector tool in the session can make it, whether the connectors lack the operation or the session lacks the connector. Use whenever a Google Workspace change runs into something the connector tools cannot do, or the user mentions Claude Outbox or a handoff to Gemini.
 ---
 
 # Hand a Workspace change to Gemini
 
 Make a change to a Google Workspace file with the connector tools wherever one can make it, as the `google-workspace` skill describes, and hand it to Gemini only where none can.
+A connector missing from the session counts as much as an operation missing from a connector, so go ahead with the handoff rather than asking the user to turn one on.
 Where a change has parts each way, make what the tools can and hand over the rest; a new file is created with the connectors first, so what they cannot put in it is a change like any other.
 Your part in a handoff is to write a request Gemini can act on without this conversation, to put the user one click from running it, and to check the result afterwards by reading the target.
 
