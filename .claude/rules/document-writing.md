@@ -9,7 +9,8 @@ paths:
 These rules apply to prose you write, and to substantial prose in conversation; the precise trigger lives in [~/.claude/CLAUDE.md](../CLAUDE.md#writing-prose).
 Behavioral principles (honesty, grounding claims) live there; this file covers prose-authoring specifics.
 
-Apply them only to what you wrote. Do not sweep unrelated existing passages into the rewrite.
+Apply them only to what you wrote.
+Do not sweep unrelated existing passages into the rewrite.
 
 ## Substance and logic
 
@@ -67,9 +68,6 @@ Sections within a document are levels, and so are files under the one that index
 - Do not insert a line break inside a unit of meaning — a sentence in a paragraph, an item's prose in a list.
   - An in-sentence break renders inconsistently — some renderers soft-wrap it away, others show a hard break — so it is the worst way to shorten a line. Never reach for it as a fix.
 - Break at every sentence boundary in a prose paragraph, so a paragraph is one sentence per line.
-- Sentences may share a line where together they fit within 100 half-width characters, however many they are.
-  - A full-width character counts as two, so Japanese prose reaches the limit at 50.
-- An item's prose sits on one line however far past that it runs.
 - Shorten a line, or a bullet [grown long](#give-a-list-the-shape-its-content-has), by changing its form, not its content: keep every clause, qualifier and emphasis the reader needs.
   - Splitting a sentence or a bullet is a change of form where the parts together still say what the one did.
 

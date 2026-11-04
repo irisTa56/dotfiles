@@ -16,7 +16,8 @@ A review spends someone else's attention, so a point that would not change what 
 That bar is what sends this skill's effort to context living *outside* the diff — the change's fit with its stated intent, the repo's own prior decisions, what it omitted elsewhere — since that is where the points which change a merge decision usually sit.
 A defect inside the diff still counts where it is worth the author's time; what that leaves out is the lint-level nit, whoever else may or may not also have caught it.
 
-Output is **comment drafts only**. Never post.
+Output is **comment drafts only**.
+Never post.
 
 ## Input
 
@@ -95,7 +96,8 @@ Present each finding in **two layers with different readers**.
 
 ### 4. Hand off
 
-Present the drafts and stop. Do not post.
+Present the drafts and stop.
+Do not post.
 
 ## Related
 
