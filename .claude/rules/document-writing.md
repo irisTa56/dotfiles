@@ -15,7 +15,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it; a new entry runs no longer than the document's existing entries of the same kind unless its reader needs more.
-  - Where the reader is someone other than the user you work with in the session, what the session raises answers the user, not the reader.
+  - Where the document outlives the session for a reader other than the user you work with in it, what the session raises answers the user, not that reader.
     - Answer the user's question about a passage in the conversation. Edit the passage only where the answer shows it wrong or unreadable to its reader, and then by the smallest change that fixes that.
     - Add what an investigation in the session turned up only where the document's purpose needs it, and name the addition to the user.
 - After each round of edits, read the whole document against its purpose, not only the lines changed.
@@ -25,7 +25,7 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
 - Explain your own software by its intent and its interface, not by walking the reader through the internals — unless understanding them is what you were asked for.
 - A rule or a decision taken from the user's words, or from wording they agreed to, says no more and no less than those words do: keep each qualifier, how firmly it was put, and when it applies, and tell the user where the text departs from them.
-- A sentence you wrote stays yours after the user's revision leaves it in, since keeping it does not make it their claim: where a check shows it wrong or unsupported, fix or remove it and report the change rather than asking them to rule on it.
+- A sentence you wrote stays yours after the user's revision leaves it in: where a check shows it wrong or unsupported, fix or remove it and report the change rather than asking them to rule on it.
 
 ## Sources
 
