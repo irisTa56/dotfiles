@@ -1,23 +1,21 @@
 ---
 name: gemini-handoff
-description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini, through a request placed in the user's "Claude Outbox" Drive folder, where no connector tool in the session can make it, whether the connectors lack the operation or the session lacks the connector. Use whenever a Google Workspace change runs into something the connector tools cannot do, or the user mentions Claude Outbox or a handoff to Gemini.
+description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini, through a request placed in the user's "Claude Outbox" Drive folder, where no connector tool in the session can make it, whether the connectors lack the operation or the session lacks their editing tool. Use whenever a Google Workspace change runs into something the connector tools cannot do, or the user mentions Claude Outbox or a handoff to Gemini.
 ---
 
 # Hand a Workspace change to Gemini
 
 Make a change to a Google Workspace file with the connector tools wherever one can make it, as the `google-workspace` skill describes, and hand it to Gemini only where none can.
-A Docs, Sheets or Slides connector missing from the session counts as much as an operation missing from one, so go ahead with the handoff rather than asking the user to turn it on.
+An editing tool missing from the session counts as much as an operation missing from the connectors, so go ahead with the handoff rather than asking the user to turn one on.
 Where a change has parts each way, make what the tools can and hand over the rest; a new file is created with the connectors first, so what they cannot put in it is a change like any other.
 Your part in a handoff is to write a request Gemini can act on without this conversation, to put the user one click from running it, and to check the result afterwards by reading the target.
 
 ## The rules the handoff rests on
 
 - **The outbox is append only.** A request or attachment file is never changed or removed after it is placed.
-  - To correct one, place a new request and hand over its title; to withdraw one, tell the user not to run it.
 - **The request has to stand alone.** Gemini sees the request, its attachments and the target, nothing of this conversation, so write in the request everything that decides the change.
   - What the change draws on that is not the request's own words, such as data to enter or a source document, goes beside it as an attachment.
 - **Read a Doc, Sheet or Slides file with its own product's connector**, not the Drive connector's read tool, whose Markdown rendering drops indentation, spacing and fonts.
-  - Where the session lacks that connector, read with the Drive connector's read tool, write Keep from what its rendering shows, and report a criterion it cannot show as unchecked rather than as holding or not.
 - **Gemini edits from the target's side panel.** The user opens the target, picks the request in its Gemini side panel, and runs it there, so you hand them the target's link rather than the request's.
 
 ## Steps
