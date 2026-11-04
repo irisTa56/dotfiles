@@ -19,20 +19,24 @@ Your part is to write a request Gemini can act on without this conversation, to 
 
 ## Reading a file
 
-- **A Doc:** read it with the Docs connector's `read_doc`, which returns paragraph formatting — indentation, spacing, fonts — along with the text.
-  - The Drive connector's read tool returns Markdown, which keeps headings and list markers but drops that formatting.
-- **Any other file:** read it with the Drive connector's read tool.
+Read a Doc, Sheet or Slides file with its own product's connector rather than the Drive connector's read tool.
+The Drive read tool returns a Markdown rendering: on a Doc it keeps headings and list markers but drops indentation, spacing and fonts.
+
+- **A Doc:** the Docs connector's `read_doc`.
+- **A Sheet:** the Sheets connector's `get_spreadsheet` and `get_values`.
+- **A Slides file:** the Slides connector's `read_presentation`.
+- **Any other file:** the Drive connector's read tool.
 
 ## Steps
 
 1. **Find the outbox:** the folder titled `Claude Outbox` at the top of the user's My Drive.
    - Search Drive with `title = 'Claude Outbox' and mimeType = 'application/vnd.google-apps.folder' and parentId = 'root'`.
    - A folder of that name elsewhere is not the outbox.
-   - If none exists there, create it in My Drive.
+   - If none exists there, create it in My Drive with the Drive connector's create tool and `contentMimeType: "application/vnd.google-apps.folder"`.
 2. **Make sure the target exists.**
    - For a change to an existing file, take its ID from the user's link or from a Drive search, and read it.
      - The request's Keep section is written from what you read, and step 7 compares the result against it.
-   - For a new file, create an empty one of the right type, with no content:
+   - For a new file, create an empty one with the Drive connector's create tool, no content, and its type as `contentMimeType`:
      - Doc: `application/vnd.google-apps.document`
      - Sheet: `application/vnd.google-apps.spreadsheet`
      - Slides: `application/vnd.google-apps.presentation`
