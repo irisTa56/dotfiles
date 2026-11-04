@@ -34,7 +34,6 @@
 
 - Always ask the user for permission before any operation that writes to an external system, showing the content that will leave rather than describing it.
   - Where the user's instruction already calls for the write, prepare it without asking whether to first, so they are asked once, with the content in hand.
-  - Where the write is a connector tool's, which `global-hooks`' connector-ask turns into a prompt to the user, that prompt is the ask: show the content, then make the call.
   - Where that content is a post others will read — a comment, a reply, a message — it closes with `*AI-assisted — Tool: Claude Code; model: anthropic/<model ID>.*`, unless Claude Code adds its own attribution line to it (as it does to a pull request's body) or the destination's own convention sets another.
 - A review of the change's own — `review-loop`'s, say, and not the review its pull request gets — closes before the pull request opens rather than after it.
   - A body written earlier describes a state a later fix can falsify, and every rewrite is another external write to ask the user's permission for.
