@@ -66,15 +66,40 @@ defmodule MiseMultiUpgrade do
   end
 
   defp run(opts) do
-    groups = groups(opts)
+    {groups, skipped} = groups(opts)
     dates = release_dates(groups)
     upgradable = Enum.filter(groups, fn {_, rows} -> Enum.any?(rows, & &1.upgradable) end)
 
-    cond do
-      opts[:dry_run] and groups == [] -> IO.puts("All tools are up to date.")
-      opts[:dry_run] -> Enum.each(groups, &render(&1, dates))
-      upgradable == [] -> IO.puts("Nothing to upgrade within the requested versions.")
-      true -> upgradable |> ask(dates) |> upgrade_all()
+    failed =
+      cond do
+        opts[:dry_run] and groups == [] ->
+          IO.puts("All tools are up to date.")
+          []
+
+        opts[:dry_run] ->
+          Enum.each(groups, &render(&1, dates))
+          []
+
+        upgradable == [] ->
+          IO.puts("Nothing to upgrade within the requested versions.")
+          []
+
+        true ->
+          upgradable |> ask(dates) |> upgrade_all()
+      end
+
+    # A directory mise cannot list, such as one whose config is not trusted, is
+    # left out rather than stopping the others; mise's own error has already
+    # gone to stderr, and the directory is named again last, where it is read.
+    if skipped != [] do
+      IO.puts(
+        :stderr,
+        "\nSkipped, as mise could not list them: " <> Enum.map_join(skipped, ", ", &label/1)
+      )
+    end
+
+    if failed != [] do
+      die("Upgrade failed in: " <> Enum.map_join(failed, ", ", &label/1), 1)
     end
   end
 
@@ -113,17 +138,14 @@ defmodule MiseMultiUpgrade do
     end
   end
 
-  # One failure leaves the other directories worth upgrading, so it is reported
-  # once they have run rather than stopping them.
-  defp upgrade_all([]), do: IO.puts("Nothing upgraded.")
-
-  defp upgrade_all(accepted) do
-    failed = Enum.reject(accepted, &upgraded?/1)
-
-    if failed != [] do
-      die("Upgrade failed in: " <> Enum.map_join(failed, ", ", &label/1), 1)
-    end
+  # One failure leaves the other directories worth upgrading, so the failed
+  # ones are returned for reporting once all have run.
+  defp upgrade_all([]) do
+    IO.puts("Nothing upgraded.")
+    []
   end
+
+  defp upgrade_all(accepted), do: Enum.reject(accepted, &upgraded?/1)
 
   defp upgraded?(where) do
     args =
@@ -139,21 +161,23 @@ defmodule MiseMultiUpgrade do
   # The global config and each directory holding a tracked project config, with
   # the rows its own `mise outdated` reports; a directory with none is dropped.
   defp groups(opts) do
-    [:global | dirs(opts)]
-    |> Task.async_stream(&{&1, rows(&1)}, max_concurrency: 8, timeout: :infinity)
-    |> Enum.flat_map(fn {:ok, {where, rows}} -> if rows == [], do: [], else: [{where, rows}] end)
+    results =
+      [:global | dirs(opts)]
+      |> Task.async_stream(&{&1, rows(&1)}, max_concurrency: 8, timeout: :infinity)
+      |> Enum.map(fn {:ok, result} -> result end)
+
+    {for({where, {:ok, rows}} <- results, rows != [], do: {where, rows}),
+     for({where, :error} <- results, do: where)}
   end
 
   # Each directory is named by the project root mise loads its config from. The
-  # global config is left to its own group under whatever name it is reached by,
-  # since `--global` is how mise upgrades it without the projects that inherit it.
+  # global config's own directory needs no exception: `--no-global` leaves the
+  # global config out of a project's view under whatever name it is reached by.
   defp dirs(opts) do
-    global = global_configs()
     temp = if opts[:include_tmpdirs], do: [], else: temp_dirs()
 
     mise!(["config", "ls", "--tracked-configs"])
     |> String.split("\n", trim: true)
-    |> Enum.reject(&(file_id(&1) in global))
     |> Enum.map(&project_dir/1)
     |> Enum.uniq()
     |> Enum.reject(&scratch?(&1, temp))
@@ -170,9 +194,13 @@ defmodule MiseMultiUpgrade do
         do: ["-C", "/", "outdated", "--global"],
         else: ["-C", where, "outdated", "--no-global"]
 
-    pinned = JSON.decode!(mise!(base ++ ["--json"]))
-    bumped = JSON.decode!(mise!(base ++ ["--bump", "--json"]))
+    with {:ok, pinned} <- mise(base ++ ["--json"]),
+         {:ok, bumped} <- mise(base ++ ["--bump", "--json"]) do
+      {:ok, merge(JSON.decode!(pinned), JSON.decode!(bumped))}
+    end
+  end
 
+  defp merge(pinned, bumped) do
     (Map.keys(pinned) ++ Map.keys(bumped))
     |> Enum.uniq()
     |> Enum.sort()
@@ -220,14 +248,6 @@ defmodule MiseMultiUpgrade do
     end)
   end
 
-  # Run from `/`, mise reads no project config, so what it lists is the global
-  # and system config that `mise upgrade --global` upgrades.
-  defp global_configs do
-    mise!(["-C", "/", "config", "ls", "--json"])
-    |> JSON.decode!()
-    |> MapSet.new(&file_id(&1["path"]))
-  end
-
   # A config under a temporary directory belongs to a trial, an agent's
   # scratchpad among them, and not to anything worth keeping current.
   defp scratch?(dir, temp) do
@@ -270,16 +290,6 @@ defmodule MiseMultiUpgrade do
 
       _ ->
         false
-    end
-  end
-
-  # One file reached under two names is one config to edit: this host's global
-  # mise config is a symlink into this repository, and mise reports both names
-  # as sources, so identity comes from the file rather than from the string.
-  defp file_id(path) do
-    case File.stat(path) do
-      {:ok, stat} -> {stat.major_device, stat.inode}
-      _ -> path
     end
   end
 
@@ -388,15 +398,19 @@ defmodule MiseMultiUpgrade do
     end
   end
 
-  defp mise!(args) do
+  # mise's stderr is left to the terminal: its warnings would break the JSON
+  # read from stdout, and its errors are what the user needs to see.
+  defp mise(args) do
     case System.cmd("mise", args) do
-      {out, 0} ->
-        out
+      {out, 0} -> {:ok, out}
+      _ -> :error
+    end
+  end
 
-      {out, code} ->
-        msg = String.trim(out)
-        cmd = Enum.join(["mise" | args], " ")
-        die(if(msg == "", do: "#{cmd} failed (exit #{code})", else: msg), code)
+  defp mise!(args) do
+    case mise(args) do
+      {:ok, out} -> out
+      :error -> die("mise #{Enum.join(args, " ")} failed", 1)
     end
   end
 

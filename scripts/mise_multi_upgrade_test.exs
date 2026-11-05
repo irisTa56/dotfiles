@@ -26,14 +26,19 @@ defmodule MiseMultiUpgradeTest do
     global = Path.join(dir, "global/config.toml")
     File.write!(global, "")
     File.write!(Path.join(dir, "fake/tracked.txt"), global <> "\n")
-    File.write!(Path.join(dir, "fake/global.json"), JSON.encode!([%{"path" => global}]))
 
     # The fake mise answers each directory's `outdated` from files of its own, as
     # the real one answers from that directory's view, and logs every upgrade.
     fake_mise(dir, """
     key() { printf %s "$1" | tr / _; }
     case "$*" in
-      "-C / config ls --json") cat "#{dir}/fake/global.json" ;;
+      "-C "*" outdated "*)
+        if [ "$2" = "$(cat "#{dir}/fake/outdated_fail" 2>/dev/null)" ]; then
+          echo "mise ERROR Config files in $2/mise.toml are not trusted." >&2
+          exit 1
+        fi ;;
+    esac
+    case "$*" in
       "config ls --tracked-configs") cat "#{dir}/fake/tracked.txt" ;;
       "-C / outdated --global --json") cat "#{dir}/fake/outdated/global.json" 2>/dev/null || echo '{}' ;;
       "-C / outdated --global --bump --json") cat "#{dir}/fake/bump/global.json" 2>/dev/null || echo '{}' ;;
@@ -171,7 +176,7 @@ defmodule MiseMultiUpgradeTest do
     assert out =~ ~r/^jq .*1\.6\s+30d ago\s+1\.7\s+3d ago/m
   end
 
-  test "upgrades the global config apart, under each name it is reached by", %{dir: dir} do
+  test "upgrades the global config apart, with --global", %{dir: dir} do
     dotfiles = Path.join(dir, "dotfiles")
     repo(dir, dotfiles)
     target = Path.join(dotfiles, ".config/mise/config.toml")
@@ -294,6 +299,26 @@ defmodule MiseMultiUpgradeTest do
     assert log == ["-C #{a} upgrade --no-global", "-C #{b} upgrade --no-global"]
   end
 
+  test "goes on past a directory whose outdated fails, and reports it", %{dir: dir} do
+    [a, b, c] = for name <- ~w(a b c), do: Path.join(dir, name)
+
+    for d <- [a, b, c] do
+      repo(dir, d)
+      outdated_in(dir, d, %{"jq" => {"1.6", "1.7"}})
+    end
+
+    File.write!(Path.join(dir, "fake/outdated_fail"), b)
+
+    {out, _, log} = run(dir, [], "y
+y
+")
+
+    assert out =~ ~r/#{Regex.escape(a)}.*jq.*1\.6.*1\.7/s
+    assert out =~ ~r/#{Regex.escape(c)}.*jq.*1\.6.*1\.7/s
+    assert log == ["-C #{a} upgrade --no-global", "-C #{c} upgrade --no-global"]
+    assert out =~ ~r/#{Regex.escape(b)}.*not trusted/s
+  end
+
   test "takes in a linked worktree with --include-worktrees", %{dir: dir} do
     {project, worktree} = with_worktree(dir)
 
@@ -413,5 +438,26 @@ defmodule MiseMultiUpgradeTest do
     assert File.read!(Path.join(tmp, "code")) == "0\n"
     refute File.read!(Path.join(tmp, "err")) =~ "** ("
     refute File.exists?(Path.join(tmp, "erl_crash.dump"))
+  end
+
+  test "prints its usage for --help and -h, asking and upgrading nothing", %{dir: dir} do
+    project = Path.join(dir, "project")
+    repo(dir, project)
+    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+
+    for flag <- ["--help", "-h"] do
+      {out, 0, log} = run(dir, [flag], "y\n")
+
+      assert out =~ "Usage: mise run mise:multi-upgrade"
+      refute out =~ "Upgrade "
+      assert log == []
+    end
+  end
+
+  test "refuses an unknown flag with its usage and exit 2", %{dir: dir} do
+    {out, 2, log} = run(dir, ["--bump"], "y\n")
+
+    assert out =~ "Usage: mise run mise:multi-upgrade"
+    assert log == []
   end
 end
