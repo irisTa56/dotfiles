@@ -43,8 +43,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   def main(argv) do
     case OptionParser.parse(argv, strict: @switches, aliases: [h: :help]) do
       {opts, [], []} ->
-        opts = Keyword.merge(Enum.map(@switches, &{elem(&1, 0), false}), opts)
-        if opts[:help], do: usage(), else: run(opts)
+        # Every switch is a key from here on, false where it was not given.
+        opts = Map.merge(Map.new(@switches, &{elem(&1, 0), false}), Map.new(opts))
+        if opts.help, do: usage(), else: run(opts)
 
       _ ->
         die(@usage, 2)
@@ -61,7 +62,8 @@ defmodule Dotfiles.MiseMultiUpgrade do
   end
 
   # A reader that stops early — `| head`, or quitting the pager — closes the pipe
-  # under us, and the next write raises. Left to propagate it exits non-zero and
+  # under us, and the next write raises an ErlangError whose reason is
+  # :terminated. Left to propagate it exits non-zero and
   # dumps several megabytes of VM state into whatever directory the report was
   # run from, so the report is over rather than failed. Only the `--dry-run`
   # tables are written under this: in a run that upgrades, a closed pipe leaves
@@ -70,7 +72,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     fun.()
   rescue
     e in ErlangError ->
-      if Map.get(e, :original) in [:terminated, :epipe],
+      if raw_error?(e, [:terminated]),
         do: :ok,
         else: reraise(e, __STACKTRACE__)
   end
@@ -82,11 +84,11 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
     failed =
       cond do
-        opts[:dry_run] and groups == [] ->
+        opts.dry_run and groups == [] ->
           IO.puts("All tools are up to date.")
           []
 
-        opts[:dry_run] ->
+        opts.dry_run ->
           writing(fn -> Enum.each(groups, &render(&1, dates)) end)
           []
 
@@ -122,31 +124,31 @@ defmodule Dotfiles.MiseMultiUpgrade do
     Enum.reduce_while(groups, [], fn {where, _} = group, accepted ->
       render(group, dates)
 
-      case yes?("Upgrade #{label(where)}? [y/N] ") do
+      case answer("Upgrade #{label(where)}? [y/N] ") do
         :eof ->
           IO.puts("")
           {:halt, accepted}
 
-        true ->
+        :yes ->
           {:cont, [where | accepted]}
 
-        false ->
+        :no ->
           {:cont, accepted}
       end
     end)
     |> Enum.reverse()
   end
 
-  defp yes?(prompt) do
+  defp answer(prompt) do
     case IO.gets(prompt) do
       :eof ->
         :eof
 
       answer ->
         case answer |> String.trim() |> String.downcase() do
-          a when a in ["y", "yes"] -> true
-          a when a in ["", "n", "no"] -> false
-          _ -> yes?(prompt)
+          a when a in ["y", "yes"] -> :yes
+          a when a in ["", "n", "no"] -> :no
+          _ -> answer(prompt)
         end
     end
   end
@@ -179,22 +181,28 @@ defmodule Dotfiles.MiseMultiUpgrade do
       |> Task.async_stream(&{&1, rows(&1)}, max_concurrency: 8, timeout: :infinity)
       |> Enum.map(fn {:ok, result} -> result end)
 
-    {for({where, {:ok, rows}} <- results, rows != [], do: {where, rows}),
-     for({where, :error} <- results, do: where)}
+    {groups, skipped} =
+      Enum.reduce(results, {[], []}, fn
+        {_where, {:ok, []}}, acc -> acc
+        {where, {:ok, rows}}, {groups, skipped} -> {[{where, rows} | groups], skipped}
+        {where, :error}, {groups, skipped} -> {groups, [where | skipped]}
+      end)
+
+    {Enum.reverse(groups), Enum.reverse(skipped)}
   end
 
   # Each directory is named by the project root mise loads its config from. The
   # global config's own directory needs no exception: `--no-global` leaves the
   # global config out of a project's view under whatever name it is reached by.
   defp dirs(opts) do
-    temp = if opts[:include_tmpdirs], do: [], else: temp_dirs()
+    temp = if opts.include_tmpdirs, do: [], else: temp_dirs()
 
     mise!(["config", "ls", "--tracked-configs"])
     |> String.split("\n", trim: true)
     |> Enum.map(&project_dir/1)
     |> Enum.uniq()
     |> Enum.reject(fn dir ->
-      scratch?(dir, temp) or (not opts[:include_worktrees] and linked_worktree?(dir))
+      scratch?(dir, temp) or (not opts.include_worktrees and linked_worktree?(dir))
     end)
     |> Enum.sort()
   end
@@ -219,21 +227,28 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
     |> Enum.sort()
     |> Enum.map(fn tool ->
-      pin = pinned[tool]
-      bump = bumped[tool]
+      # A tool is in either run or both, and mise reports every key below for
+      # each, null where it has no value.
+      pin = Map.get(pinned, tool)
+      bump = Map.get(bumped, tool)
+      %{"requested" => requested, "current" => current} = pin || bump
 
       %{
         tool: tool,
-        requested: (pin || bump)["requested"],
-        current: (pin || bump)["current"],
-        latest: (pin && pin["latest"]) || bump["current"],
-        # `bump` names the version to request; it is null when the request
-        # already reaches the newest version.
-        bump_latest: bump && bump["bump"] && bump["latest"],
+        requested: requested,
+        current: current,
+        latest: if(pin, do: Map.fetch!(pin, "latest"), else: current),
+        bump_latest: bump_latest(bump),
         upgradable: pin != nil
       }
     end)
   end
+
+  # `bump` names the version to request; it is null when the request already
+  # reaches the newest version.
+  defp bump_latest(nil), do: nil
+  defp bump_latest(%{"bump" => nil}), do: nil
+  defp bump_latest(%{"bump" => _version, "latest" => latest}), do: latest
 
   defp label(:global), do: "global"
   defp label(dir), do: abbreviate(dir)
@@ -280,11 +295,13 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
   end
 
-  # A missing `pwd` is no reason to stop the run.
+  # A missing `pwd` is no reason to stop the run. It is rescued rather than
+  # looked up first, since `System.cmd/3` has no form that returns a missing
+  # command, and `System.find_executable/1` would ask the machine past the fake.
   defp resolve(path) do
     case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
-      _ -> nil
+      {_out, _status} -> nil
     end
   rescue
     e in ErlangError -> if missing?(e), do: nil, else: reraise(e, __STACKTRACE__)
@@ -303,7 +320,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
         [git_dir, common_dir] = String.split(out, "\n", trim: true)
         git_dir != common_dir
 
-      _ ->
+      {_out, _status} ->
         false
     end
   end
@@ -322,26 +339,47 @@ defmodule Dotfiles.MiseMultiUpgrade do
   # the first means the report is missing something it could have had, as a
   # missing `mise` does.
   defp remote_versions(tool) do
-    with {out, 0} <- mise_cmd(["ls-remote", tool, "--json"]),
-         {:ok, versions} when is_list(versions) <- JSON.decode(out),
-         true <- Enum.all?(versions, &is_map/1) do
-      Map.new(versions, &{&1["version"], &1["created_at"]})
+    with {:ok, out} <- mise(["ls-remote", tool, "--json"]),
+         {:ok, versions} <- version_list(out) do
+      # A backend that dates no release leaves `created_at` out.
+      Map.new(versions, fn %{"version" => version} = v -> {version, v["created_at"]} end)
     else
-      _ -> :unavailable
+      :error -> :unavailable
     end
   rescue
+    # Rescued rather than looked up first, for the reason resolve/1 gives.
     e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
   end
 
-  # What `System.cmd/3` raises for a command it cannot find. `rescue ErlangError`
-  # alone would also take every raw Erlang error, a FunctionClauseError among
-  # them, so a fake's unexpected call would read as a missing command.
-  defp missing?(e), do: Map.get(e, :original) == :enoent
+  defp version_list(out) do
+    case JSON.decode(out) do
+      {:ok, versions} when is_list(versions) ->
+        if Enum.all?(versions, &match?(%{"version" => _}, &1)),
+          do: {:ok, versions},
+          else: :error
+
+      {:ok, _not_a_list} ->
+        :error
+
+      {:error, _reason} ->
+        :error
+    end
+  end
+
+  # What `System.cmd/3` raises for a command it cannot find, and not a fake's
+  # unexpected call.
+  defp missing?(e), do: raw_error?(e, [:enoent])
+
+  # `rescue ErlangError` also takes the exceptions Erlang errors are turned into,
+  # a FunctionClauseError among them, and only an ErlangError itself carries the
+  # raw reason.
+  defp raw_error?(%ErlangError{original: original}, reasons), do: original in reasons
+  defp raw_error?(_e, _reasons), do: false
 
   defp render({where, rows}, dates) do
     cells =
       Enum.map(rows, fn row ->
-        released = &age(Map.get(dates, row.tool, :unavailable), &1)
+        released = &age(Map.fetch!(dates, row.tool), &1)
 
         [
           row.tool,
@@ -408,13 +446,13 @@ defmodule Dotfiles.MiseMultiUpgrade do
   # (e.g. "2026-06-04T15:34:21"), treating the latter as UTC.
   defp parse_datetime(iso) do
     case DateTime.from_iso8601(iso) do
-      {:ok, dt, _} ->
+      {:ok, dt, _offset} ->
         {:ok, dt}
 
-      _ ->
+      {:error, _reason} ->
         case NaiveDateTime.from_iso8601(iso) do
           {:ok, ndt} -> {:ok, DateTime.from_naive!(ndt, "Etc/UTC")}
-          _ -> :error
+          {:error, _reason} -> :error
         end
     end
   end
@@ -424,7 +462,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp mise(args) do
     case mise_cmd(args) do
       {out, 0} -> {:ok, out}
-      _ -> :error
+      {_out, _status} -> :error
     end
   end
 

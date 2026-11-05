@@ -118,7 +118,8 @@ defmodule Dotfiles.Integration.SkillsUpdateTest do
   defp apm_calls(dir) do
     case File.read(Path.join(dir, "apm.log")) do
       {:ok, log} -> String.split(log, "\n", trim: true)
-      _ -> []
+      # The fake apm writes its log on its first call.
+      {:error, :enoent} -> []
     end
   end
 

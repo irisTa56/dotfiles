@@ -33,7 +33,9 @@ defmodule Dotfiles.SkillsUpdate do
       |> Enum.map(&with_hold/1)
       |> Enum.split_with(&(&1.hold == nil))
 
-    Enum.each(held, &IO.puts("#{&1.dep["name"]}: held, #{&1.hold}"))
+    Enum.each(held, fn %{dep: %{"name" => name}, hold: hold} ->
+      IO.puts("#{name}: held, #{hold}")
+    end)
 
     if ready == [] do
       IO.puts("Nothing to update.")
@@ -58,7 +60,7 @@ defmodule Dotfiles.SkillsUpdate do
   defp key(%{"virtual_path" => path, "repo_url" => repo}) when is_binary(path),
     do: "#{repo}/#{path}"
 
-  defp key(dep), do: dep["name"]
+  defp key(%{"name" => name}), do: name
 
   defp with_hold(dep), do: %{dep: dep, hold: hold(dep)}
 
@@ -69,27 +71,41 @@ defmodule Dotfiles.SkillsUpdate do
   # merge time says nothing of when the commit reached the default one.
   @merged_into_default "[.[] | select(.base.ref == .base.repo.default_branch) | .merged_at | select(.)] | max // empty"
 
+  # A dependency that is not a gist names its repository, so one without it fails
+  # here rather than as a request for no repository. `virtual_path` is absent for
+  # a package that is a whole repository.
   defp hold(dep) do
-    query = if dep["virtual_path"], do: "path=#{dep["virtual_path"]}&", else: ""
+    %{"repo_url" => repo} = dep
+    query = if path = dep["virtual_path"], do: "path=#{path}&", else: ""
 
     with {:ok, sha} <-
            gh(
-             "repos/#{dep["repo_url"]}/commits?#{query}per_page=1",
+             "repos/#{repo}/commits?#{query}per_page=1",
              ".[0].sha // empty",
              "no commit on this path"
            ),
          {:ok, merged} <-
            gh(
-             "repos/#{dep["repo_url"]}/commits/#{sha}/pulls",
+             "repos/#{repo}/commits/#{sha}/pulls",
              @merged_into_default,
              "GitHub lists no merge into the default branch for its last commit; check by hand"
            ),
-         {:ok, time, _} <- DateTime.from_iso8601(merged) do
+         {:ok, time} <- merge_time(merged) do
       if DateTime.diff(DateTime.utc_now(), time) >= @window_seconds,
         do: nil,
         else: "last change merged #{merged}"
     else
       {:error, reason} -> reason
+    end
+  end
+
+  defp merge_time(merged) do
+    case DateTime.from_iso8601(merged) do
+      {:ok, time, _offset} ->
+        {:ok, time}
+
+      {:error, _reason} ->
+        {:error, "GitHub reported its last merge at #{inspect(merged)}, not a timestamp"}
     end
   end
 
@@ -108,8 +124,12 @@ defmodule Dotfiles.SkillsUpdate do
 
   defp lock(root) do
     case Dotfiles.Command.cmd("yq", ["-o=json", "apm.lock.yaml"], cd: root) do
-      {out, 0} -> JSON.decode!(out)["dependencies"]
-      {_, code} -> die("yq could not read apm.lock.yaml (exit #{code})", code)
+      {out, 0} ->
+        %{"dependencies" => deps} = JSON.decode!(out)
+        deps
+
+      {_, code} ->
+        die("yq could not read apm.lock.yaml (exit #{code})", code)
     end
   end
 

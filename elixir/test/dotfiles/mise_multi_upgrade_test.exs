@@ -7,23 +7,23 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   # The machine the code sees: the configs mise tracks, what mise answers in each
   # directory, which directories are git checkouts or linked worktrees, and which
   # paths resolve elsewhere. Directories are asked about from tasks of their own,
-  # so it lives in an Agent rather than in the test's process.
+  # so it lives in an Agent rather than in the test's process. The test supervisor
+  # stops it before the next test starts one under the same name.
   setup do
-    {:ok, _} =
-      Agent.start_link(
-        fn ->
-          %{
-            tracked: [],
-            outdated: %{},
-            bump: %{},
-            remote: %{},
-            worktrees: %{},
-            resolved: %{},
-            fail: %{}
-          }
-        end,
-        name: __MODULE__
-      )
+    machine = %{
+      tracked: [],
+      outdated: %{},
+      bump: %{},
+      remote: %{},
+      worktrees: %{},
+      resolved: %{},
+      fail: %{}
+    }
+
+    start_supervised!(%{
+      id: __MODULE__,
+      start: {Agent, :start_link, [fn -> machine end, [name: __MODULE__]]}
+    })
 
     FakeCommand.install(&answer/3)
     :ok
@@ -69,7 +69,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   end
 
   defp outdated(where, rest) do
-    if where == get(:fail)[:outdated] do
+    # `:outdated` names one directory, or a list of them, whose listing fails.
+    if where in List.wrap(get(:fail)[:outdated]) do
       IO.puts(:stderr, "mise ERROR Config files in #{where}/mise.toml are not trusted.")
       {"", 1}
     else
@@ -89,12 +90,13 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
   # What `outdated --json` answers in `where` (a project directory, or :global),
   # as %{tool => {current, latest}}: the tools `mise upgrade` there would upgrade.
+  # Each entry has every key mise reports; the request is the current major.
   defp outdated_in(where, tools) do
     set(
       :outdated,
       where,
       Map.new(tools, fn {tool, {current, latest}} ->
-        {tool, %{"current" => current, "latest" => latest, "bump" => nil}}
+        {tool, outdated_entry(current, latest, nil)}
       end)
     )
   end
@@ -106,9 +108,65 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
       :bump,
       where,
       Map.new(tools, fn {tool, {current, latest, bump}} ->
-        {tool, %{"current" => current, "latest" => latest, "bump" => bump}}
+        {tool, outdated_entry(current, latest, bump)}
       end)
     )
+  end
+
+  defp outdated_entry(current, latest, bump) do
+    %{
+      "requested" => current |> String.split(".") |> hd(),
+      "current" => current,
+      "latest" => latest,
+      "bump" => bump
+    }
+  end
+
+  # How main/1 ended, as {:finished, status} or the reason it exited with, and its
+  # stdout. A raise inside Task.async_stream exits its caller, so main/1 runs in a
+  # process of its own, which the test watches instead of joining.
+  defp ended(args) do
+    out =
+      capture_io(fn ->
+        {pid, ref} =
+          spawn_monitor(fn ->
+            Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(args)})
+          end)
+
+        receive do
+          {:DOWN, ^ref, :process, ^pid, reason} -> send(self(), {:ended, reason})
+        end
+      end)
+
+    assert_received {:ended, reason}
+    {reason, out}
+  end
+
+  # How a --dry-run main/1 ended, as `ended/1` gives it, with every write to its
+  # group leader answered {:error, reason}.
+  defp writing_fails_with(reason) do
+    leader =
+      spawn_link(fn ->
+        Stream.repeatedly(fn ->
+          receive do
+            {:io_request, from, ref, _request} -> send(from, {:io_reply, ref, {:error, reason}})
+          end
+        end)
+        |> Stream.run()
+      end)
+
+    {pid, ref} =
+      spawn_monitor(fn ->
+        Process.group_leader(self(), leader)
+        Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(["--dry-run"])})
+      end)
+
+    receive do
+      {:DOWN, ^ref, :process, ^pid, ended} ->
+        Process.unlink(leader)
+        Process.exit(leader, :kill)
+        ended
+    end
   end
 
   # The exit status, everything written to stdout and then stderr, and the upgrades run.
@@ -347,6 +405,27 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert out =~ "Skipped, as mise could not list them: #{b}"
   end
 
+  test "names the directories it skipped in the order it shows directories" do
+    [a, b, c, d] = for name <- ~w(a b c d), do: project("/work/#{name}")
+    for dir <- [a, b, c, d], do: outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+    set(:fail, :outdated, [d, b])
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    assert out =~ "Skipped, as mise could not list them: #{b}, #{d}"
+  end
+
+  # The pipe a report is written to closes when its reader stops early, as with
+  # `| head`, and the next write raises as a group leader answering
+  # {:error, :terminated} makes it; another error answered is not a closed pipe.
+  test "ends a --dry-run report quietly when its reader stops early, and only then" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+
+    assert writing_fails_with(:terminated) == {:finished, 0}
+    refute match?({:finished, _}, writing_fails_with(:enospc))
+  end
+
   test "shows every directory at once with --dry-run, asking and upgrading nothing" do
     a = project("/work/a")
     b = project("/work/b")
@@ -358,7 +437,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert log == []
     refute out =~ "Upgrade "
     assert out =~ ~r/#{a}\n.*\n.*\njq /
-    assert out =~ ~r/#{b}\n.*\n.*\nyq\s+-\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
+    assert out =~ ~r/#{b}\n.*\n.*\nyq\s+3\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
   end
 
   test "asks nothing for a directory newer only past its requests" do
@@ -396,8 +475,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {out, 0, _} = run(["--dry-run"], "")
 
     assert out |> String.split("\nnode ") |> length() == 2
-    assert out =~ ~r/^node\s+-\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
-    assert out =~ ~r/^uv\s+-\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
+    assert out =~ ~r/^node\s+24\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
+    assert out =~ ~r/^uv\s+0\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
   end
 
   test "prints its usage for --help and -h, asking and upgrading nothing" do
@@ -430,22 +509,45 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
       answer(command, args, opts)
     end)
 
-    # A raise inside Task.async_stream exits its caller, so main/1 runs in a
-    # process of its own, which the test watches instead of joining.
-    out =
-      capture_io(fn ->
-        {pid, ref} =
-          spawn_monitor(fn ->
-            Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(["--dry-run"])})
-          end)
-
-        receive do
-          {:DOWN, ^ref, :process, ^pid, reason} -> send(self(), {:ended, reason})
-        end
-      end)
-
-    assert_received {:ended, reason}
+    {reason, out} = ended(["--dry-run"])
     refute match?({:finished, _}, reason), "main/1 finished normally: #{inspect(reason)}\n#{out}"
+  end
+
+  # Every key the code reads from `mise outdated` is one mise always reports, so
+  # an entry without one stops the run at that entry rather than printing `-`.
+  @tag capture_log: true
+  test "stops at a mise outdated entry that lacks a key mise always reports" do
+    entry = %{"requested" => "1", "current" => "1.6", "latest" => "1.7", "bump" => nil}
+
+    for key <- ["requested", "current", "latest"] do
+      dir = project("/work/project-#{key}")
+      broken = Map.delete(entry, key)
+      set(:outdated, dir, %{"jq" => broken})
+
+      {reason, out} = ended(["--dry-run"])
+
+      # A failed match exits with the entry, and a failed Map.fetch! with the key.
+      assert match?({{:badmatch, ^broken}, _}, reason) or
+               match?({{:badkey, ^key}, _}, reason),
+             "#{key}: #{inspect(reason)}\n#{out}"
+
+      set(:outdated, dir, %{})
+    end
+  end
+
+  @tag capture_log: true
+  test "stops at a mise outdated --bump entry that names a bump but no latest version" do
+    dir = project("/work/project")
+    broken = %{"requested" => "1", "current" => "1.6", "bump" => "2"}
+    set(:bump, dir, %{"jq" => broken})
+
+    {reason, out} = ended(["--dry-run"])
+
+    assert match?(
+             {:function_clause, [{Dotfiles.MiseMultiUpgrade, :bump_latest, [^broken], _} | _]},
+             reason
+           ),
+           inspect(reason) <> "\n" <> out
   end
 
   test "reads a mise it cannot start, or output that is not a version list, as release ages unknown" do
@@ -472,6 +574,29 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert out =~ ~r/^yq .*4\.1\s+\?\s+4\.2\s+\?/m
     assert out =~ ~r/^uv .*0\.1\s+\?\s+0\.2\s+\?/m
     assert out =~ ~r/^gh .*2\.1\s+\?\s+2\.2\s+\?/m
+  end
+
+  test "reads a version list with an entry lacking a version key as release ages unknown" do
+    dir = project("/work/project")
+
+    outdated_in(dir, %{
+      "jq" => {"1.0", "1.1"},
+      "yq" => {"4.1", "4.2"}
+    })
+
+    FakeCommand.install(fn
+      "mise", ["ls-remote", "jq", "--json"], _ ->
+        {~s([{"version": "1.1", "created_at": "2026-01-01T00:00:00Z"}, {"created_at": "2026-01-02T00:00:00Z"}]),
+         0}
+
+      command, args, opts ->
+        answer(command, args, opts)
+    end)
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    assert out =~ ~r/^jq .*1\.0\s+\?\s+1\.1\s+\?/m
+    assert out =~ ~r/^yq .*4\.1/m
   end
 
   test "fails when the handler has no clause for pwd" do
