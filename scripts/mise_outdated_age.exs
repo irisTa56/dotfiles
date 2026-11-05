@@ -79,10 +79,9 @@ defmodule MiseOutdatedAge do
 
   defp upgrade do
     groups =
-      collect_requests()
-      |> batches()
-      |> Enum.flat_map(&outdated/1)
-      |> by_directory()
+      [:global | upgrade_dirs()]
+      |> Task.async_stream(&{&1, pending(&1)}, max_concurrency: 8, timeout: :infinity)
+      |> Enum.flat_map(fn {:ok, {dir, tools}} -> if tools == [], do: [], else: [{dir, tools}] end)
 
     if groups == [] do
       IO.puts("Nothing to upgrade within the requested versions.")
@@ -117,6 +116,39 @@ defmodule MiseOutdatedAge do
     end
   end
 
+  # The directories holding a tracked project config, each named by the project
+  # root mise loads it from. The global config is upgraded apart, under whatever
+  # name it is reached by, since `--global` is how mise upgrades it without the
+  # projects that inherit it.
+  defp upgrade_dirs do
+    global = global_configs()
+    temp = temp_dirs()
+
+    mise!(["config", "ls", "--tracked-configs"])
+    |> String.split("\n", trim: true)
+    |> Enum.filter(&File.exists?/1)
+    |> Enum.reject(&(file_id(&1) in global))
+    |> Enum.map(&project_dir/1)
+    |> Enum.uniq()
+    |> Enum.reject(&(scratch?(&1, temp) or linked_worktree?(&1)))
+    |> Enum.sort()
+  end
+
+  # What `mise upgrade` would upgrade there, asked of the same view it acts on:
+  # that view holds what the directory inherits and what its lockfile pins,
+  # which the host-wide requests do not show.
+  defp pending(dir) do
+    args =
+      if dir == :global,
+        do: ["-C", "/", "outdated", "--global", "--json"],
+        else: ["-C", dir, "outdated", "--no-global", "--json"]
+
+    mise!(args)
+    |> JSON.decode!()
+    |> Enum.map(fn {tool, v} -> %{tool: tool, current: v["current"], latest: v["latest"]} end)
+    |> Enum.sort_by(& &1.tool)
+  end
+
   # One failure leaves the other directories worth upgrading, so it is reported
   # once they have run rather than stopping them.
   defp upgraded?(dir) do
@@ -132,25 +164,6 @@ defmodule MiseOutdatedAge do
 
   defp label(:global), do: "global"
   defp label(dir), do: abbreviate(dir)
-
-  # Rows the pinned run reports, that is upgradable without changing the request,
-  # as one group per directory to run `mise upgrade` in. The global config is a
-  # group of its own whatever name it is reached by, since `--global` is how mise
-  # upgrades it apart from the projects that inherit it.
-  defp by_directory(rows) do
-    global = global_configs()
-    temp = temp_dirs()
-
-    for row <- rows, row.latest != row.current, path <- row.paths do
-      if file_id(path) in global, do: {:global, row}, else: {project_dir(path), row}
-    end
-    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
-    |> Enum.map(fn {dir, tools} -> {dir, tools |> Enum.uniq() |> Enum.sort_by(& &1.tool)} end)
-    |> Enum.reject(fn {dir, _} ->
-      dir != :global and (scratch?(dir, temp) or linked_worktree?(dir))
-    end)
-    |> Enum.sort()
-  end
 
   # A config file may sit in a directory of its own under the project it
   # configures, as {directory, file name prefix}; mise loads each of these from

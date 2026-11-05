@@ -14,14 +14,24 @@ defmodule MiseOutdatedAgeTest do
       |> resolve()
 
     on_exit(fn -> File.rm_rf!(dir) end)
-    Enum.each(["bin", "fake", "tmp", "global"], &File.mkdir_p!(Path.join(dir, &1)))
+    Enum.each(["bin", "fake/outdated", "tmp", "global"], &File.mkdir_p!(Path.join(dir, &1)))
     File.write!(Path.join(dir, "global/config.toml"), "")
+    File.write!(Path.join(dir, "fake/tracked.txt"), Path.join(dir, "global/config.toml") <> "\n")
 
     # The fake mise answers from files under fake/ and logs every upgrade it is asked for.
+    # The per-directory and global `outdated` answers come from files of their own
+    # (fake/outdated/), apart from the host-wide ones, as the real mise's do: they
+    # list what `mise upgrade` there would upgrade, which the host-wide `ls` and
+    # `outdated <tool>@<request>` answers need not agree with.
     fake_mise(dir, """
     case "$*" in
       "-C / config ls --json") cat "#{dir}/fake/global.json" ;;
+      "config ls --tracked-configs") cat "#{dir}/fake/tracked.txt" ;;
       "ls --all-sources --json") cat "#{dir}/fake/ls.json" ;;
+      "outdated --global --json"|"-C / outdated --global --json")
+        cat "#{dir}/fake/outdated/global.json" 2>/dev/null || echo '{}' ;;
+      "-C "*" outdated --no-global --json")
+        cat "#{dir}/fake/outdated/$(printf %s "$2" | tr / _).json" 2>/dev/null || echo '{}' ;;
       "outdated --bump --json"*) cat "#{dir}/fake/bumped.json" ;;
       "outdated --json"*) cat "#{dir}/fake/pinned.json" ;;
       *upgrade*)
@@ -85,9 +95,48 @@ defmodule MiseOutdatedAgeTest do
         {tool, %{"current" => current, "latest" => latest}}
       end
 
+    # Where every tool is current and the host-wide answers hold, a directory's own
+    # answer is what its configs request; a test sets one apart with `outdated_in/3`.
+    configs = tools |> Enum.flat_map(&elem(&1, 4)) |> Enum.uniq()
+    File.write!(Path.join(dir, "fake/tracked.txt"), Enum.join(configs, "\n") <> "\n")
+
+    for {tool, _, current, latest, paths} <- tools,
+        latest,
+        path <- paths,
+        Path.basename(path) in ["mise.toml", "mise.local.toml"] do
+      project = Path.dirname(path)
+      file = outdated_file(dir, project)
+      known = if File.exists?(file), do: JSON.decode!(File.read!(file)), else: %{}
+
+      File.write!(
+        file,
+        JSON.encode!(Map.put(known, tool, %{"current" => current, "latest" => latest}))
+      )
+    end
+
     File.write!(Path.join(dir, "fake/ls.json"), JSON.encode!(ls))
     File.write!(Path.join(dir, "fake/pinned.json"), JSON.encode!(pinned))
     File.write!(Path.join(dir, "fake/bumped.json"), "{}")
+  end
+
+  defp outdated_file(dir, project),
+    do: Path.join(dir, "fake/outdated/#{String.replace(project, "/", "_")}.json")
+
+  # What `mise -C project outdated --no-global --json` answers, as
+  # %{tool => {current, latest}}, in place of what `tools/2` derived; the
+  # project's `mise.toml` is tracked unless a config under it already is.
+  defp outdated_in(dir, project, outdated) do
+    answer =
+      Map.new(outdated, fn {tool, {current, latest}} ->
+        {tool, %{"current" => current, "latest" => latest}}
+      end)
+
+    File.write!(outdated_file(dir, project), JSON.encode!(answer))
+    tracked = Path.join(dir, "fake/tracked.txt")
+
+    unless tracked |> File.read!() |> String.contains?(project <> "/") do
+      File.write!(tracked, Path.join(project, "mise.toml") <> "\n", [:append])
+    end
   end
 
   defp upgrade(dir, answer) do
@@ -178,6 +227,11 @@ defmodule MiseOutdatedAgeTest do
       {"yq", "4", "4.1", "4.2", [config]}
     ])
 
+    File.write!(
+      Path.join(dir, "fake/outdated/global.json"),
+      JSON.encode!(%{"jq" => %{"current" => "1.6", "latest" => "1.7"}})
+    )
+
     {out, 0, log} = upgrade(dir, "1 2")
 
     assert out =~ ~r/^1  global$/m
@@ -192,6 +246,7 @@ defmodule MiseOutdatedAgeTest do
     File.mkdir_p!(Path.dirname(nested))
     File.write!(nested, "")
     tools(dir, [{"jq", "1", "1.6", "1.7", [nested]}])
+    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
 
     {out, 0, log} = upgrade(dir, "1")
 
@@ -302,8 +357,50 @@ defmodule MiseOutdatedAgeTest do
 
     tools(dir, [{"jq", "1", "1.6", "1.7", Enum.map(projects, &elem(&1, 1))}])
 
+    Enum.each(projects, fn {project, _} ->
+      outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    end)
+
     {_, 0, log} = upgrade(dir, Enum.map_join(1..length(forms), " ", &to_string/1))
 
     assert log == Enum.map(projects, fn {project, _} -> "-C #{project} upgrade --no-global" end)
+  end
+
+  test "offers a directory whose own outdated reports a tool that ls omits", %{dir: dir} do
+    project = Path.join(dir, "project")
+    repo(project)
+    tools(dir, [])
+    outdated_in(dir, project, %{"communique" => {"1.0", "1.1"}})
+
+    {out, 0, log} = upgrade(dir, "1")
+
+    assert out =~ project
+    assert out =~ ~r/^\s+communique  1\.0 -> 1\.1$/m
+    assert log == ["-C #{project} upgrade --no-global"]
+  end
+
+  test "leaves out a tool the host-wide run reports without a current version but the directory does not",
+       %{dir: dir} do
+    project = Path.join(dir, "project")
+    tools(dir, [{"jq", "1", nil, "1.7", [repo(project)]}])
+    outdated_in(dir, project, %{})
+
+    {out, 0, log} = upgrade(dir, "1")
+
+    refute out =~ "jq"
+    assert out =~ "Nothing to upgrade"
+    assert log == []
+  end
+
+  test "lists a tool the directory's own outdated reports though none of its configs request it",
+       %{dir: dir} do
+    project = Path.join(dir, "project")
+    tools(dir, [{"jq", "1", "1.6", "1.7", [repo(project)]}])
+    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}, "yq" => {"4.1", "4.2"}})
+
+    {out, 0, _log} = upgrade(dir, "")
+
+    assert out =~ ~r/^\s+jq  1\.6 -> 1\.7$/m
+    assert out =~ ~r/^\s+yq  4\.1 -> 4\.2$/m
   end
 end
