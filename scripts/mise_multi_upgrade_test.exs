@@ -355,4 +355,34 @@ defmodule MiseMultiUpgradeTest do
     assert out |> String.split("Upgrade #{b}?") |> length() == 3
     refute out =~ "Upgrade #{a}? [y/N] Upgrade #{a}?"
   end
+
+  test "shows a tool in both answers once, with a bump only where one is named", %{dir: dir} do
+    project = Path.join(dir, "project")
+    repo(dir, project)
+    outdated_in(dir, project, %{"node" => {"24.1.0", "24.2.0"}, "uv" => {"0.1.0", "0.2.0"}})
+
+    bump_in(dir, project, %{
+      "node" => {"24.1.0", "26.0.0", "26"},
+      "uv" => {"0.1.0", "0.2.0", nil}
+    })
+
+    {out, 0, _} = run(dir, ["--dry-run"], "")
+
+    assert out |> String.split("\nnode ") |> length() == 2
+    assert out =~ ~r/^node\s+-\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
+    assert out =~ ~r/^uv\s+-\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
+  end
+
+  test "asks once and upgrades once for a directory holding two configs", %{dir: dir} do
+    project = Path.join(dir, "project")
+    repo(dir, project)
+    File.write!(Path.join(project, "mise.local.toml"), "")
+    track(dir, Path.join(project, "mise.local.toml"))
+    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+
+    {out, 0, log} = run(dir, [], "y\ny\n")
+
+    assert out |> String.split("Upgrade #{project}?") |> length() == 2
+    assert log == ["-C #{project} upgrade --no-global"]
+  end
 end

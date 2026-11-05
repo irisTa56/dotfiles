@@ -220,7 +220,7 @@ done
 # `raw` hands the terminal to the script, whose y/n prompts end without a
 # newline and would otherwise wait for one.
 [tasks."mise:multi-upgrade"]
-description = "Upgrade mise tools directory by directory, asking for each before upgrading any"
+description = "Upgrade mise tools directory by directory, asking for each first (--dry-run, --include-worktrees, --include-tmpdirs; -- --help for more)"
 run = "scripts/mise_multi_upgrade.exs"
 raw = true
 

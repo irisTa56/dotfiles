@@ -12,9 +12,10 @@ defmodule MiseMultiUpgrade do
   `--no-global`, so a global tool is upgraded once.
 
     --dry-run            show every directory's table, and ask and upgrade nothing
-    --include-worktrees  also process linked git worktrees, such as an agent's
+    --include-worktrees  also process linked git worktrees, such as agents' worktrees
     --include-tmpdirs    also process configs under a temporary directory
-    --help, -h           print this message
+    --help, -h           print this message; through the task, `-- --help`, since
+                         mise answers a bare `--help` itself
 
   Latest is the newest version matching the request, which the upgrade installs;
   Bump Latest is the newest version overall, reachable only by changing the
@@ -152,7 +153,6 @@ defmodule MiseMultiUpgrade do
 
     mise!(["config", "ls", "--tracked-configs"])
     |> String.split("\n", trim: true)
-    |> Enum.filter(&File.exists?/1)
     |> Enum.reject(&(file_id(&1) in global))
     |> Enum.map(&project_dir/1)
     |> Enum.uniq()
@@ -271,8 +271,6 @@ defmodule MiseMultiUpgrade do
     end
   end
 
-  # An answer is taken whole or not at all: running the part that parsed would
-  # leave a mistyped group looking upgraded. An empty answer chooses nothing.
   # One file reached under two names is one config to edit: this host's global
   # mise config is a symlink into this repository, and mise reports both names
   # as sources, so identity comes from the file rather than from the string.
