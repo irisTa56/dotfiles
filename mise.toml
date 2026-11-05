@@ -130,6 +130,8 @@ run = [
 # without annotations, so a type check needs no tool of its own here.
 # `--check-locked` fails where mix.exs changed a dependency and mix.lock did not
 # follow; with the locked deps already fetched it changes nothing.
+# credo lists only five issues per category without `--all`, which a CI log would
+# then hide; the exit status counts every issue either way.
 [tasks."qa:ex"]
 description = "Check formatting of, compile, lint and test the Elixir project"
 dir = "{{config_root}}/elixir"
@@ -138,7 +140,7 @@ run = [
   "mix deps.get --check-locked",
   "mix format --check-formatted",
   "mix compile --warnings-as-errors",
-  "mix credo --strict",
+  "mix credo --strict --all",
   "mix test --warnings-as-errors",
 ]
 
