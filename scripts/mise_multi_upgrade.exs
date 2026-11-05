@@ -1,5 +1,18 @@
 #!/usr/bin/env elixir
 
+# Every call this script makes to mise goes through this, so a test can answer
+# in mise's place.
+defmodule MiseMultiUpgrade.Mise do
+  @callback cmd(args :: [String.t()], opts :: keyword()) ::
+              {Collectable.t(), non_neg_integer()}
+end
+
+defmodule MiseMultiUpgrade.Mise.System do
+  @behaviour MiseMultiUpgrade.Mise
+  @impl true
+  def cmd(args, opts), do: System.cmd("mise", args, opts)
+end
+
 defmodule MiseMultiUpgrade do
   @usage """
   Usage: mise run mise:multi-upgrade [--dry-run] [--include-worktrees] [--include-tmpdirs]
@@ -41,15 +54,25 @@ defmodule MiseMultiUpgrade do
     "Released"
   ]
 
+  # Returns the exit status rather than halting, so the run ends in one place.
   def main(argv) do
     case OptionParser.parse(argv, strict: @switches, aliases: [h: :help]) do
       {opts, [], []} ->
         opts = Keyword.merge(Enum.map(@switches, &{elem(&1, 0), false}), opts)
-        writing(fn -> if opts[:help], do: IO.puts(@usage), else: run(opts) end)
+        writing(fn -> if opts[:help], do: usage(), else: run(opts) end)
 
       _ ->
         die(@usage, 2)
     end
+  catch
+    {:die, message, code} ->
+      IO.puts(:stderr, message)
+      code
+  end
+
+  defp usage do
+    IO.puts(@usage)
+    0
   end
 
   # A reader that stops early — `| head`, or quitting the pager — closes the pipe
@@ -61,7 +84,7 @@ defmodule MiseMultiUpgrade do
   rescue
     e in ErlangError ->
       if Map.get(e, :original) in [:terminated, :epipe],
-        do: System.halt(0),
+        do: 0,
         else: reraise(e, __STACKTRACE__)
   end
 
@@ -98,8 +121,11 @@ defmodule MiseMultiUpgrade do
       )
     end
 
-    if failed != [] do
-      die("Upgrade failed in: " <> Enum.map_join(failed, ", ", &label/1), 1)
+    if failed == [] do
+      0
+    else
+      IO.puts(:stderr, "Upgrade failed in: " <> Enum.map_join(failed, ", ", &label/1))
+      1
     end
   end
 
@@ -154,7 +180,7 @@ defmodule MiseMultiUpgrade do
         else: ["-C", where, "upgrade", "--no-global"]
 
     IO.puts("\n==> mise #{Enum.join(args, " ")}")
-    {_, code} = System.cmd("mise", args, into: IO.stream())
+    {_, code} = mise_cmd(args, into: IO.stream())
     code == 0
   end
 
@@ -309,7 +335,7 @@ defmodule MiseMultiUpgrade do
   # the backend lists without a timestamp: both leave the age unknown, but only
   # the first means the report is missing something it could have had.
   defp remote_versions(tool) do
-    case System.cmd("mise", ["ls-remote", tool, "--json"]) do
+    case mise_cmd(["ls-remote", tool, "--json"]) do
       {out, 0} -> out |> JSON.decode!() |> Map.new(&{&1["version"], &1["created_at"]})
       _ -> :unavailable
     end
@@ -401,7 +427,7 @@ defmodule MiseMultiUpgrade do
   # mise's stderr is left to the terminal: its warnings would break the JSON
   # read from stdout, and its errors are what the user needs to see.
   defp mise(args) do
-    case System.cmd("mise", args) do
+    case mise_cmd(args) do
       {out, 0} -> {:ok, out}
       _ -> :error
     end
@@ -414,10 +440,16 @@ defmodule MiseMultiUpgrade do
     end
   end
 
-  defp die(message, code) do
-    IO.puts(:stderr, message)
-    System.halt(code)
+  defp mise_cmd(args, opts \\ []) do
+    Application.get_env(:mise_multi_upgrade, :mise, MiseMultiUpgrade.Mise.System).cmd(args, opts)
   end
+
+  defp die(message, code), do: throw({:die, message, code})
 end
 
-MiseMultiUpgrade.main(System.argv())
+# Run only when this file is the script elixir was started with, not when a
+# test loads it.
+with [script | _] <- :init.get_plain_arguments(),
+     true <- Path.expand(to_string(script)) == __ENV__.file do
+  System.halt(MiseMultiUpgrade.main(System.argv()))
+end

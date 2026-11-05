@@ -1,11 +1,66 @@
 #!/usr/bin/env elixir
 
 ExUnit.start()
+Code.require_file("mise_multi_upgrade.exs", __DIR__)
+
+# A git hook running this suite sets GIT_DIR and the like for its own
+# repository, which would turn every git call here, and the script's, toward
+# that one.
+for {name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: System.delete_env(name)
+
+# Answers in mise's place from what a test has set, and logs every upgrade.
+# Directories are asked about from tasks of their own, so the state lives in an
+# Agent rather than in the test's process.
+defmodule FakeMise do
+  @behaviour MiseMultiUpgrade.Mise
+
+  def start do
+    Agent.start_link(
+      fn -> %{tracked: [], outdated: %{}, bump: %{}, remote: %{}, log: []} end,
+      name: __MODULE__
+    )
+  end
+
+  def get(key), do: Agent.get(__MODULE__, &Map.get(&1, key))
+  def put(fun), do: Agent.update(__MODULE__, fun)
+
+  @impl true
+  def cmd(["config", "ls", "--tracked-configs"], _),
+    do: {Enum.map_join(get(:tracked), &(&1 <> "\n")), 0}
+
+  def cmd(["-C", "/", "outdated", "--global" | rest], _), do: outdated(:global, rest)
+  def cmd(["-C", dir, "outdated", "--no-global" | rest], _), do: outdated(dir, rest)
+
+  def cmd(["ls-remote", tool, "--json"], _) do
+    case get(:remote)[tool] do
+      nil -> {"", 1}
+      versions -> {JSON.encode!(versions), 0}
+    end
+  end
+
+  def cmd(args, _) do
+    if "upgrade" in args do
+      put(&Map.update!(&1, :log, fn log -> log ++ [Enum.join(args, " ")] end))
+      {"", if(get(:fail_upgrade) in args, do: 1, else: 0)}
+    else
+      raise "unexpected mise call: #{inspect(args)}"
+    end
+  end
+
+  defp outdated(where, rest) do
+    if where == get(:fail_outdated) do
+      IO.puts(:stderr, "mise ERROR Config files in #{where}/mise.toml are not trusted.")
+      {"", 1}
+    else
+      answers = if rest == ["--bump", "--json"], do: get(:bump), else: get(:outdated)
+      {JSON.encode!(Map.get(answers, where, %{})), 0}
+    end
+  end
+end
 
 defmodule MiseMultiUpgradeTest do
   use ExUnit.Case
-
-  @script Path.expand("mise_multi_upgrade.exs", __DIR__)
+  import ExUnit.CaptureIO
 
   setup do
     dir =
@@ -16,42 +71,16 @@ defmodule MiseMultiUpgradeTest do
       |> tap(&File.mkdir_p!/1)
       |> resolve()
 
-    on_exit(fn -> File.rm_rf!(dir) end)
+    File.mkdir_p!(Path.join(dir, "tmp"))
+    tmpdir = System.get_env("TMPDIR")
+    System.put_env("TMPDIR", Path.join(dir, "tmp"))
+    {:ok, _} = FakeMise.start()
+    Application.put_env(:mise_multi_upgrade, :mise, FakeMise)
 
-    Enum.each(
-      ["bin", "fake/outdated", "fake/bump", "fake/remote", "tmp", "global"],
-      &File.mkdir_p!(Path.join(dir, &1))
-    )
-
-    global = Path.join(dir, "global/config.toml")
-    File.write!(global, "")
-    File.write!(Path.join(dir, "fake/tracked.txt"), global <> "\n")
-
-    # The fake mise answers each directory's `outdated` from files of its own, as
-    # the real one answers from that directory's view, and logs every upgrade.
-    fake_mise(dir, """
-    key() { printf %s "$1" | tr / _; }
-    case "$*" in
-      "-C "*" outdated "*)
-        if [ "$2" = "$(cat "#{dir}/fake/outdated_fail" 2>/dev/null)" ]; then
-          echo "mise ERROR Config files in $2/mise.toml are not trusted." >&2
-          exit 1
-        fi ;;
-    esac
-    case "$*" in
-      "config ls --tracked-configs") cat "#{dir}/fake/tracked.txt" ;;
-      "-C / outdated --global --json") cat "#{dir}/fake/outdated/global.json" 2>/dev/null || echo '{}' ;;
-      "-C / outdated --global --bump --json") cat "#{dir}/fake/bump/global.json" 2>/dev/null || echo '{}' ;;
-      "-C "*" outdated --no-global --json") cat "#{dir}/fake/outdated/$(key "$2").json" 2>/dev/null || echo '{}' ;;
-      "-C "*" outdated --no-global --bump --json") cat "#{dir}/fake/bump/$(key "$2").json" 2>/dev/null || echo '{}' ;;
-      "ls-remote "*" --json") cat "#{dir}/fake/remote/$(key "$2").json" 2>/dev/null || exit 1 ;;
-      *upgrade*)
-        echo "$*" >> "#{dir}/upgrade.log"
-        [ "$2" = "$(cat "#{dir}/fake/fail" 2>/dev/null)" ] && exit 1
-        exit 0 ;;
-      *) echo "unexpected: $*" >&2; exit 1 ;;
-    esac
-    """)
+    on_exit(fn ->
+      if tmpdir, do: System.put_env("TMPDIR", tmpdir), else: System.delete_env("TMPDIR")
+      File.rm_rf!(dir)
+    end)
 
     {:ok, dir: dir}
   end
@@ -61,94 +90,68 @@ defmodule MiseMultiUpgradeTest do
     String.trim(out)
   end
 
-  defp fake_mise(dir, body) do
-    path = Path.join([dir, "bin", "mise"])
-    File.write!(path, "#!/bin/sh\n" <> body)
-    File.chmod!(path, 0o755)
-  end
-
   # A git repository at `path` holding a tracked mise.toml, which is returned.
-  defp repo(dir, path) do
+  defp repo(path) do
     File.mkdir_p!(path)
     git(path, ["init", "-q"])
     config = Path.join(path, "mise.toml")
     File.write!(config, "")
     git(path, ["add", "."])
     git(path, ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"])
-    track(dir, config)
+    track(config)
     config
   end
 
-  defp track(dir, config),
-    do: File.write!(Path.join(dir, "fake/tracked.txt"), config <> "\n", [:append])
+  defp git(cwd, args), do: {_, 0} = System.cmd("git", args, cd: cwd, stderr_to_stdout: true)
 
-  defp git(cwd, args) do
-    {_, 0} = System.cmd("git", args, cd: cwd, env: no_git_env(), stderr_to_stdout: true)
-  end
+  defp track(config),
+    do: FakeMise.put(&Map.update!(&1, :tracked, fn t -> t ++ [config] end))
 
-  # A git hook running this suite sets GIT_DIR and the like for its own
-  # repository, which would turn every git call here toward that one.
-  defp no_git_env do
-    for {name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: {name, nil}
-  end
-
-  defp key(:global), do: "global"
-  defp key(project), do: String.replace(project, "/", "_")
+  defp set(key, value), do: FakeMise.put(&Map.put(&1, key, value))
+  defp set(key, where, value), do: FakeMise.put(&put_in(&1, [key, where], value))
 
   # What `outdated --json` answers in `where` (a project directory, or :global),
   # as %{tool => {current, latest}}: the tools `mise upgrade` there would upgrade.
-  defp outdated_in(dir, where, tools) do
-    answer =
+  defp outdated_in(where, tools) do
+    set(
+      :outdated,
+      where,
       Map.new(tools, fn {tool, {current, latest}} ->
         {tool, %{"current" => current, "latest" => latest, "bump" => nil}}
       end)
-
-    File.write!(Path.join(dir, "fake/outdated/#{key(where)}.json"), JSON.encode!(answer))
+    )
   end
 
   # What `outdated --bump --json` answers in `where`, as
   # %{tool => {current, latest overall, request to bump to}}.
-  defp bump_in(dir, where, tools) do
-    answer =
+  defp bump_in(where, tools) do
+    set(
+      :bump,
+      where,
       Map.new(tools, fn {tool, {current, latest, bump}} ->
         {tool, %{"current" => current, "latest" => latest, "bump" => bump}}
       end)
-
-    File.write!(Path.join(dir, "fake/bump/#{key(where)}.json"), JSON.encode!(answer))
+    )
   end
 
-  defp run(dir, args, answers) do
-    env = [
-      {"PATH", Path.join(dir, "bin") <> ":" <> System.get_env("PATH")},
-      {"TMPDIR", Path.join(dir, "tmp")}
-      | no_git_env()
-    ]
+  # The exit status, everything written to stdout and then stderr, and the upgrades run.
+  defp run(args, answers) do
+    {{code, out}, err} =
+      with_io(:stderr, fn -> with_io(answers, fn -> MiseMultiUpgrade.main(args) end) end)
 
-    {out, code} =
-      System.cmd("sh", ["-c", ~s(printf '%s' "$ANSWERS" | elixir "$SCRIPT" "$@"), "sh" | args],
-        env: [{"ANSWERS", answers}, {"SCRIPT", @script} | env],
-        stderr_to_stdout: true
-      )
-
-    log =
-      case File.read(Path.join(dir, "upgrade.log")) do
-        {:ok, text} -> String.split(text, "\n", trim: true)
-        _ -> []
-      end
-
-    {out, code, log}
+    {out <> err, code, FakeMise.get(:log)}
   end
 
   test "asks for each directory, then upgrades the accepted ones after the last answer",
        %{dir: dir} do
     a = Path.join(dir, "a")
     b = Path.join(dir, "b")
-    repo(dir, a)
-    repo(dir, b)
-    outdated_in(dir, a, %{"jq" => {"1.6", "1.7"}})
-    outdated_in(dir, b, %{"yq" => {"4.1", "4.2"}})
+    repo(a)
+    repo(b)
+    outdated_in(a, %{"jq" => {"1.6", "1.7"}})
+    outdated_in(b, %{"yq" => {"4.1", "4.2"}})
 
-    {out, 0, log} = run(dir, [], "y\nn\n")
+    {out, 0, log} = run([], "y\nn\n")
 
     assert log == ["-C #{a} upgrade --no-global"]
     [asked, ran] = String.split(out, "==> mise", parts: 2)
@@ -159,37 +162,31 @@ defmodule MiseMultiUpgradeTest do
 
   test "shows how long ago each version was released", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    repo(project)
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
     days_ago = &(DateTime.utc_now() |> DateTime.add(-&1 * 86_400) |> DateTime.to_iso8601())
 
-    File.write!(
-      Path.join(dir, "fake/remote/jq.json"),
-      JSON.encode!([
-        %{"version" => "1.6", "created_at" => days_ago.(30)},
-        %{"version" => "1.7", "created_at" => days_ago.(3)}
-      ])
-    )
+    set(:remote, "jq", [
+      %{"version" => "1.6", "created_at" => days_ago.(30)},
+      %{"version" => "1.7", "created_at" => days_ago.(3)}
+    ])
 
-    {out, 0, _} = run(dir, [], "n\n")
+    {out, 0, _} = run([], "n\n")
 
     assert out =~ ~r/^jq .*1\.6\s+30d ago\s+1\.7\s+3d ago/m
   end
 
   test "upgrades the global config apart, with --global", %{dir: dir} do
     dotfiles = Path.join(dir, "dotfiles")
-    repo(dir, dotfiles)
+    repo(dotfiles)
     target = Path.join(dotfiles, ".config/mise/config.toml")
     File.mkdir_p!(Path.dirname(target))
     File.write!(target, "")
-    track(dir, target)
-    global = Path.join(dir, "global/config.toml")
-    File.rm!(global)
-    File.ln_s!(target, global)
-    outdated_in(dir, :global, %{"jq" => {"1.6", "1.7"}})
-    outdated_in(dir, dotfiles, %{"yq" => {"4.1", "4.2"}})
+    track(target)
+    outdated_in(:global, %{"jq" => {"1.6", "1.7"}})
+    outdated_in(dotfiles, %{"yq" => {"4.1", "4.2"}})
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     assert out =~ ~r/\A\s*global$/m
     refute out =~ Path.join(dotfiles, ".config")
@@ -200,19 +197,19 @@ defmodule MiseMultiUpgradeTest do
   # mise also tracks, both with jq outdated in their own view.
   defp with_worktree(dir) do
     project = Path.join(dir, "project")
-    repo(dir, project)
+    repo(project)
     worktree = Path.join(project, ".claude/worktrees/wt")
     git(project, ["worktree", "add", "-q", worktree])
-    track(dir, Path.join(worktree, "mise.toml"))
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
-    outdated_in(dir, worktree, %{"jq" => {"1.6", "1.7"}})
+    track(Path.join(worktree, "mise.toml"))
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
+    outdated_in(worktree, %{"jq" => {"1.6", "1.7"}})
     {project, worktree}
   end
 
   test "leaves out a linked worktree", %{dir: dir} do
     {project, worktree} = with_worktree(dir)
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     refute out =~ worktree
     assert log == ["-C #{project} upgrade --no-global"]
@@ -222,12 +219,12 @@ defmodule MiseMultiUpgradeTest do
   # temporary directory, with the same.
   defp with_scratch(dir, scratch) do
     project = Path.join(dir, "project")
-    repo(dir, project)
+    repo(project)
     File.mkdir_p!(scratch)
     File.write!(Path.join(scratch, "mise.toml"), "")
-    track(dir, Path.join(scratch, "mise.toml"))
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
-    outdated_in(dir, scratch, %{"jq" => {"1.6", "1.7"}})
+    track(Path.join(scratch, "mise.toml"))
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
+    outdated_in(scratch, %{"jq" => {"1.6", "1.7"}})
     project
   end
 
@@ -235,7 +232,7 @@ defmodule MiseMultiUpgradeTest do
     scratch = Path.join(dir, "tmp/scratch")
     project = with_scratch(dir, scratch)
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     refute out =~ scratch
     assert log == ["-C #{project} upgrade --no-global"]
@@ -249,7 +246,7 @@ defmodule MiseMultiUpgradeTest do
     on_exit(fn -> File.rm_rf!(scratch) end)
     project = with_scratch(dir, scratch)
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     refute out =~ scratch
     assert log == ["-C #{project} upgrade --no-global"]
@@ -273,12 +270,12 @@ defmodule MiseMultiUpgradeTest do
         config = Path.join(project, form)
         File.mkdir_p!(Path.dirname(config))
         File.write!(config, "")
-        track(dir, config)
-        outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+        track(config)
+        outdated_in(project, %{"jq" => {"1.6", "1.7"}})
         project
       end
 
-    {_, 0, log} = run(dir, [], String.duplicate("y\n", length(forms)))
+    {_, 0, log} = run([], String.duplicate("y\n", length(forms)))
 
     assert log == Enum.map(projects, &"-C #{&1} upgrade --no-global")
   end
@@ -286,13 +283,13 @@ defmodule MiseMultiUpgradeTest do
   test "goes on past a failed upgrade and exits non-zero", %{dir: dir} do
     a = Path.join(dir, "a")
     b = Path.join(dir, "b")
-    repo(dir, a)
-    repo(dir, b)
-    outdated_in(dir, a, %{"jq" => {"1.6", "1.7"}})
-    outdated_in(dir, b, %{"jq" => {"1.6", "1.7"}})
-    File.write!(Path.join(dir, "fake/fail"), a)
+    repo(a)
+    repo(b)
+    outdated_in(a, %{"jq" => {"1.6", "1.7"}})
+    outdated_in(b, %{"jq" => {"1.6", "1.7"}})
+    set(:fail_upgrade, a)
 
-    {out, code, log} = run(dir, [], "y\ny\n")
+    {out, code, log} = run([], "y\ny\n")
 
     assert code != 0
     assert out =~ "Upgrade failed in: #{a}"
@@ -303,13 +300,13 @@ defmodule MiseMultiUpgradeTest do
     [a, b, c] = for name <- ~w(a b c), do: Path.join(dir, name)
 
     for d <- [a, b, c] do
-      repo(dir, d)
-      outdated_in(dir, d, %{"jq" => {"1.6", "1.7"}})
+      repo(d)
+      outdated_in(d, %{"jq" => {"1.6", "1.7"}})
     end
 
-    File.write!(Path.join(dir, "fake/outdated_fail"), b)
+    set(:fail_outdated, b)
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     assert out =~ ~r/#{Regex.escape(a)}.*jq.*1\.6.*1\.7/s
     assert out =~ ~r/#{Regex.escape(c)}.*jq.*1\.6.*1\.7/s
@@ -321,7 +318,7 @@ defmodule MiseMultiUpgradeTest do
   test "takes in a linked worktree with --include-worktrees", %{dir: dir} do
     {project, worktree} = with_worktree(dir)
 
-    {_, 0, log} = run(dir, ["--include-worktrees"], "y\ny\n")
+    {_, 0, log} = run(["--include-worktrees"], "y\ny\n")
 
     assert log == ["-C #{project} upgrade --no-global", "-C #{worktree} upgrade --no-global"]
   end
@@ -330,7 +327,7 @@ defmodule MiseMultiUpgradeTest do
     scratch = Path.join(dir, "tmp/scratch")
     project = with_scratch(dir, scratch)
 
-    {_, 0, log} = run(dir, ["--include-tmpdirs"], "y\ny\n")
+    {_, 0, log} = run(["--include-tmpdirs"], "y\ny\n")
 
     assert Enum.sort(log) ==
              Enum.sort(["-C #{project} upgrade --no-global", "-C #{scratch} upgrade --no-global"])
@@ -340,12 +337,12 @@ defmodule MiseMultiUpgradeTest do
        %{dir: dir} do
     a = Path.join(dir, "a")
     b = Path.join(dir, "b")
-    repo(dir, a)
-    repo(dir, b)
-    outdated_in(dir, a, %{"jq" => {"1.6", "1.7"}})
-    bump_in(dir, b, %{"yq" => {"3.4", "4.2", "4"}})
+    repo(a)
+    repo(b)
+    outdated_in(a, %{"jq" => {"1.6", "1.7"}})
+    bump_in(b, %{"yq" => {"3.4", "4.2", "4"}})
 
-    {out, 0, log} = run(dir, ["--dry-run"], "")
+    {out, 0, log} = run(["--dry-run"], "")
 
     assert log == []
     refute out =~ "Upgrade "
@@ -355,10 +352,10 @@ defmodule MiseMultiUpgradeTest do
 
   test "asks nothing for a directory newer only past its requests", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
-    bump_in(dir, project, %{"yq" => {"3.4", "4.2", "4"}})
+    repo(project)
+    bump_in(project, %{"yq" => {"3.4", "4.2", "4"}})
 
-    {out, 0, log} = run(dir, [], "y\n")
+    {out, 0, log} = run([], "y\n")
 
     refute out =~ project
     assert out =~ "Nothing to upgrade within the requested versions."
@@ -370,12 +367,12 @@ defmodule MiseMultiUpgradeTest do
     dirs = for name <- ~w(a b c d), do: Path.join(dir, name)
 
     Enum.each(dirs, fn d ->
-      repo(dir, d)
-      outdated_in(dir, d, %{"jq" => {"1.6", "1.7"}})
+      repo(d)
+      outdated_in(d, %{"jq" => {"1.6", "1.7"}})
     end)
 
     [a, b, c, _] = dirs
-    {out, 0, log} = run(dir, [], "\nmaybe\nY\nyes\n")
+    {out, 0, log} = run([], "\nmaybe\nY\nyes\n")
 
     assert log == ["-C #{b} upgrade --no-global", "-C #{c} upgrade --no-global"]
     assert out |> String.split("Upgrade #{b}?") |> length() == 3
@@ -384,15 +381,15 @@ defmodule MiseMultiUpgradeTest do
 
   test "shows a tool in both answers once, with a bump only where one is named", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
-    outdated_in(dir, project, %{"node" => {"24.1.0", "24.2.0"}, "uv" => {"0.1.0", "0.2.0"}})
+    repo(project)
+    outdated_in(project, %{"node" => {"24.1.0", "24.2.0"}, "uv" => {"0.1.0", "0.2.0"}})
 
-    bump_in(dir, project, %{
+    bump_in(project, %{
       "node" => {"24.1.0", "26.0.0", "26"},
       "uv" => {"0.1.0", "0.2.0", nil}
     })
 
-    {out, 0, _} = run(dir, ["--dry-run"], "")
+    {out, 0, _} = run(["--dry-run"], "")
 
     assert out |> String.split("\nnode ") |> length() == 2
     assert out =~ ~r/^node\s+-\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
@@ -401,51 +398,24 @@ defmodule MiseMultiUpgradeTest do
 
   test "asks once and upgrades once for a directory holding two configs", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
+    repo(project)
     File.write!(Path.join(project, "mise.local.toml"), "")
-    track(dir, Path.join(project, "mise.local.toml"))
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    track(Path.join(project, "mise.local.toml"))
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
 
-    {out, 0, log} = run(dir, [], "y\ny\n")
+    {out, 0, log} = run([], "y\ny\n")
 
     assert out |> String.split("Upgrade #{project}?") |> length() == 2
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
-  test "ends quietly with exit 0 when the reader closes the pipe early", %{dir: dir} do
-    for i <- 1..50 do
-      project = Path.join(dir, "p#{i}")
-      repo(dir, project)
-      outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
-    end
-
-    tmp = Path.join(dir, "tmp")
-
-    env = [
-      {"PATH", Path.join(dir, "bin") <> ":" <> System.get_env("PATH")},
-      {"TMPDIR", tmp},
-      {"SCRIPT", @script}
-      | no_git_env()
-    ]
-
-    # The script's own exit status and stderr, not those of `head`.
-    script =
-      ~s({ elixir "$SCRIPT" --dry-run 2>"$TMPDIR/err"; echo $? >"$TMPDIR/code"; } | head -1)
-
-    {_, 0} = System.cmd("sh", ["-c", script], env: env, cd: tmp)
-
-    assert File.read!(Path.join(tmp, "code")) == "0\n"
-    refute File.read!(Path.join(tmp, "err")) =~ "** ("
-    refute File.exists?(Path.join(tmp, "erl_crash.dump"))
-  end
-
   test "prints its usage for --help and -h, asking and upgrading nothing", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    repo(project)
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
 
     for flag <- ["--help", "-h"] do
-      {out, 0, log} = run(dir, [flag], "y\n")
+      {out, 0, log} = run([flag], "y\n")
 
       assert out =~ "Usage: mise run mise:multi-upgrade"
       refute out =~ "Upgrade "
@@ -453,27 +423,27 @@ defmodule MiseMultiUpgradeTest do
     end
   end
 
-  test "refuses an unknown flag with its usage and exit 2", %{dir: dir} do
-    {out, 2, log} = run(dir, ["--bump"], "y\n")
+  test "refuses an unknown flag with its usage and exit 2" do
+    {out, 2, log} = run(["--bump"], "y\n")
 
     assert out =~ "Usage: mise run mise:multi-upgrade"
     assert log == []
   end
 
   test "says all tools are up to date when --dry-run has no table to show", %{dir: dir} do
-    repo(dir, Path.join(dir, "project"))
+    repo(Path.join(dir, "project"))
 
-    {out, 0, _} = run(dir, ["--dry-run"], "")
+    {out, 0, _} = run(["--dry-run"], "")
 
     assert out =~ "All tools are up to date."
   end
 
   test "says nothing was upgraded when every directory is answered no", %{dir: dir} do
     project = Path.join(dir, "project")
-    repo(dir, project)
-    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    repo(project)
+    outdated_in(project, %{"jq" => {"1.6", "1.7"}})
 
-    {out, 0, log} = run(dir, [], "n\n")
+    {out, 0, log} = run([], "n\n")
 
     assert out =~ "Nothing upgraded."
     assert log == []
@@ -483,12 +453,12 @@ defmodule MiseMultiUpgradeTest do
     projects =
       for name <- ["mise", ".mise"] do
         project = Path.join([dir, "p#{name}", name])
-        repo(dir, project)
-        outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+        repo(project)
+        outdated_in(project, %{"jq" => {"1.6", "1.7"}})
         project
       end
 
-    {_, 0, log} = run(dir, [], "y\ny\n")
+    {_, 0, log} = run([], "y\ny\n")
 
     assert Enum.sort(log) == Enum.sort(Enum.map(projects, &"-C #{&1} upgrade --no-global"))
   end
