@@ -201,6 +201,8 @@ defmodule MiseMultiUpgrade do
   # the project root, which is where `mise upgrade` is run and what is shown.
   @config_dirs [
     {[".config", "mise", "conf.d"], ""},
+    {[".mise", "conf.d"], ""},
+    {["mise", "conf.d"], ""},
     {[".config", "mise"], "config."},
     {[".config", "mise"], "mise."},
     {[".config"], "mise."},

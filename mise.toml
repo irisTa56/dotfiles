@@ -217,12 +217,9 @@ find .claude/skills -mindepth 1 -maxdepth 1 | sort | while IFS= read -r p; do
 done
 '''
 
-# `raw` hands the terminal to the script, whose y/n prompts end without a
-# newline and would otherwise wait for one.
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first (--dry-run, --include-worktrees, --include-tmpdirs; -- --help for more)"
 run = "scripts/mise_multi_upgrade.exs"
-raw = true
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"

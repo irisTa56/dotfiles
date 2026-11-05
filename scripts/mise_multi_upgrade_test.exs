@@ -253,6 +253,8 @@ defmodule MiseMultiUpgradeTest do
   test "upgrades every config-directory form from its project root", %{dir: dir} do
     forms = [
       ".config/mise/conf.d/a.toml",
+      ".mise/conf.d/a.toml",
+      "mise/conf.d/a.toml",
       ".config/mise/config.toml",
       ".config/mise/mise.toml",
       ".config/mise.toml",
@@ -384,5 +386,32 @@ defmodule MiseMultiUpgradeTest do
 
     assert out |> String.split("Upgrade #{project}?") |> length() == 2
     assert log == ["-C #{project} upgrade --no-global"]
+  end
+
+  test "ends quietly with exit 0 when the reader closes the pipe early", %{dir: dir} do
+    for i <- 1..50 do
+      project = Path.join(dir, "p#{i}")
+      repo(dir, project)
+      outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+    end
+
+    tmp = Path.join(dir, "tmp")
+
+    env = [
+      {"PATH", Path.join(dir, "bin") <> ":" <> System.get_env("PATH")},
+      {"TMPDIR", tmp},
+      {"SCRIPT", @script}
+      | no_git_env()
+    ]
+
+    # The script's own exit status and stderr, not those of `head`.
+    script =
+      ~s({ elixir "$SCRIPT" --dry-run 2>"$TMPDIR/err"; echo $? >"$TMPDIR/code"; } | head -1)
+
+    {_, 0} = System.cmd("sh", ["-c", script], env: env, cd: tmp)
+
+    assert File.read!(Path.join(tmp, "code")) == "0\n"
+    refute File.read!(Path.join(tmp, "err")) =~ "** ("
+    refute File.exists?(Path.join(tmp, "erl_crash.dump"))
   end
 end
