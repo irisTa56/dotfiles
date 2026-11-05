@@ -1,6 +1,6 @@
 defmodule Dotfiles.CcusagePopup do
   @usage """
-  Usage: mix ccusage_popup <daily|weekly|monthly>
+  Usage: mise run ccusage:<daily|weekly|monthly>
 
   Shows Claude Code usage in a Quick Look popup as three tables per period:
   token usage with the cache hit rate, cost by model, and cost by repository.

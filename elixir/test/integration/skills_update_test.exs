@@ -29,6 +29,7 @@ defmodule Dotfiles.Integration.SkillsUpdateTest do
 
     fake(dir, "apm", """
     echo "$*" >> "#{dir}/apm.log"
+    pwd -P >> "#{dir}/apm.cwd"
     [ "$1" = audit ] && exit "${APM_AUDIT:-0}"
     exit 0
     """)
@@ -215,6 +216,19 @@ defmodule Dotfiles.Integration.SkillsUpdateTest do
 
     assert out =~ "recent: held"
     assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  # The task itself runs from the Mix project, so apm reaches the repository's
+  # apm.yml only through the root it is given.
+  test "every apm call runs in the root it is given", %{dir: dir} do
+    github(dir, %{"old" => @old, "recent" => @old})
+
+    run(dir)
+
+    {root, 0} = System.cmd("pwd", ["-P"], cd: dir)
+    cwds = dir |> Path.join("apm.cwd") |> File.read!() |> String.split("\n", trim: true)
+    assert length(cwds) == 3
+    assert Enum.all?(cwds, &(&1 == String.trim(root)))
   end
 
   test "an install follows the update and the audit follows that", %{dir: dir} do
