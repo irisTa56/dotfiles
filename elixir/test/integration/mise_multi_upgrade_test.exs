@@ -15,11 +15,7 @@ defmodule Dotfiles.Integration.MiseMultiUpgradeTest do
   setup do
     Dotfiles.TestEnv.real_commands()
 
-    base =
-      Path.join(System.tmp_dir!(), "mise-multi-upgrade-#{System.unique_integer([:positive])}")
-
-    File.mkdir_p!(base)
-    on_exit(fn -> File.rm_rf!(base) end)
+    base = Dotfiles.TestEnv.tmp_dir!("mise-multi-upgrade-test")
     {dir, 0} = System.cmd("pwd", ["-P"], cd: base)
     dir = String.trim(dir)
     mise = Path.join(dir, "mise")
