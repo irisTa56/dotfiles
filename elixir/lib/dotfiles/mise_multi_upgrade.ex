@@ -345,6 +345,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
       :error -> :unavailable
     end
   rescue
+    # Rescued rather than looked up first, for the reason resolve/1 gives.
     e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
   end
 

@@ -121,6 +121,26 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     }
   end
 
+  # How main/1 ended, as {:finished, status} or the reason it exited with, and its
+  # stdout. A raise inside Task.async_stream exits its caller, so main/1 runs in a
+  # process of its own, which the test watches instead of joining.
+  defp ended(args) do
+    out =
+      capture_io(fn ->
+        {pid, ref} =
+          spawn_monitor(fn ->
+            Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(args)})
+          end)
+
+        receive do
+          {:DOWN, ^ref, :process, ^pid, reason} -> send(self(), {:ended, reason})
+        end
+      end)
+
+    assert_received {:ended, reason}
+    {reason, out}
+  end
+
   # The exit status, everything written to stdout and then stderr, and the upgrades run.
   defp run(args, answers) do
     {{code, out}, err} =
@@ -440,22 +460,46 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
       answer(command, args, opts)
     end)
 
-    # A raise inside Task.async_stream exits its caller, so main/1 runs in a
-    # process of its own, which the test watches instead of joining.
-    out =
-      capture_io(fn ->
-        {pid, ref} =
-          spawn_monitor(fn ->
-            Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(["--dry-run"])})
-          end)
-
-        receive do
-          {:DOWN, ^ref, :process, ^pid, reason} -> send(self(), {:ended, reason})
-        end
-      end)
-
-    assert_received {:ended, reason}
+    {reason, out} = ended(["--dry-run"])
     refute match?({:finished, _}, reason), "main/1 finished normally: #{inspect(reason)}\n#{out}"
+  end
+
+  # Every key the code reads from `mise outdated` is one mise always reports, so
+  # an entry without one stops the run at that entry rather than printing `-`.
+  @tag capture_log: true
+  test "stops at a mise outdated entry that lacks a key mise always reports" do
+    entry = %{"requested" => "1", "current" => "1.6", "latest" => "1.7", "bump" => nil}
+
+    for key <- ["requested", "current", "latest"] do
+      dir = project("/work/project-#{key}")
+      broken = Map.delete(entry, key)
+      set(:outdated, dir, %{"jq" => broken})
+
+      {reason, out} = ended(["--dry-run"])
+
+      # A failed match exits with the entry; a failed Map.fetch! with the key,
+      # the entry being in the call that failed.
+      assert match?({{:badmatch, ^broken}, _}, reason) or
+               match?({{:badkey, ^key}, [{:erlang, :map_get, [^key, ^broken], _} | _]}, reason),
+             "#{key}: #{inspect(reason)}\n#{out}"
+
+      set(:outdated, dir, %{})
+    end
+  end
+
+  @tag capture_log: true
+  test "stops at a mise outdated --bump entry that names a bump but no latest version" do
+    dir = project("/work/project")
+    broken = %{"requested" => "1", "current" => "1.6", "bump" => "2"}
+    set(:bump, dir, %{"jq" => broken})
+
+    {reason, out} = ended(["--dry-run"])
+
+    assert match?(
+             {:function_clause, [{Dotfiles.MiseMultiUpgrade, :bump_latest, [^broken], _} | _]},
+             reason
+           ),
+           inspect(reason) <> "\n" <> out
   end
 
   test "reads a mise it cannot start, or output that is not a version list, as release ages unknown" do
