@@ -1,5 +1,4 @@
 defmodule Dotfiles.CcusagePopup do
-  @moduledoc false
   @usage """
   Usage: mise run ccusage:<daily|weekly|monthly>
 

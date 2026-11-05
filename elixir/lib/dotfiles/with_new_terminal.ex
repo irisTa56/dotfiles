@@ -1,5 +1,4 @@
 defmodule Dotfiles.WithNewTerminal do
-  @moduledoc false
   @usage """
   Usage: with-new-terminal <script.sh> [--cwd <dir>] [--title <title>]
 

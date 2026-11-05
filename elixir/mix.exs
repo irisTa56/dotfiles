@@ -24,7 +24,10 @@ defmodule Dotfiles.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      # Test only: qa:ex runs it with MIX_ENV=test, and the tasks this project
+      # exists for run in dev, where a dep would have to be fetched, and fetched
+      # again after each version bump, before any of them could start.
+      {:credo, "~> 1.7", only: :test, runtime: false}
     ]
   end
 end

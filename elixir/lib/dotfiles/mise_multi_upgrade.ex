@@ -1,5 +1,4 @@
 defmodule Dotfiles.MiseMultiUpgrade do
-  @moduledoc false
   @usage """
   Usage: mise run mise:multi-upgrade [--dry-run] [--include-worktrees] [--include-tmpdirs]
 

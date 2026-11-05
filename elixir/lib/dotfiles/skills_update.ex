@@ -1,5 +1,4 @@
 defmodule Dotfiles.SkillsUpdate do
-  @moduledoc false
   @usage """
   Usage: mise run skills:update [package...]
 
