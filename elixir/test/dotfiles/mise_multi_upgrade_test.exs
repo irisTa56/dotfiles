@@ -449,13 +449,14 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     refute match?({:finished, _}, reason), "main/1 finished normally: #{inspect(reason)}\n#{out}"
   end
 
-  test "reads a mise it cannot start, or a list it cannot parse, as release ages unknown" do
+  test "reads a mise it cannot start, or output that is not a version list, as release ages unknown" do
     dir = project("/work/project")
-    outdated_in(dir, %{"jq" => {"1.6", "1.7"}, "yq" => {"4.1", "4.2"}})
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}, "yq" => {"4.1", "4.2"}, "uv" => {"0.1", "0.2"}})
 
     FakeCommand.install(fn
       "mise", ["ls-remote", "jq", "--json"], _ -> raise ErlangError, original: :enoent
       "mise", ["ls-remote", "yq", "--json"], _ -> {"not json", 0}
+      "mise", ["ls-remote", "uv", "--json"], _ -> {"null", 0}
       command, args, opts -> answer(command, args, opts)
     end)
 
@@ -463,6 +464,21 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     assert out =~ ~r/^jq .*1\.6\s+\?\s+1\.7\s+\?/m
     assert out =~ ~r/^yq .*4\.1\s+\?\s+4\.2\s+\?/m
+    assert out =~ ~r/^uv .*0\.1\s+\?\s+0\.2\s+\?/m
+  end
+
+  test "keeps a temporary directory by its own name when pwd cannot be started" do
+    dir = with_scratch("/tmp/scratch")
+
+    FakeCommand.install(fn
+      "pwd", _, _ -> raise ErlangError, original: :enoent
+      command, args, opts -> answer(command, args, opts)
+    end)
+
+    {out, 0, log} = run([], "y\ny\n")
+
+    refute out =~ "/tmp/scratch"
+    assert log == ["-C #{dir} upgrade --no-global"]
   end
 
   test "says all tools are up to date when --dry-run has no table to show" do
