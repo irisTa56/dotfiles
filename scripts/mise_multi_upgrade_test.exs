@@ -478,4 +478,18 @@ defmodule MiseMultiUpgradeTest do
     assert out =~ "Nothing upgraded."
     assert log == []
   end
+
+  test "keeps a project named like a config directory under its own path", %{dir: dir} do
+    projects =
+      for name <- ["mise", ".mise"] do
+        project = Path.join([dir, "p#{name}", name])
+        repo(dir, project)
+        outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+        project
+      end
+
+    {_, 0, log} = run(dir, [], "y\ny\n")
+
+    assert Enum.sort(log) == Enum.sort(Enum.map(projects, &"-C #{&1} upgrade --no-global"))
+  end
 end
