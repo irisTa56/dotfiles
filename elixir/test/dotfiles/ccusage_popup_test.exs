@@ -11,9 +11,8 @@ defmodule Dotfiles.CcusagePopupTest do
   # :tmp_dir, which sits in this project and so, in an agent's worktree, under a
   # .claude/worktrees/ the code counts toward the checkout above it.
   setup do
-    tmp = Path.join(System.tmp_dir!(), "ccusage-popup-test-#{System.unique_integer([:positive])}")
-    File.mkdir_p!(Path.join(tmp, "projects"))
-    on_exit(fn -> File.rm_rf!(tmp) end)
+    tmp = Dotfiles.TestEnv.tmp_dir!("ccusage-popup-test")
+    File.mkdir!(Path.join(tmp, "projects"))
     Dotfiles.TestEnv.put_env([{"CLAUDE_CONFIG_DIR", tmp}])
     {:ok, tmp_dir: tmp}
   end
