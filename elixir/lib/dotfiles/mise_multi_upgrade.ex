@@ -193,8 +193,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> String.split("\n", trim: true)
     |> Enum.map(&project_dir/1)
     |> Enum.uniq()
-    |> Enum.reject(&scratch?(&1, temp))
-    |> Enum.reject(&(not opts[:include_worktrees] and linked_worktree?(&1)))
+    |> Enum.reject(fn dir ->
+      scratch?(dir, temp) or (not opts[:include_worktrees] and linked_worktree?(dir))
+    end)
     |> Enum.sort()
   end
 
