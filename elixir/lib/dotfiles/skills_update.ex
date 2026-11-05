@@ -1,8 +1,6 @@
-#!/usr/bin/env elixir
-
-defmodule SkillsUpdate do
+defmodule Dotfiles.SkillsUpdate do
   @usage """
-  Usage: skills-update [package...]
+  Usage: mise run skills:update [package...]
 
   Updates APM skills, every one or those named as `apm update` names them, holding
   back any whose last change upstream merged less than a day ago, as the release
@@ -19,32 +17,36 @@ defmodule SkillsUpdate do
 
   @window_seconds 86_400
 
-  def main(argv) do
+  # `root` is the directory holding apm.yml and apm.lock.yaml, where apm runs.
+  def main(argv, root) do
     case argv do
       [flag] when flag in ["--help", "-h"] -> IO.puts(@usage)
       ["-" <> _ | _] -> die(@usage, 2)
-      packages -> update(packages)
+      packages -> update(packages, root)
     end
   end
 
-  defp update(packages) do
+  defp update(packages, root) do
     {ready, held} =
-      packages |> chosen() |> Enum.map(&with_hold/1) |> Enum.split_with(&(&1.hold == nil))
+      packages
+      |> chosen(root)
+      |> Enum.map(&with_hold/1)
+      |> Enum.split_with(&(&1.hold == nil))
 
     Enum.each(held, &IO.puts("#{&1.dep["name"]}: held, #{&1.hold}"))
 
     if ready == [] do
       IO.puts("Nothing to update.")
     else
-      apm!(["update", "--yes" | Enum.map(ready, &key(&1.dep))])
+      apm!(["update", "--yes" | Enum.map(ready, &key(&1.dep))], root)
       # `apm update` can leave deployed files removed, which only this restores.
-      apm!(["install"])
-      apm!(["audit"])
+      apm!(["install"], root)
+      apm!(["audit"], root)
     end
   end
 
-  defp chosen(packages) do
-    deps = lock()
+  defp chosen(packages, root) do
+    deps = lock(root)
 
     case packages -- Enum.map(deps, &key/1) do
       [] -> Enum.filter(deps, &(packages == [] or key(&1) in packages))
@@ -104,24 +106,24 @@ defmodule SkillsUpdate do
     end
   end
 
-  defp lock do
-    case System.cmd("yq", ["-o=json", "apm.lock.yaml"]) do
+  defp lock(root) do
+    case System.cmd("yq", ["-o=json", "apm.lock.yaml"], cd: root) do
       {out, 0} -> JSON.decode!(out)["dependencies"]
       {_, code} -> die("yq could not read apm.lock.yaml (exit #{code})", code)
     end
   end
 
-  defp apm!(args) do
-    case System.cmd("apm", args, into: IO.stream(), stderr_to_stdout: true) do
+  defp apm!(args, root) do
+    case System.cmd("apm", args, cd: root, into: IO.stream(), stderr_to_stdout: true) do
       {_, 0} -> :ok
       {_, code} -> die("apm #{Enum.join(args, " ")} failed (exit #{code})", code)
     end
   end
 
+  # `exit({:shutdown, code})` rather than halting, so elixir's own CLI ends the
+  # run with that status once its output is flushed, and a test can catch it.
   defp die(message, code) do
     IO.puts(:stderr, message)
-    System.halt(code)
+    exit({:shutdown, code})
   end
 end
-
-SkillsUpdate.main(System.argv())

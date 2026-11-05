@@ -70,7 +70,7 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # there too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
-# Claude Code CLI, and `mix format` an Elixir toolchain, neither of which CI installs.
+# Claude Code CLI, which CI does not install.
 # `ts:types` needs that CLI too, so it is no `qa:` task either; it is a task of its own
 # because it is the slow one, which `depends` runs beside the rest, and the one worth
 # running alone while editing the module.
@@ -86,9 +86,6 @@ depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "py:
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin test .claude/skills/global-hooks",
-  "mix format --check-formatted scripts/*.exs",
-  "scripts/skills_update_test.exs",
-  "scripts/mise_multi_upgrade_test.exs",
 ]
 
 [tasks."qa:md"]
@@ -126,6 +123,17 @@ description = "Lint and check formatting of shell scripts"
 run = [
   "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
   "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
+]
+
+# One build, the test one, serves both the warnings check and the suite.
+[tasks."qa:ex"]
+description = "Check formatting of, compile and test the Elixir project"
+dir = "{{config_root}}/elixir"
+env = { MIX_ENV = "test" }
+run = [
+  "mix format --check-formatted",
+  "mix compile --warnings-as-errors",
+  "mix test --warnings-as-errors",
 ]
 
 # Offline, so a pull request never waits on a third-party host and a host being down
@@ -185,17 +193,26 @@ description = "Format shell scripts"
 # The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
 run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
 
+# The tasks that start an Elixir command run it with MIX_QUIET: after an edit Mix
+# prints its compile progress to stdout, ahead of the command's own output, where a
+# pipe would read it as that output.
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
-run = 'scripts/ccusage_popup.exs daily'
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.ccusage_popup daily"
 
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
-run = 'scripts/ccusage_popup.exs weekly'
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.ccusage_popup weekly"
 
 [tasks."ccusage:monthly"]
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
-run = 'scripts/ccusage_popup.exs monthly'
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.ccusage_popup monthly"
 
 [tasks."skills:push"]
 description = "Push local edits to a gist-sourced SKILL.md back to its gist and pin it (external write; needs gh auth)"
@@ -219,11 +236,15 @@ done
 
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
-run = "scripts/mise_multi_upgrade.exs"
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.mise_multi_upgrade"
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
-run = "scripts/skills_update.exs"
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.skills_update"
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"

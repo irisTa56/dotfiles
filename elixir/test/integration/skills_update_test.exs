@@ -1,11 +1,10 @@
-#!/usr/bin/env elixir
-
-ExUnit.start()
-
-defmodule SkillsUpdateTest do
+# Runs the module against fake apm and gh shell scripts, with the real yq
+# reading the lockfile and the real jq applying gh's --jq filter.
+defmodule Dotfiles.Integration.SkillsUpdateTest do
   use ExUnit.Case
+  @moduletag :integration
+  import ExUnit.CaptureIO
 
-  @script Path.expand("skills_update.exs", __DIR__)
   @old "2026-01-01T00:00:00Z"
 
   setup do
@@ -30,6 +29,7 @@ defmodule SkillsUpdateTest do
 
     fake(dir, "apm", """
     echo "$*" >> "#{dir}/apm.log"
+    pwd -P >> "#{dir}/apm.cwd"
     [ "$1" = audit ] && exit "${APM_AUDIT:-0}"
     exit 0
     """)
@@ -100,12 +100,29 @@ defmodule SkillsUpdateTest do
       end
 
     path = Enum.join([Path.join(dir, "bin") | tool_dirs] ++ [System.get_env("PATH")], ":")
+    env = [{"PATH", path} | env]
+    saved = for {name, _} <- env, do: {name, System.get_env(name)}
+    System.put_env(env)
 
-    System.cmd("elixir", [@script | args],
-      cd: dir,
-      env: [{"PATH", path} | env],
-      stderr_to_stdout: true
-    )
+    try do
+      {{code, out}, err} =
+        with_io(:stderr, fn ->
+          with_io(fn -> status(fn -> Dotfiles.SkillsUpdate.main(args, dir) end) end)
+        end)
+
+      {out <> err, code}
+    after
+      for {name, value} <- saved,
+          do: if(value, do: System.put_env(name, value), else: System.delete_env(name))
+    end
+  end
+
+  # The exit status a run ends with, as elixir's CLI would set it.
+  defp status(fun) do
+    fun.()
+    0
+  catch
+    :exit, {:shutdown, code} -> code
   end
 
   defp apm_calls(dir) do
@@ -199,6 +216,19 @@ defmodule SkillsUpdateTest do
 
     assert out =~ "recent: held"
     assert "update --yes o/r/skills/old own" in apm_calls(dir)
+  end
+
+  # The task itself runs from the Mix project, so apm reaches the repository's
+  # apm.yml only through the root it is given.
+  test "every apm call runs in the root it is given", %{dir: dir} do
+    github(dir, %{"old" => @old, "recent" => @old})
+
+    run(dir)
+
+    {root, 0} = System.cmd("pwd", ["-P"], cd: dir)
+    cwds = dir |> Path.join("apm.cwd") |> File.read!() |> String.split("\n", trim: true)
+    assert length(cwds) == 3
+    assert Enum.all?(cwds, &(&1 == String.trim(root)))
   end
 
   test "an install follows the update and the audit follows that", %{dir: dir} do

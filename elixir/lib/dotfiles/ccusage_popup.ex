@@ -1,8 +1,6 @@
-#!/usr/bin/env elixir
-
-defmodule CcusagePopup do
+defmodule Dotfiles.CcusagePopup do
   @usage """
-  Usage: ccusage_popup.exs <daily|weekly|monthly>
+  Usage: mise run ccusage:<daily|weekly|monthly>
 
   Shows Claude Code usage in a Quick Look popup as three tables per period:
   token usage with the cache hit rate, cost by model, and cost by repository.
@@ -353,10 +351,10 @@ defmodule CcusagePopup do
     end
   end
 
+  # `exit({:shutdown, code})` rather than halting, so elixir's own CLI ends the
+  # run with that status once its output is flushed.
   defp die(message, code) do
     IO.puts(:stderr, message)
-    System.halt(code)
+    exit({:shutdown, code})
   end
 end
-
-CcusagePopup.main(System.argv())
