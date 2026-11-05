@@ -61,7 +61,8 @@ defmodule Dotfiles.MiseMultiUpgrade do
   end
 
   # A reader that stops early — `| head`, or quitting the pager — closes the pipe
-  # under us, and the next write raises. Left to propagate it exits non-zero and
+  # under us, and the next write raises an ErlangError whose reason is
+  # :terminated. Left to propagate it exits non-zero and
   # dumps several megabytes of VM state into whatever directory the report was
   # run from, so the report is over rather than failed. Only the `--dry-run`
   # tables are written under this: in a run that upgrades, a closed pipe leaves
@@ -70,7 +71,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     fun.()
   rescue
     e in ErlangError ->
-      if raw_error?(e, [:terminated, :epipe]),
+      if raw_error?(e, [:terminated]),
         do: :ok,
         else: reraise(e, __STACKTRACE__)
   end
