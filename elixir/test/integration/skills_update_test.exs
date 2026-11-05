@@ -102,15 +102,15 @@ defmodule Dotfiles.Integration.SkillsUpdateTest do
 
     {{code, out}, err} =
       with_io(:stderr, fn ->
-        with_io(fn -> status(fn -> Dotfiles.SkillsUpdate.main([], dir) end) end)
+        with_io(fn -> status([], dir) end)
       end)
 
     {out <> err, code}
   end
 
   # The exit status a run ends with, as elixir's CLI would set it.
-  defp status(fun) do
-    fun.()
+  defp status(args, root) do
+    Dotfiles.SkillsUpdate.main(args, root)
     0
   catch
     :exit, {:shutdown, code} -> code

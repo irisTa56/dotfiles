@@ -66,14 +66,14 @@ defmodule Dotfiles.SkillsUpdateTest do
   defp run(args \\ []) do
     {{code, out}, err} =
       with_io(:stderr, fn ->
-        with_io(fn -> status(fn -> Dotfiles.SkillsUpdate.main(args, @root) end) end)
+        with_io(fn -> status(args, @root) end)
       end)
 
     {out <> err, code}
   end
 
-  defp status(fun) do
-    fun.()
+  defp status(args, root) do
+    Dotfiles.SkillsUpdate.main(args, root)
     0
   catch
     :exit, {:shutdown, code} -> code
