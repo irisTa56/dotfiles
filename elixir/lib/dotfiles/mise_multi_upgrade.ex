@@ -279,20 +279,21 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
   end
 
+  # A missing `pwd` raises, and is no reason to stop the run.
   defp resolve(path) do
-    case System.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
+    case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
       _ -> nil
     end
   rescue
-    _ -> nil
+    _ in ErlangError -> nil
   end
 
   # A linked worktree is an agent's short-lived copy of a checkout, and not a
   # place to keep tools current; git tells one apart by a git dir of its own
   # under the common one, wherever the worktree was placed.
   defp linked_worktree?(dir) do
-    case System.cmd(
+    case Dotfiles.Command.cmd(
            "git",
            ["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"],
            stderr_to_stdout: true
@@ -424,9 +425,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     end
   end
 
-  defp mise_cmd(args, opts \\ []) do
-    Application.get_env(:dotfiles, :mise, Dotfiles.MiseMultiUpgrade.Mise.System).cmd(args, opts)
-  end
+  defp mise_cmd(args, opts \\ []), do: Dotfiles.Command.cmd("mise", args, opts)
 
   defp die(message, code), do: throw({:die, message, code})
 end

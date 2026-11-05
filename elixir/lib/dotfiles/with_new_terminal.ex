@@ -19,8 +19,7 @@ defmodule Dotfiles.WithNewTerminal do
         run(Path.expand(script_path, opts[:from] || File.cwd!()), opts[:cwd], title)
 
       _ ->
-        IO.puts(:stderr, @usage)
-        exit({:shutdown, 1})
+        die(@usage, 1)
     end
   end
 
@@ -43,15 +42,17 @@ defmodule Dotfiles.WithNewTerminal do
     script = escape(String.trim_trailing(body))
     title = escape(title)
 
-    {_, 0} =
-      System.shell("""
-      osascript << 'APPLESCRIPT'
-      tell application "Terminal"
-        do script "#{script}"
-        set custom title of front window to "#{title}"
-      end tell
-      APPLESCRIPT
-      """)
+    applescript = """
+    tell application "Terminal"
+      do script "#{script}"
+      set custom title of front window to "#{title}"
+    end tell
+    """
+
+    case Dotfiles.Command.cmd("osascript", ["-e", applescript]) do
+      {_, 0} -> :ok
+      {_, code} -> die("osascript failed (exit #{code})", code)
+    end
   end
 
   defp comment_or_blank?(line) do
@@ -64,5 +65,12 @@ defmodule Dotfiles.WithNewTerminal do
     |> String.replace("\\", "\\\\")
     |> String.replace("\"", "\\\"")
     |> String.replace("\n", "\\n")
+  end
+
+  # `exit({:shutdown, code})` rather than halting, so elixir's own CLI ends the
+  # run with that status once its output is flushed, and a test can catch it.
+  defp die(message, code) do
+    IO.puts(:stderr, message)
+    exit({:shutdown, code})
   end
 end

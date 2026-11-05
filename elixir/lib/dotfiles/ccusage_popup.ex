@@ -193,7 +193,7 @@ defmodule Dotfiles.CcusagePopup do
   end
 
   defp git(dir, args) do
-    case System.cmd("git", ["-C", dir, "rev-parse" | args], stderr_to_stdout: true) do
+    case Dotfiles.Command.cmd("git", ["-C", dir, "rev-parse" | args], stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
       _ -> nil
     end
@@ -336,7 +336,7 @@ defmodule Dotfiles.CcusagePopup do
     # failure still surfaces instead of doing nothing.
     {_out, status} =
       try do
-        System.cmd("qlmanage", ["-p", html], stderr_to_stdout: true)
+        Dotfiles.Command.cmd("qlmanage", ["-p", html], stderr_to_stdout: true)
       after
         File.rm_rf!(dir)
       end
@@ -345,7 +345,7 @@ defmodule Dotfiles.CcusagePopup do
   end
 
   defp ccusage!(args) do
-    case System.cmd("ccusage", args) do
+    case Dotfiles.Command.cmd("ccusage", args) do
       {out, 0} -> out
       {_out, code} -> die("ccusage #{Enum.join(args, " ")} failed (exit #{code})", code)
     end

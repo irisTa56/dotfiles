@@ -94,7 +94,7 @@ defmodule Dotfiles.SkillsUpdate do
   end
 
   defp gh(path, jq, when_empty) do
-    case System.cmd("gh", ["api", path, "--jq", jq]) do
+    case Dotfiles.Command.cmd("gh", ["api", path, "--jq", jq]) do
       {out, 0} ->
         case String.trim(out) do
           "" -> {:error, when_empty}
@@ -107,14 +107,14 @@ defmodule Dotfiles.SkillsUpdate do
   end
 
   defp lock(root) do
-    case System.cmd("yq", ["-o=json", "apm.lock.yaml"], cd: root) do
+    case Dotfiles.Command.cmd("yq", ["-o=json", "apm.lock.yaml"], cd: root) do
       {out, 0} -> JSON.decode!(out)["dependencies"]
       {_, code} -> die("yq could not read apm.lock.yaml (exit #{code})", code)
     end
   end
 
   defp apm!(args, root) do
-    case System.cmd("apm", args, cd: root, into: IO.stream(), stderr_to_stdout: true) do
+    case Dotfiles.Command.cmd("apm", args, cd: root, into: IO.stream(), stderr_to_stdout: true) do
       {_, 0} -> :ok
       {_, code} -> die("apm #{Enum.join(args, " ")} failed (exit #{code})", code)
     end

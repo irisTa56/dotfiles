@@ -75,9 +75,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
         with:
-          # skills_update reads its lockfile with yq, and the fake gh in its tests
-          # applies the --jq filter with jq. On an Ubuntu runner mise installs a
-          # precompiled Erlang rather than building it.
+          # The integration tests of skills_update read its lockfile with the real
+          # yq, and their fake gh applies the --jq filter with the real jq; those of
+          # mise_multi_upgrade drive the mise this action installs. On an Ubuntu
+          # runner mise installs a precompiled Erlang rather than building it.
           install_args: erlang elixir yq jq
           cache: false # as in `markdown-lint`
       - run: mise run qa:ex
