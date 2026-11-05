@@ -28,14 +28,19 @@ defmodule Dotfiles.SkillsUpdateTest do
   # its last commit: a date for a pull request merged then into the default branch,
   # nil for none listed, :fail for a request that fails, and :no_commit for a path
   # whose commits list comes back empty. `fail` names apm subcommands that fail, and
-  # `lock` the lockfile's dependencies, or :fail for a lockfile yq cannot read.
+  # `lock` the lockfile's dependencies, {:document, map} for the whole lockfile, or
+  # :fail for a lockfile yq cannot read.
   defp install(github, opts \\ []) do
     fail = Keyword.get(opts, :fail, %{})
     lock = Keyword.get(opts, :lock, @lock)
 
     FakeCommand.install(fn
       "yq", ["-o=json", "apm.lock.yaml"], _ ->
-        if lock == :fail, do: {"", 3}, else: {JSON.encode!(%{"dependencies" => lock}), 0}
+        case lock do
+          :fail -> {"", 3}
+          {:document, document} -> {JSON.encode!(document), 0}
+          deps -> {JSON.encode!(%{"dependencies" => deps}), 0}
+        end
 
       "gh", ["api", path, "--jq", _], _ ->
         gh(github, path)
@@ -210,6 +215,35 @@ defmodule Dotfiles.SkillsUpdateTest do
     {out, 3} = run()
 
     assert out =~ "yq could not read apm.lock.yaml (exit 3)"
+  end
+
+  test "fails at a lockfile with no dependencies list, naming what it read" do
+    install(%{}, lock: {:document, %{"lockfile_version" => "1"}})
+
+    error = assert_raise MatchError, fn -> run() end
+
+    assert error.term == %{"lockfile_version" => "1"}
+  end
+
+  test "fails at a dependency with no repository, before asking GitHub anything" do
+    broken = %{"name" => "lost", "host" => "github.com", "virtual_path" => "skills/lost"}
+    install(%{}, lock: [broken])
+
+    error = assert_raise MatchError, fn -> run() end
+
+    assert error.term == broken
+    assert FakeCommand.calls("gh") == []
+  end
+
+  test "holds a skill whose merge time GitHub reports in a form it cannot read, saying so" do
+    install(%{"skills/old" => @old, "skills/recent" => "yesterday"})
+
+    {out, 0} = run()
+
+    assert "recent: held, GitHub reported its last merge at \"yesterday\", not a timestamp" in String.split(
+             out,
+             "\n"
+           )
   end
 
   test "prints its usage for --help and -h, and refuses another flag with exit 2" do

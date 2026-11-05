@@ -7,23 +7,23 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   # The machine the code sees: the configs mise tracks, what mise answers in each
   # directory, which directories are git checkouts or linked worktrees, and which
   # paths resolve elsewhere. Directories are asked about from tasks of their own,
-  # so it lives in an Agent rather than in the test's process.
+  # so it lives in an Agent rather than in the test's process. The test supervisor
+  # stops it before the next test starts one under the same name.
   setup do
-    {:ok, _} =
-      Agent.start_link(
-        fn ->
-          %{
-            tracked: [],
-            outdated: %{},
-            bump: %{},
-            remote: %{},
-            worktrees: %{},
-            resolved: %{},
-            fail: %{}
-          }
-        end,
-        name: __MODULE__
-      )
+    machine = %{
+      tracked: [],
+      outdated: %{},
+      bump: %{},
+      remote: %{},
+      worktrees: %{},
+      resolved: %{},
+      fail: %{}
+    }
+
+    start_supervised!(%{
+      id: __MODULE__,
+      start: {Agent, :start_link, [fn -> machine end, [name: __MODULE__]]}
+    })
 
     FakeCommand.install(&answer/3)
     :ok

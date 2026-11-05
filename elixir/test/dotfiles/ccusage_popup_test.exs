@@ -226,6 +226,28 @@ defmodule Dotfiles.CcusagePopupTest do
     assert err =~ ~s[no per-project breakdown ("projects" key)]
   end
 
+  test "fails at a day that lacks a field the tables read, naming that day" do
+    full = day("2026-11-01", 1.0)
+
+    fields =
+      Map.keys(full)
+      |> Enum.map(&{&1, Map.delete(full, &1)})
+      |> Kernel.++([
+        {"modelName", %{full | "modelBreakdowns" => [%{"cost" => 1.0}]}},
+        {"cost", %{full | "modelBreakdowns" => [%{"modelName" => "claude-opus-4"}]}}
+      ])
+
+    for {field, broken} <- fields do
+      error =
+        assert_raise MatchError, fn ->
+          run(["daily"], %{"projects" => %{"-p" => [broken]}})
+        end
+
+      assert error.term in [broken | broken["modelBreakdowns"] || []],
+             "#{field}: #{inspect(error.term)}"
+    end
+  end
+
   test "fails with ccusage's status when ccusage fails" do
     {3, err, nil} = run(["daily"], {"", 3})
 

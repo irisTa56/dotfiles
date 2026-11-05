@@ -56,21 +56,8 @@ defmodule Dotfiles.CcusagePopup do
     entries =
       for {project, days} <- projects,
           repo = project |> project_cwd() |> repo_label(),
-          day <- days do
-        %{
-          period: bucket(day["date"], granularity),
-          repo: repo,
-          models: day["modelBreakdowns"],
-          usage: %{
-            input: day["inputTokens"],
-            output: day["outputTokens"],
-            cache_create: day["cacheCreationTokens"],
-            cache_read: day["cacheReadTokens"],
-            tokens: day["totalTokens"],
-            cost: day["totalCost"]
-          }
-        }
-      end
+          day <- days,
+          do: entry(day, repo, granularity)
 
     report =
       if entries == [] do
@@ -79,8 +66,8 @@ defmodule Dotfiles.CcusagePopup do
         name = Atom.to_string(granularity)
 
         model_costs =
-          for entry <- entries, model <- entry.models do
-            {entry.period, model_name(model["modelName"]), model["cost"]}
+          for entry <- entries, {name, cost} <- entry.models do
+            {entry.period, model_name(name), cost}
           end
 
         repo_costs = Enum.map(entries, &{&1.period, &1.repo, &1.usage.cost})
@@ -94,6 +81,40 @@ defmodule Dotfiles.CcusagePopup do
       end
 
     popup(report)
+  end
+
+  # Every field a table reads is matched here, so a day ccusage reports without
+  # one fails where it is read, naming that day, rather than as a nil further on.
+  defp entry(day, repo, granularity) do
+    %{
+      "date" => date,
+      "modelBreakdowns" => models,
+      "inputTokens" => input,
+      "outputTokens" => output,
+      "cacheCreationTokens" => cache_create,
+      "cacheReadTokens" => cache_read,
+      "totalTokens" => tokens,
+      "totalCost" => cost
+    } = day
+
+    %{
+      period: bucket(date, granularity),
+      repo: repo,
+      models: Enum.map(models, &model_cost/1),
+      usage: %{
+        input: input,
+        output: output,
+        cache_create: cache_create,
+        cache_read: cache_read,
+        tokens: tokens,
+        cost: cost
+      }
+    }
+  end
+
+  defp model_cost(model) do
+    %{"modelName" => name, "cost" => cost} = model
+    {name, cost}
   end
 
   # The local date, which is also the date ccusage groups usage by.
@@ -195,7 +216,7 @@ defmodule Dotfiles.CcusagePopup do
   defp git(dir, args) do
     case Dotfiles.Command.cmd("git", ["-C", dir, "rev-parse" | args], stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
-      _ -> nil
+      {_out, _status} -> nil
     end
   end
 
@@ -267,7 +288,7 @@ defmodule Dotfiles.CcusagePopup do
       end
 
     total =
-      ["Total" | Enum.map(keys, &money(key_totals[&1]))] ++
+      ["Total" | Enum.map(keys, &money(Map.fetch!(key_totals, &1)))] ++
         [money(Enum.sum(Map.values(key_totals)))]
 
     render(title, [[period_header | keys] ++ ["Total"] | rows] ++ [total])

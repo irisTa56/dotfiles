@@ -70,7 +70,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     fun.()
   rescue
     e in ErlangError ->
-      if Map.get(e, :original) in [:terminated, :epipe],
+      if raw_error?(e, [:terminated, :epipe]),
         do: :ok,
         else: reraise(e, __STACKTRACE__)
   end
@@ -122,31 +122,31 @@ defmodule Dotfiles.MiseMultiUpgrade do
     Enum.reduce_while(groups, [], fn {where, _} = group, accepted ->
       render(group, dates)
 
-      case yes?("Upgrade #{label(where)}? [y/N] ") do
+      case answer("Upgrade #{label(where)}? [y/N] ") do
         :eof ->
           IO.puts("")
           {:halt, accepted}
 
-        true ->
+        :yes ->
           {:cont, [where | accepted]}
 
-        false ->
+        :no ->
           {:cont, accepted}
       end
     end)
     |> Enum.reverse()
   end
 
-  defp yes?(prompt) do
+  defp answer(prompt) do
     case IO.gets(prompt) do
       :eof ->
         :eof
 
       answer ->
         case answer |> String.trim() |> String.downcase() do
-          a when a in ["y", "yes"] -> true
-          a when a in ["", "n", "no"] -> false
-          _ -> yes?(prompt)
+          a when a in ["y", "yes"] -> :yes
+          a when a in ["", "n", "no"] -> :no
+          _ -> answer(prompt)
         end
     end
   end
@@ -284,7 +284,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp resolve(path) do
     case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
-      _ -> nil
+      {_out, _status} -> nil
     end
   rescue
     e in ErlangError -> if missing?(e), do: nil, else: reraise(e, __STACKTRACE__)
@@ -303,7 +303,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
         [git_dir, common_dir] = String.split(out, "\n", trim: true)
         git_dir != common_dir
 
-      _ ->
+      {_out, _status} ->
         false
     end
   end
@@ -333,15 +333,20 @@ defmodule Dotfiles.MiseMultiUpgrade do
     e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
   end
 
-  # What `System.cmd/3` raises for a command it cannot find. `rescue ErlangError`
-  # alone would also take every raw Erlang error, a FunctionClauseError among
-  # them, so a fake's unexpected call would read as a missing command.
-  defp missing?(e), do: Map.get(e, :original) == :enoent
+  # What `System.cmd/3` raises for a command it cannot find, and not a fake's
+  # unexpected call.
+  defp missing?(e), do: raw_error?(e, [:enoent])
+
+  # `rescue ErlangError` also takes the exceptions Erlang errors are turned into,
+  # a FunctionClauseError among them, and only an ErlangError itself carries the
+  # raw reason.
+  defp raw_error?(%ErlangError{original: original}, reasons), do: original in reasons
+  defp raw_error?(_e, _reasons), do: false
 
   defp render({where, rows}, dates) do
     cells =
       Enum.map(rows, fn row ->
-        released = &age(Map.get(dates, row.tool, :unavailable), &1)
+        released = &age(Map.fetch!(dates, row.tool), &1)
 
         [
           row.tool,
@@ -408,13 +413,13 @@ defmodule Dotfiles.MiseMultiUpgrade do
   # (e.g. "2026-06-04T15:34:21"), treating the latter as UTC.
   defp parse_datetime(iso) do
     case DateTime.from_iso8601(iso) do
-      {:ok, dt, _} ->
+      {:ok, dt, _offset} ->
         {:ok, dt}
 
-      _ ->
+      {:error, _reason} ->
         case NaiveDateTime.from_iso8601(iso) do
           {:ok, ndt} -> {:ok, DateTime.from_naive!(ndt, "Etc/UTC")}
-          _ -> :error
+          {:error, _reason} -> :error
         end
     end
   end
@@ -424,7 +429,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp mise(args) do
     case mise_cmd(args) do
       {out, 0} -> {:ok, out}
-      _ -> :error
+      {_out, _status} -> :error
     end
   end
 
