@@ -60,29 +60,38 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
-  # Under /var/tmp rather than System.tmp_dir!, which is /tmp unless TMPDIR,
-  # TEMP or TMP names another writable directory, and is /tmp on GitHub's
-  # Ubuntu runners; the code leaves out every config under /tmp whatever TMPDIR
-  # says. /var/tmp also sits outside the home directory, which the output
-  # shortens to ~, and outside any repository a git call there could find.
-  setup do
-    dir =
-      Path.join("/var/tmp", "mise-multi-upgrade-test-#{System.unique_integer([:positive])}")
-      |> tap(&File.mkdir_p!/1)
-      |> resolve()
+  # Each test works in the directory ExUnit's :tmp_dir tag makes for it under
+  # the project's tmp/, which is under neither /tmp, whose configs the code
+  # leaves out whatever TMPDIR says, nor TMPDIR. That directory sits inside this
+  # repository, so git is stopped from looking above it: a directory a test does
+  # not make a repository would otherwise be read as part of this checkout.
+  @moduletag :tmp_dir
 
+  setup %{tmp_dir: tmp_dir} do
+    dir = resolve(tmp_dir)
     File.mkdir_p!(Path.join(dir, "tmp"))
-    tmpdir = System.get_env("TMPDIR")
+    env = for name <- ["TMPDIR", "GIT_CEILING_DIRECTORIES"], do: {name, System.get_env(name)}
     System.put_env("TMPDIR", Path.join(dir, "tmp"))
+    System.put_env("GIT_CEILING_DIRECTORIES", dir)
     {:ok, _} = FakeMise.start()
     Application.put_env(:dotfiles, :mise, FakeMise)
 
     on_exit(fn ->
-      if tmpdir, do: System.put_env("TMPDIR", tmpdir), else: System.delete_env("TMPDIR")
-      File.rm_rf!(dir)
+      for {name, value} <- env,
+          do: if(value, do: System.put_env(name, value), else: System.delete_env(name))
     end)
 
     {:ok, dir: dir}
+  end
+
+  # A directory as the output names it: the code shortens the home directory,
+  # which holds this project, to ~.
+  defp shown(path) do
+    home = System.user_home!()
+
+    if String.starts_with?(path, home <> "/"),
+      do: "~" <> String.replace_prefix(path, home, ""),
+      else: path
   end
 
   defp resolve(path) do
@@ -155,8 +164,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     assert log == ["-C #{a} upgrade --no-global"]
     [asked, ran] = String.split(out, "==> mise", parts: 2)
-    assert asked =~ ~r/#{Regex.escape(a)}.*jq.*1\.6.*1\.7/s
-    assert asked =~ ~r/#{Regex.escape(b)}.*yq.*4\.1.*4\.2/s
+    assert asked =~ ~r/#{Regex.escape(shown(a))}.*jq.*1\.6.*1\.7/s
+    assert asked =~ ~r/#{Regex.escape(shown(b))}.*yq.*4\.1.*4\.2/s
     assert ran =~ "-C #{a} upgrade --no-global"
   end
 
@@ -189,7 +198,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {out, 0, log} = run([], "y\ny\n")
 
     assert out =~ ~r/\A\s*global$/m
-    refute out =~ Path.join(dotfiles, ".config")
+    refute out =~ shown(Path.join(dotfiles, ".config"))
     assert log == ["upgrade --global", "-C #{dotfiles} upgrade --no-global"]
   end
 
@@ -211,7 +220,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\ny\n")
 
-    refute out =~ worktree
+    refute out =~ shown(worktree)
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
@@ -234,7 +243,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\ny\n")
 
-    refute out =~ scratch
+    refute out =~ shown(scratch)
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
@@ -248,7 +257,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\ny\n")
 
-    refute out =~ scratch
+    refute out =~ shown(scratch)
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
@@ -292,7 +301,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {out, code, log} = run([], "y\ny\n")
 
     assert code != 0
-    assert out =~ "Upgrade failed in: #{a}"
+    assert out =~ "Upgrade failed in: #{shown(a)}"
     assert log == ["-C #{a} upgrade --no-global", "-C #{b} upgrade --no-global"]
   end
 
@@ -308,11 +317,11 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\ny\n")
 
-    assert out =~ ~r/#{Regex.escape(a)}.*jq.*1\.6.*1\.7/s
-    assert out =~ ~r/#{Regex.escape(c)}.*jq.*1\.6.*1\.7/s
+    assert out =~ ~r/#{Regex.escape(shown(a))}.*jq.*1\.6.*1\.7/s
+    assert out =~ ~r/#{Regex.escape(shown(c))}.*jq.*1\.6.*1\.7/s
     assert log == ["-C #{a} upgrade --no-global", "-C #{c} upgrade --no-global"]
     assert out =~ ~r/#{Regex.escape(b)}.*not trusted/s
-    assert out =~ "Skipped, as mise could not list them: #{b}"
+    assert out =~ "Skipped, as mise could not list them: #{shown(b)}"
   end
 
   test "takes in a linked worktree with --include-worktrees", %{dir: dir} do
@@ -346,8 +355,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     assert log == []
     refute out =~ "Upgrade "
-    assert out =~ ~r/#{Regex.escape(a)}\n.*\n.*\njq /
-    assert out =~ ~r/#{Regex.escape(b)}\n.*\n.*\nyq\s+-\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
+    assert out =~ ~r/#{Regex.escape(shown(a))}\n.*\n.*\njq /
+    assert out =~ ~r/#{Regex.escape(shown(b))}\n.*\n.*\nyq\s+-\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
   end
 
   test "asks nothing for a directory newer only past its requests", %{dir: dir} do
@@ -357,7 +366,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\n")
 
-    refute out =~ project
+    refute out =~ shown(project)
     assert out =~ "Nothing to upgrade within the requested versions."
     assert log == []
   end
@@ -375,8 +384,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {out, 0, log} = run([], "\nmaybe\nY\nyes\n")
 
     assert log == ["-C #{b} upgrade --no-global", "-C #{c} upgrade --no-global"]
-    assert out |> String.split("Upgrade #{b}?") |> length() == 3
-    refute out =~ "Upgrade #{a}? [y/N] Upgrade #{a}?"
+    assert out |> String.split("Upgrade #{shown(b)}?") |> length() == 3
+    refute out =~ "Upgrade #{shown(a)}? [y/N] Upgrade #{shown(a)}?"
   end
 
   test "shows a tool in both answers once, with a bump only where one is named", %{dir: dir} do
@@ -405,7 +414,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     {out, 0, log} = run([], "y\ny\n")
 
-    assert out |> String.split("Upgrade #{project}?") |> length() == 2
+    assert out |> String.split("Upgrade #{shown(project)}?") |> length() == 2
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
