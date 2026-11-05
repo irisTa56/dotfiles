@@ -99,10 +99,10 @@
           {Credo.Check.Readability.LargeNumbers, []},
           {Credo.Check.Readability.MaxLineLength, [priority: :low, max_length: 120]},
           {Credo.Check.Readability.ModuleAttributeNames, []},
-          # Off: the modules here are the internals of Mix tasks, which `mix help`
-          # documents from each task's @shortdoc, and no docs are generated from
-          # the rest.
-          {Credo.Check.Readability.ModuleDoc, false},
+          # Dotfiles.* are the internals of the Mix tasks, and no docs are generated
+          # from them; the tasks themselves keep the check, since `mix help <task>`
+          # shows their @moduledoc.
+          {Credo.Check.Readability.ModuleDoc, [ignore_names: [~r/^Dotfiles\./]]},
           {Credo.Check.Readability.ModuleNames, []},
           {Credo.Check.Readability.ParenthesesInCondition, []},
           {Credo.Check.Readability.ParenthesesOnZeroArityDefs, []},
