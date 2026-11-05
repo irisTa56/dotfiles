@@ -6,7 +6,6 @@ DOTFILES_DIR="${0:A:h}/.."
 
 alias ls='"$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin/ls" --color=auto --show-control-char'
 alias show-my-ip='dig +short -t txt o-o.myaddr.l.google.com @8.8.8.8'
-alias with-new-terminal='elixir "$DOTFILES_DIR/scripts/with_new_terminal.exs"'
 alias fnox-add-secret='"$DOTFILES_DIR/scripts/fnox_add_secret.sh"'
 alias to-snake-case='pbpaste | sed -E "s/([a-z0-9])([A-Z])/\1_\2/g; s/([A-Z]+)([A-Z][a-z])/\1_\2/g; s/[^[:alnum:]]+/_/g; s/^_+//; s/_+$//" | tr "[:upper:]" "[:lower:]" | pbcopy'
 alias git-branch='git branch --sort=committerdate'
@@ -14,6 +13,13 @@ alias git-sweep-branches='"$DOTFILES_DIR/.claude/skills/sweep-branches/scripts/s
 alias git-sync-base='"$DOTFILES_DIR/.claude/skills/sync-base/scripts/sync-base.sh"'
 
 # functions
+
+# The Mix task runs from its project, so a relative script path goes with the
+# directory it was given in.
+function with-new-terminal() {
+  local from="$PWD"
+  (cd "$DOTFILES_DIR/elixir" && mix with_new_terminal --from "$from" "$@")
+}
 
 function _echo_gnu_paths() {
   gnu_paths="$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"

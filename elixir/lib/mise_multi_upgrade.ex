@@ -1,7 +1,5 @@
-#!/usr/bin/env elixir
-
-# Every call this script makes to mise goes through this, so a test can answer
-# in mise's place.
+# Every call MiseMultiUpgrade makes to mise goes through this, so a test can
+# answer in mise's place.
 defmodule MiseMultiUpgrade.Mise do
   @callback cmd(args :: [String.t()], opts :: keyword()) ::
               {Collectable.t(), non_neg_integer()}
@@ -440,20 +438,27 @@ defmodule MiseMultiUpgrade do
   end
 
   defp mise_cmd(args, opts \\ []) do
-    Application.get_env(:mise_multi_upgrade, :mise, MiseMultiUpgrade.Mise.System).cmd(args, opts)
+    Application.get_env(:dotfiles_scripts, :mise, MiseMultiUpgrade.Mise.System).cmd(args, opts)
   end
 
   defp die(message, code), do: throw({:die, message, code})
 end
 
-# Run only when this file is the script elixir was started with, not when a
-# test loads it. A non-zero status leaves through `exit({:shutdown, status})`,
-# which elixir's own CLI turns into the exit status on the same way out as a
-# script that ends normally, rather than halting the VM from here.
-with [script | _] <- :init.get_plain_arguments(),
-     true <- Path.expand(to_string(script)) == __ENV__.file do
-  case MiseMultiUpgrade.main(System.argv()) do
-    0 -> :ok
-    status -> exit({:shutdown, status})
+defmodule Mix.Tasks.MiseMultiUpgrade do
+  @shortdoc "Upgrades mise tools directory by directory, asking for each first"
+  @moduledoc @shortdoc
+  use Mix.Task
+
+  @requirements ["compile"]
+
+  # A non-zero status leaves through `exit({:shutdown, status})`, which elixir's
+  # own CLI turns into the exit status on the same way out as a task that ends
+  # normally, rather than halting the VM from here.
+  @impl true
+  def run(argv) do
+    case MiseMultiUpgrade.main(argv) do
+      0 -> :ok
+      status -> exit({:shutdown, status})
+    end
   end
 end

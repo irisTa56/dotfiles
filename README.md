@@ -102,6 +102,11 @@ Take the first of these that fits:
 3. Anything else: an alias or function in `zsh_fragments/zshrc.sh` for a person to type, with anything longer than a line in `scripts/`.
    - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
 
+Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
+
+- Each command is a Mix task, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
+- A command that reads a path relative to where it was called from takes that directory as an argument, as `with-new-terminal` takes `--from`, since the task's own working directory is the project.
+
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.

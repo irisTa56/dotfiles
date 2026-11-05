@@ -1,13 +1,3 @@
-#!/usr/bin/env elixir
-
-ExUnit.start()
-Code.require_file("mise_multi_upgrade.exs", __DIR__)
-
-# A git hook running this suite sets GIT_DIR and the like for its own
-# repository, which would turn every git call here, and the script's, toward
-# that one.
-for {name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: System.delete_env(name)
-
 # Answers in mise's place from what a test has set, and logs every upgrade.
 # Directories are asked about from tasks of their own, so the state lives in an
 # Agent rather than in the test's process.
@@ -65,8 +55,6 @@ defmodule MiseMultiUpgradeTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
-  @script Path.expand("mise_multi_upgrade.exs", __DIR__)
-
   setup do
     dir =
       Path.join(
@@ -80,7 +68,7 @@ defmodule MiseMultiUpgradeTest do
     tmpdir = System.get_env("TMPDIR")
     System.put_env("TMPDIR", Path.join(dir, "tmp"))
     {:ok, _} = FakeMise.start()
-    Application.put_env(:mise_multi_upgrade, :mise, FakeMise)
+    Application.put_env(:dotfiles_scripts, :mise, FakeMise)
 
     on_exit(fn ->
       if tmpdir, do: System.put_env("TMPDIR", tmpdir), else: System.delete_env("TMPDIR")
@@ -468,13 +456,21 @@ defmodule MiseMultiUpgradeTest do
     assert Enum.sort(log) == Enum.sort(Enum.map(projects, &"-C #{&1} upgrade --no-global"))
   end
 
-  # Started as elixir starts it, which no other test does: the script runs only
-  # then, and only then does the status `main/1` returns become the exit status.
-  test "exits 2 on an unknown flag and 0 on -h when started as a script" do
-    {out, 2} = System.cmd("elixir", [@script, "--bogus"], stderr_to_stdout: true)
+  # Started as mix starts the task, which no other test does: only then does
+  # the status `main/1` returns become the exit status.
+  test "exits 2 on an unknown flag and 0 on -h when started as a Mix task" do
+    # In the test environment, whose build this suite has already compiled.
+    mix =
+      &System.cmd("mix", ["mise_multi_upgrade", &1],
+        cd: Path.dirname(Mix.Project.project_file()),
+        env: [{"MIX_ENV", "test"}],
+        stderr_to_stdout: true
+      )
+
+    {out, 2} = mix.("--bogus")
     assert out =~ "Usage: mise run mise:multi-upgrade"
 
-    {out, 0} = System.cmd("elixir", [@script, "-h"], stderr_to_stdout: true)
+    {out, 0} = mix.("-h")
     assert out =~ "Usage: mise run mise:multi-upgrade"
   end
 
