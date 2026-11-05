@@ -33,9 +33,9 @@ done
 # One key set in place: the file may also hold registry auth.
 npm config set min-release-age=1 --location=user
 
-# Hex gets the same window, which matters most for a script's Mix.install:
-# it has no lockfile, and resolves again whenever its cache is gone,
-# as after an Elixir or Erlang upgrade.
+# Hex gets the same window, for whenever mix picks a version: a dependency
+# added to or updated in elixir/mix.lock, and a Mix.install script, which has
+# no lockfile and resolves again whenever its cache is gone.
 # Global config for npm's reason: HEX_COOLDOWN would outrank a project's mix.exs.
 # Every mix reads it, whatever shell or agent starts it.
 # Hex is updated first: its archive is built for one Erlang/OTP,
