@@ -218,7 +218,7 @@ done
 '''
 
 [tasks."mise:multi-upgrade"]
-description = "Upgrade mise tools directory by directory, asking for each first (--dry-run, --include-worktrees, --include-tmpdirs; -- --help for more)"
+description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
 run = "scripts/mise_multi_upgrade.exs"
 
 [tasks."skills:update"]
