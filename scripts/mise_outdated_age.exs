@@ -2,13 +2,18 @@
 
 defmodule MiseOutdatedAge do
   @usage """
-  Usage: mise-outdated-age [--paths]
+  Usage: mise-outdated-age [--paths | --upgrade]
 
   Reports outdated tools across every mise config tracked on this host, with the
   age of each version involved.
 
-    --paths, -p  also list the config files requesting each tool, not only their number
-    --help, -h   print this message
+    --paths, -p    also list the config files requesting each tool, not only their number
+    --upgrade, -u  list the directories with a tool newer within its request, and run
+                   `mise upgrade` in the ones chosen, leaving each request as it is
+    --help, -h     print this message
+
+  The upgrade list leaves out linked git worktrees and configs under a temporary
+  directory, and upgrades the global config as a group of its own.
 
   Latest is the newest version matching the request; Bump Latest is the newest
   version overall, reachable only by changing the request. Configs counts the
@@ -36,6 +41,7 @@ defmodule MiseOutdatedAge do
       case argv do
         [] -> run(false)
         [flag] when flag in ["--paths", "-p"] -> run(true)
+        [flag] when flag in ["--upgrade", "-u"] -> upgrade()
         [flag] when flag in ["--help", "-h"] -> IO.puts(@usage)
         _ -> die(@usage, 2)
       end
@@ -70,6 +76,162 @@ defmodule MiseOutdatedAge do
       true -> render(rows, release_dates(rows), show_paths)
     end
   end
+
+  defp upgrade do
+    groups =
+      collect_requests()
+      |> batches()
+      |> Enum.flat_map(&outdated/1)
+      |> by_directory()
+
+    if groups == [] do
+      IO.puts("Nothing to upgrade within the requested versions.")
+    else
+      groups
+      |> Enum.with_index(1)
+      |> Enum.each(fn {{dir, tools}, n} ->
+        IO.puts("#{n}  #{label(dir)}")
+
+        Enum.each(tools, fn t ->
+          IO.puts("     #{t.tool}  #{fmt_version(t.current)} -> #{t.latest}")
+        end)
+      end)
+
+      failed =
+        IO.gets("Upgrade which? (numbers, space-separated) ")
+        |> choose(length(groups))
+        |> Enum.map(&elem(Enum.at(groups, &1 - 1), 0))
+        |> Enum.reject(&upgraded?/1)
+
+      if failed != [] do
+        die("Upgrade failed in: " <> Enum.map_join(failed, ", ", &label/1), 1)
+      end
+    end
+  end
+
+  # One failure leaves the other directories worth upgrading, so it is reported
+  # once they have run rather than stopping them.
+  defp upgraded?(dir) do
+    args =
+      if dir == :global,
+        do: ["upgrade", "--global"],
+        else: ["-C", dir, "upgrade", "--no-global"]
+
+    IO.puts("\n==> mise #{Enum.join(args, " ")}")
+    {_, code} = System.cmd("mise", args, into: IO.stream())
+    code == 0
+  end
+
+  defp label(:global), do: "global"
+  defp label(dir), do: abbreviate(dir)
+
+  # Rows the pinned run reports, that is upgradable without changing the request,
+  # as one group per directory to run `mise upgrade` in. The global config is a
+  # group of its own whatever name it is reached by, since `--global` is how mise
+  # upgrades it apart from the projects that inherit it.
+  defp by_directory(rows) do
+    global = global_configs()
+    temp = temp_dirs()
+
+    for row <- rows, row.latest != row.current, path <- row.paths do
+      if file_id(path) in global, do: {:global, row}, else: {project_dir(path), row}
+    end
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    |> Enum.map(fn {dir, tools} -> {dir, Enum.sort_by(tools, & &1.tool)} end)
+    |> Enum.reject(fn {dir, _} ->
+      dir != :global and (scratch?(dir, temp) or linked_worktree?(dir))
+    end)
+    |> Enum.sort()
+  end
+
+  # A config file may sit in a directory of its own under the project it
+  # configures, as {directory, file name prefix}; mise loads each of these from
+  # the project root, which is where `mise upgrade` is run and what is shown.
+  @config_dirs [
+    {[".config", "mise", "conf.d"], ""},
+    {[".config", "mise"], "config."},
+    {[".config", "mise"], "mise."},
+    {[".config"], "mise."},
+    {[".mise"], "config."},
+    {["mise"], "config."}
+  ]
+
+  defp project_dir(path) do
+    parts = path |> Path.dirname() |> Path.split()
+    name = Path.basename(path)
+
+    Enum.find_value(@config_dirs, Path.join(parts), fn {suffix, prefix} ->
+      if List.ends_with?(parts, suffix) and String.starts_with?(name, prefix),
+        do: parts |> Enum.drop(-length(suffix)) |> Path.join()
+    end)
+  end
+
+  # Run from `/`, mise reads no project config, so what it lists is the global
+  # and system config that `mise upgrade --global` upgrades.
+  defp global_configs do
+    mise!(["-C", "/", "config", "ls", "--json"])
+    |> JSON.decode!()
+    |> MapSet.new(&file_id(&1["path"]))
+  end
+
+  # A config under a temporary directory belongs to a trial, an agent's
+  # scratchpad among them, and not to anything worth keeping current.
+  defp scratch?(dir, temp) do
+    Enum.any?(temp, &(dir == &1 or String.starts_with?(dir, &1 <> "/")))
+  end
+
+  # Each temporary directory under the name it is given and the one it resolves
+  # to, since mise reports a config by the resolved path: `/tmp` is a symlink on
+  # macOS.
+  defp temp_dirs do
+    [System.tmp_dir(), "/tmp"]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.flat_map(&[Path.expand(&1), resolve(&1)])
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&String.trim_trailing(&1, "/"))
+    |> Enum.uniq()
+  end
+
+  defp resolve(path) do
+    case System.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
+      {out, 0} -> String.trim(out)
+      _ -> nil
+    end
+  rescue
+    _ -> nil
+  end
+
+  # An agent's worktree is upgraded through the checkout it was cut from, whose
+  # config it copies; git tells one apart by a git dir of its own under the
+  # common one, wherever the worktree was placed.
+  defp linked_worktree?(dir) do
+    case System.cmd(
+           "git",
+           ["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"],
+           stderr_to_stdout: true
+         ) do
+      {out, 0} ->
+        [git_dir, common_dir] = String.split(out, "\n", trim: true)
+        git_dir != common_dir
+
+      _ ->
+        false
+    end
+  end
+
+  defp choose(answer, count) when is_binary(answer) do
+    answer
+    |> String.split()
+    |> Enum.flat_map(fn word ->
+      case Integer.parse(word) do
+        {n, ""} when n in 1..count//1 -> [n]
+        _ -> []
+      end
+    end)
+    |> Enum.uniq()
+  end
+
+  defp choose(_eof, _count), do: []
 
   # Every tool version tracked on this host, as {tool, requested, config paths}.
   # Configs mise still tracks after the file is gone are dropped.
