@@ -318,14 +318,17 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # `:unavailable` is what could not be asked, and is kept apart from a version
   # the backend lists without a timestamp: both leave the age unknown, but only
-  # the first means the report is missing something it could have had.
+  # the first means the report is missing something it could have had. A missing
+  # `mise` raises, and is no reason to stop the run.
   defp remote_versions(tool) do
-    case mise_cmd(["ls-remote", tool, "--json"]) do
-      {out, 0} -> out |> JSON.decode!() |> Map.new(&{&1["version"], &1["created_at"]})
+    with {out, 0} <- mise_cmd(["ls-remote", tool, "--json"]),
+         {:ok, versions} when is_list(versions) <- JSON.decode(out) do
+      Map.new(versions, &{&1["version"], &1["created_at"]})
+    else
       _ -> :unavailable
     end
   rescue
-    _ -> :unavailable
+    _ in ErlangError -> :unavailable
   end
 
   defp render({where, rows}, dates) do

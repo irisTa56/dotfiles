@@ -420,6 +420,51 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert log == []
   end
 
+  # The crashed task logs its error, which is the outcome the test asks for.
+  @tag capture_log: true
+  test "does not finish normally when the command runner raises for ls-remote" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+
+    FakeCommand.install(fn
+      "mise", ["ls-remote", _, "--json"], _ -> raise "unexpected call"
+      command, args, opts -> answer(command, args, opts)
+    end)
+
+    # A raise inside Task.async_stream exits its caller, so main/1 runs in a
+    # process of its own, which the test watches instead of joining.
+    out =
+      capture_io(fn ->
+        {pid, ref} =
+          spawn_monitor(fn ->
+            Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(["--dry-run"])})
+          end)
+
+        receive do
+          {:DOWN, ^ref, :process, ^pid, reason} -> send(self(), {:ended, reason})
+        end
+      end)
+
+    assert_received {:ended, reason}
+    refute match?({:finished, _}, reason), "main/1 finished normally: #{inspect(reason)}\n#{out}"
+  end
+
+  test "reads a mise it cannot start, or a list it cannot parse, as release ages unknown" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}, "yq" => {"4.1", "4.2"}})
+
+    FakeCommand.install(fn
+      "mise", ["ls-remote", "jq", "--json"], _ -> raise ErlangError, original: :enoent
+      "mise", ["ls-remote", "yq", "--json"], _ -> {"not json", 0}
+      command, args, opts -> answer(command, args, opts)
+    end)
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    assert out =~ ~r/^jq .*1\.6\s+\?\s+1\.7\s+\?/m
+    assert out =~ ~r/^yq .*4\.1\s+\?\s+4\.2\s+\?/m
+  end
+
   test "says all tools are up to date when --dry-run has no table to show" do
     project("/work/project")
 
