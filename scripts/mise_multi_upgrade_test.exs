@@ -62,6 +62,8 @@ defmodule MiseMultiUpgradeTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
+  @script Path.expand("mise_multi_upgrade.exs", __DIR__)
+
   setup do
     dir =
       Path.join(
@@ -461,5 +463,15 @@ defmodule MiseMultiUpgradeTest do
     {_, 0, log} = run([], "y\ny\n")
 
     assert Enum.sort(log) == Enum.sort(Enum.map(projects, &"-C #{&1} upgrade --no-global"))
+  end
+
+  # Started as elixir starts it, which no other test does: the script runs only
+  # then, and only then does the status `main/1` returns become the exit status.
+  test "exits 2 on an unknown flag and 0 on -h when started as a script" do
+    {out, 2} = System.cmd("elixir", [@script, "--bogus"], stderr_to_stdout: true)
+    assert out =~ "Usage: mise run mise:multi-upgrade"
+
+    {out, 0} = System.cmd("elixir", [@script, "-h"], stderr_to_stdout: true)
+    assert out =~ "Usage: mise run mise:multi-upgrade"
   end
 end

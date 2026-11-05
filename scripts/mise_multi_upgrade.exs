@@ -327,10 +327,7 @@ defmodule MiseMultiUpgrade do
     tools
     |> Task.async_stream(&remote_versions/1, max_concurrency: 8, timeout: :infinity)
     |> Enum.zip(tools)
-    |> Map.new(fn
-      {{:ok, versions}, tool} -> {tool, versions}
-      {{:exit, _reason}, tool} -> {tool, :unavailable}
-    end)
+    |> Map.new(fn {{:ok, versions}, tool} -> {tool, versions} end)
   end
 
   # `:unavailable` is what could not be asked, and is kept apart from a version
