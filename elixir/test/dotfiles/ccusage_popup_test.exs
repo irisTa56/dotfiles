@@ -6,14 +6,10 @@ defmodule Dotfiles.CcusagePopupTest do
 
   # Session logs live under a directory that CLAUDE_CONFIG_DIR names, and each
   # recorded cwd that should exist is a directory there; git answers for those
-  # directories from `commons`, as {directory, the common dir it reports}. It is
-  # made under the system's temporary directory rather than as ExUnit's
-  # :tmp_dir, which sits in this project and so, in an agent's worktree, under a
-  # .claude/worktrees/ the code counts toward the checkout above it.
+  # directories from `commons`, as {directory, the common dir it reports}.
   setup do
-    tmp = Path.join(System.tmp_dir!(), "ccusage-popup-test-#{System.unique_integer([:positive])}")
-    File.mkdir_p!(Path.join(tmp, "projects"))
-    on_exit(fn -> File.rm_rf!(tmp) end)
+    tmp = Dotfiles.TestEnv.tmp_dir!("ccusage-popup-test")
+    File.mkdir!(Path.join(tmp, "projects"))
     Dotfiles.TestEnv.put_env([{"CLAUDE_CONFIG_DIR", tmp}])
     {:ok, tmp_dir: tmp}
   end

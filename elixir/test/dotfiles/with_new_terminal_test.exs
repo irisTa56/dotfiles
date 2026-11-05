@@ -4,9 +4,9 @@ defmodule Dotfiles.WithNewTerminalTest do
 
   alias Dotfiles.FakeCommand
 
-  @moduletag :tmp_dir
+  setup do
+    tmp = Dotfiles.TestEnv.tmp_dir!("with-new-terminal-test")
 
-  setup %{tmp_dir: tmp} do
     File.write!(Path.join(tmp, "job.sh"), """
     #!/bin/zsh
     # a comment
@@ -15,7 +15,7 @@ defmodule Dotfiles.WithNewTerminalTest do
     echo "a\\b" && ls
     """)
 
-    :ok
+    {:ok, tmp_dir: tmp}
   end
 
   # The exit status, stderr, and the AppleScript osascript was handed, which

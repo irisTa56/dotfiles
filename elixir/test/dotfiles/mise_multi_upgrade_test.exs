@@ -294,8 +294,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   end
 
   # TMPDIR has to name a directory that exists, or System.tmp_dir/0 passes it over.
-  @tag :tmp_dir
-  test "leaves out a config under TMPDIR, by the name it resolves to too", %{tmp_dir: tmp} do
+  test "leaves out a config under TMPDIR, by the name it resolves to too" do
+    tmp = Dotfiles.TestEnv.tmp_dir!("mise-multi-upgrade-test")
     Dotfiles.TestEnv.put_env([{"TMPDIR", tmp}])
     set(:resolved, tmp, "/resolved/tmp")
     named = with_scratch(Path.join(tmp, "named"))

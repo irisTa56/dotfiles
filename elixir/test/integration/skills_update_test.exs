@@ -11,9 +11,8 @@ defmodule Dotfiles.Integration.SkillsUpdateTest do
   setup do
     Dotfiles.TestEnv.real_commands()
 
-    dir = Path.join(System.tmp_dir!(), "skills-update-test-#{System.unique_integer([:positive])}")
-    on_exit(fn -> File.rm_rf!(dir) end)
-    File.mkdir_p!(Path.join(dir, "bin"))
+    dir = Dotfiles.TestEnv.tmp_dir!("skills-update-test")
+    File.mkdir!(Path.join(dir, "bin"))
 
     File.write!(Path.join(dir, "apm.lock.yaml"), """
     dependencies:
