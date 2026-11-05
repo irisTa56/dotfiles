@@ -1,4 +1,4 @@
-defmodule SkillsUpdateTest do
+defmodule Dotfiles.SkillsUpdateTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
@@ -103,7 +103,7 @@ defmodule SkillsUpdateTest do
     try do
       {{code, out}, err} =
         with_io(:stderr, fn ->
-          with_io(fn -> status(fn -> SkillsUpdate.main(args, dir) end) end)
+          with_io(fn -> status(fn -> Dotfiles.SkillsUpdate.main(args, dir) end) end)
         end)
 
       {out <> err, code}

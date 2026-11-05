@@ -1,4 +1,4 @@
-defmodule CcusagePopup do
+defmodule Dotfiles.CcusagePopup do
   @usage """
   Usage: mix ccusage_popup <daily|weekly|monthly>
 
@@ -359,7 +359,7 @@ defmodule CcusagePopup do
   end
 end
 
-defmodule Mix.Tasks.CcusagePopup do
+defmodule Mix.Tasks.Dotfiles.CcusagePopup do
   @shortdoc "Shows Claude Code usage and cost in a Quick Look popup"
   @moduledoc @shortdoc
   use Mix.Task
@@ -367,5 +367,5 @@ defmodule Mix.Tasks.CcusagePopup do
   @requirements ["compile"]
 
   @impl true
-  def run(argv), do: CcusagePopup.main(argv)
+  def run(argv), do: Dotfiles.CcusagePopup.main(argv)
 end

@@ -18,7 +18,7 @@ alias git-sync-base='"$DOTFILES_DIR/.claude/skills/sync-base/scripts/sync-base.s
 # directory it was given in.
 function with-new-terminal() {
   local from="$PWD"
-  (cd "$DOTFILES_DIR/elixir" && mix with_new_terminal --from "$from" "$@")
+  (cd "$DOTFILES_DIR/elixir" && mix dotfiles.with_new_terminal --from "$from" "$@")
 }
 
 function _echo_gnu_paths() {

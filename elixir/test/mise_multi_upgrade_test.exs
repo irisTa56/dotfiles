@@ -2,7 +2,7 @@
 # Directories are asked about from tasks of their own, so the state lives in an
 # Agent rather than in the test's process.
 defmodule FakeMise do
-  @behaviour MiseMultiUpgrade.Mise
+  @behaviour Dotfiles.MiseMultiUpgrade.Mise
 
   def start do
     Agent.start_link(
@@ -51,7 +51,7 @@ defmodule FakeMise do
   end
 end
 
-defmodule MiseMultiUpgradeTest do
+defmodule Dotfiles.MiseMultiUpgradeTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
@@ -68,7 +68,7 @@ defmodule MiseMultiUpgradeTest do
     tmpdir = System.get_env("TMPDIR")
     System.put_env("TMPDIR", Path.join(dir, "tmp"))
     {:ok, _} = FakeMise.start()
-    Application.put_env(:dotfiles_scripts, :mise, FakeMise)
+    Application.put_env(:dotfiles, :mise, FakeMise)
 
     on_exit(fn ->
       if tmpdir, do: System.put_env("TMPDIR", tmpdir), else: System.delete_env("TMPDIR")
@@ -130,7 +130,7 @@ defmodule MiseMultiUpgradeTest do
   # The exit status, everything written to stdout and then stderr, and the upgrades run.
   defp run(args, answers) do
     {{code, out}, err} =
-      with_io(:stderr, fn -> with_io(answers, fn -> MiseMultiUpgrade.main(args) end) end)
+      with_io(:stderr, fn -> with_io(answers, fn -> Dotfiles.MiseMultiUpgrade.main(args) end) end)
 
     {out <> err, code, FakeMise.get(:log)}
   end
@@ -461,7 +461,7 @@ defmodule MiseMultiUpgradeTest do
   test "exits 2 on an unknown flag and 0 on -h when started as a Mix task" do
     # In the test environment, whose build this suite has already compiled.
     mix =
-      &System.cmd("mix", ["mise_multi_upgrade", &1],
+      &System.cmd("mix", ["dotfiles.mise_multi_upgrade", &1],
         cd: Path.dirname(Mix.Project.project_file()),
         env: [{"MIX_ENV", "test"}],
         stderr_to_stdout: true

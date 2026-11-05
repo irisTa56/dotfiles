@@ -1,4 +1,4 @@
-defmodule WithNewTerminal do
+defmodule Dotfiles.WithNewTerminal do
   @usage """
   Usage: with-new-terminal <script.sh> [--cwd <dir>] [--title <title>]
 
@@ -67,7 +67,7 @@ defmodule WithNewTerminal do
   end
 end
 
-defmodule Mix.Tasks.WithNewTerminal do
+defmodule Mix.Tasks.Dotfiles.WithNewTerminal do
   @shortdoc "Runs a shell script in a new Terminal window"
   @moduledoc @shortdoc
   use Mix.Task
@@ -75,5 +75,5 @@ defmodule Mix.Tasks.WithNewTerminal do
   @requirements ["compile"]
 
   @impl true
-  def run(argv), do: WithNewTerminal.main(argv)
+  def run(argv), do: Dotfiles.WithNewTerminal.main(argv)
 end

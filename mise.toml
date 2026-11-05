@@ -6,11 +6,6 @@ rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
-# The Elixir project's toolchain, as the global config pins it, and jq for its tests.
-# CI reads this file and not the global one, so the project names them itself.
-erlang = "29"
-elixir = "1.20"
-jq = "latest"
 "npm:typescript" = "latest"
 "pipx:apm-cli" = "latest"
 
@@ -201,17 +196,17 @@ run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
-run = "mix ccusage_popup daily"
+run = "mix dotfiles.ccusage_popup daily"
 
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
-run = "mix ccusage_popup weekly"
+run = "mix dotfiles.ccusage_popup weekly"
 
 [tasks."ccusage:monthly"]
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
-run = "mix ccusage_popup monthly"
+run = "mix dotfiles.ccusage_popup monthly"
 
 [tasks."skills:push"]
 description = "Push local edits to a gist-sourced SKILL.md back to its gist and pin it (external write; needs gh auth)"
@@ -236,12 +231,12 @@ done
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
 dir = "{{config_root}}/elixir"
-run = "mix mise_multi_upgrade"
+run = "mix dotfiles.mise_multi_upgrade"
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
 dir = "{{config_root}}/elixir"
-run = "mix skills_update"
+run = "mix dotfiles.skills_update"
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"

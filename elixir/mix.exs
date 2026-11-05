@@ -1,18 +1,31 @@
-# The Elixir commands this repository runs through mise tasks and shell
-# functions, each a Mix task run from this directory.
-defmodule DotfilesScripts.MixProject do
+# The Elixir commands of this repository, each a Mix task in the `dotfiles`
+# namespace that a mise task or a shell function runs from this directory.
+defmodule Dotfiles.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :dotfiles_scripts,
+      app: :dotfiles,
       version: "0.1.0",
       elixir: "~> 1.20",
-      deps: []
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
     ]
   end
 
+  # Run "mix help compile.app" to learn about applications.
   def application do
-    [extra_applications: [:crypto]]
+    [
+      # :crypto for the random name of the ccusage popup's temporary directory.
+      extra_applications: [:logger, :crypto]
+    ]
+  end
+
+  # Run "mix help deps" to learn about dependencies.
+  defp deps do
+    [
+      # {:dep_from_hexpm, "~> 0.3.0"},
+      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+    ]
   end
 end
