@@ -84,6 +84,11 @@ jobs:
       # mix.lock pins every version, so the runner needs none of the release window
       # this machine sets in Hex's global config.
       - run: mix local.hex --force
+      # qa:ex fetches offline, from Hex's cache, which this fetch fills.
+      - run: mix deps.get
+        working-directory: elixir
+        env:
+          MIX_ENV: test
       - run: mise run qa:ex
 
   link-check-offline:
