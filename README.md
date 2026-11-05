@@ -102,7 +102,7 @@ Take the first of these that fits:
 3. Anything else: an alias or function in `zsh_fragments/zshrc.sh` for a person to type, with anything longer than a line in `scripts/`.
    - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
 
-Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
+Under item 3, a script written in Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
 
 - Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.skills_update`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
   - The caller sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the command's own output.
