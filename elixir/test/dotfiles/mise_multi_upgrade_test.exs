@@ -484,6 +484,29 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert out =~ ~r/^gh .*2\.1\s+\?\s+2\.2\s+\?/m
   end
 
+  test "reads a version list with an entry lacking a version key as release ages unknown" do
+    dir = project("/work/project")
+
+    outdated_in(dir, %{
+      "jq" => {"1.0", "1.1"},
+      "yq" => {"4.1", "4.2"}
+    })
+
+    FakeCommand.install(fn
+      "mise", ["ls-remote", "jq", "--json"], _ ->
+        {~s([{"version": "1.1", "created_at": "2026-01-01T00:00:00Z"}, {"created_at": "2026-01-02T00:00:00Z"}]),
+         0}
+
+      command, args, opts ->
+        answer(command, args, opts)
+    end)
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    assert out =~ ~r/^jq .*1\.0\s+\?\s+1\.1\s+\?/m
+    assert out =~ ~r/^yq .*4\.1/m
+  end
+
   test "fails when the handler has no clause for pwd" do
     project("/work/project")
 

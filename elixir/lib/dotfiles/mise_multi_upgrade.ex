@@ -351,7 +351,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp version_list(out) do
     case JSON.decode(out) do
       {:ok, versions} when is_list(versions) ->
-        if Enum.all?(versions, &is_map/1), do: {:ok, versions}, else: :error
+        if Enum.all?(versions, &match?(%{"version" => _}, &1)),
+          do: {:ok, versions},
+          else: :error
 
       {:ok, _not_a_list} ->
         :error

@@ -66,8 +66,8 @@ defmodule Dotfiles.CcusagePopup do
         name = Atom.to_string(granularity)
 
         model_costs =
-          for entry <- entries, {name, cost} <- entry.models do
-            {entry.period, model_name(name), cost}
+          for entry <- entries, {model, cost} <- entry.models do
+            {entry.period, model_name(model), cost}
           end
 
         repo_costs = Enum.map(entries, &{&1.period, &1.repo, &1.usage.cost})
