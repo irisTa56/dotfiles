@@ -25,8 +25,11 @@ defmodule FakeMise do
   def put(fun), do: Agent.update(__MODULE__, fun)
 
   @impl true
-  def cmd(["config", "ls", "--tracked-configs"], _),
-    do: {Enum.map_join(get(:tracked), &(&1 <> "\n")), 0}
+  def cmd(["config", "ls", "--tracked-configs"], _) do
+    if get(:fail_tracked),
+      do: {"", 1},
+      else: {Enum.map_join(get(:tracked), &(&1 <> "\n")), 0}
+  end
 
   def cmd(["-C", "/", "outdated", "--global" | rest], _), do: outdated(:global, rest)
   def cmd(["-C", dir, "outdated", "--no-global" | rest], _), do: outdated(dir, rest)
@@ -473,5 +476,16 @@ defmodule MiseMultiUpgradeTest do
 
     {out, 0} = System.cmd("elixir", [@script, "-h"], stderr_to_stdout: true)
     assert out =~ "Usage: mise run mise:multi-upgrade"
+  end
+
+  test "fails rather than reading as up to date when mise cannot list its configs" do
+    outdated_in(:global, %{"jq" => {"1.6", "1.7"}})
+    set(:fail_tracked, true)
+
+    {out, 1, log} = run([], "y\n")
+
+    assert out =~ "mise config ls --tracked-configs failed"
+    refute out =~ "up to date"
+    assert log == []
   end
 end
