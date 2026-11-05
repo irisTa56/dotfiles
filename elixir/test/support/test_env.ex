@@ -13,10 +13,14 @@ defmodule Dotfiles.TestEnv do
   end
 
   # A directory of the test's own under the system's temporary one, removed when
-  # the test exits. The name is random, since System.unique_integer/1 is unique
-  # within one VM only: two suites running at once drew the same name, and one's
-  # cleanup removed the other's directory mid-run. File.mkdir!/1 fails on a name
-  # already taken rather than sharing it.
+  # the test exits; every test that needs one takes it from here. Not ExUnit's
+  # :tmp_dir, which sits in this project: in an agent's worktree its path holds
+  # .claude/worktrees/, which CcusagePopup counts toward the checkout above, and
+  # mise there loads the configs of the repository around it. The name is
+  # random, since System.unique_integer/1 is unique within one VM only: two
+  # suites running at once drew the same name, and one's cleanup removed the
+  # other's directory mid-run. File.mkdir!/1 fails on a name already taken
+  # rather than sharing it.
   def tmp_dir!(prefix) do
     dir =
       Path.join(System.tmp_dir!(), "#{prefix}-#{Base.url_encode64(:crypto.strong_rand_bytes(9))}")
