@@ -450,8 +450,13 @@ defmodule MiseMultiUpgrade do
 end
 
 # Run only when this file is the script elixir was started with, not when a
-# test loads it.
+# test loads it. A non-zero status leaves through `exit({:shutdown, status})`,
+# which elixir's own CLI turns into the exit status on the same way out as a
+# script that ends normally, rather than halting the VM from here.
 with [script | _] <- :init.get_plain_arguments(),
      true <- Path.expand(to_string(script)) == __ENV__.file do
-  System.halt(MiseMultiUpgrade.main(System.argv()))
+  case MiseMultiUpgrade.main(System.argv()) do
+    0 -> :ok
+    status -> exit({:shutdown, status})
+  end
 end
