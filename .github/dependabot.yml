@@ -16,3 +16,18 @@ updates:
       actions:
         patterns:
           - "*"
+
+  # Hex packages of the Mix project. Dependabot's own three-day cooldown already
+  # outlasts the one-day Hex window this machine sets, so none is configured here.
+  - package-ecosystem: "mix"
+    directory: "/elixir"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(elixir)"
+    # One pull request for all of a week's version updates, which auto-merge as
+    # the actions ones do once `elixir-qa` passes.
+    groups:
+      hex:
+        patterns:
+          - "*"
