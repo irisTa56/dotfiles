@@ -88,6 +88,7 @@ run = [
   "claude plugin test .claude/skills/global-hooks",
   "mix format --check-formatted scripts/*.exs",
   "scripts/skills_update_test.exs",
+  "scripts/mise_multi_upgrade_test.exs",
 ]
 
 [tasks."qa:md"]
@@ -215,6 +216,10 @@ find .claude/skills -mindepth 1 -maxdepth 1 | sort | while IFS= read -r p; do
   printf '%s\n' "$managed" | grep -qxF "$p" || echo "$p"
 done
 '''
+
+[tasks."mise:multi-upgrade"]
+description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
+run = "scripts/mise_multi_upgrade.exs"
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
