@@ -75,9 +75,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         with:
-          # skills_update reads its lockfile with yq, and the fake gh in its tests
-          # applies the --jq filter with jq. On an Ubuntu runner mise installs a
-          # precompiled Erlang rather than building it.
+          # The integration tests of skills_update read its lockfile with the real
+          # yq, and their fake gh applies the --jq filter with the real jq; those of
+          # mise_multi_upgrade drive the mise this action installs. On an Ubuntu
+          # runner mise installs a precompiled Erlang rather than building it.
           install_args: erlang elixir yq jq
           cache: false # as in `markdown-lint`
       # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.

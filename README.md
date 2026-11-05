@@ -107,7 +107,9 @@ Under item 3, a script written in Elixir goes in the Mix project under `elixir/`
 - Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.skills_update`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
   - The caller sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the command's own output.
   - Files follow Elixir's layout: the task in `lib/mix/tasks/dotfiles.<name>.ex`, the module doing the work in `lib/dotfiles/<name>.ex`, and a unit test at the same path under `test/`.
-- A test that runs commands through the shell, such as a fake script or a second `mix`, goes in `test/integration/` and is tagged `:integration`, so `mix test --exclude integration` runs the unit tests alone.
+- A module runs every external command through `Dotfiles.Command.cmd/3`, so a unit test answers in each command's place with a handler it installs in `Dotfiles.FakeCommand`, and starts no process; `test_helper.exs` makes that fake the default, so a command the test did not expect fails it.
+- A test that uses a real implementation, such as the real git, mise, yq or jq, a fake shell script, or a second `mix`, goes in `test/integration/` and is tagged `:integration`, so `mix test --exclude integration` runs the unit tests alone and `mise run qa:ex` runs both.
+  - One that runs the module in the test's own VM calls `Dotfiles.TestEnv.real_commands/0`; a second `mix` starts a VM that does not run `test_helper.exs`, where the real commands are already the default.
 - A command that reads a path relative to where it was called from takes that directory as an argument, as `with-new-terminal` takes `--from`, since the task's own working directory is the project.
 
 ## Agent Instructions

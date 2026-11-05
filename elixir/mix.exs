@@ -9,6 +9,7 @@ defmodule Dotfiles.MixProject do
       version: "0.1.0",
       elixir: "~> 1.20",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps()
     ]
   end
@@ -20,6 +21,11 @@ defmodule Dotfiles.MixProject do
       extra_applications: [:logger, :crypto]
     ]
   end
+
+  # The fakes the tests stand in for external commands with, compiled for the
+  # test environment alone.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do

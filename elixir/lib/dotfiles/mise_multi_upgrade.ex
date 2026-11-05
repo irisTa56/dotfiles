@@ -280,20 +280,21 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
   end
 
+  # A missing `pwd` is no reason to stop the run.
   defp resolve(path) do
-    case System.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
+    case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
       _ -> nil
     end
   rescue
-    _ -> nil
+    e in ErlangError -> if missing?(e), do: nil, else: reraise(e, __STACKTRACE__)
   end
 
   # A linked worktree is an agent's short-lived copy of a checkout, and not a
   # place to keep tools current; git tells one apart by a git dir of its own
   # under the common one, wherever the worktree was placed.
   defp linked_worktree?(dir) do
-    case System.cmd(
+    case Dotfiles.Command.cmd(
            "git",
            ["-C", dir, "rev-parse", "--path-format=absolute", "--git-dir", "--git-common-dir"],
            stderr_to_stdout: true
@@ -318,15 +319,24 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # `:unavailable` is what could not be asked, and is kept apart from a version
   # the backend lists without a timestamp: both leave the age unknown, but only
-  # the first means the report is missing something it could have had.
+  # the first means the report is missing something it could have had, as a
+  # missing `mise` does.
   defp remote_versions(tool) do
-    case mise_cmd(["ls-remote", tool, "--json"]) do
-      {out, 0} -> out |> JSON.decode!() |> Map.new(&{&1["version"], &1["created_at"]})
+    with {out, 0} <- mise_cmd(["ls-remote", tool, "--json"]),
+         {:ok, versions} when is_list(versions) <- JSON.decode(out),
+         true <- Enum.all?(versions, &is_map/1) do
+      Map.new(versions, &{&1["version"], &1["created_at"]})
+    else
       _ -> :unavailable
     end
   rescue
-    _ -> :unavailable
+    e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
   end
+
+  # What `System.cmd/3` raises for a command it cannot find. `rescue ErlangError`
+  # alone would also take every raw Erlang error, a FunctionClauseError among
+  # them, so a fake's unexpected call would read as a missing command.
+  defp missing?(e), do: Map.get(e, :original) == :enoent
 
   defp render({where, rows}, dates) do
     cells =
@@ -425,9 +435,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     end
   end
 
-  defp mise_cmd(args, opts \\ []) do
-    Application.get_env(:dotfiles, :mise, Dotfiles.MiseMultiUpgrade.Mise.System).cmd(args, opts)
-  end
+  defp mise_cmd(args, opts \\ []), do: Dotfiles.Command.cmd("mise", args, opts)
 
   defp die(message, code), do: throw({:die, message, code})
 end
