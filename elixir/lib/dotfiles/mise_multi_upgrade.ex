@@ -280,14 +280,14 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
   end
 
-  # A missing `pwd` raises, and is no reason to stop the run.
+  # A missing `pwd` is no reason to stop the run.
   defp resolve(path) do
     case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
       _ -> nil
     end
   rescue
-    _ in ErlangError -> nil
+    e in ErlangError -> if missing?(e), do: nil, else: reraise(e, __STACKTRACE__)
   end
 
   # A linked worktree is an agent's short-lived copy of a checkout, and not a
@@ -319,18 +319,24 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # `:unavailable` is what could not be asked, and is kept apart from a version
   # the backend lists without a timestamp: both leave the age unknown, but only
-  # the first means the report is missing something it could have had. A missing
-  # `mise` raises, and is no reason to stop the run.
+  # the first means the report is missing something it could have had, as a
+  # missing `mise` does.
   defp remote_versions(tool) do
     with {out, 0} <- mise_cmd(["ls-remote", tool, "--json"]),
-         {:ok, versions} when is_list(versions) <- JSON.decode(out) do
+         {:ok, versions} when is_list(versions) <- JSON.decode(out),
+         true <- Enum.all?(versions, &is_map/1) do
       Map.new(versions, &{&1["version"], &1["created_at"]})
     else
       _ -> :unavailable
     end
   rescue
-    _ in ErlangError -> :unavailable
+    e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
   end
+
+  # What `System.cmd/3` raises for a command it cannot find. `rescue ErlangError`
+  # alone would also take every raw Erlang error, a FunctionClauseError among
+  # them, so a fake's unexpected call would read as a missing command.
+  defp missing?(e), do: Map.get(e, :original) == :enoent
 
   defp render({where, rows}, dates) do
     cells =

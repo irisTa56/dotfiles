@@ -422,13 +422,12 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
   # The crashed task logs its error, which is the outcome the test asks for.
   @tag capture_log: true
-  test "does not finish normally when the command runner raises for ls-remote" do
+  test "does not finish normally when the handler has no clause for ls-remote" do
     dir = project("/work/project")
     outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
 
-    FakeCommand.install(fn
-      "mise", ["ls-remote", _, "--json"], _ -> raise "unexpected call"
-      command, args, opts -> answer(command, args, opts)
+    FakeCommand.install(fn command, args, opts when hd(args) != "ls-remote" ->
+      answer(command, args, opts)
     end)
 
     # A raise inside Task.async_stream exits its caller, so main/1 runs in a
@@ -451,12 +450,19 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
   test "reads a mise it cannot start, or output that is not a version list, as release ages unknown" do
     dir = project("/work/project")
-    outdated_in(dir, %{"jq" => {"1.6", "1.7"}, "yq" => {"4.1", "4.2"}, "uv" => {"0.1", "0.2"}})
+
+    outdated_in(dir, %{
+      "jq" => {"1.6", "1.7"},
+      "yq" => {"4.1", "4.2"},
+      "uv" => {"0.1", "0.2"},
+      "gh" => {"2.1", "2.2"}
+    })
 
     FakeCommand.install(fn
       "mise", ["ls-remote", "jq", "--json"], _ -> raise ErlangError, original: :enoent
       "mise", ["ls-remote", "yq", "--json"], _ -> {"not json", 0}
       "mise", ["ls-remote", "uv", "--json"], _ -> {"null", 0}
+      "mise", ["ls-remote", "gh", "--json"], _ -> {~s(["2.1", "2.2"]), 0}
       command, args, opts -> answer(command, args, opts)
     end)
 
@@ -465,6 +471,17 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert out =~ ~r/^jq .*1\.6\s+\?\s+1\.7\s+\?/m
     assert out =~ ~r/^yq .*4\.1\s+\?\s+4\.2\s+\?/m
     assert out =~ ~r/^uv .*0\.1\s+\?\s+0\.2\s+\?/m
+    assert out =~ ~r/^gh .*2\.1\s+\?\s+2\.2\s+\?/m
+  end
+
+  test "fails when the handler has no clause for pwd" do
+    project("/work/project")
+
+    FakeCommand.install(fn command, args, opts when command != "pwd" ->
+      answer(command, args, opts)
+    end)
+
+    assert_raise FunctionClauseError, fn -> run(["--dry-run"], "") end
   end
 
   test "keeps a temporary directory by its own name when pwd cannot be started" do
