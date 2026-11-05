@@ -60,12 +60,13 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
+  # Under /var/tmp rather than System.tmp_dir!, which on Linux is /tmp, a
+  # directory the code leaves out whatever TMPDIR says. /var/tmp also sits
+  # outside the home directory, which the output shortens to ~, and outside
+  # any repository a git call there could find.
   setup do
     dir =
-      Path.join(
-        System.tmp_dir!(),
-        "mise-multi-upgrade-test-#{System.unique_integer([:positive])}"
-      )
+      Path.join("/var/tmp", "mise-multi-upgrade-test-#{System.unique_integer([:positive])}")
       |> tap(&File.mkdir_p!/1)
       |> resolve()
 
