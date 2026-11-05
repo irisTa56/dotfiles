@@ -15,11 +15,11 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
 - Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it. An entry longer than the others of its kind in the document is the sign to check this.
-- A question the user asks about a passage, and what an investigation in the session turned up, answer the user rather than a reader who meets the document after the session:
-  - Answer the question in the conversation, and edit the passage only where the answer shows it wrong or unreadable to that reader.
-  - Add what the investigation turned up only where the document's purpose needs it, and name the addition to the user.
+- Keep a document self-contained for a reader who did not see the session:
+  - Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
+  - Answer the user's question about a passage in the conversation, and edit the passage only where the answer shows the passage does not stand on its own for that reader.
+  - Add what an investigation in the session turned up only where the document's purpose needs it, and, where the document outlives the session, name the addition to the user.
 - After each round of edits, read the whole document against its purpose, not only the lines changed.
-- Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
 - Develop the argument step by step. The reader must never feel a logical leap — they should never suspect the author does not actually understand what they wrote.
 - Do not simplify through omission, and do not reach for a metaphor the reader cannot resolve; say it with a plain verb.
