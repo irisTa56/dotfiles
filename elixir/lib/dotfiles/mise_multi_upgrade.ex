@@ -179,8 +179,14 @@ defmodule Dotfiles.MiseMultiUpgrade do
       |> Task.async_stream(&{&1, rows(&1)}, max_concurrency: 8, timeout: :infinity)
       |> Enum.map(fn {:ok, result} -> result end)
 
-    {for({where, {:ok, rows}} <- results, rows != [], do: {where, rows}),
-     for({where, :error} <- results, do: where)}
+    {groups, skipped} =
+      Enum.reduce(results, {[], []}, fn
+        {_where, {:ok, []}}, acc -> acc
+        {where, {:ok, rows}}, {groups, skipped} -> {[{where, rows} | groups], skipped}
+        {where, :error}, {groups, skipped} -> {groups, [where | skipped]}
+      end)
+
+    {Enum.reverse(groups), Enum.reverse(skipped)}
   end
 
   # Each directory is named by the project root mise loads its config from. The
@@ -219,21 +225,28 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
     |> Enum.sort()
     |> Enum.map(fn tool ->
-      pin = pinned[tool]
-      bump = bumped[tool]
+      # A tool is in either run or both, and mise reports every key below for
+      # each, null where it has no value.
+      pin = Map.get(pinned, tool)
+      bump = Map.get(bumped, tool)
+      %{"requested" => requested, "current" => current} = pin || bump
 
       %{
         tool: tool,
-        requested: (pin || bump)["requested"],
-        current: (pin || bump)["current"],
-        latest: (pin && pin["latest"]) || bump["current"],
-        # `bump` names the version to request; it is null when the request
-        # already reaches the newest version.
-        bump_latest: bump && bump["bump"] && bump["latest"],
+        requested: requested,
+        current: current,
+        latest: if(pin, do: Map.fetch!(pin, "latest"), else: current),
+        bump_latest: bump_latest(bump),
         upgradable: pin != nil
       }
     end)
   end
+
+  # `bump` names the version to request; it is null when the request already
+  # reaches the newest version.
+  defp bump_latest(nil), do: nil
+  defp bump_latest(%{"bump" => nil}), do: nil
+  defp bump_latest(%{"bump" => _version, "latest" => latest}), do: latest
 
   defp label(:global), do: "global"
   defp label(dir), do: abbreviate(dir)
@@ -322,15 +335,28 @@ defmodule Dotfiles.MiseMultiUpgrade do
   # the first means the report is missing something it could have had, as a
   # missing `mise` does.
   defp remote_versions(tool) do
-    with {out, 0} <- mise_cmd(["ls-remote", tool, "--json"]),
-         {:ok, versions} when is_list(versions) <- JSON.decode(out),
-         true <- Enum.all?(versions, &is_map/1) do
-      Map.new(versions, &{&1["version"], &1["created_at"]})
+    with {:ok, out} <- mise(["ls-remote", tool, "--json"]),
+         {:ok, versions} <- version_list(out) do
+      # A backend that dates no release leaves `created_at` out.
+      Map.new(versions, fn %{"version" => version} = v -> {version, v["created_at"]} end)
     else
-      _ -> :unavailable
+      :error -> :unavailable
     end
   rescue
     e in ErlangError -> if missing?(e), do: :unavailable, else: reraise(e, __STACKTRACE__)
+  end
+
+  defp version_list(out) do
+    case JSON.decode(out) do
+      {:ok, versions} when is_list(versions) ->
+        if Enum.all?(versions, &is_map/1), do: {:ok, versions}, else: :error
+
+      {:ok, _not_a_list} ->
+        :error
+
+      {:error, _reason} ->
+        :error
+    end
   end
 
   # What `System.cmd/3` raises for a command it cannot find, and not a fake's

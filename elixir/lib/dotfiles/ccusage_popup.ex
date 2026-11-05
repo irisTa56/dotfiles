@@ -176,7 +176,9 @@ defmodule Dotfiles.CcusagePopup do
   defp line_cwd(line) do
     case JSON.decode(line) do
       {:ok, %{"cwd" => cwd}} when is_binary(cwd) -> cwd
-      _ -> nil
+      # A log's other lines, such as its summary, record no cwd.
+      {:ok, _other} -> nil
+      {:error, _reason} -> nil
     end
   end
 

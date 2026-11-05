@@ -89,12 +89,13 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
   # What `outdated --json` answers in `where` (a project directory, or :global),
   # as %{tool => {current, latest}}: the tools `mise upgrade` there would upgrade.
+  # Each entry has every key mise reports; the request is the current major.
   defp outdated_in(where, tools) do
     set(
       :outdated,
       where,
       Map.new(tools, fn {tool, {current, latest}} ->
-        {tool, %{"current" => current, "latest" => latest, "bump" => nil}}
+        {tool, outdated_entry(current, latest, nil)}
       end)
     )
   end
@@ -106,9 +107,18 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
       :bump,
       where,
       Map.new(tools, fn {tool, {current, latest, bump}} ->
-        {tool, %{"current" => current, "latest" => latest, "bump" => bump}}
+        {tool, outdated_entry(current, latest, bump)}
       end)
     )
+  end
+
+  defp outdated_entry(current, latest, bump) do
+    %{
+      "requested" => current |> String.split(".") |> hd(),
+      "current" => current,
+      "latest" => latest,
+      "bump" => bump
+    }
   end
 
   # The exit status, everything written to stdout and then stderr, and the upgrades run.
@@ -358,7 +368,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert log == []
     refute out =~ "Upgrade "
     assert out =~ ~r/#{a}\n.*\n.*\njq /
-    assert out =~ ~r/#{b}\n.*\n.*\nyq\s+-\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
+    assert out =~ ~r/#{b}\n.*\n.*\nyq\s+3\s+3\.4\s+\?\s+3\.4\s+\?\s+4\.2/
   end
 
   test "asks nothing for a directory newer only past its requests" do
@@ -396,8 +406,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {out, 0, _} = run(["--dry-run"], "")
 
     assert out |> String.split("\nnode ") |> length() == 2
-    assert out =~ ~r/^node\s+-\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
-    assert out =~ ~r/^uv\s+-\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
+    assert out =~ ~r/^node\s+24\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
+    assert out =~ ~r/^uv\s+0\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
   end
 
   test "prints its usage for --help and -h, asking and upgrading nothing" do
