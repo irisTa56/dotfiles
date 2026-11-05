@@ -14,10 +14,9 @@ Apply them only to what you wrote. Do not sweep unrelated existing passages into
 ## Substance and logic
 
 - The purpose of writing is to convey a claim. A claim must have a clear direction — a stance or implication, not a neutral pile of facts.
-- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it; a new entry runs no longer than the document's existing entries of the same kind unless its reader needs more.
-  - Where the document outlives the session for a reader other than the user you work with in it, what the session raises answers the user, not that reader.
-    - Answer the user's question about a passage in the conversation. Edit the passage only where the answer shows it wrong or unreadable to its reader, and then by the smallest change that fixes that.
-    - Add what an investigation in the session turned up only where the document's purpose needs it, and name the addition to the user.
+- Fix the purpose, the reader and the length before writing. Size the detail to what the reader needs, not to the work that went into it. An entry longer than the others of its kind in the document is the sign to check this.
+  - Add what an investigation in the session turned up only where the document's purpose needs it, and name the addition to the user.
+- Answer a question the user asks about a passage in the conversation, since the document's reader did not ask it; edit the passage only where the answer shows it wrong or unreadable to that reader.
 - After each round of edits, read the whole document against its purpose, not only the lines changed.
 - Use a label from a plan or a session, such as a task or step identifier, only where the reader shares it: they can open where it is defined, or the text says what it stands for at its first use.
 - For multi-section documents, maintain a coherent narrative: the reader should be able to follow why each section exists.
