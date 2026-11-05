@@ -144,7 +144,7 @@ defmodule MiseOutdatedAgeTest do
     git(project, ["worktree", "add", "-q", worktree])
     tools(dir, [{"jq", "1", "1.6", "1.7", [config, Path.join(worktree, "mise.toml")]}])
 
-    {out, 0, log} = upgrade(dir, "1 2")
+    {out, 0, log} = upgrade(dir, "1")
 
     refute out =~ worktree
     assert log == ["-C #{project} upgrade --no-global"]
@@ -157,7 +157,7 @@ defmodule MiseOutdatedAgeTest do
     File.write!(Path.join(scratch, "mise.toml"), "")
     tools(dir, [{"jq", "1", "1.6", "1.7", [repo(project), Path.join(scratch, "mise.toml")]}])
 
-    {out, 0, log} = upgrade(dir, "1 2")
+    {out, 0, log} = upgrade(dir, "1")
 
     refute out =~ scratch
     assert log == ["-C #{project} upgrade --no-global"]
@@ -199,6 +199,57 @@ defmodule MiseOutdatedAgeTest do
     assert log == ["-C #{project} upgrade --no-global"]
   end
 
+  test "says so and exits non-zero on a word that is not an offered number", %{dir: dir} do
+    project = Path.join(dir, "project")
+    tools(dir, [{"jq", "1", "1.6", "1.8", [repo(project)]}])
+
+    for answer <- ["1,2", "all", "7"] do
+      File.rm(Path.join(dir, "upgrade.log"))
+
+      {out, code, log} = upgrade(dir, answer)
+      reply = out |> String.split("Upgrade which?") |> List.last()
+
+      assert code != 0, "answer #{inspect(answer)} exited 0"
+      assert reply =~ answer, "answer #{inspect(answer)} was not named in: #{inspect(reply)}"
+      assert log == [], "answer #{inspect(answer)} ran #{inspect(log)}"
+    end
+
+    File.rm(Path.join(dir, "upgrade.log"))
+    {out, code, _log} = upgrade(dir, "1 x")
+
+    assert code != 0
+    assert out |> String.split("Upgrade which?") |> List.last() =~ "x"
+  end
+
+  test "runs nothing and exits 0 on an empty answer", %{dir: dir} do
+    tools(dir, [{"jq", "1", "1.6", "1.7", [repo(Path.join(dir, "project"))]}])
+
+    {_out, 0, log} = upgrade(dir, "")
+
+    assert log == []
+  end
+
+  test "upgrades a directory once when its number is given twice", %{dir: dir} do
+    project = Path.join(dir, "project")
+    tools(dir, [{"jq", "1", "1.6", "1.7", [repo(project)]}])
+
+    {_out, 0, log} = upgrade(dir, "1 1")
+
+    assert log == ["-C #{project} upgrade --no-global"]
+  end
+
+  test "lists a tool once under a directory holding two configs that request it", %{dir: dir} do
+    project = Path.join(dir, "project")
+    config = repo(project)
+    local = Path.join(project, "mise.local.toml")
+    File.write!(local, "")
+    tools(dir, [{"jq", "1", "1.6", "1.7", [config, local]}])
+
+    {out, 0, _log} = upgrade(dir, "")
+
+    assert length(Regex.scan(~r/^\s+jq  /m, out)) == 1
+  end
+
   test "goes on past a failed upgrade and exits non-zero", %{dir: dir} do
     a = Path.join(dir, "a")
     b = Path.join(dir, "b")
@@ -210,5 +261,49 @@ defmodule MiseOutdatedAgeTest do
     assert code != 0
     assert out =~ a
     assert log == ["-C #{a} upgrade --no-global", "-C #{b} upgrade --no-global"]
+  end
+
+  test "leaves out a config under /tmp whatever TMPDIR says", %{dir: dir} do
+    project = Path.join(dir, "project")
+
+    scratch =
+      resolve("/tmp") |> Path.join("mise-outdated-age-test-#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(scratch)
+    on_exit(fn -> File.rm_rf!(scratch) end)
+    File.write!(Path.join(scratch, "mise.toml"), "")
+    tools(dir, [{"jq", "1", "1.6", "1.7", [repo(project), Path.join(scratch, "mise.toml")]}])
+
+    {out, 0, log} = upgrade(dir, "1")
+
+    refute out =~ scratch
+    assert log == ["-C #{project} upgrade --no-global"]
+  end
+
+  test "upgrades every config-directory form from its project root", %{dir: dir} do
+    forms = [
+      ".config/mise/conf.d/a.toml",
+      ".config/mise/config.toml",
+      ".config/mise/mise.toml",
+      ".config/mise.toml",
+      ".mise/config.toml",
+      "mise/config.toml"
+    ]
+
+    projects =
+      for {form, i} <- Enum.with_index(forms) do
+        project = Path.join(dir, "p#{i}")
+        repo(project)
+        config = Path.join(project, form)
+        File.mkdir_p!(Path.dirname(config))
+        File.write!(config, "")
+        {project, config}
+      end
+
+    tools(dir, [{"jq", "1", "1.6", "1.7", Enum.map(projects, &elem(&1, 1))}])
+
+    {_, 0, log} = upgrade(dir, Enum.map_join(1..length(forms), " ", &to_string/1))
+
+    assert log == Enum.map(projects, fn {project, _} -> "-C #{project} upgrade --no-global" end)
   end
 end

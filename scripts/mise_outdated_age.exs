@@ -97,9 +97,17 @@ defmodule MiseOutdatedAge do
         end)
       end)
 
+      chosen =
+        case choose(IO.gets("Upgrade which? (numbers, space-separated) "), length(groups)) do
+          {:ok, chosen} ->
+            chosen
+
+          {:error, bad} ->
+            die("Not an offered number: #{Enum.join(bad, " ")}; nothing upgraded.", 2)
+        end
+
       failed =
-        IO.gets("Upgrade which? (numbers, space-separated) ")
-        |> choose(length(groups))
+        chosen
         |> Enum.map(&elem(Enum.at(groups, &1 - 1), 0))
         |> Enum.reject(&upgraded?/1)
 
@@ -137,7 +145,7 @@ defmodule MiseOutdatedAge do
       if file_id(path) in global, do: {:global, row}, else: {project_dir(path), row}
     end
     |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
-    |> Enum.map(fn {dir, tools} -> {dir, Enum.sort_by(tools, & &1.tool)} end)
+    |> Enum.map(fn {dir, tools} -> {dir, tools |> Enum.uniq() |> Enum.sort_by(& &1.tool)} end)
     |> Enum.reject(fn {dir, _} ->
       dir != :global and (scratch?(dir, temp) or linked_worktree?(dir))
     end)
@@ -201,9 +209,9 @@ defmodule MiseOutdatedAge do
     _ -> nil
   end
 
-  # An agent's worktree is upgraded through the checkout it was cut from, whose
-  # config it copies; git tells one apart by a git dir of its own under the
-  # common one, wherever the worktree was placed.
+  # A linked worktree is an agent's short-lived copy of a checkout, and not a
+  # place to keep tools current; git tells one apart by a git dir of its own
+  # under the common one, wherever the worktree was placed.
   defp linked_worktree?(dir) do
     case System.cmd(
            "git",
@@ -219,19 +227,22 @@ defmodule MiseOutdatedAge do
     end
   end
 
+  # An answer is taken whole or not at all: running the part that parsed would
+  # leave a mistyped group looking upgraded. An empty answer chooses nothing.
   defp choose(answer, count) when is_binary(answer) do
-    answer
-    |> String.split()
-    |> Enum.flat_map(fn word ->
-      case Integer.parse(word) do
-        {n, ""} when n in 1..count//1 -> [n]
-        _ -> []
-      end
-    end)
-    |> Enum.uniq()
+    words = String.split(answer)
+
+    bad =
+      Enum.reject(words, fn word ->
+        match?({n, ""} when n in 1..count//1, Integer.parse(word))
+      end)
+
+    if bad == [],
+      do: {:ok, words |> Enum.map(&String.to_integer/1) |> Enum.uniq()},
+      else: {:error, bad}
   end
 
-  defp choose(_eof, _count), do: []
+  defp choose(_eof, _count), do: {:ok, []}
 
   # Every tool version tracked on this host, as {tool, requested, config paths}.
   # Configs mise still tracks after the file is gone are dropped.
