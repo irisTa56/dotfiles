@@ -69,7 +69,8 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   end
 
   defp outdated(where, rest) do
-    if where == get(:fail)[:outdated] do
+    # `:outdated` names one directory, or a list of them, whose listing fails.
+    if where in List.wrap(get(:fail)[:outdated]) do
       IO.puts(:stderr, "mise ERROR Config files in #{where}/mise.toml are not trusted.")
       {"", 1}
     else
@@ -139,6 +140,33 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
     assert_received {:ended, reason}
     {reason, out}
+  end
+
+  # How a --dry-run main/1 ended, as `ended/1` gives it, with every write to its
+  # group leader answered {:error, reason}.
+  defp writing_fails_with(reason) do
+    leader =
+      spawn_link(fn ->
+        Stream.repeatedly(fn ->
+          receive do
+            {:io_request, from, ref, _request} -> send(from, {:io_reply, ref, {:error, reason}})
+          end
+        end)
+        |> Stream.run()
+      end)
+
+    {pid, ref} =
+      spawn_monitor(fn ->
+        Process.group_leader(self(), leader)
+        Process.exit(self(), {:finished, Dotfiles.MiseMultiUpgrade.main(["--dry-run"])})
+      end)
+
+    receive do
+      {:DOWN, ^ref, :process, ^pid, ended} ->
+        Process.unlink(leader)
+        Process.exit(leader, :kill)
+        ended
+    end
   end
 
   # The exit status, everything written to stdout and then stderr, and the upgrades run.
@@ -377,6 +405,27 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     assert out =~ "Skipped, as mise could not list them: #{b}"
   end
 
+  test "names the directories it skipped in the order it shows directories" do
+    [a, b, c, d] = for name <- ~w(a b c d), do: project("/work/#{name}")
+    for dir <- [a, b, c, d], do: outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+    set(:fail, :outdated, [d, b])
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    assert out =~ "Skipped, as mise could not list them: #{b}, #{d}"
+  end
+
+  # The pipe a report is written to closes when its reader stops early, as with
+  # `| head`, and the next write raises as a group leader answering
+  # {:error, :terminated} makes it; another error answered is not a closed pipe.
+  test "ends a --dry-run report quietly when its reader stops early, and only then" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+
+    assert writing_fails_with(:terminated) == {:finished, 0}
+    refute match?({:finished, _}, writing_fails_with(:enospc))
+  end
+
   test "shows every directory at once with --dry-run, asking and upgrading nothing" do
     a = project("/work/a")
     b = project("/work/b")
@@ -477,10 +526,9 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
 
       {reason, out} = ended(["--dry-run"])
 
-      # A failed match exits with the entry; a failed Map.fetch! with the key,
-      # the entry being in the call that failed.
+      # A failed match exits with the entry, and a failed Map.fetch! with the key.
       assert match?({{:badmatch, ^broken}, _}, reason) or
-               match?({{:badkey, ^key}, [{:erlang, :map_get, [^key, ^broken], _} | _]}, reason),
+               match?({{:badkey, ^key}, _}, reason),
              "#{key}: #{inspect(reason)}\n#{out}"
 
       set(:outdated, dir, %{})
