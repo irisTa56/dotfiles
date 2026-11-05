@@ -43,8 +43,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   def main(argv) do
     case OptionParser.parse(argv, strict: @switches, aliases: [h: :help]) do
       {opts, [], []} ->
-        opts = Keyword.merge(Enum.map(@switches, &{elem(&1, 0), false}), opts)
-        if opts[:help], do: usage(), else: run(opts)
+        # Every switch is a key from here on, false where it was not given.
+        opts = Map.merge(Map.new(@switches, &{elem(&1, 0), false}), Map.new(opts))
+        if opts.help, do: usage(), else: run(opts)
 
       _ ->
         die(@usage, 2)
@@ -83,11 +84,11 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
     failed =
       cond do
-        opts[:dry_run] and groups == [] ->
+        opts.dry_run and groups == [] ->
           IO.puts("All tools are up to date.")
           []
 
-        opts[:dry_run] ->
+        opts.dry_run ->
           writing(fn -> Enum.each(groups, &render(&1, dates)) end)
           []
 
@@ -194,14 +195,14 @@ defmodule Dotfiles.MiseMultiUpgrade do
   # global config's own directory needs no exception: `--no-global` leaves the
   # global config out of a project's view under whatever name it is reached by.
   defp dirs(opts) do
-    temp = if opts[:include_tmpdirs], do: [], else: temp_dirs()
+    temp = if opts.include_tmpdirs, do: [], else: temp_dirs()
 
     mise!(["config", "ls", "--tracked-configs"])
     |> String.split("\n", trim: true)
     |> Enum.map(&project_dir/1)
     |> Enum.uniq()
     |> Enum.reject(fn dir ->
-      scratch?(dir, temp) or (not opts[:include_worktrees] and linked_worktree?(dir))
+      scratch?(dir, temp) or (not opts.include_worktrees and linked_worktree?(dir))
     end)
     |> Enum.sort()
   end
