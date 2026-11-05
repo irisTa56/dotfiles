@@ -80,6 +80,10 @@ jobs:
           # precompiled Erlang rather than building it.
           install_args: erlang elixir yq jq
           cache: false # as in `markdown-lint`
+      # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
+      # mix.lock pins every version, so the runner needs none of the release window
+      # this machine sets in Hex's global config.
+      - run: mix local.hex --force
       - run: mise run qa:ex
 
   link-check-offline:

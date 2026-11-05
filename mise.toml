@@ -125,14 +125,20 @@ run = [
   "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
 ]
 
-# One build, the test one, serves both the warnings check and the suite.
+# One build, the test one, serves the warnings check, credo and the suite. The
+# compiler's warnings include those of Elixir's type checker, which infers types
+# without annotations, so a type check needs no tool of its own here.
+# `--check-locked` fails where mix.exs changed a dependency and mix.lock did not
+# follow; with the locked deps already fetched it changes nothing.
 [tasks."qa:ex"]
-description = "Check formatting of, compile and test the Elixir project"
+description = "Check formatting of, compile, lint and test the Elixir project"
 dir = "{{config_root}}/elixir"
 env = { MIX_ENV = "test" }
 run = [
+  "mix deps.get --check-locked",
   "mix format --check-formatted",
   "mix compile --warnings-as-errors",
+  "mix credo --strict",
   "mix test --warnings-as-errors",
 ]
 
