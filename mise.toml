@@ -193,19 +193,25 @@ description = "Format shell scripts"
 # The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
 run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
 
+# The tasks that start an Elixir command run it with MIX_QUIET: after an edit Mix
+# prints its compile progress to stdout, ahead of the command's own output, where a
+# pipe would read it as that output.
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
 run = "mix dotfiles.ccusage_popup daily"
 
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
 run = "mix dotfiles.ccusage_popup weekly"
 
 [tasks."ccusage:monthly"]
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
 dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
 run = "mix dotfiles.ccusage_popup monthly"
 
 [tasks."skills:push"]
@@ -231,11 +237,13 @@ done
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
 dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
 run = "mix dotfiles.mise_multi_upgrade"
 
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
 dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
 run = "mix dotfiles.skills_update"
 
 [tasks."skills:remove"]

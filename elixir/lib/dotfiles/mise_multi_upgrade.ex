@@ -1,16 +1,3 @@
-# Every call Dotfiles.MiseMultiUpgrade makes to mise goes through this, so a test can
-# answer in mise's place.
-defmodule Dotfiles.MiseMultiUpgrade.Mise do
-  @callback cmd(args :: [String.t()], opts :: keyword()) ::
-              {Collectable.t(), non_neg_integer()}
-end
-
-defmodule Dotfiles.MiseMultiUpgrade.Mise.System do
-  @behaviour Dotfiles.MiseMultiUpgrade.Mise
-  @impl true
-  def cmd(args, opts), do: System.cmd("mise", args, opts)
-end
-
 defmodule Dotfiles.MiseMultiUpgrade do
   @usage """
   Usage: mise run mise:multi-upgrade [--dry-run] [--include-worktrees] [--include-tmpdirs]
@@ -442,23 +429,4 @@ defmodule Dotfiles.MiseMultiUpgrade do
   end
 
   defp die(message, code), do: throw({:die, message, code})
-end
-
-defmodule Mix.Tasks.Dotfiles.MiseMultiUpgrade do
-  @shortdoc "Upgrades mise tools directory by directory, asking for each first"
-  @moduledoc @shortdoc
-  use Mix.Task
-
-  @requirements ["compile"]
-
-  # A non-zero status leaves through `exit({:shutdown, status})`, which elixir's
-  # own CLI turns into the exit status on the same way out as a task that ends
-  # normally, rather than halting the VM from here.
-  @impl true
-  def run(argv) do
-    case Dotfiles.MiseMultiUpgrade.main(argv) do
-      0 -> :ok
-      status -> exit({:shutdown, status})
-    end
-  end
 end

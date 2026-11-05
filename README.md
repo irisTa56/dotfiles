@@ -105,6 +105,9 @@ Take the first of these that fits:
 Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
 
 - Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.skills_update`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
+  - The caller sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the command's own output.
+  - Files follow Elixir's layout: the task in `lib/mix/tasks/dotfiles.<name>.ex`, the module doing the work in `lib/dotfiles/<name>.ex`, and a unit test at the same path under `test/`.
+- A test that runs commands through the shell, such as a fake script or a second `mix`, goes in `test/integration/` and is tagged `:integration`, so `mix test --exclude integration` runs the unit tests alone.
 - A command that reads a path relative to where it was called from takes that directory as an argument, as `with-new-terminal` takes `--from`, since the task's own working directory is the project.
 
 ## Agent Instructions

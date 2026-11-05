@@ -1,3 +1,8 @@
+# A git hook running this suite sets GIT_DIR and the like for its own
+# repository, which would turn every git call here, and the code's, toward
+# that one.
+for {name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: System.delete_env(name)
+
 # Answers in mise's place from what a test has set, and logs every upgrade.
 # Directories are asked about from tasks of their own, so the state lives in an
 # Agent rather than in the test's process.
@@ -454,24 +459,6 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     {_, 0, log} = run([], "y\ny\n")
 
     assert Enum.sort(log) == Enum.sort(Enum.map(projects, &"-C #{&1} upgrade --no-global"))
-  end
-
-  # Started as mix starts the task, which no other test does: only then does
-  # the status `main/1` returns become the exit status.
-  test "exits 2 on an unknown flag and 0 on -h when started as a Mix task" do
-    # In the test environment, whose build this suite has already compiled.
-    mix =
-      &System.cmd("mix", ["dotfiles.mise_multi_upgrade", &1],
-        cd: Path.dirname(Mix.Project.project_file()),
-        env: [{"MIX_ENV", "test"}],
-        stderr_to_stdout: true
-      )
-
-    {out, 2} = mix.("--bogus")
-    assert out =~ "Usage: mise run mise:multi-upgrade"
-
-    {out, 0} = mix.("-h")
-    assert out =~ "Usage: mise run mise:multi-upgrade"
   end
 
   test "fails rather than reading as up to date when mise cannot list its configs" do

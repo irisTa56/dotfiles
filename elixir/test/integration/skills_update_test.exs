@@ -1,5 +1,8 @@
-defmodule Dotfiles.SkillsUpdateTest do
+# Runs the module against fake apm and gh shell scripts, with the real yq
+# reading the lockfile and the real jq applying gh's --jq filter.
+defmodule Dotfiles.Integration.SkillsUpdateTest do
   use ExUnit.Case
+  @moduletag :integration
   import ExUnit.CaptureIO
 
   @old "2026-01-01T00:00:00Z"
