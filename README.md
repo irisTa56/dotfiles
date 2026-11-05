@@ -110,9 +110,6 @@ Take the first of these that fits:
 
 A session in a worktree of this repository also finds the worktree's own copies of both as project instructions, which `.claude/settings.json` excludes through `claudeMdExcludes`, so the main checkout's, reached through those links, are the ones that load there.
 
-`mise bootstrap` links them but leaves out the [rtk hook](https://www.rtk-ai.app/) that `.claude/CLAUDE.md` describes, since every rerun would put back a hook that was taken out.
-Install it by hand with `rtk init -g --hook-only --auto-patch`: hook-only, because the `~/.claude/RTK.md` a plain `rtk init -g` writes and imports is regenerated on every run, and it tells the agent to treat condensed output as complete, against what `.claude/CLAUDE.md` says of `rtk proxy`.
-
 ## Agent Skills
 
 Most skills live under `.claude/skills/`, managed by [APM](https://github.com/microsoft/apm), co-located with the instructions and rules above.
@@ -140,7 +137,6 @@ The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
 
 The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them against the installed CLI's declarations (`mise run ts:types`); Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
-The rtk hook stays in `~/.claude/settings.json`, since `rtk init` writes it there.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
 
