@@ -293,7 +293,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
     |> Enum.uniq()
   end
 
-  # A missing `pwd` is no reason to stop the run.
+  # A missing `pwd` is no reason to stop the run. It is rescued rather than
+  # looked up first, since `System.cmd/3` has no form that returns a missing
+  # command, and `System.find_executable/1` would ask the machine past the fake.
   defp resolve(path) do
     case Dotfiles.Command.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
       {out, 0} -> String.trim(out)
