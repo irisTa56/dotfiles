@@ -309,14 +309,13 @@ defmodule MiseMultiUpgradeTest do
 
     File.write!(Path.join(dir, "fake/outdated_fail"), b)
 
-    {out, _, log} = run(dir, [], "y
-y
-")
+    {out, 0, log} = run(dir, [], "y\ny\n")
 
     assert out =~ ~r/#{Regex.escape(a)}.*jq.*1\.6.*1\.7/s
     assert out =~ ~r/#{Regex.escape(c)}.*jq.*1\.6.*1\.7/s
     assert log == ["-C #{a} upgrade --no-global", "-C #{c} upgrade --no-global"]
     assert out =~ ~r/#{Regex.escape(b)}.*not trusted/s
+    assert out =~ "Skipped, as mise could not list them: #{b}"
   end
 
   test "takes in a linked worktree with --include-worktrees", %{dir: dir} do
@@ -458,6 +457,25 @@ y
     {out, 2, log} = run(dir, ["--bump"], "y\n")
 
     assert out =~ "Usage: mise run mise:multi-upgrade"
+    assert log == []
+  end
+
+  test "says all tools are up to date when --dry-run has no table to show", %{dir: dir} do
+    repo(dir, Path.join(dir, "project"))
+
+    {out, 0, _} = run(dir, ["--dry-run"], "")
+
+    assert out =~ "All tools are up to date."
+  end
+
+  test "says nothing was upgraded when every directory is answered no", %{dir: dir} do
+    project = Path.join(dir, "project")
+    repo(dir, project)
+    outdated_in(dir, project, %{"jq" => {"1.6", "1.7"}})
+
+    {out, 0, log} = run(dir, [], "n\n")
+
+    assert out =~ "Nothing upgraded."
     assert log == []
   end
 end
