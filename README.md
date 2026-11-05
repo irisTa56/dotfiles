@@ -75,7 +75,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
   - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
   - Hex's likewise sits below a project's `mix.exs`, and any `mix` reads it, whatever shell starts it.
-    - It covers `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
+    - It covers `elixir/mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
     - The script updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
     - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
