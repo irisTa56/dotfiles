@@ -319,10 +319,12 @@ defmodule Dotfiles.CcusagePopup do
 
   defp commas(n), do: n |> Integer.to_string() |> String.replace(~r/\B(?=(\d{3})+$)/, ",")
 
-  # ccusage reports each cost as a float in dollars. It is summed as reported and
-  # rounded once here, so a total can differ by a cent from the sum of the cells
-  # shown, where rounding each cost to cents first would put that error in every
-  # cell instead.
+  # ccusage reports each cost as a float in dollars. Every figure shown, a cell or
+  # a total, is its own sum rounded once here, so each is the nearest cent to what
+  # it stands for, and the cells of a row or column need not add up to its total:
+  # over many small costs they can be several cents apart. Rounding each cost to
+  # cents before summing would make them add up by moving every figure off its own
+  # value instead.
   defp money(amount) do
     cents = round(amount * 100)
 
