@@ -1,6 +1,6 @@
 ---
 name: gemini-handoff
-description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini, through a request placed in the user's "Claude Outbox" Drive folder, where no connector tool in the session can make it, whether the connectors lack the operation or the session lacks their editing tool. Use whenever a Google Workspace change runs into something the connector tools cannot do, or the user mentions Claude Outbox or a handoff to Gemini.
+description: Hand a change to a Google Doc, Sheet or Slides file over to Gemini through a request placed in the user's "Claude Outbox" Drive folder. Use whenever a Google Workspace change runs into something no connector tool in the session can do, whether the connectors lack the operation or the session lacks their editing tool, or the user mentions Claude Outbox or a handoff to Gemini.
 ---
 
 # Hand a Workspace change to Gemini
