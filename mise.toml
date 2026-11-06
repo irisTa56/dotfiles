@@ -147,6 +147,11 @@ run = [
   "mix test --warnings-as-errors",
 ]
 
+[tasks."qa:skills"]
+description = "Check that each tracked skill's body fits in what a compaction re-attaches"
+dir = "{{config_root}}/elixir"
+run = "mix dotfiles.skill_size"
+
 # Offline, so a pull request never waits on a third-party host and a host being down
 # never fails one; `link-check:staged` requests the links of the files a commit
 # touches, and `link-check` below requests every link, which CI runs weekly without

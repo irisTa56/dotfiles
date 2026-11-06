@@ -4,18 +4,30 @@
 # so a skill tracked here keeps its body under it and sends what it needs less
 # often to files it reads by path. Length is counted in UTF-16 code units, as
 # JavaScript counts a string's, which is never fewer than its characters.
-defmodule Dotfiles.SkillSizeTest do
-  use ExUnit.Case, async: true
-
-  @root Path.expand("../../..", __DIR__)
-
+defmodule Dotfiles.SkillSize do
   # The re-attached copy opens with a line naming the skill's directory, whose
   # length depends on where the skill was loaded from.
   @limit 20_000 - 200
 
-  # The skills this repository tracks are the ones .gitignore unignores.
-  defp tracked_skills do
-    @root
+  # `root` is the repository whose tracked skills are checked.
+  def main([], root) do
+    over =
+      for name <- tracked_skills(root),
+          length = body_length(root, name),
+          length > @limit,
+          do: {name, length}
+
+    if over != [] do
+      IO.puts(:stderr, "Skill bodies past #{@limit} UTF-16 code units, which a compaction cuts:")
+      Enum.each(over, fn {name, length} -> IO.puts(:stderr, "#{name}: #{length}") end)
+      exit({:shutdown, 1})
+    end
+  end
+
+  # The skills this repository tracks are the ones .gitignore unignores; one of
+  # those directories may hold a plugin rather than a skill.
+  defp tracked_skills(root) do
+    root
     |> Path.join(".gitignore")
     |> File.read!()
     |> String.split("\n")
@@ -25,25 +37,16 @@ defmodule Dotfiles.SkillSizeTest do
         nil -> []
       end
     end)
-    |> Enum.filter(&File.exists?(skill_md(&1)))
+    |> Enum.filter(&File.exists?(skill_md(root, &1)))
   end
 
-  defp skill_md(name), do: Path.join([@root, ".claude/skills", name, "SKILL.md"])
+  defp skill_md(root, name), do: Path.join([root, ".claude/skills", name, "SKILL.md"])
 
   # The copy holds the body without its frontmatter.
-  defp body_length(name) do
+  defp body_length(root, name) do
     [_, _frontmatter, body] =
-      name |> skill_md() |> File.read!() |> String.split("---\n", parts: 3)
+      root |> skill_md(name) |> File.read!() |> String.split("---\n", parts: 3)
 
     body |> :unicode.characters_to_binary(:utf8, :utf16) |> byte_size() |> div(2)
-  end
-
-  test "finds the tracked skills" do
-    assert "review-loop" in tracked_skills()
-  end
-
-  test "each tracked skill's body fits in what a compaction re-attaches" do
-    over = for name <- tracked_skills(), body_length(name) > @limit, do: {name, body_length(name)}
-    assert over == []
   end
 end

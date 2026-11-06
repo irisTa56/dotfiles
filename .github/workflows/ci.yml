@@ -126,6 +126,9 @@ jobs:
         env:
           MIX_ENV: test
       - run: mise run qa:ex
+      # A check of the skills, not of this project, which it runs in only because
+      # Elixir is what this job installs.
+      - run: mise run qa:skills
 
   link-check-offline:
     runs-on: ubuntu-latest
