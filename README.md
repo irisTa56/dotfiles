@@ -110,6 +110,7 @@ Under item 3, a script written in Elixir goes in the Mix project under `elixir/`
 - A test that uses a real implementation, such as the real git, mise, yq or jq, a fake shell script, or a second `mix`, goes in `test/integration/` and is tagged `:integration`, so `mix test --exclude integration` runs the unit tests alone and `mise run qa:ex` runs both.
   - One that runs the module in the test's own VM calls `Dotfiles.TestEnv.real_commands/0`; a second `mix` starts a VM that does not run `test_helper.exs`, where the real commands are already the default.
 - A test that needs a directory takes it from `Dotfiles.TestEnv.tmp_dir!/1` rather than ExUnit's `:tmp_dir`, which sits inside the checkout: in a worktree its path holds `.claude/worktrees/`, and mise there loads this repository's configs.
+- `test/skills/` tests no module: it checks the skills under `.claude/skills/` for what no linter covers, since this project holds the one test runner CI runs.
 - A command that reads a path relative to where it was called from takes that directory as an argument, as `with-new-terminal` takes `--from`, since the task's own working directory is the project.
 
 ## Agent Instructions
