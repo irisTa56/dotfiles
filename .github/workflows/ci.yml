@@ -95,20 +95,24 @@ jobs:
       # a fresh cache, unlike the tool cache `markdown-lint` turns off. This project's
       # own build stays out, so --warnings-as-errors compiles all of it every run; the
       # builds are matched one directory each, since actions/cache hands a matched
-      # directory to tar whole, and an exclusion cannot reach inside it.
+      # directory to tar whole, and an exclusion cannot reach inside it. Hex's
+      # registry cache comes along for qa:ex's offline fetch: with every dependency in
+      # place, the fetch below downloads nothing, and the cache it writes then lacked
+      # credo's entry on a run that restored the rest.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             elixir/deps
             elixir/_build/test/lib/*
             !elixir/_build/test/lib/dotfiles
+            ~/.hex/cache.bin
           key: elixir-deps-${{ runner.os }}-erlang-${{ steps.mise.outputs.erlang }}-elixir-${{ steps.mise.outputs.elixir }}-${{ hashFiles('elixir/mix.lock') }}
       # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
       # mix.lock pins every version, so the runner needs none of the release window
       # this machine sets in Hex's global config.
       - run: mix local.hex --force
-      # qa:ex fetches offline, which this fetch makes possible: it fills Hex's cache,
-      # or finds every dependency in place when the cache above restored them.
+      # qa:ex fetches offline, from Hex's cache, which this fetch fills where the cache
+      # above restored nothing.
       - run: mix deps.get
         working-directory: elixir
         env:
