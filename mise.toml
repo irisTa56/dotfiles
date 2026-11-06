@@ -65,9 +65,9 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 }
 '''
 
-# CI runs each `qa:` task by name as a job of its own (.github/workflows/ci.yml), so a
-# check that belongs in CI goes under `qa:`, and a new `qa:` task needs its own job
-# there too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
+# CI runs each `qa:` task by name in one of its jobs (.github/workflows/ci.yml), so a
+# check that belongs in CI goes under `qa:`, and a new `qa:` task needs a job there
+# too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
 # Claude Code CLI, which CI does not install.
