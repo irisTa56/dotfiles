@@ -30,6 +30,9 @@ env:
   # `mise run` would otherwise install every tool mise.toml lists before running a
   # task, apm-cli included; each job installs only what its task needs instead.
   MISE_TASK_RUN_AUTO_INSTALL: "false"
+  # The postinstall hook in mise.toml sets up this checkout's git hooks, which no job
+  # runs, and every `mise install` would run it.
+  MISE_NO_HOOKS: "1"
 
 jobs:
   markdown-lint:
@@ -68,24 +71,42 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Erlang, Elixir and jq are named in the global config alone, so this job reads
-      # it where the others leave it out; `install_args` still keeps every other tool
-      # it lists uninstalled.
+      # it where the others leave it out.
       MISE_IGNORED_CONFIG_PATHS: ""
+      # In place of the baseline's `install_args`, which limits the action's
+      # `mise install` alone: the global config tracks some thirty tools at `latest`,
+      # and every other mise command, the action's own `mise ls` and `mise env`
+      # among them, would resolve each one's version, which cost this job seconds
+      # per call. The integration tests of skills_update read its lockfile with the
+      # real yq, and their fake gh applies the --jq filter with the real jq; those
+      # of mise_multi_upgrade drive the mise this action installs, after clearing
+      # every MISE_ variable, this one included.
+      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        id: mise
         with:
-          # The integration tests of skills_update read its lockfile with the real
-          # yq, and their fake gh applies the --jq filter with the real jq; those of
-          # mise_multi_upgrade drive the mise this action installs. On an Ubuntu
-          # runner mise installs a precompiled Erlang rather than building it.
-          install_args: erlang elixir yq jq
+          # On an Ubuntu runner mise installs a precompiled Erlang rather than
+          # building it.
           cache: false # as in `markdown-lint`
+      # The dependencies and their builds, most of what qa:ex compiles. The key holds
+      # the Erlang and Elixir the action resolved, so a new release of either starts
+      # a fresh cache, unlike the tool cache `markdown-lint` turns off. This project's
+      # own build stays out, so --warnings-as-errors compiles all of it every run.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            elixir/deps
+            elixir/_build/test/lib
+            !elixir/_build/test/lib/dotfiles
+          key: elixir-deps-${{ runner.os }}-erlang-${{ steps.mise.outputs.erlang }}-elixir-${{ steps.mise.outputs.elixir }}-${{ hashFiles('elixir/mix.lock') }}
       # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
       # mix.lock pins every version, so the runner needs none of the release window
       # this machine sets in Hex's global config.
       - run: mix local.hex --force
-      # qa:ex fetches offline, from Hex's cache, which this fetch fills.
+      # qa:ex fetches offline, which this fetch makes possible: it fills Hex's cache,
+      # or finds every dependency in place when the cache above restored them.
       - run: mix deps.get
         working-directory: elixir
         env:
