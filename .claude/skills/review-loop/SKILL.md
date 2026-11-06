@@ -1,6 +1,6 @@
 ---
 name: review-loop
-description: "Orchestrate an iterate-until-clean review of code you just changed: delegate the review to a subagent, judge each finding, then loop fix and re-review until a round leaves the change untouched, and put the close to the user with what they have to act on. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass. The subagent does the actual review via the raise-findings skill and makes no edits."
+description: "Orchestrate an iterate-until-clean review of code you just changed: a subagent reviews, you judge and fix, and rounds repeat until one leaves the change untouched. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass."
 ---
 
 # Review Loop

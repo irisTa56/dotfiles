@@ -1,6 +1,6 @@
 ---
 name: raise-findings
-description: "Review the change in hand as a senior engineer would and return findings only, each pinned to where it sits. Takes the bar a finding must clear from the `finding-bar` skill, and states what to look for when the deliverable is prose someone executes and when it is code. Makes no edits and never closes by asking which findings to fix, so the invoking side keeps that decision. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
+description: "Review the change in hand, code or prose someone executes, as a senior engineer would, and return findings only, each pinned to where it sits, making no edits. Use for the review half of a review-and-fix cycle, such as the reviewer `review-loop` spawns."
 ---
 
 # Raise Findings

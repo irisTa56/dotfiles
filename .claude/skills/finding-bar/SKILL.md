@@ -1,6 +1,6 @@
 ---
 name: finding-bar
-description: "The bar a review finding must clear to hold, and the proposals that carry a bar of their own instead. Stated once for both sides of a review, so what a reviewer raises and what a fixing side accepts are weighed against the same words. Read it when raising a finding, and when judging one."
+description: "The bar a review finding must clear to hold, and the proposals that carry a bar of their own instead. Read it when raising a finding, and when judging one."
 ---
 
 # The Finding Bar
