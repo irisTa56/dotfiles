@@ -23,7 +23,8 @@ rumdl = "latest"
 rust = "latest"
 shellcheck = "latest"
 shfmt = "latest"
-trufflehog = "latest"
+# Zed's TOML extension runs whatever `taplo` is on PATH, so the shim must resolve everywhere.
+taplo = "latest"
 uv = "latest"
 "cargo:trunk" = "latest"
 # Its release assets are bare binaries named `<os>-<arch>`, and mise strips the arch suffix
