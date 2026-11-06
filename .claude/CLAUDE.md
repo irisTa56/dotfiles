@@ -52,6 +52,7 @@
 - Pass a subagent `model: "haiku"` where Haiku can still do the delegated work well, or the model the user or a skill names for it; pass no model otherwise.
   - Give Haiku a task that reaches an external system, or needs to write outside a scratch or temporary directory, only where the brief names each command or call that does so.
 - Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
+- Before starting a session, confirm with the user whether to start it, the folder it will run in, and whether it gets a worktree, leaving out what they already specified.
 
 ## Task-specific policies
 
