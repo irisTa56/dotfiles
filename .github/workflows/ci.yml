@@ -93,12 +93,14 @@ jobs:
       # The dependencies and their builds, most of what qa:ex compiles. The key holds
       # the Erlang and Elixir the action resolved, so a new release of either starts
       # a fresh cache, unlike the tool cache `markdown-lint` turns off. This project's
-      # own build stays out, so --warnings-as-errors compiles all of it every run.
+      # own build stays out, so --warnings-as-errors compiles all of it every run; the
+      # builds are matched one directory each, since actions/cache hands a matched
+      # directory to tar whole, and an exclusion cannot reach inside it.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             elixir/deps
-            elixir/_build/test/lib
+            elixir/_build/test/lib/*
             !elixir/_build/test/lib/dotfiles
           key: elixir-deps-${{ runner.os }}-erlang-${{ steps.mise.outputs.erlang }}-elixir-${{ steps.mise.outputs.elixir }}-${{ hashFiles('elixir/mix.lock') }}
       # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
