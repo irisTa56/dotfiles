@@ -26,6 +26,7 @@
 
 - Use Japanese for dialogue with the user, in `常体`; a question or request to the user, or word of what you need from them next, takes a light `敬体` without `尊敬語` or `謙譲語`.
 - Use English for code (including code comments and in-code documentation), config files, commit messages, and agent-facing documentation.
+- Write a prompt that starts another session — `start_session`'s brief, `hand_off_to_session`'s plan — in Japanese, since that session talks with the user and its first prompt pulls its replies toward its own language; a subagent's prompt stays in English.
 - For other human-facing documentation and PRs/issues, follow the repository's conventions (ask the user when unsure).
 - Say what a term refers to the first time you use one the user has not — a label coined for this work, or one lifted from a file you are working from.
 - Use a demonstrative only where its referent is unique and recent.
