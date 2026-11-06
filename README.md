@@ -48,7 +48,6 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 - Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
 - Sets npm's `min-release-age` in `~/.npmrc`.
 - Updates Hex and sets its `cooldown` in `~/.hex/hex.config`.
-- Sets pitchfork's `general.shell` and `boot.executable` in `~/.config/pitchfork/config.toml`.
 - Encrypts rclone's config with a password it keeps in the login keychain.
 
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
@@ -86,7 +85,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
     - uv: `UV_EXCLUDE_NEWER=false uvx …`.
     - Hex, in a project: `HEX_COOLDOWN=0d mix deps.update <dep>`.
     - Hex, in a `Mix.install` script: `HEX_COOLDOWN=0d MIX_INSTALL_FORCE=1 elixir <script>`; without `MIX_INSTALL_FORCE` the script loads what it cached and resolves nothing.
-- pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so the script sets pitchfork's `general.shell` to `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
+- pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so pitchfork's `general.shell` has to be `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
 
 ### Where a script goes
 

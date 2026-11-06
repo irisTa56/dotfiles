@@ -18,9 +18,6 @@ lychee = "latest"
 mkcert = "latest"
 ollama = "latest"
 pandoc = "latest"
-# An upgrade leaves the old supervisor running on the old binary until something restarts it.
-# The login registration needs no such move: `setup:dotfiles` pins it to the `latest` symlink.
-pitchfork = { version = "latest", postinstall = '"$MISE_TOOL_INSTALL_PATH/pitchfork" supervisor start --force' }
 rclone = "latest"
 rumdl = "latest"
 rust = "latest"

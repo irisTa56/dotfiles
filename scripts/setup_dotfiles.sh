@@ -47,19 +47,6 @@ mix local.hex --force
 env -u MIX_HOME -u MIX_ARCHIVES mix local.hex --force
 mix hex.config cooldown 1d
 
-# launchd starts the pitchfork supervisor with no shell environment,
-# and its default `sh -c` reads no startup file, so a daemon running rclone
-# would get no RCLONE_PASSWORD_COMMAND and stall on the password prompt.
-# zsh reads .zshenv even non-interactively. One key set in place: the file
-# also holds the namespaces `mise daemons` registers, which differ per machine.
-pitchfork settings set --global general.shell "/bin/zsh -c"
-
-# `pitchfork boot enable` otherwise writes the versioned install path into
-# the launchd registration, which `mise prune` deletes after an upgrade,
-# and the supervisor then stops starting at login without a word.
-# mise's `latest` symlink follows the upgrade.
-pitchfork settings set --global boot.executable "$HOME/.local/share/mise/installs/pitchfork/latest/pitchfork"
-
 # rclone's config is encrypted with a password that RCLONE_PASSWORD_COMMAND
 # reads from the login keychain. The command is taken from zsh, whose .zshenv
 # states it, so it is written once; this run's own environment may predate
