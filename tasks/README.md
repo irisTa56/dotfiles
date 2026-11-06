@@ -45,7 +45,7 @@ It runs trufflehog over the commits a push is about to send, and fails the push 
 trufflehog walks the ref's whole history and the task answers for the part of it the push would send, so the wait scales with the repository rather than with the push: a second or so over a few hundred commits, four over ten thousand.
 `secrets:commit-scan` gates each commit, but gitleaks' default rules miss a credential embedded in a connection string or a URL, and so does [GitHub's push protection](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns) as it comes: by default it covers provider tokens, the generic connection-string patterns only once configured, and a URL carrying `user:pass@` under no pattern at all.
 What trufflehog closes of that gap is neither a class of credential nor the [detectors it ships](https://github.com/trufflesecurity/trufflehog/tree/v3.97.5/pkg/detectors): on 3.97.5, `mssql://user:pass@host` goes unreported although a `sqlserver` detector is there, while the same credential written as `Server=…;Password=…;` is reported.
-So a push this passes is not an assurance that some particular form was looked for, and committing that form to a scratch repository and running trufflehog over it is what answers whether it would be.
+So a push this passes is not an assurance that some particular form was looked for.
 
 It reads the pushed refs from stdin and takes the remote's name from its first argument, so a pre-push hook is the only caller it works for.
 mise writes one, resolving the shared hooks directory from a linked worktree as well:
