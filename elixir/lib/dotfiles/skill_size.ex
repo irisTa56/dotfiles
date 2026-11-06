@@ -11,8 +11,17 @@ defmodule Dotfiles.SkillSize do
 
   # `root` is the repository whose tracked skills are checked.
   def main([], root) do
+    # A .gitignore this no longer reads would otherwise leave nothing to check and
+    # pass, while the skills it was there to hold grow past the cut.
+    skills = tracked_skills(root)
+
+    if skills == [] do
+      IO.puts(:stderr, "No tracked skill found in .gitignore to check.")
+      exit({:shutdown, 1})
+    end
+
     over =
-      for name <- tracked_skills(root),
+      for name <- skills,
           length = body_length(root, name),
           length > @limit,
           do: {name, length}

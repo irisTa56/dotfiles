@@ -76,8 +76,20 @@ defmodule Dotfiles.SkillSizeTest do
   # Vendored skills are restored from upstream on every install, so their length
   # is not this repository's to keep.
   test "leaves out a skill .gitignore does not unignore" do
-    root = repo([], [{"vendored", skill(String.duplicate("a", @limit + 1))}])
+    root =
+      repo(["own"], [
+        {"own", skill("a")},
+        {"vendored", skill(String.duplicate("a", @limit + 1))}
+      ])
 
     assert run(root) == {"", 0}
+  end
+
+  test "fails when no skill is checked at all" do
+    root = repo([], [])
+
+    {_out, code} = run(root)
+
+    assert code != 0
   end
 end
