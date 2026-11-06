@@ -1,6 +1,5 @@
 # Closing
 
-- **The stopping rule.** A loose fix bar puts termination out of reach, so a finding that would loosen the rule rather than inspect the bar is answered from the closing rule in [SKILL.md](../SKILL.md#closing).
 - **What the close carries.** What the user has to act on, reaching them with the close and not after it:
   - the behaviour the rounds added, altered or removed;
   - what the last round did to the record, which no reviewer read;

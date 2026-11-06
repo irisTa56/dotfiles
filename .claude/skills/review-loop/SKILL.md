@@ -139,7 +139,9 @@ Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run t
 The loop closes on a round that left the change untouched; it can return findings and still be the last, and what it did to the record does not enter.
 The loop proposes that close and the user makes it.
 
-Before proposing it, read [references/closing.md](references/closing.md) and do what it says: what the close carries, who selects the carry-over and how its selection is checked, and how the record is closed.
+- **The stopping rule.** A loose fix bar puts termination out of reach, so a finding that would loosen the rule rather than inspect the bar is answered from this decision.
+
+Before proposing the close, once the user makes it, and before any edit after it, read [references/closing.md](references/closing.md) and do what it says: what the close carries, who selects the carry-over and how its selection is checked, how the record is closed, and what may land after.
 
 ### Waiting on the user
 
