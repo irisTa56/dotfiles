@@ -1,0 +1,33 @@
+# Before the First Round
+
+- **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
+  - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
+  - A record whose last line opens `## Closed` is a finished loop's: set both its files aside under a name that says which loop it was.
+  - A record holding both sections in one file is an older loop's: move its background into the background directory before anything reads it.
+  - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
+  - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
+  - Nothing found means a fresh loop: create the record.
+- **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
+  - Take it from the first of these that names one, in the order the purpose is taken:
+    - the user;
+    - a resumed record;
+    - the workflow that invoked this loop;
+    - your own derivation.
+  - Derive it, where none of those named one, from what the branch shows, taking the first of these that describes where this change starts and asking the user where neither does:
+    - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
+    - the point the branch left the default branch.
+  - Where it is a closed record's commit and that commit holds fixes landed after the last round whose reviewer returned, no round read them: say so to the user and ask whether this change starts before them, waiting for the answer.
+  - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
+- **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
+  - the user;
+  - a resumed record;
+  - the workflow that invoked this loop;
+  - the diff against that baseline, read as a whole.
+- **State it as an outcome**, the one the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
+- **Write the title the change would go up under** from the pinned purpose, in the form this repository's convention takes.
+  - The record holds a title written from the purpose currently pinned and stated to the user; a resumed record's stands where that is the one it was written from.
+  - Note it in the verdict section rather than the background: it is the loop's own bookkeeping, and nothing a reviewer does turns on it.
+  - It names what the change does at the grain the purpose does, since one that would equally name a change the purpose does not reach never stops fitting.
+- **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
+- **Fill the background** before the first round.
+  - Enter a user's decision in their own words, quoted — an option they picked counts as the option's text — and anything you composed beyond them as the loop's inference: a paraphrase dressed as a user decision misleads every reviewer and would be shielded from re-judging.

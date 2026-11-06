@@ -34,55 +34,22 @@ It has two sections, each a file of its own, so a reviewer can be handed the bac
 
 The sections divide by reader: the background is written for the reviewer, the verdicts for this loop, and a ground both readers need may be owed to both.
 The verdict section is never sent whole or quoted to a reviewer; what one needs from it travels in what "Opening the round" derives.
-The close's selector, below, is the one reader that gets it whole.
+The close's selector, in [references/closing.md](references/closing.md), is the one reader that gets it whole.
 
-What a round enters, and how the record ends:
+What a round enters:
 
 - **Every outcome.** Enter it in the verdict section.
   - An outcome is anything the round disposed of or decided, an answer the user gave it included, whatever verdict it took and whether or not a finding forced it.
   - An entry has to be actable without redoing the round, which for a consistency sweep means saying what each axis reached, or that the axis reached nothing.
-- **Closing the record.** Append to the verdict section one last line holding `## Closed` and the commit the branch stood at, rather than deleting the record, which would take everything the close reports as carried over with it.
-  - The next loop on this branch reads that commit as where its own change starts, which holds for as much of the closing loop's change as it committed: the rest sits ahead of that commit.
-- **After the close.** No fix lands under `## Closed`, whatever reopened the item and whatever the close reported it as: what the close buys is that no fix ships unread, and an edit under `## Closed` spends that.
-  - Reopen the record and let a round review the fix, or report the re-judging and leave the item.
 
 ## Before the first round
 
 State what this change is for before the first round, and hold every later round to that statement — re-inferring it from a diff the rounds grew turns the bound into a ratchet.
 
-- **Find the record first**, before anything else: this branch's path first, then — since a branch switch strands a record under the old name — the rest of the record directory, at every depth, for an unmarked record whose content matches.
-  - An unmarked record of this work at this branch's path is an interrupted loop: resume it, adding to its background rather than composing one over it.
-  - A record whose last line opens `## Closed` is a finished loop's: set both its files aside under a name that says which loop it was.
-  - A record holding both sections in one file is an older loop's: move its background into the background directory before anything reads it.
-  - A record the workflow that invoked this loop names as this work's is placed by that naming: resume it where it is unmarked, and read its closing commit as where this change starts where it is closed.
-  - Anything else — a match under another branch's name, a record you cannot place — goes to the user before you touch it.
-  - Nothing found means a fresh loop: create the record.
-- **Pin the diff baseline** to the state the change started from, as the commit it names rather than as a branch or `HEAD`, and record it in the verdict section.
-  - Take it from the first of these that names one, in the order the purpose is taken:
-    - the user;
-    - a resumed record;
-    - the workflow that invoked this loop;
-    - your own derivation.
-  - Derive it, where none of those named one, from what the branch shows, taking the first of these that describes where this change starts and asking the user where neither does:
-    - the commit a closed loop's record notes at its close, looked for under the name it was set aside as;
-    - the point the branch left the default branch.
-  - Where it is a closed record's commit and that commit holds fixes landed after the last round whose reviewer returned, no round read them: say so to the user and ask whether this change starts before them, waiting for the answer.
-  - Where you have reason to doubt the one you pinned, record that beside it and say so where you state the purpose and the title, since moving it later re-scopes what the rounds judged against it.
-- **Where the purpose comes from.** Take it from the first of these that states one, and say which source it came from:
-  - the user;
-  - a resumed record;
-  - the workflow that invoked this loop;
-  - the diff against that baseline, read as a whole.
-- **State it as an outcome**, the one the change is for; where the background also names the files the change touches, that describes the change and does not narrow the bound.
-- **Write the title the change would go up under** from the pinned purpose, in the form this repository's convention takes.
-  - The record holds a title written from the purpose currently pinned and stated to the user; a resumed record's stands where that is the one it was written from.
-  - Note it in the verdict section rather than the background: it is the loop's own bookkeeping, and nothing a reviewer does turns on it.
-  - It names what the change does at the grain the purpose does, since one that would equally name a change the purpose does not reach never stops fitting.
-- **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
+Before the first round, and on resuming a loop, read [references/first-round.md](references/first-round.md) and do what it says: it finds the record, pins the diff baseline, the purpose and the title, and fills the background.
+
 - **What the pinned purpose serves.** As the background currently holds it, it serves as `address-finding`'s purpose statement for every round; restate it only when putting an excess to the user, who is judging against it.
   - The constraints the background states go to it alongside, as part of the bar its fix discipline holds the fix to.
-- **Fill the background** before the first round.
-  - Enter a user's decision in their own words, quoted — an option they picked counts as the option's text — and anything you composed beyond them as the loop's inference: a paraphrase dressed as a user decision misleads every reviewer and would be shielded from re-judging.
 - **Work already landed** is in-bound for later rounds, and licenses no further excursion past the purpose.
 
 ## The round
@@ -128,20 +95,16 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 - **The bar a fix clears.** It is `finding-bar`'s — or, where the finding is a removal, `finding-bar`'s removal bar, and where it is a standard violation, `address-finding`'s standard criterion — read off the deliverable and never off what the loop has spent. Where nothing clears that bar the round MUST apply nothing, which is a correct outcome and not a failed one.
 - **The floor.** A valid finding is not fixed for its own sake where the use the change is built for makes it excessive; that judgement is yours.
   - Name in the round's message every finding you floored and the use you weighed it against, so the user can say otherwise.
-  - Weigh it against the use the background states, asking first whether the condition the finding names arises in that use; the change's own text describing the condition is not evidence that it does, and where nothing the user said or the background states shows it, that question is not yours, as "Waiting on the user" says.
+  - Weigh it against the use the background states, asking first whether the condition the finding names arises in that use; the change's own text describing the condition is not evidence that it does, and where nothing the user said or the background states shows it, that question is not yours, as [references/waiting.md](references/waiting.md) says.
   - A finding you disagree with on its merits is answered on the bar and rejected, which leaves nothing to ride along.
   - Nothing floors a finding proposing a removal, or one against the background: judge and fix it for its own sake, whatever else the round lands.
   - Anything else a floored finding proposes is applied only where a fix the floor does not cover already edits what it names.
   - What is applied that way is checked against the purpose, the decisions already taken, and the sites it touches.
-- **The probe.** Trying the text on a reader is the loop's to run, not the reviewer's: a finding claiming a reader acts wrongly under the text predicts a behaviour, and putting the text in front of one measures it.
-  - Run it before accepting a finding whose harm is a reader act nothing has yet produced; establishing the mechanism that would make the act possible is not producing the act, nor is the reviewer's own reading of the text. Two things exit it: the floor already covering the finding, and a reader you cannot put the text to.
-  - Put the text where its reader would meet it, and a task its scenario calls for, to a fresh subagent, spawned and waited for as the reviewer is, whose prompt bars it from changing anything or reading under the common git dir, the record directory or the background directory, and read the wrong act off what it produces.
-  - Compose the task without the finding's framing or the reading it names — a reader handed the wrong reading takes it, and one asked about a sentence finds it.
-  - A run that never engaged the task shows nothing and is replaced.
+- **The probe.** Before accepting a finding whose harm is a reader act nothing has yet produced, run the probe [references/probe.md](references/probe.md) describes.
 - **A finding against the background.** A valid one against the background rather than the change is answered by correcting the background; never edit the change to make an argument come out right.
   - What the user stated in their own words — the purpose, a constraint, a question they settled — is not yours to rewrite: put the refutation to them in the round's message, without waiting, and their answer updates the background in their own words.
     - Enter it in the verdict section meanwhile.
-    - An objection to the pinned purpose is the exception: it waits, as "Waiting on the user" says.
+    - An objection to the pinned purpose is the exception: it waits, as [references/waiting.md](references/waiting.md) says.
 - **Re-raising.** Anything the record disposed of and a later round raises again is answered from the record where it comes back with no evidence the record does not already answer, and judged afresh on its merits where it does, from the record's reasoning rather than its verdict.
   - A loop spawning fresh reviewers produces recurrence by design, so recurrence is not evidence against the verdict.
   - Distinct findings clustering on one mechanism are `address-finding`'s same-mechanism signal, not recurrence.
@@ -176,23 +139,7 @@ Fix the valid ones with `address-finding`, then spawn a fresh reviewer and run t
 The loop closes on a round that left the change untouched; it can return findings and still be the last, and what it did to the record does not enter.
 The loop proposes that close and the user makes it.
 
-- **The stopping rule.** A loose fix bar puts termination out of reach, so a finding that would loosen the rule rather than inspect the bar is answered from this decision.
-- **What the close carries.** What the user has to act on, reaching them with the close and not after it:
-  - the behaviour the rounds added, altered or removed;
-  - what the last round did to the record, which no reviewer read;
-  - the carry-over, which the selection below derives rather than the loop, and which the check after it narrows.
-- **What the close does not name.** A finding the loop itself rejected or floored: the round that decided it reported it then, so drop it from the selector's answer.
-- **Who selects the carry-over.** Spawn a fresh subagent and wait for it as the reviewer is, at the reviewer's effort.
-  - **Bar it from opening a file or running anything**, so everything it weighs is in the prompt — which keeps the wait at seconds.
-  - **What it gets**, and nothing else of yours: both files of the record whole, `finding-bar` copied whole to weigh each item against, its brief, and no candidates — it derives the carry-over as well as selects it.
-    - **The brief**: what the user has to act on, out of the verdict section and what the background records the change does not cover.
-      - **What clears it**: what the rounds left open, that no decision of the loop's or the user's has already placed, and that this change or its use waits on rather than any later one.
-- **Check what it selected.** Settle, by reading or by running what writes nothing in the tree, each item of the selector's answer that this session can settle, since the selector was barred from doing so.
-  - Enter what each check read or ran and what it returned in the background, as a fact a round established, and the item's disposal in the last round's verdict group, so no later reviewer, selector or reader of the record takes the item as still open.
-  - Carry a settled item only where what the check found still leaves the user something to act on.
-    - Name each item it withdraws in one line, with what settled it, so the user can say otherwise: no round reported it, as one did a rejected or floored finding.
-  - Where the check finds the change wrong, judge that as a finding: run another round only where a fix lands, and otherwise report the verdict in the close, as a round reports one.
-  - Carry the rest as it came.
+Before proposing it, read [references/closing.md](references/closing.md) and do what it says: what the close carries, who selects the carry-over and how its selection is checked, and how the record is closed.
 
 ### Waiting on the user
 
@@ -200,36 +147,20 @@ Where the round needs the user, everything it needs them for goes to them togeth
 
 - **The answer is theirs alone.** It comes from the user and no one else, the loop included; the one thing this message may take as given is the continue the hold below reads out of a settlement.
   - **Where none comes**, record the held state — what was put to them, what each answer would change, the would-be verdicts — in the verdict section, leave the record unclosed, and end the run with the held state as its result.
-- **What a settlement of theirs does.** It reaches the background in their own words, as a constraint on what the change may be, whether or not a question put it to them.
-  - **Re-weigh before acting.** A settlement re-frames what the round was about to do, its held edits and its other questions alike, so weigh those against it rather than acting on the answers as they were framed.
-  - Where the settlement re-pins the purpose, the title is written afresh under `## Before the first round` before the round goes on.
+
+When the user answers, or a round meets any of these, read [references/waiting.md](references/waiting.md) before acting on it:
+
+- a fix reaching past the purpose bound;
+- a valid finding outside the floor that the loop cannot fix;
+- a fix whose worth turns on whether its situation arises;
+- something staying outside the change;
+- an objection to the pinned purpose;
+- a flawed spec, or a prescribing claim the fix contradicts.
 
 The hold, which stops a round that is refining the loop's own work:
 
 - **The trigger.** Before applying any edit you MUST read the verdict groups: when consecutive rounds' edits have landed mainly on what earlier rounds added — in the change or the background — and this round's accepted findings outside the floor land there again, the loop is refining its own additions: hold the round's edits, put the round's open question to the user in the round's message, and wait.
 - **What the two answers mean.** Continue means apply and go on; stop means close with the held findings reported as left unfixed — so no fix ever ships unreviewed.
-- **What the message carries.** The counts "Opening the round" reports and what the rounds they count landed, so a continue is weighed against what the loop has taken rather than against how long it has run.
-  - **Describe each finding as its own verdict describes it.** One you accepted is above the bar by that verdict, so calling it a preference or a matter of wording to strengthen the case for stopping misreports your own decision to the person deciding.
-  - **The question.** Name what the rounds could not settle for themselves and what would settle it, and put that to them; where nothing is left for them, say so and put continuing alone.
-  - **The menu.** Say what the rounds kept trying to do and whether what they produced serves it, before listing anything.
-    - Then give the answers, what each costs, and which you recommend, including a continue that asks them what to narrow the later rounds' raising to, and at least one other no round produced; a menu built only from the rounds' own history keeps the decision inside the frame that generated the findings.
-- **Reading their answer.** One that settles the question and says nothing of going on is a continue under what it settled; one that continues and settles nothing is a continue too, and the question it left goes to the close.
-  - One taking the menu's narrowing without saying what to narrow to is not a continue: ask what to narrow to, and wait.
-  - **What you read out of it is yours.** Quote them where you tell them what they decided, and NEVER give your reading of it back to them as their words.
-  - Their stop voids the round's other answers and the close names what it voided; what they settled is not among them, since it settles what the change may be rather than the round.
   - Their continue governs every round that follows, restarting the tally rather than retiring the question, though what earlier rounds added keeps counting from the loop's start.
 
-What else the round waits on, or surfaces without waiting:
-
-- **A fix reaching past the purpose bound** puts one question — extend the change, carve it out, or leave it.
-  - Apply it yourself, without waiting, where it is one edit: undoing one edit costs them less than answering for it.
-  - Otherwise carve it out yourself, without waiting, where the excess separates cleanly — what stays behind is coherent and correct without it.
-  - Tell the user in the round's message which of these you took, and recommend extending where the excess costs less to do than to carry.
-    - Their extend pulls the carved-out part back into the round's work.
-  - Wait where it does not separate cleanly.
-- **A valid finding outside the floor that the loop cannot fix** is put as carve it out or leave it, and waits for the answer.
-- **A fix whose worth turns on whether its situation arises** is NEVER yours to settle: leave it, and surface it in the round's message so they can say otherwise.
-  - Running the mechanism establishes that it works, never that anyone reaches it, and the deployment is theirs to know.
-- **What stays outside the change**, whatever left it there, MUST go into the background as what it does not cover.
-- **An objection to the pinned purpose** waits, the first time it is raised — only the user can re-pin it.
-- **A flawed spec, or a prescribing claim the fix contradicts**, waits on nothing: the loop is barred from fixing either whatever the answer. Surface each once.
+When the hold fires, read [references/hold.md](references/hold.md) for what its message carries and how to read the answer.
