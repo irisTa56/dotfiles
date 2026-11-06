@@ -1,6 +1,7 @@
-// Reads a review-loop record (review-loop/SKILL.md, "The record"). A model keeps
-// the file as prose, so this parses loosely and answers undefined, which shows
-// no status, wherever it cannot tell.
+// Reads a review-loop record (review-loop/SKILL.md, "The record"; its closing
+// line, review-loop/references/closing.md). A model keeps the file as prose, so
+// this parses loosely and answers undefined, which shows no status, wherever it
+// cannot tell.
 
 export type OpenRecord = {
   // The highest round a verdict group names; 0 before the first one.
