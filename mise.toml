@@ -172,7 +172,7 @@ test "$mise_python" = "$uv_pin" || {
 '''
 
 [tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, pitchfork shell and boot path, rclone config encryption)"
+description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
 run = "scripts/setup_dotfiles.sh"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
