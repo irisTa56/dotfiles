@@ -11,12 +11,12 @@ defmodule Dotfiles.SkillSize do
 
   # `root` is the repository whose tracked skills are checked.
   def main([], root) do
-    # A .gitignore this no longer reads would otherwise leave nothing to check and
-    # pass, while the skills it was there to hold grow past the cut.
+    # Run where git lists nothing, as from a directory that is not this
+    # repository, the check would otherwise pass having read no skill.
     skills = tracked_skills(root)
 
     if skills == [] do
-      IO.puts(:stderr, "No tracked skill found in .gitignore to check.")
+      IO.puts(:stderr, "git tracks no skill under #{root} to check.")
       exit({:shutdown, 1})
     end
 
@@ -33,20 +33,27 @@ defmodule Dotfiles.SkillSize do
     end
   end
 
-  # The skills this repository tracks are the ones .gitignore unignores; one of
-  # those directories may hold a plugin rather than a skill.
+  # Asked of git rather than read off .gitignore, whose unignore lines can take
+  # more than one form. The index counts, so a skill staged for the commit being
+  # made is checked. `glob` keeps `*` to one directory level.
   defp tracked_skills(root) do
-    root
-    |> Path.join(".gitignore")
-    |> File.read!()
-    |> String.split("\n")
-    |> Enum.flat_map(fn line ->
-      case Regex.run(~r{^!/\.claude/skills/([^/]+)/$}, line) do
-        [_, name] -> [name]
-        nil -> []
-      end
-    end)
-    |> Enum.filter(&File.exists?(skill_md(root, &1)))
+    # git's own message reaches stderr directly, and stays out of the list.
+    case Dotfiles.Command.cmd("git", [
+           "-C",
+           root,
+           "ls-files",
+           "-z",
+           "--",
+           ":(glob).claude/skills/*/SKILL.md"
+         ]) do
+      {out, 0} ->
+        for path <- String.split(out, <<0>>, trim: true),
+            do: path |> Path.dirname() |> Path.basename()
+
+      {_, code} ->
+        IO.puts(:stderr, "git ls-files failed (exit #{code})")
+        exit({:shutdown, 1})
+    end
   end
 
   defp skill_md(root, name), do: Path.join([root, ".claude/skills", name, "SKILL.md"])

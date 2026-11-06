@@ -1,24 +1,15 @@
 defmodule Dotfiles.SkillSizeTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import ExUnit.CaptureIO
 
-  alias Dotfiles.TestEnv
+  alias Dotfiles.FakeCommand
 
   @limit 19_800
 
-  # A repository root whose .gitignore unignores `tracked`, holding each skill in
-  # `skills` as {name, SKILL.md content}.
-  defp repo(tracked, skills) do
-    root = TestEnv.tmp_dir!("skill-size")
-
-    File.write!(
-      Path.join(root, ".gitignore"),
-      Enum.map_join(
-        ["/.claude/skills/*" | Enum.map(tracked, &"!/.claude/skills/#{&1}/")],
-        "",
-        &"#{&1}\n"
-      )
-    )
+  # A repository root holding each skill in `skills` as {name, SKILL.md content},
+  # every one of which git answers as tracked.
+  defp repo(skills) do
+    root = Dotfiles.TestEnv.tmp_dir!("skill-size")
 
     for {name, content} <- skills do
       dir = Path.join([root, ".claude/skills", name])
@@ -26,6 +17,8 @@ defmodule Dotfiles.SkillSizeTest do
       File.write!(Path.join(dir, "SKILL.md"), content)
     end
 
+    listed = Enum.map_join(skills, fn {name, _} -> ".claude/skills/#{name}/SKILL.md\0" end)
+    FakeCommand.install(fn "git", ["-C", ^root, "ls-files" | _], _ -> {listed, 0} end)
     root
   end
 
@@ -49,7 +42,7 @@ defmodule Dotfiles.SkillSizeTest do
   end
 
   test "reports a tracked skill whose body is past the limit, and fails" do
-    root = repo(["big"], [{"big", skill(String.duplicate("a", @limit + 1))}])
+    root = repo([{"big", skill(String.duplicate("a", @limit + 1))}])
 
     {out, code} = run(root)
 
@@ -58,7 +51,7 @@ defmodule Dotfiles.SkillSizeTest do
   end
 
   test "counts a character outside the BMP as the two code units JavaScript does" do
-    root = repo(["emoji"], [{"emoji", skill(String.duplicate("a", @limit - 1) <> "😀")}])
+    root = repo([{"emoji", skill(String.duplicate("a", @limit - 1) <> "😀")}])
 
     {out, code} = run(root)
 
@@ -66,30 +59,29 @@ defmodule Dotfiles.SkillSizeTest do
     assert out =~ "emoji: #{@limit + 1}"
   end
 
-  test "passes a tracked directory that holds no SKILL.md, and a body at the limit" do
-    root = repo(["plugin", "full"], [{"full", skill(String.duplicate("a", @limit))}])
-    File.mkdir_p!(Path.join(root, ".claude/skills/plugin"))
+  test "passes a body at the limit" do
+    root = repo([{"full", skill(String.duplicate("a", @limit))}])
 
     assert run(root) == {"", 0}
   end
 
-  # Vendored skills are restored from upstream on every install, so their length
-  # is not this repository's to keep.
-  test "leaves out a skill .gitignore does not unignore" do
-    root =
-      repo(["own"], [
-        {"own", skill("a")},
-        {"vendored", skill(String.duplicate("a", @limit + 1))}
-      ])
+  test "fails when git lists no skill to check" do
+    root = repo([])
 
-    assert run(root) == {"", 0}
+    {out, code} = run(root)
+
+    assert code == 1
+    assert out =~ "git tracks no skill"
   end
 
-  test "fails when no skill is checked at all" do
-    root = repo([], [])
+  test "fails when git ls-files fails" do
+    root = repo([])
 
-    {_out, code} = run(root)
+    FakeCommand.install(fn "git", _, _ -> {"", 128} end)
 
-    assert code != 0
+    {out, code} = run(root)
+
+    assert code == 1
+    assert out =~ "git ls-files failed (exit 128)"
   end
 end
