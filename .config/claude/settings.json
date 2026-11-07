@@ -10,11 +10,11 @@
       "SuggestPluginInstall",
       "SuggestSkills",
       "Workflow",
-      "mcp__computer-use__*",
-      "mcp__visualize__*"
+      "mcp__computer-use__*"
     ]
   },
   "enabledPlugins": {
+    "cowork-plugin-management@inline": false,
     "cowork-plugin-management@synced": false
   },
   "env": {
