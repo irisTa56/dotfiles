@@ -40,3 +40,8 @@ Secrets are scanned in three layers, each covering what the one before it cannot
 
 - Every action is pinned to a full commit SHA with its version in a trailing comment, as [GitHub's guidance](https://docs.github.com/en/actions/reference/security/secure-use) recommends, and Dependabot's `github-actions` entry moves the pins.
 - Workflows grant `contents: read` and nothing more unless a job needs it.
+
+## Dependency updates
+
+- Every Dependabot entry for an ecosystem with a lockfile sets `allow: - dependency-type: "all"`, since a version update otherwise [moves only what the manifest names](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#allow--).
+  - Which ecosystems Dependabot reaches a lockfile-only dependency in differs and changes, so the line goes on every such entry rather than on the ones known to reach them.
