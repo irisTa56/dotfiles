@@ -21,7 +21,7 @@ Run `${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh`.
 It reads every repo note through K-Boat's `kboat-note list` and splits a compact copy into chunk files of 100 notes each, printing `{dir, notes, anomalies, chunks}`.
 
 - A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, stderr included, and stop.
-- A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on, and name each beside the answer, since a repository the search did not see reads as one the user never catalogued.
+- A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on; step 4 reports them.
 
 Do not read `catalog.json` or `compact.jsonl` into this conversation; that is what the chunks are for.
 
@@ -51,17 +51,20 @@ return the single line NONE. Be honest in your response.
 ```
 
 Each judge reads its whole chunk rather than a keyword-filtered list, because `summary` is Japanese while `description` and `topics` are English, and a need put in words often shares no term with the repository that meets it.
-A judge that returns neither JSON lines nor `NONE` has not judged its chunk: name the chunk as unjudged in the answer rather than treating it as empty.
+A judge that returns neither JSON lines nor `NONE` has not judged its chunk, so the chunk is unjudged rather than empty.
 
 ## 3. Look up what fit
 
 Run `${CLAUDE_SKILL_DIR}/scripts/lookup.sh <dir> <title>...` with every returned title, each quoted as one argument.
 It prints the record of each title the export holds — `title`, `url`, `summary`, `status`, `last_commit`, `archived` — one per line.
-A title with no record was misquoted by its judge; drop it rather than guess which repository it meant.
+A title with no record was misquoted by its judge: list it as unresolved rather than guess which repository it meant.
 
 ## 4. Answer
 
-If nothing fit, say that the catalogue holds no repository for this need, and stop.
+The answer covers only what the search read, so where the search left anything unread or unresolved, end by naming it: each note in `anomalies`, each unjudged chunk, and each unresolved title with the reason its judge gave.
+A repository the search did not see otherwise reads as one the user never catalogued.
+
+If nothing fit, say that the catalogue holds no repository for this need, or none among what was read where anything went unread or unresolved, and search no further.
 
 Otherwise list `direct` matches before `partial` ones, each with its `title` linked to its `url`, its `summary`, and the judge's reason, dropping a reason the summary does not bear out.
 Mark `archived` when `archived` is true, and `dormant` with the `last_commit` when `status` is `dormant`.
