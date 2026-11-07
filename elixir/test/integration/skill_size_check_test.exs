@@ -132,6 +132,15 @@ defmodule Dotfiles.Integration.SkillSizeCheckTest do
     assert out =~ ".claude/skills/crlf/SKILL.md"
   end
 
+  test "checks only the SKILL.md one level under .claude/skills", %{root: root} do
+    add(root, [
+      {".claude/skills/x/SKILL.md", skill("a")},
+      {".claude/skills/x/fixtures/y/SKILL.md", skill(String.duplicate("a", @limit + 1))}
+    ])
+
+    assert check(root) == {"", 0}
+  end
+
   test "leaves a CRLF frontmatter out of the count", %{root: root} do
     content = "---\r\nname: x\r\ndescription: y\r\n---\r\n" <> String.duplicate("a", @limit)
     add(root, [{".claude/skills/crlf/SKILL.md", content}])
