@@ -141,7 +141,6 @@ The same `hooks/hooks.json` names one function-hooks module under `modules`, `ho
 - `hooks/review-loop.ts` supports the `review-loop` skill by showing the round of the branch's unclosed record in the status line.
 - `hooks/scheduled-chrome.ts` denies Claude in Chrome's tools in a run a scheduled task started, in its main conversation and in its subagents, until a person replies in that session; the built-in browser stays available.
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
-- `hooks/wrap-up-language.ts` sends a desktop-app `wrap_up` call back to Claude when its `recap` or its `ask` holds no kana or kanji, since the user reads that next-step box in Japanese; English and code inside Japanese text pass, and button labels are not checked.
 
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
