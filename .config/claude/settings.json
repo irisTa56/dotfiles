@@ -1,5 +1,22 @@
 {
   "idleCompaction": false,
+  "permissions": {
+    "deny": [
+      "Artifact",
+      "ArtifactCheck",
+      "ArtifactComments",
+      "ArtifactData",
+      "SearchPlugins",
+      "SuggestPluginInstall",
+      "SuggestSkills",
+      "Workflow",
+      "mcp__computer-use__*",
+      "mcp__visualize__*"
+    ]
+  },
+  "enabledPlugins": {
+    "cowork-plugin-management@synced": false
+  },
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   }
