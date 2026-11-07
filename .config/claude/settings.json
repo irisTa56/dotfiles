@@ -1,5 +1,8 @@
 {
   "idleCompaction": false,
+  "enabledPlugins": {
+    "cowork-plugin-management@synced": false
+  },
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   }
