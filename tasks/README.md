@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -83,6 +83,17 @@ lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lyc
 A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
+
+### `skills:size-check`
+
+It fails where the body of a skill git tracks, its frontmatter left out, is longer than what Claude Code re-attaches of an invoked skill after a compaction, and names each such `SKILL.md` with its length.
+A rule past that point is missing from the session once a compaction has run, so a skill over the limit moves what it reads only at one moment into files it reads by path.
+The script's header says how the limit is set and counted.
+
+It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
+It asks git for the list, so an ignored skill, such as one a package manager installs, is left out, and a skill staged for the commit is checked.
+It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing.
+It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook.
 
 ### `shared-tasks:check`
 
