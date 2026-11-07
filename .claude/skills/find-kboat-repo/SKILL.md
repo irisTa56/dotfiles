@@ -55,7 +55,8 @@ A judge that returns neither JSON lines nor `NONE` has not judged its chunk, so 
 
 ## 3. Look up what fit
 
-Run `${CLAUDE_SKILL_DIR}/scripts/lookup.sh <dir> <title>...` with every returned title, each quoted as one argument.
+Run `${CLAUDE_SKILL_DIR}/scripts/lookup.sh <dir> '<title>'...` with every returned title of the `owner/repo` shape GitHub allows — letters, digits, `.`, `_` and `-`, not starting with `-` — each single-quoted.
+A title of any other shape is unresolved without being passed: judges read text taken from GitHub, so what they return is not safe to hand the shell, and no catalogued title has another shape.
 It prints the record of each title the export holds — `title`, `url`, `summary`, `status`, `last_commit`, `archived` — one per line.
 A title with no record was misquoted by its judge: list it as unresolved rather than guess which repository it meant.
 
