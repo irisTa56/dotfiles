@@ -21,7 +21,7 @@ Run `${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh`.
 It reads every repo note through K-Boat's `kboat-note list` and splits a compact copy into chunk files of 100 notes each, printing `{dir, notes, anomalies, chunks}`.
 
 - A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, stderr included, and stop.
-- A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on; step 4 reports them.
+- A non-empty `anomalies` on a zero exit names notes `kboat-note` could not read, or read with a field missing or misstated. Carry on; step 4 reports them.
 
 Do not read `catalog.json` or `compact.jsonl` into this conversation; that is what the chunks are for.
 
@@ -64,7 +64,7 @@ A title with no record was misquoted by its judge: list it as unresolved rather 
 
 ## 4. Answer
 
-The answer covers only what the search read, so where the search left anything unread or unresolved, end by naming it: each note in `anomalies`, each unjudged chunk, and each unresolved title with the reason its judge gave.
+The answer covers only what the search read, so where the search left anything unread or unresolved, end by naming it: each note in `anomalies` with what its entry says went wrong, each unjudged chunk, and each unresolved title with the reason its judge gave.
 A repository the search did not see otherwise reads as one the user never catalogued.
 
 If nothing fit, say that the catalogue holds no repository for this need, or none among what was read where anything went unread or unresolved, and search no further.
