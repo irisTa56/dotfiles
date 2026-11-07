@@ -6,7 +6,7 @@ The first half of this file is for a repository taking them, the second for whoe
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-Beyond that the library assumes git and bash.
+Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -92,7 +92,7 @@ The script's header says how the limit is set and counted.
 
 It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
 It asks git for the list, so an ignored skill, such as one a package manager installs, is left out, and a skill staged for the commit is checked.
-It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing.
+It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
 It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook.
 
 ### `shared-tasks:check`

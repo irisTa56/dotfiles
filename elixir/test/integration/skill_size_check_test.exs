@@ -119,4 +119,69 @@ defmodule Dotfiles.Integration.SkillSizeCheckTest do
     assert code == 1
     assert out =~ "skills/big/SKILL.md: #{@limit + 1}"
   end
+
+  # A skill whose frontmatter the check cannot find is not a short one: it either
+  # counts the right part or refuses the file, but never passes it.
+  test "does not pass a skill whose frontmatter fences end in CRLF", %{root: root} do
+    content = "---\r\nname: x\r\ndescription: y\r\n---\r\n" <> String.duplicate("a", 25_000)
+    add(root, [{".claude/skills/crlf/SKILL.md", content}])
+
+    {out, code} = check(root)
+
+    assert code != 0
+    assert out =~ ".claude/skills/crlf/SKILL.md"
+  end
+
+  test "does not pass a skill with no frontmatter and a body past the limit", %{root: root} do
+    add(root, [{".claude/skills/bare/SKILL.md", String.duplicate("a", @limit + 1_000)}])
+
+    {out, code} = check(root)
+
+    assert code != 0
+    assert out =~ ".claude/skills/bare/SKILL.md"
+  end
+
+  test "does not pass a skill with no frontmatter and a rule line below the limit", %{
+    root: root
+  } do
+    content = String.duplicate("a", @limit + 1_000) <> "\n---\nshort tail\n"
+    add(root, [{".claude/skills/rule/SKILL.md", content}])
+
+    {out, code} = check(root)
+
+    assert code != 0
+    assert out =~ ".claude/skills/rule/SKILL.md"
+  end
+
+  test "fails on a frontmatter that never closes, rather than reading it as all frontmatter",
+       %{root: root} do
+    add(root, [
+      {".claude/skills/open/SKILL.md", "---\nname: x\n" <> String.duplicate("a", @limit + 1)}
+    ])
+
+    {out, code} = check(root)
+
+    assert code == 1
+    assert out =~ ".claude/skills/open/SKILL.md: its frontmatter has no closing ---"
+  end
+
+  test "reports an over-limit skill sorted after one under a non-ASCII directory", %{
+    root: root
+  } do
+    add(root, [
+      {".claude/skills/é/SKILL.md", skill("a")},
+      {".claude/skills/zz/SKILL.md", skill(String.duplicate("a", @limit + 1))}
+    ])
+
+    {out, code} = check(root)
+
+    assert code == 1
+    assert out =~ ".claude/skills/zz/SKILL.md: #{@limit + 1}"
+  end
+
+  test "passes a short skill under a non-ASCII directory", %{root: root} do
+    add(root, [{".claude/skills/é/SKILL.md", skill("a")}])
+
+    assert check(root) == {"", 0}
+  end
 end

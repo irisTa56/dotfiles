@@ -15,7 +15,8 @@ limit=$((20000 - 200))
 # `*` to one directory level.
 pathspec=${1:-':(glob).claude/skills/*/SKILL.md'}
 
-files=$(git ls-files -- "$pathspec")
+# -z, since git otherwise quotes a path that is not ASCII.
+files=$(git ls-files -z -- "$pathspec" | tr '\0' '\n')
 # Run where git lists nothing, the check would otherwise pass having read no skill.
 if [[ -z $files ]]; then
   echo "git tracks no skill at $pathspec to check." >&2
@@ -24,8 +25,19 @@ fi
 
 status=0
 while IFS= read -r file; do
-  # The body without its frontmatter, which is what the copy holds.
-  length=$(($(sed '1,/^---$/d' "$file" | iconv -f UTF-8 -t UTF-16LE | wc -c) / 2))
+  # The body without its frontmatter, which is what the copy holds: the lines through
+  # the first `---` after one on line 1, or none where line 1 is not `---`. A fence
+  # with no close fails rather than taking the whole file for frontmatter.
+  fence=$(awk '
+    NR == 1 { if ($0 != "---" && $0 != "---\r") { end = 0; exit } next }
+    $0 == "---" || $0 == "---\r" { end = NR; exit }
+    END { print (end == "" && NR > 0) ? -1 : end + 0 }' "$file")
+  if ((fence < 0)); then
+    echo "$file: its frontmatter has no closing ---" >&2
+    status=1
+    continue
+  fi
+  length=$(($(tail -n "+$((fence + 1))" "$file" | iconv -f UTF-8 -t UTF-16LE | wc -c) / 2))
   if ((length > limit)); then
     echo "$file: $length" >&2
     status=1

@@ -46,7 +46,7 @@ jobs:
           # each at the release it was first saved with until mise.toml changed.
           cache: false
       - run: mise run qa:md
-      # The skills are markdown too, and this check needs only git and coreutils.
+      # The skills are markdown too, and this check needs only git and POSIX utilities.
       - run: mise run qa:skills
 
   shell-qa:
