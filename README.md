@@ -38,7 +38,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 The global config, `.config/mise/config.toml`, holds the tools and settings that reach every repository; the root `mise.toml` pins the tools this repository's own tasks use.
 
-A few more steps stay by hand, since each needs a secret, a sign-in or a path only this machine knows: rclone's remotes below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration.
+A few more steps stay by hand, since each needs a secret, a sign-in or a path only this machine knows: rclone's remotes below, fnox keys under [Secrets](#secrets), and [K-Boat](#setting-up-k-boat)'s project registration and checkout path.
 
 ## Shell and User Config
 
@@ -241,7 +241,10 @@ Another client is wired by hand.
 ### Setting up K-Boat
 
 [K-Boat](https://github.com/irisTa56/k-boat) is a skill package that reads sources through NotebookLM and matures them into a concept graph.
-It owns the writing side; this repository only reads that graph, through the repo-tracked `ask-kboat` skill, which answers a question from the concept notes and keeps what they say distinct from general knowledge.
+It owns the writing side; this repository only reads what it records, through two repo-tracked skills:
+
+- `ask-kboat` answers a question from the concept notes and keeps what they say distinct from general knowledge.
+- `find-kboat-repo` finds software for a stated need among the GitHub repositories K-Boat catalogues in the vault's `Repos/` folder.
 
 K-Boat stores that graph as a [Basic Memory *project*](https://github.com/basicmachines-co/basic-memory) — a name bound to a directory of Markdown notes — and the `ask-kboat` skill requires that project to be registered.
 Setting up the MCP server above is not enough on its own because project registration is per-machine local state that no clone carries.
@@ -249,6 +252,13 @@ Setting up the MCP server above is not enough on its own because project registr
 ```shell
 basic-memory project add k-boat-knowledge <KBOAT_KNOWLEDGE_PATH>
 basic-memory project list
+```
+
+`find-kboat-repo` reads the catalogue through K-Boat's own `kboat-note` command, so it needs a k-boat checkout set up as K-Boat's README describes, and the path to it as `KBOAT_REPO` in the `env` of `~/.claude/settings.json`.
+That file is machine-local, and `mise bootstrap` merges `.config/claude/settings.json` into it [key by key](https://mise.jdx.dev/dotfiles/edits.html), so the key survives while no tracked file names it.
+
+```json
+"env": { "KBOAT_REPO": "<path to the k-boat checkout>" }
 ```
 
 ## Using from Other Repositories

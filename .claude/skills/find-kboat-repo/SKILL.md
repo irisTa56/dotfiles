@@ -8,53 +8,32 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh)
 # Find a repository in the K-Boat catalogue
 
 K-Boat keeps one note per GitHub repository the user has come across, in the `Repos/` folder of their Obsidian vault.
-This skill answers "is there something in my catalogue I could use for this?" from those notes.
+This skill answers "is there something in my catalogue I could use for this?" from those notes, and from nothing else.
+When nothing fits, say so and stop: an answer drawn from the web or from general knowledge would read as though the user had catalogued it.
 
-The value is that every candidate is one the user already chose to keep.
-So the catalogue is the whole search space: when nothing in it fits, say so and stop.
-Do not widen to the web or to general knowledge of other projects, because an answer drawn from outside the catalogue reads as though the user had catalogued it.
-Where the user then wants a wider search, they will ask for one.
+Never write, edit or move a note; catalogue maintenance belongs to K-Boat's own skills.
 
-## Scope
-
-Read-only: never write, edit or move a note, and never run a `kboat-repos` command, all of which reach GitHub or the vault.
-Catalogue maintenance belongs to K-Boat's own skills, run from the k-boat repository.
-
-## Procedure
-
-### 1. Restate the need
-
-Write the need down as the judge will read it, in one or two sentences: what the user wants to do, and any constraint they named (language, runtime, licence, scale, "a library rather than an app").
-Keep it in the user's terms and add nothing they did not say; a constraint you invent filters out what they might have taken.
-If the need is too vague to judge a repository against — "something for data" — ask one question before searching.
-
-### 2. Export the catalogue
+## 1. Export the catalogue
 
 Run `${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh`.
-It reads every repo note through K-Boat's `kboat-note list` into a new temporary directory and splits a compact copy (title, role, domain, topics, description, summary) into chunk files of about a hundred notes each.
-It prints `{dir, notes, anomalies, chunks}`.
+It reads every repo note through K-Boat's `kboat-note list` and splits a compact copy into chunk files of 100 notes each, printing `{dir, notes, anomalies, chunks}`.
 
-- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and any `anomalies` it printed, and stop rather than reporting that nothing fits.
-  - The script finds k-boat at `~/Documents/_repos/k-boat`, or at `KBOAT_REPO` when set; a missing directory fails here.
-- A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on over the rest, and name each one beside the answer, because a repository the search did not see reads as one the user never catalogued.
+- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, and stop.
+  - Exit 2 means `KBOAT_REPO`, the path to this machine's k-boat checkout, is not set; the "Setting up K-Boat" section of the dotfiles README says where it goes.
+- A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on, and name each beside the answer, since a repository the search did not see reads as one the user never catalogued.
 
-The full export is too large to read into this conversation, which is why the next step hands it out in chunks.
-Do not `cat` `catalog.json` or `compact.jsonl`.
+Do not read `catalog.json` or `compact.jsonl` into this conversation; that is what the chunks are for.
 
-### 3. Judge every chunk with a cheap subagent
+## 2. Judge every chunk
 
-Spawn one subagent per chunk, all in one message so they run in parallel, each with `model: "haiku"`.
-Every subagent reads its whole chunk rather than a keyword-filtered list.
-A keyword pass loses exactly the matches this skill exists for: the `summary` is Japanese while `description` and `topics` are English, and a need put in words often shares no term with the repository that answers it.
-
-Give each subagent this prompt, filled in:
+Spawn one subagent per chunk, all in one message, each with `model: "haiku"`, and give each this prompt, with the need in the user's own terms:
 
 ```text
 Read the file <chunk path>. Each line is one GitHub repository from a personal
 catalogue, as JSON with title, role, domain, topics, description and summary
 (summary is in Japanese).
 
-The need: <the restated need from step 1>
+The need: <the need>
 
 Judge each repository by whether the user could use it to meet this need: as a
 library or tool they would adopt, an application they would run, or a recipe or
@@ -70,42 +49,27 @@ else: do not use what you otherwise know about the repository. If none fit,
 return the single line NONE. Be honest in your response.
 ```
 
-A subagent that returns something other than JSON lines or `NONE` has not judged its chunk: rerun it once, and if it fails again, name the chunk as unjudged in the answer rather than treating it as empty.
+Each judge reads its whole chunk rather than a keyword-filtered list, because `summary` is Japanese while `description` and `topics` are English, and a need put in words often shares no term with the repository that meets it.
+A judge that returns neither JSON lines nor `NONE` has not judged its chunk: name the chunk as unjudged in the answer rather than treating it as empty.
 
-### 4. Look up the details of what fit
+## 3. Look up what fit
 
-Collect the titles every subagent returned and read their records from the full export:
+Read the records of every returned title from the full export:
 
 ```bash
 jq '.notes[].frontmatter | select(.title | IN($ARGS.positional[]))
   | {title, url, summary, status, last_commit, archived}' <dir>/catalog.json --args <title> ...
 ```
 
-Keep `--args` after the file: every argument after it is read as a title, the file included.
+Keep `--args` after the file, since every argument after it is read as a title.
+A title with no record was misquoted by its judge; drop it rather than guess which repository it meant.
 
-A title that comes back with no record was misquoted by its subagent; drop it rather than guess which repository it meant.
+## 4. Answer
 
-### 5. Answer
+If nothing fit, say that the catalogue holds no repository for this need, and stop.
 
-If nothing fit, say that the catalogue holds no repository for this need, give the restated need you searched for, and stop.
+Otherwise list `direct` matches before `partial` ones, each with its `title` linked to its `url`, its `summary`, and the judge's reason, dropping a reason the summary does not bear out.
+Mark `archived` when `archived` is true, and `dormant` with the `last_commit` when `status` is `dormant`.
 
-Otherwise list the matches, `direct` before `partial`, and within each by how well the reason meets the need.
-For each, give:
-
-- the `title`, linked to its `url`;
-- the `summary`;
-- the subagent's reason, checked against the summary — drop or demote one the summary does not bear out;
-- a mark when the repository may not be maintained: `archived` when `archived` is true, and `dormant` with its `last_commit` when `status` is `dormant` (no push in over two years). Give `last_commit` for `slow` too, but without a warning, since a finished small library pushes rarely.
-
-Where the matches all cover part of the need, lead with that: the catalogue holds nothing made for it, and say which part none of them covers.
-The judges let general-purpose tools through as `partial` freely, so give in full only the few that come closest and name the rest in one line.
-
-## Tool behaviour this skill relies on
-
-Checked against k-boat's `kboat-note` on 2026-11-07, on a catalogue of 365 notes:
-
-- `kboat-note list --type repo` returns `{anomalies, counts, notes: [{slug, path, frontmatter}]}`, and exits 1 when `Repos/` cannot be read;
-- `domain` and a non-empty `topics` come back as a flow-list string such as `"[robotics, ml]"`, and an empty `topics` as an array;
-- the compact export is about 220 KB, so four chunks of about 55 KB each.
-
-Re-check these when the export or a subagent's output looks wrong, rather than trusting this section.
+When every match is `partial`, lead with that: the catalogue holds nothing made for this need, and say which part none of them covers.
+Judges let general-purpose tools through as `partial` freely, so give in full only the few that come closest and name the rest in one line.
