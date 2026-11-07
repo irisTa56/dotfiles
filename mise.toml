@@ -18,7 +18,7 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # Where the shell files are, for the two tasks below that lint or format them. Named once
 # because the lists had already drifted apart when each carried its own: format-sh was
 # missing the .zshrc fragment, which pre-commit had always checked.
-sh_paths = "scripts tasks zsh_fragments .claude/skills/sync-base/scripts .claude/skills/sweep-branches/scripts .claude/skills/global-hooks/hooks"
+sh_paths = "scripts tasks zsh_fragments .claude/skills/sync-base/scripts .claude/skills/sweep-branches/scripts .claude/skills/find-kboat-repo/scripts .claude/skills/global-hooks/hooks"
 
 # The pre-commit hook is regenerated on every install. It only runs the pre-commit
 # task, so it goes stale only when mise's template or the task name changes, and a
