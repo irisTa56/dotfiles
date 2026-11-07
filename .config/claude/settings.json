@@ -3,6 +3,9 @@
   "permissions": {
     "deny": [
       "Artifact",
+      "ArtifactCheck",
+      "ArtifactComments",
+      "ArtifactData",
       "SearchPlugins",
       "SuggestPluginInstall",
       "SuggestSkills",
