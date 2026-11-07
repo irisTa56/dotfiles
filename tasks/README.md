@@ -126,3 +126,6 @@ Neither mistake shows up in this repository's own `mise run pre-commit`: it runs
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/running-tasks.html#task-environment) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
+
+What a task must do can be checked here without the consuming repositories ever running the check: `qa:tasks` runs a task's script on cases, each a repository it sets up, the arguments it passes and the exit status and output it expects.
+The Mix project under `elixir/` provides that check, and a task's cases are a module of their own under `elixir/lib/dotfiles/task_cases/`, listed in `Dotfiles.TaskCases`; `skills:size-check` has them, and the tasks older than the check do not yet.
