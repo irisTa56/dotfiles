@@ -226,7 +226,7 @@ Claude Desktop's DXT extensions and remote connectors are managed in-app, not fr
 
 `.config/claude/settings.json` keeps tools that sessions seldom or never called out of every request, since each tool definition is re-read from the prompt cache on every API request.
 Its `permissions.deny` names them bare or by an `mcp__<server>__*` glob, which [removes the tool from Claude's context](https://code.claude.com/docs/en/permissions) rather than only refusing the call.
-A server the desktop app provides itself is the exception: a rule for its tools only refuses the calls, and their definitions stay in the prompt.
+A server the desktop app provides itself is the exception: a rule for its tools only refuses the calls, and what the server adds to the prompt stays.
 `mise bootstrap` [replaces an array outright](https://mise.jdx.dev/dotfiles/edits.html) when it merges this file, so this list is the whole of `permissions.deny` in `~/.claude/settings.json`, and a deny rule added there by hand is gone after the next bootstrap unless it is added here.
 Computer use is one such server, denied so that its calls are refused: a web UI is checked through the built-in browser, and a native app is left for the user to look at, which also rules out a GUI action Claude did not mean to take.
 Whether the app offers computer use at all is an in-app capability, which this repository does not set.
