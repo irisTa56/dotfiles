@@ -41,7 +41,7 @@ while IFS= read -r file; do
   fi
   length=$(($(tail -n "+$((fence + 1))" "$file" | iconv -f UTF-8 -t UTF-16LE | wc -c) / 2))
   if ((length > limit)); then
-    echo "$file: $length" >&2
+    echo "$file: $length UTF-16 code units, past the $limit a compaction re-attaches" >&2
     status=1
   fi
 done <<<"$files"

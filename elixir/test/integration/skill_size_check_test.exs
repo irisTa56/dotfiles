@@ -132,6 +132,13 @@ defmodule Dotfiles.Integration.SkillSizeCheckTest do
     assert out =~ ".claude/skills/crlf/SKILL.md"
   end
 
+  test "leaves a CRLF frontmatter out of the count", %{root: root} do
+    content = "---\r\nname: x\r\ndescription: y\r\n---\r\n" <> String.duplicate("a", @limit)
+    add(root, [{".claude/skills/crlf/SKILL.md", content}])
+
+    assert check(root) == {"", 0}
+  end
+
   test "does not pass a skill with no frontmatter and a body past the limit", %{root: root} do
     add(root, [{".claude/skills/bare/SKILL.md", String.duplicate("a", @limit + 1_000)}])
 
@@ -201,5 +208,21 @@ defmodule Dotfiles.Integration.SkillSizeCheckTest do
 
     assert code == 1
     assert out =~ ".claude/skills/zz/SKILL.md: #{@limit + 1}"
+  end
+
+  # A bare path and number leave the reader of a failed commit or CI run to open
+  # the script to learn what the number counts and what it is held to.
+  test "names the limit and the unit beside the path and length of an over-limit skill", %{
+    root: root
+  } do
+    add(root, [{".claude/skills/big/SKILL.md", skill(String.duplicate("a", @limit + 1))}])
+
+    {out, code} = check(root)
+
+    assert code == 1
+    assert out =~ ".claude/skills/big/SKILL.md"
+    assert out =~ Integer.to_string(@limit + 1)
+    assert out =~ Integer.to_string(@limit)
+    assert out =~ "UTF-16 code units"
   end
 end
