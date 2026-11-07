@@ -46,6 +46,8 @@ jobs:
           # each at the release it was first saved with until mise.toml changed.
           cache: false
       - run: mise run qa:md
+      # The skills are markdown too, and this check needs only git and POSIX utilities.
+      - run: mise run qa:skills
 
   shell-qa:
     runs-on: ubuntu-latest
@@ -126,9 +128,8 @@ jobs:
         env:
           MIX_ENV: test
       - run: mise run qa:ex
-      # A check of the skills, not of this project, which it runs in only because
-      # Elixir is what this job installs.
-      - run: mise run qa:skills
+      # A check of the shell tasks under tasks/, which the Mix project provides.
+      - run: mise run qa:tasks
 
   link-check-offline:
     runs-on: ubuntu-latest

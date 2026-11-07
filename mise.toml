@@ -149,8 +149,15 @@ run = [
 
 [tasks."qa:skills"]
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
+run = [{ task = "skills:size-check" }]
+
+# The shared tasks are shell, so what each must do is checked from outside it:
+# the Mix project runs its script on cases (elixir/lib/dotfiles/task_cases/).
+[tasks."qa:tasks"]
+description = "Check that each shared task under tasks/ does what its cases expect"
 dir = "{{config_root}}/elixir"
-run = "mix dotfiles.skill_size"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.task_cases"
 
 # Offline, so a pull request never waits on a third-party host and a host being down
 # never fails one; `link-check:staged` requests the links of the files a commit

@@ -1,12 +1,12 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-Beyond that the library assumes git and bash.
+Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -84,6 +84,17 @@ A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-c
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
+### `skills:size-check`
+
+It fails where the body of a skill git tracks, its frontmatter left out, is longer than what Claude Code re-attaches of an invoked skill after a compaction, and names each such `SKILL.md` with its length.
+A rule past that point is missing from the session once a compaction has run, so a skill over the limit moves what it reads only at one moment into files it reads by path.
+The script's header says how the limit is set and counted.
+
+It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
+It asks git for the list, so an ignored skill, such as one a package manager installs, is left out, and a skill staged for the commit is checked.
+It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
+It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook, and passes over a skill deleted there but not yet from the index.
+
 ### `shared-tasks:check`
 
 It says whether the pin carries the same `tasks/` as the tip of `main`.
@@ -115,3 +126,6 @@ Neither mistake shows up in this repository's own `mise run pre-commit`: it runs
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/running-tasks.html#task-environment) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
+
+What a task must do can be checked here without the consuming repositories ever running the check: `qa:tasks` runs a task's script on cases, each a repository it sets up, the arguments it passes and the exit status and output it expects.
+The Mix project under `elixir/` provides that check, and a task's cases are a module of their own under `elixir/lib/dotfiles/task_cases/`, listed in `Dotfiles.TaskCases`; `skills:size-check` has them, and the tasks older than the check do not yet.
