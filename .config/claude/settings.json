@@ -1,5 +1,16 @@
 {
   "idleCompaction": false,
+  "permissions": {
+    "deny": [
+      "Artifact",
+      "SearchPlugins",
+      "SuggestPluginInstall",
+      "SuggestSkills",
+      "Workflow",
+      "mcp__computer-use__*",
+      "mcp__visualize__*"
+    ]
+  },
   "enabledPlugins": {
     "cowork-plugin-management@synced": false
   },

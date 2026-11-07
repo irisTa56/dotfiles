@@ -225,6 +225,10 @@ Re-including the directory is enough — the exclusion above uses a single `*`, 
 The only stdio MCP server in use is `basic-memory`.
 Claude Desktop's DXT extensions and remote connectors are managed in-app, not from this directory.
 
+`.config/claude/settings.json` keeps tools that sessions seldom or never called out of every request, since each tool definition is re-read from the prompt cache on every API request.
+Its `permissions.deny` names them bare or by an `mcp__<server>__*` glob, which [removes a tool from Claude's context](https://code.claude.com/docs/en/permissions) rather than only refusing the call; GUI checks go through the built-in browser, so computer use is among them.
+Its `enabledPlugins` turns off `cowork-plugin-management`, a plugin synced from the claude.ai account, by the [`<name>@synced` switch](https://code.claude.com/docs/en/settings-reference#syncclaudeaiplugins).
+
 `mise bootstrap` registers `basic-memory` in Claude Code's user scope when it is not there yet:
 
 ```shell
