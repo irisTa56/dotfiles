@@ -93,7 +93,7 @@ The script's header says how the limit is set and counted.
 It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
 It asks git for the list, so an ignored skill, such as one a package manager installs, is left out, and a skill staged for the commit is checked.
 It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
-It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook.
+It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook, and passes over a skill deleted there but not yet from the index.
 
 ### `shared-tasks:check`
 

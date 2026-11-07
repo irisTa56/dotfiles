@@ -184,4 +184,22 @@ defmodule Dotfiles.Integration.SkillSizeCheckTest do
 
     assert check(root) == {"", 0}
   end
+
+  # The check reads the working tree, so a tracked skill whose file is gone from
+  # disk with the deletion unstaged must not end the run before the others are read.
+  test "still reports an over-limit skill when an earlier tracked one is deleted from disk", %{
+    root: root
+  } do
+    add(root, [
+      {".claude/skills/aa/SKILL.md", skill("a")},
+      {".claude/skills/zz/SKILL.md", skill(String.duplicate("a", @limit + 1))}
+    ])
+
+    File.rm!(Path.join(root, ".claude/skills/aa/SKILL.md"))
+
+    {out, code} = check(root)
+
+    assert code == 1
+    assert out =~ ".claude/skills/zz/SKILL.md: #{@limit + 1}"
+  end
 end

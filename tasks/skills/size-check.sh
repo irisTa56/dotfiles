@@ -25,6 +25,8 @@ fi
 
 status=0
 while IFS= read -r file; do
+  # Deleted from the working tree, which is what is read, and not yet staged.
+  [[ -f $file ]] || continue
   # The body without its frontmatter, which is what the copy holds: the lines through
   # the first `---` after one on line 1, or none where line 1 is not `---`. A fence
   # with no close fails rather than taking the whole file for frontmatter.
