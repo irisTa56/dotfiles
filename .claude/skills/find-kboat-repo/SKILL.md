@@ -2,7 +2,9 @@
 name: find-kboat-repo
 description: "Find software for a need the user states in words — \"I want to do X\" — among the GitHub repositories they catalogued in K-Boat, and say plainly when the catalogue holds nothing that fits. Searches the catalogue only, never the web. Read-only; never writes to the vault."
 disable-model-invocation: true
-allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh)
+allowed-tools:
+  - Bash(${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh)
+  - Bash(${CLAUDE_SKILL_DIR}/scripts/lookup.sh *)
 ---
 
 # Find a repository in the K-Boat catalogue
@@ -18,8 +20,7 @@ Never write, edit or move a note; catalogue maintenance belongs to K-Boat's own 
 Run `${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh`.
 It reads every repo note through K-Boat's `kboat-note list` and splits a compact copy into chunk files of 100 notes each, printing `{dir, notes, anomalies, chunks}`.
 
-- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, and stop.
-  - Exit 2 means `KBOAT_REPO`, the path to this machine's k-boat checkout, is not set; the "Setting up K-Boat" section of the dotfiles README says where it goes.
+- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, stderr included, and stop.
 - A non-empty `anomalies` on a zero exit names notes that could not be read. Carry on, and name each beside the answer, since a repository the search did not see reads as one the user never catalogued.
 
 Do not read `catalog.json` or `compact.jsonl` into this conversation; that is what the chunks are for.
@@ -54,14 +55,8 @@ A judge that returns neither JSON lines nor `NONE` has not judged its chunk: nam
 
 ## 3. Look up what fit
 
-Read the records of every returned title from the full export:
-
-```bash
-jq '.notes[].frontmatter | select(.title | IN($ARGS.positional[]))
-  | {title, url, summary, status, last_commit, archived}' <dir>/catalog.json --args <title> ...
-```
-
-Keep `--args` after the file, since every argument after it is read as a title.
+Run `${CLAUDE_SKILL_DIR}/scripts/lookup.sh <dir> <title>...` with every returned title, each quoted as one argument.
+It prints the record of each title the export holds — `title`, `url`, `summary`, `status`, `last_commit`, `archived` — one per line.
 A title with no record was misquoted by its judge; drop it rather than guess which repository it meant.
 
 ## 4. Answer
