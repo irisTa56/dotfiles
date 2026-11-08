@@ -26,9 +26,15 @@ const engine = (on: On): void => {
   on("classic.UserPromptSubmit", () => ({ additionalContext: [BENEATH] }));
 };
 
-const batch = async ($: Engine, on: On, tools: string[]): Promise<string[]> => {
+const batch = async (
+  $: Engine,
+  on: On,
+  tools: string[],
+  agentId?: string,
+): Promise<string[]> => {
   engine(on);
   const r = await $.classic.PostToolBatch({
+    ...(agentId === undefined ? {} : { agent_id: agentId }),
     tool_calls: tools.map((tool_name, i) => ({
       tool_name,
       tool_input: {},
@@ -69,4 +75,13 @@ describe("a tool batch", () => {
   test("of other tools gets none", async ($, on) => {
     expect(carries(await batch($, on, ["Read", "Bash"]))).toBe(0);
   });
+
+  // A subagent's replies go to its parent agent, not the user.
+  for (const tool of ["Skill", "Agent"]) {
+    test(`inside a subagent that ran ${tool} gets none`, async ($, on) => {
+      const context = await batch($, on, ["Read", tool], "sub-1");
+      expect(carries(context)).toBe(0);
+      expect(context).toContain(BENEATH);
+    });
+  }
 });

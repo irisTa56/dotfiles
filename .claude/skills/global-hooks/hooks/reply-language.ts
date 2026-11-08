@@ -27,9 +27,11 @@ export const register: Register = (on) => {
   );
 
   // After a batch that loaded a skill or ran a subagent, before the next request.
+  // A subagent's own batches are left alone: its replies go to its parent agent.
   on("classic.PostToolBatch", async ($, e, next) => {
     const result = await next(e);
-    return e.tool_calls.some((call) => LONG_INPUT_TOOLS.has(call.tool_name))
+    return e.agent_id === undefined &&
+      e.tool_calls.some((call) => LONG_INPUT_TOOLS.has(call.tool_name))
       ? withContext($, result)
       : result;
   });
