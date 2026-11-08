@@ -80,7 +80,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   end
 
   defp run(opts) do
-    {groups, skipped} = groups(opts)
+    # Which `mise outdated` runs are made, and so which columns a table has.
+    report = if opts.bump, do: :bump, else: :pinned
+    {groups, skipped} = groups(opts, report)
     dates = release_dates(groups)
 
     failed =
@@ -90,7 +92,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
           []
 
         opts.dry_run ->
-          writing(fn -> Enum.each(groups, &render(&1, dates, opts.bump)) end)
+          writing(fn -> Enum.each(groups, &render(&1, dates, report)) end)
           []
 
         groups == [] ->
@@ -120,10 +122,12 @@ defmodule Dotfiles.MiseMultiUpgrade do
   end
 
   # Every question comes before any upgrade, so the run needs nobody once the
-  # last one is answered. End of input answers no for the rest.
+  # last one is answered. End of input answers no for the rest. The groups come
+  # from the pinned run alone, as main/1 refuses --bump without --dry-run, so
+  # every row asked about is one `mise upgrade` would upgrade.
   defp ask(groups, dates) do
     Enum.reduce_while(groups, [], fn {where, _} = group, accepted ->
-      render(group, dates, false)
+      render(group, dates, :pinned)
 
       case answer("Upgrade #{label(where)}? [y/N] ") do
         :eof ->
@@ -176,10 +180,10 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # The global config and each directory holding a tracked project config, with
   # the rows its own `mise outdated` reports; a directory with none is dropped.
-  defp groups(opts) do
+  defp groups(opts, report) do
     results =
       [:global | dirs(opts)]
-      |> Task.async_stream(&{&1, rows(&1, opts.bump)}, max_concurrency: 8, timeout: :infinity)
+      |> Task.async_stream(&{&1, rows(&1, report)}, max_concurrency: 8, timeout: :infinity)
       |> Enum.map(fn {:ok, result} -> result end)
 
     {groups, skipped} =
@@ -210,18 +214,24 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Asked of the view `mise upgrade` acts on there, which holds what the
   # directory inherits and what its lockfile pins. A tool newer only past its
-  # request shows up in the `--bump` run alone, which is made only for the
-  # --bump report, so a directory with rows to ask about has one to upgrade.
-  defp rows(where, bump) do
+  # request shows up in the `--bump` run alone.
+  defp rows(where, report) do
     base =
       if where == :global,
         do: ["-C", "/", "outdated", "--global"],
         else: ["-C", where, "outdated", "--no-global"]
 
-    with {:ok, pinned} <- mise(base ++ ["--json"]),
-         {:ok, bumped} <- if(bump, do: mise(base ++ ["--bump", "--json"]), else: {:ok, "{}"}) do
-      {:ok, merge(JSON.decode!(pinned), JSON.decode!(bumped))}
+    with {:ok, pinned} <- outdated(base),
+         {:ok, bumped} <- bumped(base, report) do
+      {:ok, merge(pinned, bumped)}
     end
+  end
+
+  defp bumped(_base, :pinned), do: {:ok, %{}}
+  defp bumped(base, :bump), do: outdated(base ++ ["--bump"])
+
+  defp outdated(args) do
+    with {:ok, out} <- mise(args ++ ["--json"]), do: {:ok, JSON.decode!(out)}
   end
 
   defp merge(pinned, bumped) do
@@ -377,8 +387,8 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp raw_error?(%ErlangError{original: original}, reasons), do: original in reasons
   defp raw_error?(_e, _reasons), do: false
 
-  defp render({where, rows}, dates, bump) do
-    headers = if bump, do: @headers ++ @bump_headers, else: @headers
+  defp render({where, rows}, dates, report) do
+    headers = @headers ++ if(report == :bump, do: @bump_headers, else: [])
 
     cells =
       Enum.map(rows, fn row ->
@@ -392,7 +402,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
           fmt_version(row.latest),
           released.(row.latest)
         ] ++
-          if bump,
+          if report == :bump,
             do: [fmt_version(row.bump_latest), released.(row.bump_latest)],
             else: []
       end)
