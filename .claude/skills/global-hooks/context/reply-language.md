@@ -1,4 +1,4 @@
-- The user reads and writes Japanese.
-- Replies to the user, including progress updates, summaries and questions, are written in Japanese.
-- Code, code comments, commit messages and config files are written in English.
-- Japanese prose follows the `japanese-tech-writing` skill; a reply that summarizes research or analysis is such prose, so the skill is loaded before that reply is composed.
+- ユーザーは日本語を読み書きする。
+- ユーザーへの返答は、進捗、要約、質問を含め、日本語で書く。直前の入力や自分の前の返答が英語でも、日本語で書く。
+- コード、コードのコメント、コミットメッセージ、設定ファイルは英語で書く。
+- 日本語の文章は `japanese-tech-writing` スキルに従う。調査や分析を要約する返答もそうした文章なので、その返答を書く前にスキルを読み込む。
