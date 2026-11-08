@@ -444,10 +444,33 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     dir = project("/work/project")
     bump_in(dir, %{"yq" => {"3.4", "4.2", "4"}})
 
-    {out, 0, log} = run(["--bump"], "y\n")
+    {out, 0, log} = run([], "y\n")
 
     refute out =~ dir
     assert out =~ "Nothing to upgrade within the requested versions."
+    assert log == []
+  end
+
+  test "takes -n for --dry-run" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+
+    {out, 0, log} = run(["-n", "--bump"], "y\n")
+
+    assert log == []
+    refute out =~ "Upgrade "
+    assert out =~ "Bump Latest"
+  end
+
+  test "refuses --bump without --dry-run with its usage and exit 2, asking and upgrading nothing" do
+    dir = project("/work/project")
+    outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
+
+    {out, 2, log} = run(["--bump"], "y\n")
+
+    assert out =~ "--bump needs --dry-run"
+    assert out =~ "Usage: mise run mise:multi-upgrade"
+    refute out =~ "Upgrade "
     assert log == []
   end
 

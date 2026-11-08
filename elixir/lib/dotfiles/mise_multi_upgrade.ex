@@ -1,6 +1,6 @@
 defmodule Dotfiles.MiseMultiUpgrade do
   @usage """
-  Usage: mise run mise:multi-upgrade [--dry-run] [--bump] [--include-worktrees] [--include-tmpdirs]
+  Usage: mise run mise:multi-upgrade [--dry-run [--bump]] [--include-worktrees] [--include-tmpdirs]
 
   Shows, for each directory with a tracked mise config, the tools `mise upgrade`
   there would upgrade, with the age of each version, and asks whether to upgrade
@@ -9,9 +9,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   of its own, upgraded with `mise upgrade --global`; a project is upgraded with
   `--no-global`, so a global tool is upgraded once.
 
-    --dry-run            show every directory's table, and ask and upgrade nothing
-    --bump               also show, for each tool, the newest version overall, and
-                         the tools newer only past their request
+    --dry-run, -n        show every directory's table, and ask and upgrade nothing
+    --bump               with --dry-run, also show for each tool the newest version
+                         overall, and the tools newer only past their request
     --include-worktrees  also process linked git worktrees, such as agents' worktrees
     --include-tmpdirs    also process configs under a temporary directory
     --help, -h           print this message; through the task, `-- --help`, since
@@ -36,11 +36,18 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Returns the exit status rather than halting, so the run ends in one place.
   def main(argv) do
-    case OptionParser.parse(argv, strict: @switches, aliases: [h: :help]) do
+    case OptionParser.parse(argv, strict: @switches, aliases: [h: :help, n: :dry_run]) do
       {opts, [], []} ->
         # Every switch is a key from here on, false where it was not given.
         opts = Map.merge(Map.new(@switches, &{elem(&1, 0), false}), Map.new(opts))
-        if opts.help, do: usage(), else: run(opts)
+
+        cond do
+          opts.help -> usage()
+          # The upgrade stays within each request, so a bump is only ever a
+          # report, and one shown beside the question would read as an offer.
+          opts.bump and not opts.dry_run -> die("--bump needs --dry-run\n\n" <> @usage, 2)
+          true -> run(opts)
+        end
 
       _ ->
         die(@usage, 2)
@@ -75,7 +82,6 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp run(opts) do
     {groups, skipped} = groups(opts)
     dates = release_dates(groups)
-    upgradable = Enum.filter(groups, fn {_, rows} -> Enum.any?(rows, & &1.upgradable) end)
 
     failed =
       cond do
@@ -87,12 +93,12 @@ defmodule Dotfiles.MiseMultiUpgrade do
           writing(fn -> Enum.each(groups, &render(&1, dates, opts.bump)) end)
           []
 
-        upgradable == [] ->
+        groups == [] ->
           IO.puts("Nothing to upgrade within the requested versions.")
           []
 
         true ->
-          upgradable |> ask(dates, opts.bump) |> upgrade_all()
+          groups |> ask(dates) |> upgrade_all()
       end
 
     # A directory mise cannot list, such as one whose config is not trusted, is
@@ -115,9 +121,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Every question comes before any upgrade, so the run needs nobody once the
   # last one is answered. End of input answers no for the rest.
-  defp ask(groups, dates, bump) do
+  defp ask(groups, dates) do
     Enum.reduce_while(groups, [], fn {where, _} = group, accepted ->
-      render(group, dates, bump)
+      render(group, dates, false)
 
       case answer("Upgrade #{label(where)}? [y/N] ") do
         :eof ->
@@ -204,8 +210,8 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Asked of the view `mise upgrade` acts on there, which holds what the
   # directory inherits and what its lockfile pins. A tool newer only past its
-  # request shows up in the `--bump` run alone, and is not upgradable; without
-  # the --bump switch that run is not made.
+  # request shows up in the `--bump` run alone, which is made only for the
+  # --bump report, so a directory with rows to ask about has one to upgrade.
   defp rows(where, bump) do
     base =
       if where == :global,
@@ -234,8 +240,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
         requested: requested,
         current: current,
         latest: if(pin, do: Map.fetch!(pin, "latest"), else: current),
-        bump_latest: bump_latest(bump),
-        upgradable: pin != nil
+        bump_latest: bump_latest(bump)
       }
     end)
   end
