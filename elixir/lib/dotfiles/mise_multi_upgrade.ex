@@ -388,7 +388,15 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp raw_error?(_e, _reasons), do: false
 
   defp render({where, rows}, dates, report) do
-    headers = @headers ++ if(report == :bump, do: @bump_headers, else: [])
+    {headers, bump_cells} =
+      case report do
+        :pinned ->
+          {@headers, fn _row, _released -> [] end}
+
+        :bump ->
+          {@headers ++ @bump_headers,
+           fn row, released -> [fmt_version(row.bump_latest), released.(row.bump_latest)] end}
+      end
 
     cells =
       Enum.map(rows, fn row ->
@@ -401,10 +409,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
           released.(row.current),
           fmt_version(row.latest),
           released.(row.latest)
-        ] ++
-          if report == :bump,
-            do: [fmt_version(row.bump_latest), released.(row.bump_latest)],
-            else: []
+        ] ++ bump_cells.(row, released)
       end)
 
     widths =
