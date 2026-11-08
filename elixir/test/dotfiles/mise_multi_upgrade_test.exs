@@ -432,7 +432,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     outdated_in(a, %{"jq" => {"1.6", "1.7"}})
     bump_in(b, %{"yq" => {"3.4", "4.2", "4"}})
 
-    {out, 0, log} = run(["--dry-run"], "")
+    {out, 0, log} = run(["--dry-run", "--bump"], "")
 
     assert log == []
     refute out =~ "Upgrade "
@@ -444,7 +444,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     dir = project("/work/project")
     bump_in(dir, %{"yq" => {"3.4", "4.2", "4"}})
 
-    {out, 0, log} = run([], "y\n")
+    {out, 0, log} = run(["--bump"], "y\n")
 
     refute out =~ dir
     assert out =~ "Nothing to upgrade within the requested versions."
@@ -472,11 +472,27 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
       "uv" => {"0.1.0", "0.2.0", nil}
     })
 
-    {out, 0, _} = run(["--dry-run"], "")
+    {out, 0, _} = run(["--dry-run", "--bump"], "")
 
     assert out |> String.split("\nnode ") |> length() == 2
     assert out =~ ~r/^node\s+24\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?\s+26\.0\.0/m
     assert out =~ ~r/^uv\s+0\s+0\.1\.0\s+\?\s+0\.2\.0\s+\?\s+-\s+-$/m
+  end
+
+  test "leaves out every bump, and the tools only a bump would reach, without --bump" do
+    a = project("/work/a")
+    b = project("/work/b")
+    outdated_in(a, %{"node" => {"24.1.0", "24.2.0"}})
+    bump_in(a, %{"node" => {"24.1.0", "26.0.0", "26"}})
+    bump_in(b, %{"yq" => {"3.4", "4.2", "4"}})
+
+    {out, 0, _} = run(["--dry-run"], "")
+
+    refute out =~ "Bump"
+    refute out =~ "26.0.0"
+    refute out =~ b
+    assert out =~ ~r/^node\s+24\s+24\.1\.0\s+\?\s+24\.2\.0\s+\?$/m
+    refute Enum.any?(FakeCommand.calls("mise"), &("--bump" in &1))
   end
 
   test "prints its usage for --help and -h, asking and upgrading nothing" do
@@ -493,7 +509,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   end
 
   test "refuses an unknown flag with its usage and exit 2" do
-    {out, 2, log} = run(["--bump"], "y\n")
+    {out, 2, log} = run(["--bogus"], "y\n")
 
     assert out =~ "Usage: mise run mise:multi-upgrade"
     assert log == []
@@ -541,7 +557,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
     broken = %{"requested" => "1", "current" => "1.6", "bump" => "2"}
     set(:bump, dir, %{"jq" => broken})
 
-    {reason, out} = ended(["--dry-run"])
+    {reason, out} = ended(["--dry-run", "--bump"])
 
     assert match?(
              {:function_clause, [{Dotfiles.MiseMultiUpgrade, :bump_latest, [^broken], _} | _]},

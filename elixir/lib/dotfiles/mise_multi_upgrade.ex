@@ -1,6 +1,6 @@
 defmodule Dotfiles.MiseMultiUpgrade do
   @usage """
-  Usage: mise run mise:multi-upgrade [--dry-run] [--include-worktrees] [--include-tmpdirs]
+  Usage: mise run mise:multi-upgrade [--dry-run] [--bump] [--include-worktrees] [--include-tmpdirs]
 
   Shows, for each directory with a tracked mise config, the tools `mise upgrade`
   there would upgrade, with the age of each version, and asks whether to upgrade
@@ -10,34 +10,29 @@ defmodule Dotfiles.MiseMultiUpgrade do
   `--no-global`, so a global tool is upgraded once.
 
     --dry-run            show every directory's table, and ask and upgrade nothing
+    --bump               also show, for each tool, the newest version overall, and
+                         the tools newer only past their request
     --include-worktrees  also process linked git worktrees, such as agents' worktrees
     --include-tmpdirs    also process configs under a temporary directory
     --help, -h           print this message; through the task, `-- --help`, since
                          mise answers a bare `--help` itself
 
   Latest is the newest version matching the request, which the upgrade installs;
-  Bump Latest is the newest version overall, reachable only by changing the
-  request, and is shown for information. A `-` marks nothing to report; a `?`
-  marks a Released cell whose age could not be determined.
+  Bump Latest, shown with --bump, is the newest version overall, reachable only
+  by changing the request, and is shown for information. A `-` marks nothing to
+  report; a `?` marks a Released cell whose age could not be determined.
   """
 
   @switches [
     dry_run: :boolean,
+    bump: :boolean,
     include_worktrees: :boolean,
     include_tmpdirs: :boolean,
     help: :boolean
   ]
 
-  @headers [
-    "Tool",
-    "Requested",
-    "Current",
-    "Released",
-    "Latest",
-    "Released",
-    "Bump Latest",
-    "Released"
-  ]
+  @headers ["Tool", "Requested", "Current", "Released", "Latest", "Released"]
+  @bump_headers ["Bump Latest", "Released"]
 
   # Returns the exit status rather than halting, so the run ends in one place.
   def main(argv) do
@@ -89,7 +84,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
           []
 
         opts.dry_run ->
-          writing(fn -> Enum.each(groups, &render(&1, dates)) end)
+          writing(fn -> Enum.each(groups, &render(&1, dates, opts.bump)) end)
           []
 
         upgradable == [] ->
@@ -97,7 +92,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
           []
 
         true ->
-          upgradable |> ask(dates) |> upgrade_all()
+          upgradable |> ask(dates, opts.bump) |> upgrade_all()
       end
 
     # A directory mise cannot list, such as one whose config is not trusted, is
@@ -120,9 +115,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Every question comes before any upgrade, so the run needs nobody once the
   # last one is answered. End of input answers no for the rest.
-  defp ask(groups, dates) do
+  defp ask(groups, dates, bump) do
     Enum.reduce_while(groups, [], fn {where, _} = group, accepted ->
-      render(group, dates)
+      render(group, dates, bump)
 
       case answer("Upgrade #{label(where)}? [y/N] ") do
         :eof ->
@@ -178,7 +173,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp groups(opts) do
     results =
       [:global | dirs(opts)]
-      |> Task.async_stream(&{&1, rows(&1)}, max_concurrency: 8, timeout: :infinity)
+      |> Task.async_stream(&{&1, rows(&1, opts.bump)}, max_concurrency: 8, timeout: :infinity)
       |> Enum.map(fn {:ok, result} -> result end)
 
     {groups, skipped} =
@@ -209,15 +204,16 @@ defmodule Dotfiles.MiseMultiUpgrade do
 
   # Asked of the view `mise upgrade` acts on there, which holds what the
   # directory inherits and what its lockfile pins. A tool newer only past its
-  # request shows up in the `--bump` run alone, and is not upgradable.
-  defp rows(where) do
+  # request shows up in the `--bump` run alone, and is not upgradable; without
+  # the --bump switch that run is not made.
+  defp rows(where, bump) do
     base =
       if where == :global,
         do: ["-C", "/", "outdated", "--global"],
         else: ["-C", where, "outdated", "--no-global"]
 
     with {:ok, pinned} <- mise(base ++ ["--json"]),
-         {:ok, bumped} <- mise(base ++ ["--bump", "--json"]) do
+         {:ok, bumped} <- if(bump, do: mise(base ++ ["--bump", "--json"]), else: {:ok, "{}"}) do
       {:ok, merge(JSON.decode!(pinned), JSON.decode!(bumped))}
     end
   end
@@ -376,7 +372,9 @@ defmodule Dotfiles.MiseMultiUpgrade do
   defp raw_error?(%ErlangError{original: original}, reasons), do: original in reasons
   defp raw_error?(_e, _reasons), do: false
 
-  defp render({where, rows}, dates) do
+  defp render({where, rows}, dates, bump) do
+    headers = if bump, do: @headers ++ @bump_headers, else: @headers
+
     cells =
       Enum.map(rows, fn row ->
         released = &age(Map.fetch!(dates, row.tool), &1)
@@ -387,14 +385,15 @@ defmodule Dotfiles.MiseMultiUpgrade do
           fmt_version(row.current),
           released.(row.current),
           fmt_version(row.latest),
-          released.(row.latest),
-          fmt_version(row.bump_latest),
-          released.(row.bump_latest)
-        ]
+          released.(row.latest)
+        ] ++
+          if bump,
+            do: [fmt_version(row.bump_latest), released.(row.bump_latest)],
+            else: []
       end)
 
     widths =
-      [@headers | cells]
+      [headers | cells]
       |> Enum.zip_with(fn col -> col |> Enum.map(&String.length/1) |> Enum.max() end)
 
     print_row = fn line ->
@@ -406,7 +405,7 @@ defmodule Dotfiles.MiseMultiUpgrade do
     end
 
     IO.puts("\n" <> label(where))
-    print_row.(@headers)
+    print_row.(headers)
     print_row.(Enum.map(widths, &String.duplicate("-", &1)))
     Enum.each(cells, print_row)
   end
