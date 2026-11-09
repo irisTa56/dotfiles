@@ -21,8 +21,10 @@ const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
 // kanji or katakana, so it carries neither.
 const JAPANESE_SENTENCE = /[\p{Script=Hiragana}。、]/u;
 const LATIN = /[A-Za-z]/g;
-// Fewer Latin letters than this is too short to tell a language by.
-const MIN_LATIN = 40;
+// A reply of fewer Latin letters than this, about two English sentences, is
+// accepted in any language: a heading over a list of paths, or a title the user
+// asked for in English.
+const MIN_LATIN = 200;
 
 // English is a reply with no Japanese sentence outside code and quotations. A
 // Japanese reply listing English commit subjects or paths still has one.

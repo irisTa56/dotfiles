@@ -66,8 +66,11 @@ const stop = async (
   return r.block;
 };
 
-const ENGLISH =
+// A reply of a couple of sentences, too short to be sent back.
+const SHORT_ENGLISH =
   "I updated the hook and ran the tests; all of them pass, and the type check is clean too.";
+// A summary long enough to judge.
+const ENGLISH = `${SHORT_ENGLISH} The Stop hook now sends an English final reply back once, and the rewrite is let through. The README line describes the change, and the commit is on the branch, ready for review.`;
 const JAPANESE = "フックを直し、テストと型チェックがすべて通った。";
 
 describe("a final reply", () => {
@@ -105,44 +108,49 @@ describe("a final reply", () => {
     ).toBeUndefined();
   });
 
-  // Each holds far more Latin letters in code than Japanese outside it.
-  const CODE_ONLY = [
+  // Japanese inside code says nothing about the reply's own language.
+  const CODE_WITH_JAPANESE = [
     [
       "a fenced block",
-      ["```ts", `// ${ENGLISH}`, `// ${ENGLISH}`, "```"].join("\n"),
+      ["```ts", "// 日本語のコメントがある。", "```"].join("\n"),
     ],
     [
       "a tilde fence",
-      ["~~~ts", `// ${ENGLISH}`, `// ${ENGLISH}`, "~~~"].join("\n"),
+      ["~~~ts", "// 日本語のコメントがある。", "~~~"].join("\n"),
     ],
-    [
-      "inline code",
-      "`mise run pre-commit` `claude plugin test .claude/skills/global-hooks` `git log --oneline --decorate --graph`",
-    ],
-    [
-      "URLs",
-      "https://code.claude.com/docs/en/hooks#stop https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin",
-    ],
+    ["inline code", "`label: 日本語で書く。`"],
   ];
-  for (const [name, code] of CODE_ONLY) {
-    test(`in Japanese with ${name} is left alone`, async ($, on) => {
-      const message = `完了した。\n${code}`;
-      expect(
-        await stop($, on, { last_assistant_message: message }),
-      ).toBeUndefined();
+  for (const [name, code] of CODE_WITH_JAPANESE) {
+    test(`in English with Japanese in ${name} is still sent back`, async ($, on) => {
+      const block = await stop($, on, {
+        last_assistant_message: `${ENGLISH}\n${code}`,
+      });
+      expect(block).toBeDefined();
     });
   }
 
+  // The prose, not the URLs it lists, is what is too short to judge.
+  test("in short English listing long URLs is left alone", async ($, on) => {
+    const message = [
+      "See these:",
+      "https://code.claude.com/docs/en/hooks#stop-and-subagentstop-decision-control",
+      "https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin-that-loads-every-session",
+      "https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions",
+      "https://code.claude.com/docs/en/settings#available-settings-and-their-defaults",
+    ].join("\n");
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
   test("in English mentioning a triple backtick without closing it is still sent back", async ($, on) => {
-    const message =
-      "I fixed the parser, which now treats ``` as an opener and keeps going, and I ran the whole suite and everything passes now.";
+    const message = `${ENGLISH} I fixed the parser, which now treats \`\`\` as an opener and keeps going.`;
     const block = await stop($, on, { last_assistant_message: message });
     expect(block).toBeDefined();
   });
 
   test("in English naming a few Japanese terms outside quotes is still sent back", async ($, on) => {
-    const message =
-      "I changed the file and ran the whole suite, and everything passes now. See 設計.md and 概要.md.";
+    const message = `${ENGLISH} See 設計.md and 概要.md.`;
     const block = await stop($, on, { last_assistant_message: message });
     expect(block).toBeDefined();
   });
@@ -197,6 +205,41 @@ describe("a final reply", () => {
       "| reply-language.md | unchanged |",
       "",
       "以上。",
+    ].join("\n");
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
+  test("in short English is left alone", async ($, on) => {
+    expect(
+      await stop($, on, { last_assistant_message: SHORT_ENGLISH }),
+    ).toBeUndefined();
+  });
+
+  test("of a heading over plain paths is left alone", async ($, on) => {
+    const message = [
+      "ファイル一覧",
+      "- src/index.ts",
+      "- src/reply-language.ts",
+      "- src/reply-language.test.ts",
+      "- README.md",
+    ].join("\n");
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
+  test("in kanji, katakana and 、 around long English paths is left alone", async ($, on) => {
+    const message = [
+      "変更対象、計五件",
+      "- .claude/skills/global-hooks/hooks/reply-language.ts",
+      "- .claude/skills/global-hooks/hooks/reply-language.test.ts",
+      "- .claude/skills/global-hooks/context/reply-language.md",
+      "- .claude/skills/global-hooks/hooks/index.ts",
+      "- .claude/skills/global-hooks/hooks/subagent-model.ts",
+      "- .claude/skills/global-hooks/hooks/scheduled-chrome.ts",
+      "- README.md",
     ].join("\n");
     expect(
       await stop($, on, { last_assistant_message: message }),
