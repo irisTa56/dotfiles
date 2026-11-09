@@ -1,9 +1,5 @@
 import type { EngineInterface, Register } from "claude-code";
 
-// Tools whose result can bring a long English text into the middle of a turn:
-// a skill's body, a subagent's report.
-const LONG_INPUT_TOOLS = new Set(["Skill", "Agent"]);
-
 const context = ($: EngineInterface): Promise<string> =>
   $.fs.read(`${$.plugin.root}/context/reply-language.md`);
 
@@ -15,10 +11,36 @@ const withContext = async <R extends { additionalContext?: string[] }>(
   additionalContext: [...(result.additionalContext ?? []), await context($)],
 });
 
-// Adds the reply-language context to each prompt, and again after a skill's
-// body or a subagent's report enters the middle of a turn: such a result
-// arrives with no prompt, and replies have switched to English after a long one
-// with the context far behind it.
+// Code is English by rule, and a quotation is in the language of what it
+// quotes, so neither says anything about the reply's own language. A fence
+// opens and closes at a line start, so a backtick run named in prose is not one.
+const CODE = /^[ \t]*(```|~~~)[\s\S]*?^[ \t]*\1|`[^`\n]*`|https?:\/\/\S+/gm;
+const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
+// Japanese grammar, its particles and endings, is written in hiragana, and a
+// Japanese sentence is punctuated with 。 and 、; a term or a file name an English reply names is
+// kanji or katakana, so it carries neither.
+const JAPANESE_SENTENCE = /[\p{Script=Hiragana}。、]/u;
+const LATIN = /[A-Za-z]/g;
+// A reply of fewer Latin letters than this, about two English sentences, is
+// accepted in any language: a heading over a list of paths, or a title the user
+// asked for in English.
+const MIN_LATIN = 200;
+
+// English is a reply with no Japanese sentence outside code and quotations. A
+// Japanese reply listing English commit subjects or paths still has one.
+const isEnglish = (message: string): boolean => {
+  const prose = message.replace(CODE, " ").replace(QUOTE, " ");
+  const latin = prose.match(LATIN)?.length ?? 0;
+  return latin >= MIN_LATIN && !JAPANESE_SENTENCE.test(prose);
+};
+
+const REWRITE =
+  "直前の返答は英語で書かれている。同じ内容を日本語で書き直して、もう一度返答する。ユーザーが英語で求めた文やコードはそのまま残し、その周りの説明を日本語で書く。";
+
+// Adds the reply-language context to each prompt. Replies in the middle of a
+// turn may drift into English; the final reply has too, after the turn filled
+// with English tool output, so a final reply in English is sent back once to be
+// written in Japanese.
 export const register: Register = (on) => {
   // Every prompt, notifications and hand-backs delivered into a running turn
   // included.
@@ -26,13 +48,17 @@ export const register: Register = (on) => {
     withContext($, await next(e)),
   );
 
-  // After a batch that loaded a skill or ran a subagent, before the next request.
-  // A subagent's own batches are left alone: its replies go to its parent agent.
-  on("classic.PostToolBatch", async ($, e, next) => {
+  // A subagent stops through SubagentStop, so this is the main conversation's
+  // reply; the agent_id check only guards that. A reply written after a block
+  // (stop_hook_active) is let through, so the rewrite is asked for once.
+  on("classic.Stop", async (_, e, next) => {
     const result = await next(e);
     return e.agent_id === undefined &&
-      e.tool_calls.some((call) => LONG_INPUT_TOOLS.has(call.tool_name))
-      ? withContext($, result)
+      !e.stop_hook_active &&
+      result.block === undefined &&
+      e.last_assistant_message !== undefined &&
+      isEnglish(e.last_assistant_message)
+      ? { ...result, block: REWRITE }
       : result;
   });
 };
