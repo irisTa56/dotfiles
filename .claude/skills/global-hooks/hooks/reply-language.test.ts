@@ -133,6 +133,20 @@ describe("a final reply", () => {
     });
   }
 
+  test("in English mentioning a triple backtick without closing it is still sent back", async ($, on) => {
+    const message =
+      "I fixed the parser, which now treats ``` as an opener and keeps going, and I ran the whole suite and everything passes now.";
+    const block = await stop($, on, { last_assistant_message: message });
+    expect(block).toBeDefined();
+  });
+
+  test("in English naming a few Japanese terms outside quotes is still sent back", async ($, on) => {
+    const message =
+      "I changed the file and ran the whole suite, and everything passes now. See 設計.md and 概要.md.";
+    const block = await stop($, on, { last_assistant_message: message });
+    expect(block).toBeDefined();
+  });
+
   test("in Japanese is left alone", async ($, on) => {
     expect(
       await stop($, on, { last_assistant_message: JAPANESE }),

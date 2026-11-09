@@ -12,22 +12,25 @@ const withContext = async <R extends { additionalContext?: string[] }>(
 });
 
 // Code is English by rule, and a quotation is in the language of what it
-// quotes, so neither says anything about the reply's own language.
-const CODE = /```[\s\S]*?(```|$)|~~~[\s\S]*?(~~~|$)|`[^`\n]*`|https?:\/\/\S+/g;
+// quotes, so neither says anything about the reply's own language. A fence
+// opens and closes at a line start, so a backtick run named in prose is not one.
+const CODE = /^[ \t]*(```|~~~)[\s\S]*?^[ \t]*\1|`[^`\n]*`|https?:\/\/\S+/gm;
 const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
-const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu;
+// Japanese grammar, its particles and endings, is written in hiragana, while a
+// term or a file name an English reply names is mostly kanji or katakana.
+const HIRAGANA = /\p{Script=Hiragana}/gu;
 const LATIN = /[A-Za-z]/g;
 // Fewer Latin letters than this is too short to tell a language by.
 const MIN_LATIN = 40;
 // A Japanese reply naming identifiers outside backticks still carries far more
-// than this; an English one quoting a Japanese term carries less.
-const MIN_JAPANESE_PER_LATIN = 0.05;
+// than this.
+const MIN_HIRAGANA_PER_LATIN = 0.05;
 
 const isEnglish = (message: string): boolean => {
   const prose = message.replace(CODE, " ").replace(QUOTE, " ");
   const latin = prose.match(LATIN)?.length ?? 0;
-  const japanese = prose.match(JAPANESE)?.length ?? 0;
-  return latin >= MIN_LATIN && japanese < latin * MIN_JAPANESE_PER_LATIN;
+  const hiragana = prose.match(HIRAGANA)?.length ?? 0;
+  return latin >= MIN_LATIN && hiragana < latin * MIN_HIRAGANA_PER_LATIN;
 };
 
 const REWRITE =
