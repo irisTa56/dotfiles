@@ -16,13 +16,15 @@ const BENEATH = "beneath";
 
 // The engine beneath the mod: the plugin's context file holds the line, and
 // the hooks beneath add their own context.
-const engine = (on: On): void => {
+const engine = (on: On, stopBlock?: string): void => {
   on("fs.read", (_, e) =>
     e.path.endsWith("/context/reply-language.md")
       ? { value: `- ${MARK}日本語で書く。` }
       : { deny: "ENOENT" },
   );
-  on("classic.Stop", () => ({}));
+  on("classic.Stop", () =>
+    stopBlock === undefined ? {} : { block: stopBlock },
+  );
   on("classic.UserPromptSubmit", () => ({ additionalContext: [BENEATH] }));
 };
 
@@ -54,8 +56,9 @@ const stop = async (
     stop_hook_active?: boolean;
     agent_id?: string;
   },
+  stopBlock?: string,
 ): Promise<string | undefined> => {
-  engine(on);
+  engine(on, stopBlock);
   const r = await $.classic.Stop({
     stop_hook_active: false,
     ...input,
@@ -80,6 +83,55 @@ describe("a final reply", () => {
     });
     expect(block).toBeDefined();
   });
+
+  const QUOTED = [
+    ["「…」", "「ユーザーへの返答は日本語で書く。」"],
+    ["ASCII double quotes", '"ユーザーへの返答は日本語で書く。"'],
+  ];
+  for (const [name, quote] of QUOTED) {
+    test(`in English quoting a full Japanese sentence in ${name} is sent back`, async ($, on) => {
+      const block = await stop($, on, {
+        last_assistant_message: `${ENGLISH} The rule says ${quote} and I followed it.`,
+      });
+      expect(block).toBeDefined();
+    });
+  }
+
+  test("in Japanese quoting an English sentence is left alone", async ($, on) => {
+    const message =
+      'README には "A final reply in English is sent back once to be rewritten in Japanese, and the rewrite is let through." とある。';
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
+  // Each holds far more Latin letters in code than Japanese outside it.
+  const CODE_ONLY = [
+    [
+      "a fenced block",
+      ["```ts", `// ${ENGLISH}`, `// ${ENGLISH}`, "```"].join("\n"),
+    ],
+    [
+      "a tilde fence",
+      ["~~~ts", `// ${ENGLISH}`, `// ${ENGLISH}`, "~~~"].join("\n"),
+    ],
+    [
+      "inline code",
+      "`mise run pre-commit` `claude plugin test .claude/skills/global-hooks` `git log --oneline --decorate --graph`",
+    ],
+    [
+      "URLs",
+      "https://code.claude.com/docs/en/hooks#stop https://code.claude.com/docs/en/plugins/create#scaffold-a-plugin",
+    ],
+  ];
+  for (const [name, code] of CODE_ONLY) {
+    test(`in Japanese with ${name} is left alone`, async ($, on) => {
+      const message = `完了した。\n${code}`;
+      expect(
+        await stop($, on, { last_assistant_message: message }),
+      ).toBeUndefined();
+    });
+  }
 
   test("in Japanese is left alone", async ($, on) => {
     expect(
@@ -125,6 +177,16 @@ describe("a final reply", () => {
       stop_hook_active: true,
     });
     expect(block).toBeUndefined();
+  });
+
+  test("in English keeps a block from a hook beneath", async ($, on) => {
+    const block = await stop(
+      $,
+      on,
+      { last_assistant_message: ENGLISH },
+      BENEATH,
+    );
+    expect(block).toBe(BENEATH);
   });
 
   // A subagent's replies go to its parent agent, not the user.

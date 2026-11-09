@@ -11,8 +11,10 @@ const withContext = async <R extends { additionalContext?: string[] }>(
   additionalContext: [...(result.additionalContext ?? []), await context($)],
 });
 
-// Code is English by rule, so it says nothing about the reply's language.
+// Code is English by rule, and a quotation is in the language of what it
+// quotes, so neither says anything about the reply's own language.
 const CODE = /```[\s\S]*?(```|$)|~~~[\s\S]*?(~~~|$)|`[^`\n]*`|https?:\/\/\S+/g;
+const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
 const JAPANESE = /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/gu;
 const LATIN = /[A-Za-z]/g;
 // Fewer Latin letters than this is too short to tell a language by.
@@ -22,7 +24,7 @@ const MIN_LATIN = 40;
 const MIN_JAPANESE_PER_LATIN = 0.05;
 
 const isEnglish = (message: string): boolean => {
-  const prose = message.replace(CODE, " ");
+  const prose = message.replace(CODE, " ").replace(QUOTE, " ");
   const latin = prose.match(LATIN)?.length ?? 0;
   const japanese = prose.match(JAPANESE)?.length ?? 0;
   return latin >= MIN_LATIN && japanese < latin * MIN_JAPANESE_PER_LATIN;
