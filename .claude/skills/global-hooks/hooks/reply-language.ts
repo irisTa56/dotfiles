@@ -42,6 +42,13 @@ const REWRITE =
 // with English tool output, so a final reply in English is sent back once to be
 // written in Japanese.
 export const register: Register = (on) => {
+  // Whether the last judged stop ended in this hook's own request for a
+  // rewrite. stop_hook_active alone does not say so: any Stop hook's block sets
+  // it, /goal's included, and a reply that follows another hook's block is
+  // judged like any other. A turn's first stop never has it set, so a flag left
+  // from an earlier turn is overwritten there.
+  let rewriteAsked = false;
+
   // Every prompt, notifications and hand-backs delivered into a running turn
   // included.
   on("classic.UserPromptSubmit", async ($, e, next) =>
@@ -49,16 +56,19 @@ export const register: Register = (on) => {
   );
 
   // A subagent stops through SubagentStop, so this is the main conversation's
-  // reply; the agent_id check only guards that. A reply written after a block
-  // (stop_hook_active) is let through, so the rewrite is asked for once.
+  // reply; the agent_id check only guards that. The reply written after this
+  // hook's own block is let through, so the rewrite is asked for once.
   on("classic.Stop", async (_, e, next) => {
     const result = await next(e);
-    return e.agent_id === undefined &&
-      !e.stop_hook_active &&
+    if (e.agent_id !== undefined) return result;
+    if (rewriteAsked && e.stop_hook_active) {
+      rewriteAsked = false;
+      return result;
+    }
+    rewriteAsked =
       result.block === undefined &&
       e.last_assistant_message !== undefined &&
-      isEnglish(e.last_assistant_message)
-      ? { ...result, block: REWRITE }
-      : result;
+      isEnglish(e.last_assistant_message);
+    return rewriteAsked ? { ...result, block: REWRITE } : result;
   });
 };
