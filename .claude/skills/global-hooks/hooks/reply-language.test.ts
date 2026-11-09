@@ -257,12 +257,40 @@ describe("a final reply", () => {
   });
 
   // The reply is already the rewrite; another block would loop.
-  test("written again after a block is left alone", async ($, on) => {
+  test("written again after its own block is left alone", async ($, on) => {
+    engine(on);
+    const english = { last_assistant_message: ENGLISH };
+    const first = await $.classic.Stop({
+      ...english,
+      stop_hook_active: false,
+    } as never);
+    const again = await $.classic.Stop({
+      ...english,
+      stop_hook_active: true,
+    } as never);
+    expect(first.block).toBeDefined();
+    expect(again.block).toBeUndefined();
+  });
+
+  // Another Stop hook, such as /goal's, continued the turn instead.
+  test("in English after another hook's block is sent back", async ($, on) => {
     const block = await stop($, on, {
       last_assistant_message: ENGLISH,
       stop_hook_active: true,
     });
-    expect(block).toBeUndefined();
+    expect(block).toBeDefined();
+  });
+
+  test("in English in the next turn after its own block is sent back", async ($, on) => {
+    engine(on);
+    const english = { last_assistant_message: ENGLISH };
+    await $.classic.Stop({ ...english, stop_hook_active: false } as never);
+    await $.classic.UserPromptSubmit({ prompt: "p", source: "user" } as never);
+    const next = await $.classic.Stop({
+      ...english,
+      stop_hook_active: true,
+    } as never);
+    expect(next.block).toBeDefined();
   });
 
   test("in English keeps a block from a hook beneath", async ($, on) => {
