@@ -114,6 +114,10 @@ defmodule Dotfiles.Integration.MiseMultiUpgradeTest do
 
     {out, 0} = run(["--include-tmpdirs", "--dry-run"], "")
 
+    assert out =~ ~r/^dummy\s+1\s+1\.0\.0\s+-\s+1\.1\.0\s+-$/m
+
+    {out, 0} = run(["--include-tmpdirs", "--dry-run", "--bump"], "")
+
     assert out =~ ~r/^dummy\s+1\s+1\.0\.0\s+-\s+1\.1\.0\s+-\s+2\.0\.0\s+-$/m
 
     {out, 0} = run(["--include-tmpdirs"], "y\n")
