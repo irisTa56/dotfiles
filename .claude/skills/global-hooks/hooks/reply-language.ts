@@ -16,21 +16,20 @@ const withContext = async <R extends { additionalContext?: string[] }>(
 // opens and closes at a line start, so a backtick run named in prose is not one.
 const CODE = /^[ \t]*(```|~~~)[\s\S]*?^[ \t]*\1|`[^`\n]*`|https?:\/\/\S+/gm;
 const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
-// Japanese grammar, its particles and endings, is written in hiragana, while a
-// term or a file name an English reply names is mostly kanji or katakana.
-const HIRAGANA = /\p{Script=Hiragana}/gu;
+// Japanese grammar, its particles and endings, is written in hiragana, and a
+// Japanese sentence is punctuated with 。 and 、; a term or a file name an English reply names is
+// kanji or katakana, so it carries neither.
+const JAPANESE_SENTENCE = /[\p{Script=Hiragana}。、]/u;
 const LATIN = /[A-Za-z]/g;
 // Fewer Latin letters than this is too short to tell a language by.
 const MIN_LATIN = 40;
-// A Japanese reply naming identifiers outside backticks still carries far more
-// than this.
-const MIN_HIRAGANA_PER_LATIN = 0.05;
 
+// English is a reply with no Japanese sentence outside code and quotations. A
+// Japanese reply listing English commit subjects or paths still has one.
 const isEnglish = (message: string): boolean => {
   const prose = message.replace(CODE, " ").replace(QUOTE, " ");
   const latin = prose.match(LATIN)?.length ?? 0;
-  const hiragana = prose.match(HIRAGANA)?.length ?? 0;
-  return latin >= MIN_LATIN && hiragana < latin * MIN_HIRAGANA_PER_LATIN;
+  return latin >= MIN_LATIN && !JAPANESE_SENTENCE.test(prose);
 };
 
 const REWRITE =

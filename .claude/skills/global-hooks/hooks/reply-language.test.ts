@@ -174,6 +174,35 @@ describe("a final reply", () => {
     ).toBeUndefined();
   });
 
+  test("in Japanese introducing English commit subjects in bullets is left alone", async ($, on) => {
+    const message = [
+      "コミットは次の通り。",
+      "- feat(global-hooks): add the reply-language context from the mod",
+      "- fix(global-hooks): leave quotations out when judging a final reply's language",
+      "- refactor(global-hooks): stop repeating the reply-language context after Skill and Agent batches",
+    ].join("\n");
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
+  test("in Japanese with a table of English file names and statuses is left alone", async ($, on) => {
+    const message = [
+      "結果:",
+      "",
+      "| file | status |",
+      "| --- | --- |",
+      "| reply-language.ts | modified |",
+      "| reply-language.test.ts | modified |",
+      "| reply-language.md | unchanged |",
+      "",
+      "以上。",
+    ].join("\n");
+    expect(
+      await stop($, on, { last_assistant_message: message }),
+    ).toBeUndefined();
+  });
+
   test("too short to judge is left alone", async ($, on) => {
     expect(
       await stop($, on, { last_assistant_message: "Done." }),
