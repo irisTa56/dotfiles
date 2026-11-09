@@ -272,6 +272,27 @@ describe("a final reply", () => {
     expect(again.block).toBeUndefined();
   });
 
+  // A notification or subagent hand-back is delivered into the running turn
+  // before the rewrite is written.
+  test("written after its own block is left alone when a prompt event came between", async ($, on) => {
+    engine(on);
+    const english = { last_assistant_message: ENGLISH };
+    const first = await $.classic.Stop({
+      ...english,
+      stop_hook_active: false,
+    } as never);
+    await $.classic.UserPromptSubmit({
+      prompt: "<task-notification>done</task-notification>",
+      source: "system",
+    } as never);
+    const again = await $.classic.Stop({
+      ...english,
+      stop_hook_active: true,
+    } as never);
+    expect(first.block).toBeDefined();
+    expect(again.block).toBeUndefined();
+  });
+
   // Another Stop hook, such as /goal's, continued the turn instead.
   test("in English after another hook's block is sent back", async ($, on) => {
     const block = await stop($, on, {
@@ -286,11 +307,30 @@ describe("a final reply", () => {
     const english = { last_assistant_message: ENGLISH };
     await $.classic.Stop({ ...english, stop_hook_active: false } as never);
     await $.classic.UserPromptSubmit({ prompt: "p", source: "user" } as never);
+    // A turn's first stop never follows a block.
     const next = await $.classic.Stop({
+      ...english,
+      stop_hook_active: false,
+    } as never);
+    expect(next.block).toBeDefined();
+  });
+
+  // The rewrite was let through, and a hook beneath, such as /goal's, then
+  // continued the turn.
+  test("in English after its rewrite and another hook's block is sent back", async ($, on) => {
+    engine(on);
+    const english = { last_assistant_message: ENGLISH };
+    await $.classic.Stop({ ...english, stop_hook_active: false } as never);
+    const rewrite = await $.classic.Stop({
       ...english,
       stop_hook_active: true,
     } as never);
-    expect(next.block).toBeDefined();
+    const after = await $.classic.Stop({
+      ...english,
+      stop_hook_active: true,
+    } as never);
+    expect(rewrite.block).toBeUndefined();
+    expect(after.block).toBeDefined();
   });
 
   test("in English keeps a block from a hook beneath", async ($, on) => {
