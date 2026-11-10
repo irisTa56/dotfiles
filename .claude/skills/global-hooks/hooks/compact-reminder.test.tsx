@@ -29,7 +29,7 @@ const engine = (on: On, tokens: number | undefined): void => {
 };
 
 test("under the threshold the band stays the engine's", async ($, on) => {
-  engine(on, 359_999);
+  engine(on, 299_999);
 
   const ui = await $.ui.mount(BAND);
 
