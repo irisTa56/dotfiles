@@ -47,12 +47,12 @@ test("before any reading the band stays the engine's", async ($, on) => {
 });
 
 test("at the threshold the band reminds, in thousands", async ($, on) => {
-  engine(on, 412_345);
+  engine(on, 300_000);
 
   const ui = await $.ui.mount(BAND);
 
   const row = await ui.find({ type: "Text", text: /\/compact/ });
-  expect(row?.text).toContain("412k");
+  expect(row?.text).toContain("300k");
   await ui.unmount();
 });
 
