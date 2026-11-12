@@ -5,15 +5,18 @@
 # and stdout carries the file system's details mixed in with any other output.
 # Written without a space, as in -f%z, the format is an invalid option. Exit 2
 # blocks the call and hands stderr back to Claude. Where stat is BSD stat the
-# form is the right one, so the hook passes everything there. Only a bare `stat`
-# is matched, as in block-bsd-sed-inplace.sh, so /usr/bin/stat passes, and so
-# does GNU's own `stat -f <path>`, whose argument does not start with %.
+# form is the right one, so the hook passes everything there. A format is told
+# from a path by a % in the word after -f, so GNU's own `stat -f <path>` passes.
+# Only a bare `stat` is matched: a path such as /usr/bin/stat names its own stat,
+# and a quote or `|` right before the word marks an argument to another command.
+# The same text after a space inside a quoted argument, such as a commit
+# message, is still caught.
 
 stat --version >/dev/null 2>&1 || exit 0
 
-pattern="(^|[[:space:];&(|])stat +(-[a-zA-Z]+ +)*-f *['\"]?%"
+pattern="(^|[[:space:];&(])stat +(-[a-zA-Z]+ +)*-f *['\"]?[^[:space:]'\"]*%"
 
 if jq -r '.tool_input.command // empty' | grep -qE "$pattern"; then
-  echo "Blocked: stat on PATH here is GNU stat, whose -f reports the file system and takes no format, so the format is read as a file name and the call fails. Write \`stat -c '%Y %s %n' file\` for mtime, size and name, \`stat -c '%y' file\` for a readable mtime, or call /usr/bin/stat for the BSD form." >&2
+  echo "Blocked: stat on PATH here is GNU stat, whose -f reports the file system and takes no format, so the format is read as a file name and the call fails. Write \`stat -c '%Y %s %n' file\` for mtime, size and name, or \`stat -c '%y' file\` for a readable mtime; on macOS, /usr/bin/stat is BSD stat. Where the command only quotes the form in text, such as a commit message, reword that text." >&2
   exit 2
 fi
