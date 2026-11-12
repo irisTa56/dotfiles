@@ -145,7 +145,7 @@ type World = {
   // What `git rev-parse` exits with and prints.
   git: { exitCode: number; stdout: string };
   status: (string | undefined)[];
-  // What the next Edit or Write leaves as the record's text.
+  // What the next Edit, Write or Bash leaves as the record's text.
   written?: string;
 };
 
@@ -182,7 +182,7 @@ const world = (on: On, recordText?: string): World => {
   on("session.start", (_, e) => ({ cwd: e.cwd }));
   on("turn.start", (_, e) => ({ turnId: e.turnId }));
   on("turn.complete", (_, e) => ({ text: e.answer }));
-  on("tool.call", { tool: ["Edit", "Write"] }, () => {
+  on("tool.call", { tool: ["Edit", "Write", "Bash"] }, () => {
     if (w.written !== undefined) w.record = w.written;
 
     return { result: {} as never };
@@ -197,6 +197,12 @@ const write = (file_path: string) =>
     tool_use_id: "toolu_write",
     file_path,
     content: "",
+  }) as const;
+const bash = (command: string) =>
+  ({
+    tool: "Bash",
+    tool_use_id: "toolu_bash",
+    command,
   }) as const;
 const edit = (file_path: string) =>
   ({
@@ -246,6 +252,26 @@ describe("the status line", () => {
     expect(w.status).toEqual(["review-loop: round 2", "review-loop: round 3"]);
   });
 
+  test("rereads the record once a shell command writes it", async ($, on) => {
+    const w = world(on, record("### Round 1"));
+    w.written = record("### Round 1", "### Round 2");
+    await $.tool.call(
+      bash(
+        `printf '\\n### Round 2\\n' >> "$HOME/.claude/review-loop/-repo-.git/feat/x.md"`,
+      ),
+    );
+    expect(w.status).toEqual(["review-loop: round 2"]);
+
+    // A command run from ~/.claude names the directory without its parent.
+    w.written = record("### Round 1", "### Round 2", "## Closed abc1234");
+    await $.tool.call(
+      bash(
+        "cd ~/.claude && printf '## Closed abc1234' >> review-loop/-repo-.git/feat/x.md",
+      ),
+    );
+    expect(w.status).toEqual(["review-loop: round 2", undefined]);
+  });
+
   test("draws as the session starts and as a turn ends", async ($, on) => {
     const w = world(on, record("### Round 1"));
     await $.session.start({
@@ -269,6 +295,13 @@ describe("the status line", () => {
   test("leaves the status alone on an edit elsewhere", async ($, on) => {
     const w = world(on, record("### Round 1"));
     await $.tool.call(edit("/repo/src/a.ts"));
+
+    expect(w.status).toEqual([]);
+  });
+
+  test("leaves the status alone on a shell command elsewhere", async ($, on) => {
+    const w = world(on, record("### Round 1"));
+    await $.tool.call(bash("printf x >> /repo/src/a.ts"));
 
     expect(w.status).toEqual([]);
   });
