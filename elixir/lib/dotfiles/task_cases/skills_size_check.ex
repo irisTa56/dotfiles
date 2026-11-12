@@ -54,7 +54,7 @@ defmodule Dotfiles.TaskCases.SkillsSizeCheck do
         files: [{".claude/skills/small/SKILL.md", skill("a")}],
         args: [":(glob).claude/skills/*/SKILL.md", "--verbose"],
         exit: 2,
-        output: ["--verbose"]
+        output: ["does not read --verbose"]
       },
       # Run where git lists nothing, the check would otherwise pass having read no skill.
       %{
