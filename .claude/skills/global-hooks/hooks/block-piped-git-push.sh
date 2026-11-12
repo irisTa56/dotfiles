@@ -8,7 +8,13 @@
 
 pattern='git[^|;]* (merge|rebase|pull|commit)[^|;]*\|[^;]*&&[^;]*git[^;]* push'
 
-if jq -r '.tool_input.command // empty' | grep -v pipefail | grep -qE "$pattern"; then
-  echo 'Blocked: the git merge/rebase/pull/commit is piped, so && tests the last pipe stage and the push would run even if that step failed. Drop the pipe, or push in a separate command after checking the result.' >&2
+if jq -r '.tool_input.command // empty' |
+  grep -v pipefail |
+  grep -qE "$pattern"; then
+  cat >&2 <<'EOF'
+Blocked: the git merge/rebase/pull/commit is piped, so && tests the last pipe
+stage and the push would run even if that step failed. Drop the pipe, or push
+in a separate command after checking the result.
+EOF
   exit 2
 fi
