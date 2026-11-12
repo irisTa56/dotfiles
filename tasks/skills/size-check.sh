@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Fail where a tracked skill's body is past what a compaction re-attaches"
+#MISE description="Fail where a tracked skill's body is past what a compaction re-attaches; --verbose prints each passing skill's length too"
 set -euo pipefail
 
 # After a compaction, Claude Code re-attaches each skill the session invoked, cut
@@ -9,6 +9,14 @@ set -euo pipefail
 # never fewer than its characters. The re-attached copy opens with a line naming the
 # skill's directory, whose length depends on where the skill was loaded from.
 limit=$((20000 - 200))
+
+# --verbose also prints the length of each skill that passes, for a session sizing
+# a skill against the limit rather than gating a commit on it.
+verbose=0
+if [[ ${1:-} == --verbose ]]; then
+  verbose=1
+  shift
+fi
 
 # Asked of git, so an ignored or vendored skill is left out and one staged for the
 # commit being made is checked. The argument names another layout; `glob` keeps
@@ -43,6 +51,8 @@ while IFS= read -r file; do
   if ((length > limit)); then
     echo "$file: $length UTF-16 code units, past the $limit a compaction re-attaches" >&2
     status=1
+  elif ((verbose)); then
+    echo "$file: $length of $limit UTF-16 code units"
   fi
 done <<<"$files"
 exit "$status"

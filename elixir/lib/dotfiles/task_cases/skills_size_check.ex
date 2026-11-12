@@ -29,6 +29,24 @@ defmodule Dotfiles.TaskCases.SkillsSizeCheck do
         exit: 0,
         output: ""
       },
+      # A session sizing a skill against the limit needs the length of one that passes.
+      %{
+        name: "with --verbose, reports a passing skill's length against the limit",
+        files: [{".claude/skills/full/SKILL.md", skill(String.duplicate("a", @limit))}],
+        args: ["--verbose"],
+        exit: 0,
+        output: ".claude/skills/full/SKILL.md: #{@limit} of #{@limit} UTF-16 code units\n"
+      },
+      %{
+        name: "with --verbose and a pathspec, reports the passing skills and still fails",
+        files: [
+          {"skills/big/SKILL.md", skill(over())},
+          {"skills/small/SKILL.md", skill("a")}
+        ],
+        args: ["--verbose", ":(glob)skills/*/SKILL.md"],
+        exit: 1,
+        output: over_limit("skills/big/SKILL.md") ++ ["skills/small/SKILL.md: 1 of #{@limit}"]
+      },
       # Run where git lists nothing, the check would otherwise pass having read no skill.
       %{
         name: "fails when git tracks no skill to check",
