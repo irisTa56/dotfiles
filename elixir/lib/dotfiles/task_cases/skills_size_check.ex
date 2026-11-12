@@ -13,14 +13,15 @@ defmodule Dotfiles.TaskCases.SkillsSizeCheck do
     [
       %{
         name:
-          "reports a tracked skill whose body is past the limit, with the limit and unit, and what may move into references/",
+          "reports a tracked skill whose body is past the limit, with the limit and unit, and what may move into references/ and what stays",
         files: [{".claude/skills/big/SKILL.md", skill(over())}],
         exit: 1,
         output: [
           ".claude/skills/big/SKILL.md: #{@limit + 1}",
           "UTF-16 code units",
           "#{@limit}",
-          "references/"
+          "references/",
+          "before the body points there"
         ]
       },
       %{
