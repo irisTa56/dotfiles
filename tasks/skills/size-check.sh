@@ -22,6 +22,12 @@ fi
 # commit being made is checked. The argument names another layout; `glob` keeps
 # `*` to one directory level.
 pathspec=${1:-':(glob).claude/skills/*/SKILL.md'}
+# An argument past the pathspec, such as a --verbose written last, would otherwise
+# be dropped and leave a silent pass.
+if (($# > 1)); then
+  echo "size-check.sh does not read ${*:2}; its arguments are [--verbose] [pathspec], in that order." >&2
+  exit 2
+fi
 
 # -z, since git otherwise quotes a path that is not ASCII.
 files=$(git ls-files -z -- "$pathspec" | tr '\0' '\n')

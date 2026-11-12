@@ -47,6 +47,15 @@ defmodule Dotfiles.TaskCases.SkillsSizeCheck do
         exit: 1,
         output: over_limit("skills/big/SKILL.md") ++ ["skills/small/SKILL.md: 1 of #{@limit}"]
       },
+      # An argument after the pathspec is not read, and dropping it silently would
+      # leave the caller with no lengths and no reason.
+      %{
+        name: "fails naming an argument it does not read, rather than dropping it",
+        files: [{".claude/skills/small/SKILL.md", skill("a")}],
+        args: [":(glob).claude/skills/*/SKILL.md", "--verbose"],
+        exit: 2,
+        output: ["--verbose"]
+      },
       # Run where git lists nothing, the check would otherwise pass having read no skill.
       %{
         name: "fails when git tracks no skill to check",
