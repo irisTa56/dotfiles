@@ -14,6 +14,11 @@ sed --version >/dev/null 2>&1 || exit 0
 pattern="(^|[[:space:];&(])sed +(-[a-zA-Z]+ +)*-i +(''|\"\")"
 
 if jq -r '.tool_input.command // empty' | grep -qE "$pattern"; then
-  echo "Blocked: sed on PATH here is GNU sed, whose -i takes no separate suffix argument, so the empty string after -i is read as the script or as a file name and the call fails. Write \`sed -i 's/.../.../' file\`, or use the Edit tool where the edit is not mechanical." >&2
+  cat >&2 <<'EOF'
+Blocked: sed on PATH here is GNU sed, whose -i takes no separate suffix
+argument, so the empty string after -i is read as the script or as a file
+name and the call fails. Write `sed -i 's/.../.../' file`, or use the Edit
+tool where the edit is not mechanical.
+EOF
   exit 2
 fi
