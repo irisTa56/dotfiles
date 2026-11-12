@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` and `shared-tasks:bump` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -106,6 +106,13 @@ It does not tell whether the pin is a commit on `main`: one that no branch reach
 Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
+
+### `shared-tasks:bump`
+
+It moves the pin to the tip of `main` where `shared-tasks:check` exits 1, and passes on its 0 or 2 unchanged, so a `main` that moved without touching `tasks/` asks for no move here either.
+It lists what the move changes under `tasks/`, rewrites the pin, and runs the check again, which loads the new pin, and leaves the commit to whoever ran it.
+Running each task the list names, and deciding whether a new one joins the repository's hooks or CI, is left to them as well.
+It reads the pin from `mise.toml` at the repository root and exits 2 unless that file holds exactly one.
 
 ## Writing one
 
