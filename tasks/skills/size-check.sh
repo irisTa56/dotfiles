@@ -55,7 +55,7 @@ while IFS= read -r file; do
   fi
   length=$(($(tail -n "+$((fence + 1))" "$file" | iconv -f UTF-8 -t UTF-16LE | wc -c) / 2))
   if ((length > limit)); then
-    echo "$file: $length UTF-16 code units, past the $limit a compaction re-attaches" >&2
+    echo "$file: $length UTF-16 code units, past the $limit a compaction re-attaches; shorten it, or move into references/ only what it reads at one moment, keeping in the body what a step needs before the body points there" >&2
     status=1
   elif ((verbose)); then
     echo "$file: $length of $limit UTF-16 code units"
