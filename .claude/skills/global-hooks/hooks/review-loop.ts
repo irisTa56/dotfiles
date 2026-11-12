@@ -68,4 +68,14 @@ export const register: Register = (on) => {
 
     return ran;
   });
+
+  // The loop mostly writes it from the shell, the path spelled in full or,
+  // after a `cd ~/.claude`, relative. A command that only names the directory
+  // costs a reread that changes nothing.
+  on("tool.call", { tool: "Bash" }, async ($, e, next) => {
+    const ran = await next(e);
+    if (e.command.includes("review-loop/")) await showStatus($);
+
+    return ran;
+  });
 };
