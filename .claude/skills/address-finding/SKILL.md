@@ -88,6 +88,7 @@ Three questions answer that, and all three are weighed rather than taking the fi
   - Cheapest on the metric above, so ask it first.
   - Hold it to `finding-bar`'s removal bar.
   - Deleting what the finding was about without answering that is not a fix; a removal that answers it is often the best one there is.
+  - For a sentence that claims more than holds, what to remove is the overclaim: raise the sentence to the level of abstraction at which it is true, and add the detail or an exception only where its reader acts on what the raised sentence no longer says, since each added exception is one more place the next round can find a gap.
 - What can be reshaped, so the problem does not arise here?
   - A reshape is a rewrite, so §1's rewrite cost applies.
 - What has to be added?
