@@ -161,7 +161,10 @@ export GIT_AUTHOR_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 commit=$(git -C "$project_root" commit-tree "$tree" -p "$base" \
   -m "chore(mise): move the shared-tasks pin to dotfiles main" -m "$brings")
-git -C "$project_root" push -q origin "$commit:refs/heads/$bump_branch"
+if ! git -C "$project_root" push -q origin "$commit:refs/heads/$bump_branch"; then
+  echo "[fail] could not push the move to $bump_branch: the push needs the job's token with contents: write, kept on the checkout's origin" >&2
+  exit 2
+fi
 echo "[fail] pushed the move to $bump_branch; $brings" >&2
 echo "[fail] open its pull request: ${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-}/compare/$bump_branch?expand=1" >&2
 exit 1
