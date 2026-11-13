@@ -10,11 +10,11 @@
 set -euo pipefail
 
 bump=false
-case "${1:-}" in
+case "$*" in
 "") ;;
 --bump) bump=true ;;
 *)
-  echo "[fail] unknown argument '$1'; the one this takes is --bump" >&2
+  echo "[fail] unknown arguments '$*'; the one this takes is --bump" >&2
   exit 2
   ;;
 esac
@@ -103,6 +103,6 @@ if [ "$bump" = true ]; then
   # Not sed -i, whose form differs between GNU and BSD sed; writing through the file keeps its mode.
   sed "s|${pin}${in_use}|${pin}${latest}|" "$config" >"$scratch/mise.toml"
   cat "$scratch/mise.toml" >"$config"
-  echo "[fail] moved the pin to main; what it brings: https://github.com/irisTa56/dotfiles/compare/${in_use}...${latest}" >&2
+  echo "[fail] moved the pin to main; what it brings: ${remote_url%.git}/compare/${in_use}...${latest}" >&2
 fi
 exit 1
