@@ -84,13 +84,18 @@ jobs:
       # of mise_multi_upgrade drive the mise this action installs, after clearing
       # every MISE_ variable, this one included.
       MISE_ENABLE_TOOLS: erlang,elixir,yq,jq
+      # mise picks builds.hex.pm's precompiled Erlang on its own only on the Ubuntu
+      # releases it lists, and elsewhere builds OTP from source with kerl, which
+      # takes minutes. Naming the runner's release makes it take that release's
+      # build; move the value when ubuntu-latest moves.
+      MISE_ERLANG_PRECOMPILED_OS: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
         id: mise
         with:
-          # On an Ubuntu runner mise installs a precompiled Erlang rather than
-          # building it.
+          # With MISE_ERLANG_PRECOMPILED_OS above, mise installs a precompiled
+          # Erlang rather than building it.
           cache: false # as in `markdown-lint`
       # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
       # mix.lock pins every version, so the runner needs none of the release window
