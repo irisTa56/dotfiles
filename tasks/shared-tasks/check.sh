@@ -9,6 +9,16 @@
 # Exit codes: 0 nothing to act on, 1 the shared tasks differ from main, 2 it could not tell.
 set -euo pipefail
 
+bump=false
+case "${1:-}" in
+"") ;;
+--bump) bump=true ;;
+*)
+  echo "[fail] unknown argument '$1'; the one this takes is --bump" >&2
+  exit 2
+  ;;
+esac
+
 remote_url="https://github.com/irisTa56/dotfiles.git"
 
 tasks_dir="${MISE_TASK_DIR:-}"
@@ -80,4 +90,19 @@ fi
 echo "[fail] the pinned tasks differ from dotfiles main" >&2
 echo "[fail] in use: $in_use" >&2
 echo "[fail] main:   $latest" >&2
+
+# The pin is read from mise's clone rather than parsed out of mise.toml, so a pin the file
+# does not hold in this form is reported rather than guessed at.
+if [ "$bump" = true ]; then
+  config="$project_root/mise.toml"
+  pin="git::${remote_url}//tasks?ref="
+  if ! grep -qF "${pin}${in_use}" "$config"; then
+    echo "[fail] no pin of ${pin}${in_use} in $config to move" >&2
+    exit 2
+  fi
+  # Not sed -i, whose form differs between GNU and BSD sed; writing through the file keeps its mode.
+  sed "s|${pin}${in_use}|${pin}${latest}|" "$config" >"$scratch/mise.toml"
+  cat "$scratch/mise.toml" >"$config"
+  echo "[fail] moved the pin to main; what it brings: https://github.com/irisTa56/dotfiles/compare/${in_use}...${latest}" >&2
+fi
 exit 1
