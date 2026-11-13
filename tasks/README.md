@@ -109,7 +109,8 @@ Give it a CI step of its own and fail the build on anything but 0, so a failure 
 
 With `--bump`, where it would exit 1 it first moves the pin to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same.
 Run by hand, it rewrites the pin in `mise.toml` at the repository root, for whoever ran it to commit.
-Under GitHub Actions it leaves the checkout alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, force-pushes that commit to a `shared-tasks-bump` branch, and prints the link that opens its pull request.
+Under GitHub Actions it leaves the checkout alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, pushes that commit to a new `shared-tasks-bump` branch, and prints the link that opens its pull request.
+Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer `main` waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
 The job's token needs `contents: write` for the push, so pass the flag only on runs whose token can push, which a pull request from a fork's is not.
 It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
 Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever opens that pull request.
