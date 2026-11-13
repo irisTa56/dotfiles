@@ -1,6 +1,6 @@
 ---
 name: test-drive
-description: "Build or change behavior by test-driven development as Kent Beck describes it, one failing test at a time. Use whenever implementing a feature, changing what existing code does, or fixing a bug in a codebase that has automated tests or should have them, including when the request says nothing about tests."
+description: "How to write the code of a change: by test-driven development as Kent Beck describes it, one failing test at a time. Load it before the first edit to code that adds or changes behavior (a feature, a script, a hook, a check, a bug fix) in a codebase that has automated tests or should have them. That holds alongside any skill for the kind of code being built, when the work arrives as a brief or an approved plan, when it turns to implementation partway through a conversation, and when the request says nothing about tests."
 ---
 
 # Test Drive
