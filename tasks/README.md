@@ -107,9 +107,15 @@ Run inside this repository it exits 0 and checks nothing, since its own working 
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
 
-With `--bump`, where it would exit 1 it first moves the pin in `mise.toml` at the repository root to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same, so a CI step after it can open a pull request from the rewritten file on failure.
-Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever reviews the pull request that carries it.
-It exits 2 where that file holds no pin of the commit in use, and on any other argument.
+With `--bump`, where it would exit 1 it first moves the pin to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same.
+Run by hand, it rewrites the pin in `mise.toml` at the repository root, for whoever ran it to commit.
+Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, pushes that commit to a new `shared-tasks-bump` branch, and prints the link that opens its pull request.
+Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer `main` waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
+It pushes through `origin` as the checkout left it, so the job's token needs `contents: write` and the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
+Pass `--bump` there only on runs whose token can push, which a pull request from a fork's is not.
+It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
+Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever opens that pull request.
+It exits 2 on any other argument, and wherever it cannot make the move, saying why; a pull request cut before the last move merged can meet this until it is brought up to date, since the default branch's pin is at `main` already.
 
 ## Writing one
 

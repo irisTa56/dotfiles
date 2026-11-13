@@ -91,18 +91,83 @@ echo "[fail] the pinned tasks differ from dotfiles main" >&2
 echo "[fail] in use: $in_use" >&2
 echo "[fail] main:   $latest" >&2
 
-# The pin is read from mise's clone rather than parsed out of mise.toml, so a pin the file
-# does not hold in this form is reported rather than guessed at.
-if [ "$bump" = true ]; then
+if [ "$bump" != true ]; then
+  exit 1
+fi
+
+pin="git::${remote_url}//tasks?ref="
+compare="${remote_url%.git}/compare"
+
+# Outside GitHub Actions the move lands in the working tree, for whoever ran it to commit.
+if [ "${GITHUB_ACTIONS:-}" != true ]; then
   config="$project_root/mise.toml"
-  pin="git::${remote_url}//tasks?ref="
-  if ! grep -qF "${pin}${in_use}" "$config"; then
-    echo "[fail] no pin of ${pin}${in_use} in $config to move" >&2
+  # Not sed -i, whose form differs between GNU and BSD sed; writing through the file keeps its mode.
+  sed "s|${pin}[0-9a-f]\{40\}|${pin}${latest}|" "$config" >"$scratch/mise.toml"
+  if cmp -s "$config" "$scratch/mise.toml"; then
+    echo "[fail] $config holds no pin of ${pin}<sha> to move, or holds main's already" >&2
     exit 2
   fi
-  # Not sed -i, whose form differs between GNU and BSD sed; writing through the file keeps its mode.
-  sed "s|${pin}${in_use}|${pin}${latest}|" "$config" >"$scratch/mise.toml"
   cat "$scratch/mise.toml" >"$config"
-  echo "[fail] moved the pin to main; what it brings: ${remote_url%.git}/compare/${in_use}...${latest}" >&2
+  echo "[fail] moved the pin to main; what it brings: $compare/${in_use}...${latest}" >&2
+  exit 1
 fi
+
+# In GitHub Actions the checkout is whatever the run was for, often a pull request's merge
+# commit, so the move is made on the repository's default branch instead and pushed to a
+# branch of its own. A person opens the pull request from it: opening one with the job's
+# token needs a repository setting that also lets that token approve pull requests.
+bump_branch=shared-tasks-bump
+
+# Once the branch exists it is the person's who opens its pull request, who may add commits
+# to it, so it is left alone; merging that pull request deletes it where the repository
+# deletes merged branches, and the next stale run pushes afresh.
+status=0
+git -C "$project_root" ls-remote -q --exit-code origin "refs/heads/$bump_branch" >/dev/null || status=$?
+case $status in
+0)
+  echo "[fail] $bump_branch already exists on origin, so it is left as it is" >&2
+  exit 1
+  ;;
+2) ;;
+*)
+  echo "[fail] could not tell whether $bump_branch exists on origin" >&2
+  exit 2
+  ;;
+esac
+
+if ! git -C "$project_root" fetch -q --depth=1 origin HEAD ||
+  ! base=$(git -C "$project_root" rev-parse FETCH_HEAD) ||
+  ! git -C "$project_root" show "$base:mise.toml" >"$scratch/base.toml"; then
+  echo "[fail] could not read mise.toml on origin's default branch" >&2
+  exit 2
+fi
+sed "s|${pin}[0-9a-f]\{40\}|${pin}${latest}|" "$scratch/base.toml" >"$scratch/mise.toml"
+if cmp -s "$scratch/base.toml" "$scratch/mise.toml"; then
+  echo "[fail] mise.toml on origin's default branch holds no pin to move, or holds main's already" >&2
+  exit 2
+fi
+# The move is from the default branch's pin, which may differ from the checkout's.
+from=$(sed -n "s|.*${pin}\([0-9a-f]\{40\}\).*|\1|p" "$scratch/base.toml" | head -n 1)
+brings="what it brings: $compare/${from}...${latest}"
+
+# Build the commit without touching the working tree or its index: a scratch index over the default branch's
+# tree, with mise.toml swapped in at the mode it had there.
+mode=$(git -C "$project_root" ls-tree "$base" mise.toml | cut -d' ' -f1)
+blob=$(git -C "$project_root" hash-object -w "$scratch/mise.toml")
+export GIT_INDEX_FILE="$scratch/index"
+git -C "$project_root" read-tree "$base"
+git -C "$project_root" update-index --cacheinfo "$mode,$blob,mise.toml"
+tree=$(git -C "$project_root" write-tree)
+unset GIT_INDEX_FILE
+export GIT_AUTHOR_NAME="github-actions[bot]" GIT_COMMITTER_NAME="github-actions[bot]"
+export GIT_AUTHOR_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+commit=$(git -C "$project_root" commit-tree "$tree" -p "$base" \
+  -m "chore(mise): move the shared-tasks pin to dotfiles main" -m "$brings")
+if ! git -C "$project_root" push -q origin "$commit:refs/heads/$bump_branch"; then
+  echo "[fail] could not push the move to $bump_branch, for the reason git gives above; the push needs the job's token with contents: write kept on the checkout's origin" >&2
+  exit 2
+fi
+echo "[fail] pushed the move to $bump_branch; $brings" >&2
+echo "[fail] open its pull request: ${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-}/compare/$bump_branch?expand=1" >&2
 exit 1
