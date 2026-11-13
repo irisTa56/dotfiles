@@ -418,6 +418,7 @@ defmodule Dotfiles.MiseMultiUpgradeTest do
   # The pipe a report is written to closes when its reader stops early, as with
   # `| head`, and the next write raises as a group leader answering
   # {:error, :terminated} makes it; another error answered is not a closed pipe.
+  @tag capture_log: true
   test "ends a --dry-run report quietly when its reader stops early, and only then" do
     dir = project("/work/project")
     outdated_in(dir, %{"jq" => {"1.6", "1.7"}})
