@@ -150,7 +150,7 @@ fi
 from=$(sed -n "s|.*${pin}\([0-9a-f]\{40\}\).*|\1|p" "$scratch/base.toml" | head -n 1)
 brings="what it brings: $compare/${from}...${latest}"
 
-# Build the commit without touching the checkout: a scratch index over the default branch's
+# Build the commit without touching the working tree or its index: a scratch index over the default branch's
 # tree, with mise.toml swapped in at the mode it had there.
 mode=$(git -C "$project_root" ls-tree "$base" mise.toml | cut -d' ' -f1)
 blob=$(git -C "$project_root" hash-object -w "$scratch/mise.toml")
