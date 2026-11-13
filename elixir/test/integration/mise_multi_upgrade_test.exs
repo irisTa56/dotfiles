@@ -20,13 +20,12 @@ defmodule Dotfiles.Integration.MiseMultiUpgradeTest do
     dir = String.trim(dir)
     mise = Path.join(dir, "mise")
 
-    # A git hook running this suite sets GIT_DIR and the like for its own
-    # repository, which would turn every git call here toward that one; a shell
-    # mise is activated in sets __MISE_SESSION and the like, from which mise runs
-    # the hooks of the configs that shell has loaded, this repository's among them.
+    # A shell mise is activated in sets __MISE_SESSION and the like, from which
+    # mise runs the hooks of the configs that shell has loaded, this repository's
+    # among them. test_helper.exs has already cleared the GIT_ ones.
     inherited =
       for {name, _} <- System.get_env(),
-          String.starts_with?(name, ["GIT_", "MISE_", "__MISE_"]),
+          String.starts_with?(name, ["MISE_", "__MISE_"]),
           do: {name, nil}
 
     Dotfiles.TestEnv.put_env(
