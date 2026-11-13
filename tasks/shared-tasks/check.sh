@@ -96,7 +96,7 @@ if [ "$bump" != true ]; then
 fi
 
 pin="git::${remote_url}//tasks?ref="
-brings="what it brings: ${remote_url%.git}/compare/${in_use}...${latest}"
+compare="${remote_url%.git}/compare"
 
 # Outside GitHub Actions the move lands in the working tree, for whoever ran it to commit.
 if [ "${GITHUB_ACTIONS:-}" != true ]; then
@@ -104,11 +104,11 @@ if [ "${GITHUB_ACTIONS:-}" != true ]; then
   # Not sed -i, whose form differs between GNU and BSD sed; writing through the file keeps its mode.
   sed "s|${pin}[0-9a-f]\{40\}|${pin}${latest}|" "$config" >"$scratch/mise.toml"
   if cmp -s "$config" "$scratch/mise.toml"; then
-    echo "[fail] $config holds no pin of ${pin}<sha> to move" >&2
+    echo "[fail] $config holds no pin of ${pin}<sha> to move, or holds main's already" >&2
     exit 2
   fi
   cat "$scratch/mise.toml" >"$config"
-  echo "[fail] moved the pin to main; $brings" >&2
+  echo "[fail] moved the pin to main; what it brings: $compare/${in_use}...${latest}" >&2
   exit 1
 fi
 
@@ -125,7 +125,7 @@ status=0
 git -C "$project_root" ls-remote -q --exit-code origin "refs/heads/$bump_branch" >/dev/null || status=$?
 case $status in
 0)
-  echo "[fail] $bump_branch already exists on origin, so it is left as it is; $brings" >&2
+  echo "[fail] $bump_branch already exists on origin, so it is left as it is" >&2
   exit 1
   ;;
 2) ;;
@@ -146,6 +146,9 @@ if cmp -s "$scratch/base.toml" "$scratch/mise.toml"; then
   echo "[fail] mise.toml on origin's default branch holds no pin to move, or holds main's already" >&2
   exit 2
 fi
+# The move is from the default branch's pin, which may differ from the checkout's.
+from=$(sed -n "s|.*${pin}\([0-9a-f]\{40\}\).*|\1|p" "$scratch/base.toml" | head -n 1)
+brings="what it brings: $compare/${from}...${latest}"
 
 # Build the commit without touching the checkout: a scratch index over the default branch's
 # tree, with mise.toml swapped in at the mode it had there.
@@ -162,7 +165,7 @@ export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 commit=$(git -C "$project_root" commit-tree "$tree" -p "$base" \
   -m "chore(mise): move the shared-tasks pin to dotfiles main" -m "$brings")
 if ! git -C "$project_root" push -q origin "$commit:refs/heads/$bump_branch"; then
-  echo "[fail] could not push the move to $bump_branch: the push needs the job's token with contents: write, kept on the checkout's origin" >&2
+  echo "[fail] could not push the move to $bump_branch, for the reason git gives above; the push needs the job's token with contents: write kept on the checkout's origin" >&2
   exit 2
 fi
 echo "[fail] pushed the move to $bump_branch; $brings" >&2
