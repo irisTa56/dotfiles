@@ -107,9 +107,13 @@ Run inside this repository it exits 0 and checks nothing, since its own working 
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
 
-With `--bump`, where it would exit 1 it first moves the pin in `mise.toml` at the repository root to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same, so a CI step after it can open a pull request from the rewritten file on failure.
-Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever reviews the pull request that carries it.
-It exits 2 where that file holds no pin of the commit in use, and on any other argument.
+With `--bump`, where it would exit 1 it first moves the pin to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same.
+Run by hand, it rewrites the pin in `mise.toml` at the repository root, for whoever ran it to commit.
+Under GitHub Actions it leaves the checkout alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, force-pushes that commit to a `shared-tasks-bump` branch, and prints the link that opens its pull request.
+The job's token needs `contents: write` for the push, so pass the flag only on runs whose token can push, which a pull request from a fork's is not.
+It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
+Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever opens that pull request.
+It exits 2 on any other argument, and where the `mise.toml` it would move holds no pin to move, which on the default branch includes one at `main` already.
 
 ## Writing one
 
