@@ -2,7 +2,6 @@
 
 <!--
 The Conversation section is pasted as is into other chat assistants, so copying it from its heading to just before `## Agentic work` must yield a set that stands on its own.
-It must also stay under 3,900 characters, since one such assistant was seen to cut a paste off somewhere between 3,912 and 4,068.
 -->
 
 ## Conversation
