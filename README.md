@@ -31,6 +31,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 - `[dotfiles]` symlinks the global mise config, the commands under `~/.local/bin`, and the agent instructions below, into place.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
+  - It sets cargo's `[registry] global-min-publish-age` in `~/.cargo/config.toml` from `.config/cargo/config.toml`, leaving the file's other keys as they are.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
@@ -70,19 +71,23 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 - A config already encrypted with another password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it.
   - Decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password; for a config copied from another Mac, the password command prints it there.
   - Without the password, as when the keychain item is gone, move the config aside and add the remotes again.
-- It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)) and Hex through its global one ([`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html)); mise and pnpm 11 already wait a day by default.
+- It also makes uv ([`exclude-newer`](https://docs.astral.sh/uv/reference/settings/#exclude-newer)) pick no package version published less than a day ago, as the script makes npm do through its user config ([`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/)) and Hex through its global one ([`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html)), and `[dotfiles]` makes cargo do through its user config ([`global-min-publish-age`](https://doc.rust-lang.org/cargo/reference/config.html#registryglobal-min-publish-age)); mise and pnpm 11 already wait a day by default.
   - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
   - npm's sits in the user config, below a project's own `.npmrc`, so a project can set a longer one.
   - Hex's likewise sits below a project's `mix.exs`, and any `mix` reads it, whatever shell starts it.
     - It covers `elixir/mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
     - The script updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
     - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
+  - cargo's sits in `~/.cargo/config.toml`, below a project's own `.cargo/config.toml`, rather than in `CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE`, which would outrank the project's.
+    - It [applies when cargo picks a version](https://doc.rust-lang.org/cargo/reference/resolver.html#publish-age), as `cargo update`, `cargo add` and `cargo generate-lockfile` do, and leaves alone what `Cargo.lock` already pins.
+    - A cargo before 1.100 ignores the key with a warning.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
   - To take a fix released within the day, override the window for that command.
     - npm: `npm install --min-release-age=0`.
     - uv: `UV_EXCLUDE_NEWER=false uvx …`.
+    - cargo: `CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE="0 seconds" cargo update -p <crate>`.
     - Hex, in a project: `HEX_COOLDOWN=0d mix deps.update <dep>`.
     - Hex, in a `Mix.install` script: `HEX_COOLDOWN=0d MIX_INSTALL_FORCE=1 elixir <script>`; without `MIX_INSTALL_FORCE` the script loads what it cached and resolves nothing.
 - pitchfork daemons get the export too: launchd starts the supervisor with no shell environment, so pitchfork's `general.shell` has to be `/bin/zsh -c`, whose non-interactive zsh still reads `.zshenv`. Under the default `sh -c`, a daemon that runs rclone stalls on the password prompt and fails.
