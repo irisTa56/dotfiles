@@ -1,5 +1,6 @@
 {
   "name": "global-hooks",
   "version": "0.1.0",
+  "author": { "name": "irisTa56" },
   "description": "User-global Claude Code hooks, loaded in place as global-hooks@skills-dir through the ~/.claude/skills symlink"
 }
