@@ -52,9 +52,8 @@ includes = ["tasks"]
 "~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
 # Its keys only: Claude Code writes the same file itself.
 "~/.claude/settings.json/dotfiles" = { source = ".config/claude/settings.json", merge = true }
-# cargo's release window, a day as for npm and Hex in scripts/setup_dotfiles.sh.
-# User config rather than CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE, which would
-# outrank a project's own .cargo/config.toml. Its keys only: the file may hold others.
+# cargo's release window. User config rather than CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE,
+# which would outrank a project's own .cargo/config.toml. Its keys only: the file may hold others.
 "~/.cargo/config.toml/dotfiles" = { source = ".config/cargo/config.toml", merge = true }
 "~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
