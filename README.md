@@ -81,6 +81,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
   - cargo's sits in `~/.cargo/config.toml`, below a project's own `.cargo/config.toml`, rather than in `CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE`, which would outrank the project's.
     - It [applies when cargo resolves a project's dependencies](https://doc.rust-lang.org/cargo/reference/resolver.html#publish-age), as `cargo update`, `cargo add` and `cargo generate-lockfile` do, and leaves alone what `Cargo.lock` already pins.
     - Only cargo 1.100 and later enforce it; an older one does not, and only some releases warn that they ignore the key.
+    - `cargo install` ignores it for the crate it installs, taking that crate's newest release whatever the key says.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
@@ -184,7 +185,7 @@ apm outdated
 mise run skills:update [package...]
 ```
 
-APM has no release window, so the task gives skills the one-day wait npm, uv and Hex have here.
+APM has no release window, so the task gives skills the one-day wait npm, uv, Hex and cargo have here.
 It holds back a skill whose path last changed in a pull request merged under a day ago, going by GitHub's merge time since a commit's own date is whatever its author set.
 It also holds one when GitHub lists no such pull request for its last commit, though the list can miss one, so that hold is for checking by hand.
 `apm update <package>` followed by `apm install` takes a held skill anyway.
