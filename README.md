@@ -80,7 +80,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
     - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
   - cargo's sits in `~/.cargo/config.toml`, below a project's own `.cargo/config.toml`, rather than in `CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE`, which would outrank the project's.
     - It [applies when cargo picks a version](https://doc.rust-lang.org/cargo/reference/resolver.html#publish-age), as `cargo update`, `cargo add` and `cargo generate-lockfile` do, and leaves alone what `Cargo.lock` already pins.
-    - A cargo before 1.100 ignores the key with a warning.
+    - Only cargo 1.100 and later enforce it; an older one does not, and only some releases warn that they ignore the key.
   - For uv it covers only `uvx` and `uv tool`, through shell functions: uv writes a user-wide window into each project's `uv.lock`, which then fails `uv lock --check` for anyone locking without it ([astral-sh/uv#18775](https://github.com/astral-sh/uv/issues/18775)).
     - A project gets the window by setting `[tool.uv] exclude-newer = "1 day"` in its own `pyproject.toml`, which every checkout then shares.
     - Other uv commands get none, including a one-off `uv run --with <pkg>` and a script's inline dependencies, so run a one-off through `uvx --with <pkg>` instead.
