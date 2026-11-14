@@ -35,9 +35,8 @@ export RCLONE_PASSWORD_COMMAND="/usr/bin/security find-generic-password -a rclon
 # mise, which runs this command again, and each level waits on the next.
 export MISE_GITHUB_CREDENTIAL_COMMAND="${HOMEBREW_PREFIX}/bin/gh auth token"
 
-# uvx and `uv tool` pick no package version published less than a day ago,
-# the window npm gets from its user config (set by setup_dotfiles.sh).
-# uv gets it only where no project lock is written:
+# uv's release window (README.md, "Release window"),
+# given only where no project lock is written:
 # a user-wide one is baked into each project's uv.lock
 # and then conflicts with anyone locking without it (astral-sh/uv#18775),
 # so a project sets its own in pyproject.toml.

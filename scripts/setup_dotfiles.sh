@@ -25,19 +25,14 @@ for name in zshenv zprofile zshrc; do
       "$fragment" "$fragment" "$fragment" >>~/."$name"
 done
 
-# npm picks no package version published less than a day ago,
-# so a compromised release pulled within hours is not taken into a lockfile
-# or a one-off install; mise and pnpm 11 already wait a day by default.
-# A version a lockfile already pins still installs. User config rather than
+# npm's release window (README.md, "Release window"). User config rather than
 # an environment variable, which would outrank a project's own .npmrc.
 # One key set in place: the file may also hold registry auth.
 npm config set min-release-age=1 --location=user
 
-# Hex gets the same window, for whenever mix picks a version: a dependency
-# added to or updated in elixir/mix.lock, and a Mix.install script, which has
-# no lockfile and resolves again whenever its cache is gone.
-# Global config for npm's reason: HEX_COOLDOWN would outrank a project's mix.exs.
-# Every mix reads it, whatever shell or agent starts it.
+# Hex's release window (README.md, "Release window"). Global config
+# rather than HEX_COOLDOWN, which would outrank a project's mix.exs;
+# every mix reads it, whatever shell or agent starts it.
 # Hex is updated first: its archive is built for one Erlang/OTP,
 # so an older one can fail to load after an upgrade.
 # Twice, since there are two archives: mise points MIX_HOME into the Elixir
