@@ -2,7 +2,6 @@
 
 <!--
 The General section is pasted as is into other chat assistants, such as Gemini, so copying it from its heading to the Claude Code heading must yield a set that stands on its own.
-Keep anything that names a Claude Code tool, file or mechanism under Claude Code instead.
 -->
 
 ## General
