@@ -2,6 +2,7 @@
 
 <!--
 The Conversation section is pasted as is into other chat assistants, so copying it from its heading to the next `##` heading must yield a set that stands on its own.
+It must also stay under about 4,000 characters, where one such assistant was seen to cut a paste off.
 -->
 
 ## Conversation
@@ -42,11 +43,6 @@ These rules assume nothing beyond a conversation with the user.
   - Outside it: the tool's native features, existing OSS, an issue tracker already tracking it as a defect.
 - Leave out of a comment, and of the documentation beside the code, what stops telling its reader anything once time passes — a version floor every install will soon be past, a state that held only while the change was landing. Keep the reason that holds for as long as the code does.
 - An explanation of a change says what is different now, and why: what the thing as a whole now does, or asserts, that it did not. Which lines moved is not that, and neither is a list of the wording fixes.
-
-### When a search is the evidence
-
-- A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
-- An absence you assert rests on the case you ran, or on reading everything that could hold it — a query bounds the candidates to its own words, so what you looked for may sit there under another name, or reach the mechanism without citing it.
 
 ## Agentic work
 
@@ -97,6 +93,11 @@ These rules add to the ones above for work done through Claude Code's tools — 
 - Restate a comment the user leaves on a line of a file before acting on it, with its text and `<sha> <path>:<line>` read off the commit the tree is then at, since your own edits land between the comment and the answer.
   - Leave the `<sha>` out where no commit holds that path as it stands: it has uncommitted edits, or it lies outside any repository.
   - Where several arrive at once, say which restatement an answer takes up.
+
+### When a search is the evidence
+
+- A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
+- An absence you assert rests on the case you ran, or on reading everything that could hold it — a query bounds the candidates to its own words, so what you looked for may sit there under another name, or reach the mechanism without citing it.
 
 ### When a conclusion rests on a command's output
 
