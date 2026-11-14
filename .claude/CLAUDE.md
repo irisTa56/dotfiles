@@ -1,7 +1,7 @@
 # Instructions
 
 <!--
-The Conversation section is pasted as is into other chat assistants, so copying it from its heading to the next must yield a set that stands on its own.
+The Conversation section is pasted as is into other chat assistants, so copying it from its heading to the next `##` heading must yield a set that stands on its own.
 -->
 
 ## Conversation
