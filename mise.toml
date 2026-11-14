@@ -6,7 +6,6 @@ rumdl = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
-"npm:typescript" = "latest"
 "pipx:apm-cli" = "latest"
 
 [env]
@@ -75,9 +74,10 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # `*` matches a single task segment and would leave `qa:links:offline` out.
 # The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
 # Claude Code CLI, which CI does not install.
-# `ts:types` needs that CLI too, so it is no `qa:` task either; it is a task of its own
-# because it is the slow one, which `depends` runs beside the rest, and the one worth
-# running alone while editing the module.
+# Validating `.claude/skills` reads it as a skills directory and does not reach the
+# global-hooks plugin inside it, so that plugin is validated on its own. That run
+# type-checks the function-hooks module, reporting each type error as a warning, so
+# `--strict` is what makes one fail the commit.
 # `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
@@ -86,9 +86,10 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # values it compares.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "ts:types", "secrets:commit-scan", "link-check:staged", "py:check-uv-pin"]
+depends = ["qa:**", "secrets:commit-scan", "link-check:staged", "py:check-uv-pin"]
 run = [
   "claude plugin validate .claude/skills",
+  "claude plugin validate --strict .claude/skills/global-hooks",
   "claude plugin test .claude/skills/global-hooks",
 ]
 
@@ -101,22 +102,24 @@ run = "rumdl check"
 description = "Lint and check formatting of TypeScript"
 run = "biome ci --error-on-warnings"
 
-# The declarations are those of the installed CLI. The engine writes them, git-ignored,
-# beside a plugin in a `--plugin-dir` folder the session watches for saves, and not
-# beside one it loads from the skills directory, so the first step loads the module that
-# way. A `-p` run watches the folder only under `CLAUDE_CODE_PLUGIN_DIR_WATCH`, and
+# Writes the installed CLI's type declarations, which global-hooks/tsconfig.json extends,
+# for an editor to type-check the function-hooks module; pre-commit does not need them,
+# since `claude plugin validate` type-checks the module itself. The engine writes them,
+# git-ignored, beside a plugin in a `--plugin-dir` folder the session watches for saves,
+# and not beside one it loads from the skills directory, so the task loads the module
+# that way. A `-p` run watches the folder only under `CLAUDE_CODE_PLUGIN_DIR_WATCH`, and
 # writes nothing without it. `/cost` is a command that runs without a model call, and
 # the rest keeps the run from connecting MCP servers and making startup requests, which
 # is most of its time, and from waiting on a stdin that is open and silent.
-# The run exits 0 whether or not it wrote anything, so the old declarations go first:
-# `tsc` then fails on a run that wrote none instead of passing against stale ones.
+# The run exits 0 whether or not it wrote anything, so the old declarations go first and
+# the last step fails on a run that wrote none instead of leaving stale ones in place.
 [tasks."ts:types"]
-description = "Type-check the function-hooks module against the installed Claude Code CLI"
+description = "Write the installed Claude Code CLI's type declarations for editing the function-hooks module"
 env = { CLAUDE_CODE_PLUGIN_DIR_WATCH = "1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1" }
 run = [
   "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
   "claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
-  "tsc --noEmit -p .claude/skills/global-hooks",
+  "test -f .claude/skills/global-hooks/.claude-plugin/types/tsconfig.json",
 ]
 
 [tasks."qa:sh"]

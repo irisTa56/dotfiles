@@ -160,7 +160,7 @@ The same `hooks/hooks.json` names one function-hooks module under `modules`, `ho
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
 
-The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them against the installed CLI's declarations (`mise run ts:types`); Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
+The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them with `claude plugin validate`; `mise run ts:types` writes the installed CLI's declarations for an editor to type-check them against; Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
 
