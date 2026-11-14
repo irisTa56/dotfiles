@@ -1,10 +1,12 @@
 # Instructions
 
 <!--
-The General section is pasted as is into other chat assistants, such as Gemini, so copying it from its heading to the Claude Code heading must yield a set that stands on its own.
+The Conversation section is pasted as is into other chat assistants, so copying it from its heading to the next must yield a set that stands on its own.
 -->
 
-## General
+## Conversation
+
+These rules assume nothing beyond a conversation with the user.
 
 ### Core Principles
 
@@ -46,7 +48,9 @@ The General section is pasted as is into other chat assistants, such as Gemini, 
 - A search finds candidates rather than counts. Read each hit and answer from what you read, since the number of lines returned is wrong in both directions.
 - An absence you assert rests on the case you ran, or on reading everything that could hold it — a query bounds the candidates to its own words, so what you looked for may sit there under another name, or reach the mechanism without citing it.
 
-## Claude Code
+## Agentic work
+
+These rules add to the ones above for work done through Claude Code's tools — files, commands, sessions, memory, external writes.
 
 ### Drafts for review
 
