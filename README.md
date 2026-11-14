@@ -77,7 +77,7 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 ### Release window
 
 Each package manager here waits a day before picking a newly published version, within the limits each item below names, so a compromised release pulled within hours is not taken in.
-A day is the default mise and pnpm 11 already apply; the others are set to match it, and so is a tool added later.
+A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#minimum_release_age) and pnpm 11 already apply, and the others are set to match it.
 
 - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
 - npm, Hex and cargo take it from their user or global config rather than an environment variable, which would outrank a project's own config, so a project can still set its own.
