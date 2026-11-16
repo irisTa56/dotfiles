@@ -33,12 +33,17 @@ type Pin = { url: string; path: string; ref: string; files: string[] };
 // A pin that differs, and the default branch's tip it would move to.
 type Move = { pin: Pin; tip: string };
 
+// A pin as one text spelled it, and the tip the move put there in its place.
+type Moved = { url: string; path: string; from: string; tip: string };
+
 // A marker is the form mise's `git::` include takes, so a `task_config.includes` entry is
-// one as it stands. The URL ends at the first `//` after its scheme's, which is where mise
-// splits it too, and only a full sha counts: a branch or a short sha moves, so there would
-// be no fixed commit to compare against.
+// one as it stands. The URL is a scheme, a host and the path segments after it, ending at
+// the first `//` past the scheme's, which is where mise splits it too; requiring the scheme
+// keeps a URL from opening with `-`, which git would take as an option. Only a full sha
+// counts: a branch or a short sha moves, so there would be no fixed commit to compare
+// against.
 const MARKER =
-  /git::((?:[a-z][a-z0-9+.-]*:\/\/)?[^\s"'?]*?)\/\/([^\s"'?]+)\?ref=([0-9a-f]{40})(?![0-9a-f])/g;
+  /git::([a-z][a-z0-9+.-]*:\/\/[^\s"'?/]*(?:\/[^\s"'?/]+)*?)\/\/([^\s"'?]+)\?ref=([0-9a-f]{40})(?![0-9a-f])/g;
 
 type GitOptions = { env?: Record<string, string>; input?: string };
 
@@ -206,6 +211,13 @@ function check(scratch: string, pin: Pin): number | string {
     fail(`${where} does not exist at the pinned ${pin.ref}`);
     return UNKNOWN;
   }
+  // A pin moved to a tip without the path would fail every run after, so it stays.
+  if (tipTree === undefined) {
+    fail(
+      `${where} is gone from the default branch (${tip}), pinned in ${pin.files.join(", ")}; a bump leaves this pin where it is`,
+    );
+    return DIFFERS;
+  }
   if (pinnedTree === tipTree) {
     console.log(
       `[ok] ${where} at the pinned ${pin.ref} matches the default branch (${tip})`,
@@ -221,27 +233,47 @@ function check(scratch: string, pin: Pin): number | string {
   return tip;
 }
 
-// Outside GitHub Actions the move lands in the working tree, for whoever ran it to commit.
-function moveInWorkingTree(moves: Move[]): number {
-  for (const { pin, tip } of moves) {
-    for (const file of pin.files)
-      writeFileSync(file, rewrite(readFileSync(file, "utf8"), [{ pin, tip }]));
-    fail(
-      `moved the pin of ${pin.url}//${pin.path} to ${tip}; what it brings: ${brings(pin.url, pin.ref, tip)}`,
-    );
-  }
-  return DIFFERS;
+// Moves each marker in `text` that `tipFor` gives a tip for, and returns the moved text
+// with what moved, each move read from the marker it replaced.
+function rewrite(
+  text: string,
+  tipFor: (url: string, path: string, ref: string) => string | undefined,
+): { text: string; moved: Moved[] } {
+  const moved: Moved[] = [];
+  const result = text.replace(MARKER, (whole, url, path, from) => {
+    const tip = tipFor(url, path, from);
+    if (tip === undefined || tip === from) return whole;
+    moved.push({ url, path, from, tip });
+    return marker(url, path, tip);
+  });
+  return { text: result, moved };
 }
 
-function rewrite(text: string, moves: Move[]): string {
-  let moved = text;
-  for (const { pin, tip } of moves) {
-    moved = moved.replaceAll(
-      marker(pin.url, pin.path, pin.ref),
-      marker(pin.url, pin.path, tip),
+// One line per distinct move, however many files or markers it touched.
+function describe(moved: Moved[]): string[] {
+  const lines = moved.map(
+    ({ url, path, from, tip }) =>
+      `${url}//${path} to ${tip}; what it brings: ${brings(url, from, tip)}`,
+  );
+  return [...new Set(lines)];
+}
+
+// Outside GitHub Actions the move lands in the working tree, for whoever ran it to commit.
+function moveInWorkingTree(moves: Move[]): number {
+  const tips = new Map(
+    moves.map(({ pin, tip }) => [marker(pin.url, pin.path, pin.ref), tip]),
+  );
+  const files = [...new Set(moves.flatMap(({ pin }) => pin.files))];
+  const moved: Moved[] = [];
+  for (const file of files) {
+    const result = rewrite(readFileSync(file, "utf8"), (url, path, ref) =>
+      tips.get(marker(url, path, ref)),
     );
+    writeFileSync(file, result.text);
+    moved.push(...result.moved);
   }
-  return moved;
+  for (const line of describe(moved)) fail(`moved the pin of ${line}`);
+  return DIFFERS;
 }
 
 // In GitHub Actions the checkout is whatever the run was for, often a pull request's merge
@@ -273,21 +305,27 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
 
   // Build the commit without touching the working tree or its index: a scratch index over
   // the default branch's tree, with each moved file swapped in at the mode it had there.
-  // A pin the checkout has and the default branch lacks has nothing there to move.
+  // The default branch may pin another commit than the checkout, or lack a pin the
+  // checkout has, so what moves, and from where, is read from its own text.
+  const tips = new Map(
+    moves.map(({ pin, tip }) => [`${pin.url}\0${pin.path}`, tip]),
+  );
   const index = { GIT_INDEX_FILE: join(scratch, "bump-index") };
   const read = git(["read-tree", base], undefined, { env: index });
   if (read.status !== 0)
     return failGit(read, "could not read origin's default branch");
   const files = [...new Set(moves.flatMap(({ pin }) => pin.files))];
-  const changed: string[] = [];
+  const moved: Moved[] = [];
   for (const file of files) {
     const entry = git(["ls-tree", base, "--", file]).stdout.split(/\s/);
     const before = git(["cat-file", "blob", `${base}:${file}`]);
     if (before.status !== 0 || entry.length < 3) continue;
-    const after = rewrite(before.stdout, moves);
-    if (after === before.stdout) continue;
+    const after = rewrite(before.stdout, (url, path) =>
+      tips.get(`${url}\0${path}`),
+    );
+    if (after.moved.length === 0) continue;
     const blob = git(["hash-object", "-w", "--stdin"], undefined, {
-      input: after,
+      input: after.text,
     }).stdout.trim();
     const update = git(
       ["update-index", "--cacheinfo", `${entry[0]},${blob},${file}`],
@@ -296,9 +334,9 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
     );
     if (update.status !== 0)
       return failGit(update, `could not stage the move of ${file}`);
-    changed.push(file);
+    moved.push(...after.moved);
   }
-  if (changed.length === 0) {
+  if (moved.length === 0) {
     fail(
       "origin's default branch holds none of these pins to move, or holds their tips already",
     );
@@ -306,10 +344,7 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   }
   const tree = git(["write-tree"], undefined, { env: index }).stdout.trim();
 
-  const lines = moves.map(
-    ({ pin, tip }) =>
-      `- ${pin.url}//${pin.path}: ${brings(pin.url, pin.ref, tip)}`,
-  );
+  const lines = describe(moved);
   const bot = {
     GIT_AUTHOR_NAME: BOT_NAME,
     GIT_AUTHOR_EMAIL: BOT_EMAIL,
@@ -319,7 +354,7 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   const message = [
     "chore: move upstream pins to their default branches",
     "",
-    ...lines,
+    ...lines.map((line) => `- ${line}`),
     "",
   ].join("\n");
   const commit = git(["commit-tree", tree, "-p", base, "-F", "-"], undefined, {
@@ -339,10 +374,7 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
       `could not push the move to ${BUMP_BRANCH}; the push needs the job's token with contents: write kept on the checkout's origin`,
     );
   }
-  for (const { pin, tip } of moves)
-    fail(
-      `pushed the move to ${BUMP_BRANCH}: ${pin.url}//${pin.path} to ${tip}`,
-    );
+  for (const line of lines) fail(`pushed the move to ${BUMP_BRANCH}: ${line}`);
   const server = process.env.GITHUB_SERVER_URL ?? "https://github.com";
   fail(
     `open its pull request: ${server}/${process.env.GITHUB_REPOSITORY ?? ""}/compare/${BUMP_BRANCH}?expand=1`,

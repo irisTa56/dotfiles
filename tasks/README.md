@@ -101,7 +101,7 @@ It reads the working tree whole rather than the staged diff, so it serves as a C
 It says whether each path a repository pins in an upstream repository is the same at the pinned commit as on the tip of that upstream's default branch.
 It is for a repository that took something from an upstream at one commit and wants to hear when that thing changes there, without following the upstream automatically.
 
-A pin is a marker of the form `git::<url>//<path>?ref=<40-character commit sha>` anywhere in a file git tracks, a comment included:
+A pin is a marker of the form `git::<url>//<path>?ref=<40-character commit sha>` anywhere in a file git tracks, a comment included, where `<url>` opens with its scheme, such as `https://`:
 
 ```toml
 # Cargo.toml: the lints taken in part from an upstream
@@ -115,6 +115,7 @@ A pin spelled in several files is checked once, and a difference names each file
 It compares what the two commits carry under the path rather than the commits, so an upstream that moved without touching the path, which is most of its commits, asks for no bump.
 It compares the upstream with itself and never with the repository's own files, so a repository that took only part of the path, or edited what it took, still passes until the upstream changes.
 It exits 1 when a pinned path differs and names both commits, without saying which is the older, since the pin may be ahead of the default branch as well as behind it.
+It exits 1 too where the path is gone from the default branch, and says so.
 It exits 2 when it could not tell instead, and says why:
 
 - no tracked file, or none the pathspecs name, holds a pin
@@ -127,11 +128,11 @@ Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
 The task declares the Node it runs on, and mise installs that for the task alone.
-`shared-tasks:check`, its name while it checked only the include of `tasks/`, is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step under that name keeps running across a pin that moves past the rename.
+`shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
-With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
+With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
 Run by hand, it rewrites each pin in the files that spell it, for whoever ran it to commit.
-Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the moves onto those files as origin's default branch has them, pushes that commit to a new `upstream-pin-bump` branch, and prints the link that opens its pull request.
+Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there, pushes that commit to a new `upstream-pin-bump` branch, and prints the link that opens its pull request.
 Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer tip waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
 It pushes through `origin` as the checkout left it, so the job's token needs `contents: write` and the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
 A run whose token cannot push, a pull request from a fork's among them, exits 2 at the push.

@@ -50,8 +50,13 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
 
   # What the task pushed, read after it ran; a miss is the task's to answer for, so it
   # comes back as a value the case reports rather than stopping the run.
-  defp show(repo, object) do
-    case Dotfiles.Command.cmd("git", ["show", object],
+  defp show(repo, object), do: read(repo, ["show", object])
+
+  # The message of the commit `ref` names, read the same way.
+  defp message(repo, ref), do: read(repo, ["log", "-1", "--format=%B", ref])
+
+  defp read(repo, args) do
+    case Dotfiles.Command.cmd("git", args,
            cd: repo,
            env: clear_git_env(),
            stderr_to_stdout: true
@@ -59,6 +64,45 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
       {out, 0} -> String.trim(out)
       {out, _} -> {:missing, String.trim(out)}
     end
+  end
+
+  # What a case's verify reports where the pushed commit's message lacks a part of
+  # `present` or names a part of `absent`.
+  defp pushed_message(origin, present, absent) do
+    case message(origin, "upstream-pin-bump") do
+      msg when is_binary(msg) ->
+        for(part <- present, not String.contains?(msg, part), do: "the message lacks #{part}") ++
+          for part <- absent, String.contains?(msg, part), do: "the message names #{part}"
+
+      missing ->
+        ["the pushed commit's message is #{inspect(missing)}"]
+    end
+  end
+
+  defp holds(dir, path, want) do
+    got = File.read!(Path.join(dir, path))
+    if got == want, do: [], else: ["#{path} holds #{inspect(got)}"]
+  end
+
+  # Makes `files` origin's main from a repository of its own under `aux`, and returns the
+  # git commands that leave the case's repository on that main with its own files staged
+  # over it, so that the checkout differs from origin.
+  defp diverge(aux, origin, files) do
+    dir = Path.join(aux, "seed")
+    File.mkdir_p!(dir)
+    git!(dir, ["init", "-q", "-b", "main"])
+    Enum.each(files, fn {path, content} -> put(Path.join(dir, path), content) end)
+    git!(dir, ["add", "-A"])
+    git!(dir, @identity ++ ["commit", "-qm", "base"])
+    git!(dir, ["remote", "add", "origin", origin])
+    git!(dir, ["push", "-q", "origin", "main"])
+
+    [
+      ["remote", "add", "origin", origin],
+      ["fetch", "-q", "origin", "main"],
+      ["reset", "-q", "origin/main"],
+      ["add", "-A"]
+    ]
   end
 
   # Setting up an upstream is the case's own doing, so a failure stops the run. A git
@@ -121,7 +165,7 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
           %{files: [{"Cargo.toml", "# #{marker(url, "lints", pin)}\n"}]}
         end,
         exit: 1,
-        output: ["differs"]
+        output: ["is gone from the default branch"]
       },
       %{
         name: "fails as unable to tell where the upstream cannot be read",
@@ -310,6 +354,112 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         env: [{"GITHUB_ACTIONS", "true"}],
         exit: 2,
         output: ["holds none of these pins to move"]
+      },
+      # The move would leave a pin at a commit that does not hold the path, which the
+      # next check reports as unable to tell.
+      %{
+        name: "with --bump, leaves a pin whose path is gone from the default branch where it was",
+        prepare: fn aux ->
+          {url, [old, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => nil}])
+
+          pinned = "# #{marker(url, "lints", old)}\n"
+
+          %{
+            files: [{"Cargo.toml", pinned}],
+            verify: fn dir -> holds(dir, "Cargo.toml", pinned) end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", nil}],
+        exit: 1,
+        output: []
+      },
+      # Only a marker with a path is a pin; a git URL without one is some other string.
+      %{
+        name: "reads no pin from a git URL that has no path",
+        prepare: fn aux ->
+          {url, [pin, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"README.md" => "r"}])
+
+          sha = String.duplicate("a", 40)
+
+          %{
+            files: [
+              {"Cargo.toml",
+               "# git::https://example.com/a/b.git?ref=#{sha}\n# #{marker(url, "lints", pin)}\n"}
+            ]
+          }
+        end,
+        exit: 0,
+        output: ["[ok]"]
+      },
+      # A URL that opens with a dash would be read by git as an option of its own.
+      %{
+        name: "reads no pin from a URL git would take for an option",
+        prepare: fn aux ->
+          {url, [pin, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"README.md" => "r"}])
+
+          sha = String.duplicate("a", 40)
+
+          %{
+            files: [
+              {"Cargo.toml",
+               "# git::--upload-pack=touch-me//p?ref=#{sha}\n# #{marker(url, "lints", pin)}\n"}
+            ]
+          }
+        end,
+        exit: 0,
+        output: ["[ok]"]
+      },
+      # The checkout is often a pull request's merge commit, so its pin can be one that
+      # origin's default branch no longer holds; the move starts where the default
+      # branch's file is.
+      %{
+        name:
+          "with --bump under GitHub Actions, names the commit origin's default branch pins as where the move starts",
+        prepare: fn aux ->
+          {url, [x, y, _tip]} =
+            upstream(aux, "up", [
+              %{"lints/a.toml" => "a"},
+              %{"lints/a.toml" => "b"},
+              %{"lints/a.toml" => "c"}
+            ])
+
+          origin = origin(aux)
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", x)}\n"}],
+            git: diverge(aux, origin, [{"Cargo.toml", "# #{marker(url, "lints", y)}\n"}]),
+            verify: fn _ -> pushed_message(origin, [y], [x]) end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 1,
+        output: []
+      },
+      %{
+        name:
+          "with --bump under GitHub Actions, claims no move of a pin origin's default branch does not hold",
+        prepare: fn aux ->
+          {a, [a_old, _]} = upstream(aux, "a", [%{"x/a" => "a"}, %{"x/a" => "b"}])
+          {b, [b_old, _]} = upstream(aux, "b", [%{"y/a" => "a"}, %{"y/a" => "b"}])
+          origin = origin(aux)
+
+          %{
+            files: [
+              {"Cargo.toml", "# #{marker(a, "x", a_old)}\n# #{marker(b, "y", b_old)}\n"}
+            ],
+            git: diverge(aux, origin, [{"Cargo.toml", "# #{marker(a, "x", a_old)}\n"}]),
+            verify: fn _ -> pushed_message(origin, [a], [b]) end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 1,
+        output: []
       },
       %{
         name: "fails as unable to tell on an option it does not take",
