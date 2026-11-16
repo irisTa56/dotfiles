@@ -121,7 +121,7 @@ It exits 2 when it could not tell instead, and says why:
 - no tracked file, or none the pathspecs name, holds a pin
 - an upstream it could not read, or a pinned commit that upstream does not have
 - a path the pinned commit does not have
-- a scratch repository it could not create
+- a scratch directory or repository it could not create
 
 It does not tell whether a pin is a commit on the default branch: one that no branch reaches but carries the same path passes, which for an include fails only once mise's cache is cold, as [the pinning rule above](#taking-them) warns.
 Where some pins differ and others it could not tell, it exits 2.
@@ -138,7 +138,8 @@ It pushes through `origin` as the checkout left it, so the job's token needs `co
 A run whose token cannot push, a pull request from a fork's among them, exits 2 at the push.
 It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
 Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever opens that pull request.
-It exits 2 on an option other than `--bump`, and where the default branch holds none of the differing pins to move; a pull request cut before the last move merged can meet the second until it is brought up to date, since the default branch's pins are at the tips already.
+It exits 2 on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one
 

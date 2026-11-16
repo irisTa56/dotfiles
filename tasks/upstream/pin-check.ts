@@ -54,6 +54,8 @@ function git(args: string[], cwd?: string, options: GitOptions = {}): Run {
     env,
     input: options.input,
     encoding: "utf8",
+    // A file read back through `cat-file` may be past the default 1 MB.
+    maxBuffer: Number.POSITIVE_INFINITY,
   });
   return {
     status: r.status ?? UNKNOWN,
@@ -131,6 +133,18 @@ function brings(url: string, from: string, to: string): string {
   return github
     ? `${github[1]}/compare/${from}...${to}`
     : `${url} ${from}...${to}`;
+}
+
+// An exception from the filesystem is no answer about the pins, so it exits as one.
+function run(argv: string[]): number {
+  try {
+    return main(argv);
+  } catch (error) {
+    fail(
+      `stopped on ${error instanceof Error ? error.message : String(error)}`,
+    );
+    return UNKNOWN;
+  }
 }
 
 function main(argv: string[]): number {
@@ -306,10 +320,20 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   // Build the commit without touching the working tree or its index: a scratch index over
   // the default branch's tree, with each moved file swapped in at the mode it had there.
   // The default branch may pin another commit than the checkout, or lack a pin the
-  // checkout has, so what moves, and from where, is read from its own text.
+  // checkout has, so what moves, and from where, is read from its own text, and a pin
+  // there moves only where its own path differs from the tip's.
   const tips = new Map(
     moves.map(({ pin, tip }) => [`${pin.url}\0${pin.path}`, tip]),
   );
+  const tipFor = (url: string, path: string, ref: string) => {
+    const tip = tips.get(`${url}\0${path}`);
+    if (tip === undefined || tip === ref) return undefined;
+    const pinned = fetchCommit(scratch, url, ref);
+    if (typeof pinned !== "string") return tip;
+    return treeAt(scratch, pinned, path) === treeAt(scratch, tip, path)
+      ? undefined
+      : tip;
+  };
   const index = { GIT_INDEX_FILE: join(scratch, "bump-index") };
   const read = git(["read-tree", base], undefined, { env: index });
   if (read.status !== 0)
@@ -317,12 +341,21 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   const files = [...new Set(moves.flatMap(({ pin }) => pin.files))];
   const moved: Moved[] = [];
   for (const file of files) {
-    const entry = git(["ls-tree", base, "--", file]).stdout.split(/\s/);
+    const listed = git(["ls-tree", base, "--", file]);
+    if (listed.status !== 0)
+      return failGit(
+        listed,
+        `could not read ${file} on origin's default branch`,
+      );
+    const entry = listed.stdout.split(/\s/);
+    if (entry.length < 3) continue;
     const before = git(["cat-file", "blob", `${base}:${file}`]);
-    if (before.status !== 0 || entry.length < 3) continue;
-    const after = rewrite(before.stdout, (url, path) =>
-      tips.get(`${url}\0${path}`),
-    );
+    if (before.status !== 0)
+      return failGit(
+        before,
+        `could not read ${file} on origin's default branch`,
+      );
+    const after = rewrite(before.stdout, tipFor);
     if (after.moved.length === 0) continue;
     const blob = git(["hash-object", "-w", "--stdin"], undefined, {
       input: after.text,
@@ -338,7 +371,7 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   }
   if (moved.length === 0) {
     fail(
-      "origin's default branch holds none of these pins to move, or holds their tips already",
+      "origin's default branch holds none of these pins to move, or holds them where the path matches the tip's already",
     );
     return UNKNOWN;
   }
@@ -382,4 +415,4 @@ function moveOnDefaultBranch(scratch: string, moves: Move[]): number {
   return DIFFERS;
 }
 
-process.exitCode = main(process.argv.slice(2));
+process.exitCode = run(process.argv.slice(2));

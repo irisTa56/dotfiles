@@ -79,6 +79,26 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
     end
   end
 
+  # What a case's verify reports where origin's upstream-pin-bump does not hold `want`
+  # in `path`, the branch missing included.
+  defp bump_holds(origin, path, want) do
+    want = String.trim(want)
+
+    case show(origin, "upstream-pin-bump:#{path}") do
+      ^want -> []
+      {:missing, out} -> ["upstream-pin-bump has no #{path}: #{out}"]
+      got -> ["upstream-pin-bump's #{path} ends #{inspect(String.slice(got, -120, 120))}"]
+    end
+  end
+
+  # What a case's verify reports where origin has an upstream-pin-bump at all.
+  defp no_bump_pushed(origin) do
+    case show(origin, "upstream-pin-bump") do
+      {:missing, _} -> []
+      _ -> ["upstream-pin-bump was pushed"]
+    end
+  end
+
   defp holds(dir, path, want) do
     got = File.read!(Path.join(dir, path))
     if got == want, do: [], else: ["#{path} holds #{inspect(got)}"]
@@ -459,6 +479,72 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         args: ["--bump"],
         env: [{"GITHUB_ACTIONS", "true"}],
         exit: 1,
+        output: []
+      },
+      # A file too large for the task to read back from git is a pin it cannot move, and
+      # no other file moves, so the run has nothing it could have moved.
+      %{
+        name:
+          "with --bump under GitHub Actions, moves a pin in a large file beside one in a small file",
+        prepare: fn aux ->
+          {url, [old, tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          origin = origin(aux)
+          padding = "# " <> String.duplicate("x", 1_600_000) <> "\n"
+
+          %{
+            files: [
+              {"big.toml", padding <> "# #{marker(url, "lints", old)}\n"},
+              {"Cargo.toml", "# #{marker(url, "lints", old)}\n"}
+            ],
+            git: publish(origin),
+            verify: fn _ ->
+              bump_holds(origin, "big.toml", padding <> "# #{marker(url, "lints", tip)}\n")
+            end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 1,
+        output: []
+      },
+      # What matters is the pin origin holds, whose tree may equal the tip's already.
+      %{
+        name:
+          "with --bump under GitHub Actions, pushes no move of a pin origin holds at a commit whose path equals the tip's",
+        prepare: fn aux ->
+          {url, [x, y, _tip]} =
+            upstream(aux, "up", [
+              %{"lints/a.toml" => "a"},
+              %{"lints/a.toml" => "b"},
+              %{"README.md" => "r"}
+            ])
+
+          origin = origin(aux)
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", x)}\n"}],
+            git: diverge(aux, origin, [{"Cargo.toml", "# #{marker(url, "lints", y)}\n"}]),
+            verify: fn _ -> no_bump_pushed(origin) end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 2,
+        output: ["holds none of these pins to move"]
+      },
+      %{
+        name: "fails as unable to tell where it cannot make its scratch repository",
+        prepare: fn aux ->
+          {url, [pin]} = upstream(aux, "up", [%{"lints/a.toml" => "a"}])
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", pin)}\n"}],
+            env: [{"TMPDIR", Path.join(aux, "no-such-dir")}]
+          }
+        end,
+        exit: 2,
         output: []
       },
       %{
