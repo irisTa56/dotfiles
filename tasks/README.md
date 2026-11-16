@@ -1,6 +1,6 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `upstream:pin-check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
@@ -96,30 +96,52 @@ It asks git for the list, so an ignored skill, such as one a package manager ins
 It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
 It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook, and passes over a skill deleted there but not yet from the index.
 
-### `shared-tasks:check`
+### `upstream:pin-check`
 
-It says whether the pin carries the same `tasks/` as the tip of `main`.
-It answers for what the commits carry under `tasks/` rather than for the commits, so a `main` that moved without touching this directory, which is most of its commits, asks for no bump, while one that changed these instructions does, since they sit under `tasks/` too.
-It exits 1 when the two differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
-It exits 2 when it could not tell instead — run outside mise, tasks that are not in a repository git will read, a scratch repository it could not create, or a remote it could not read `tasks/` on `refs/heads/main` from — and says which of those it was.
-It does not tell whether the pin is a commit on `main`: one that no branch reaches but carries the same `tasks/` passes, and fails only once the cache is cold, as [the pinning rule above](#taking-them) warns.
-Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
+It says whether each path a repository pins in an upstream repository is the same at the pinned commit as on the tip of that upstream's default branch.
+It is for a repository that took something from an upstream at one commit and wants to hear when that thing changes there, without following the upstream automatically.
+
+A pin is a marker of the form `git::<url>//<path>?ref=<40-character commit sha>` anywhere in a file git tracks, a comment included:
+
+```toml
+# Cargo.toml: the lints taken in part from an upstream
+# upstream: git::https://github.com/morganlinton/BeautifulRust.git//lints?ref=<40-character commit sha>
+```
+
+A `task_config.includes` entry is in that form already, so the pin [Taking them](#taking-them) asks for is checked as one of these, with no marker to add.
+It reads every tracked file by default; git pathspecs as arguments narrow that, such as `mise run upstream:pin-check -- mise.toml Cargo.toml`.
+A pin spelled in several files is checked once, and a difference names each file that spells it.
+
+It compares what the two commits carry under the path rather than the commits, so an upstream that moved without touching the path, which is most of its commits, asks for no bump.
+It compares the upstream with itself and never with the repository's own files, so a repository that took only part of the path, or edited what it took, still passes until the upstream changes.
+It exits 1 when a pinned path differs and names both commits, without saying which is the older, since the pin may be ahead of the default branch as well as behind it.
+It exits 2 when it could not tell instead, and says why:
+
+- no tracked file, or none the pathspecs name, holds a pin
+- an upstream it could not read, or a pinned commit that upstream does not have
+- a path the pinned commit does not have
+- a scratch repository it could not create
+
+It does not tell whether a pin is a commit on the default branch: one that no branch reaches but carries the same path passes, which for an include fails only once mise's cache is cold, as [the pinning rule above](#taking-them) warns.
+Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
+The task declares the Node it runs on, and mise installs that for the task alone.
+`shared-tasks:check`, its name while it checked only the include of `tasks/`, is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step under that name keeps running across a pin that moves past the rename.
 
-With `--bump`, where it would exit 1 it first moves the pin to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same.
-Run by hand, it rewrites the pin in `mise.toml` at the repository root, for whoever ran it to commit.
-Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, pushes that commit to a new `shared-tasks-bump` branch, and prints the link that opens its pull request.
-Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer `main` waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
+With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
+Run by hand, it rewrites each pin in the files that spell it, for whoever ran it to commit.
+Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the moves onto those files as origin's default branch has them, pushes that commit to a new `upstream-pin-bump` branch, and prints the link that opens its pull request.
+Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer tip waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
 It pushes through `origin` as the checkout left it, so the job's token needs `contents: write` and the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
 A run whose token cannot push, a pull request from a fork's among them, exits 2 at the push.
 It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
-Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever opens that pull request.
-It exits 2 on any other argument, and wherever it cannot make the move, saying why; a pull request cut before the last move merged can meet this until it is brought up to date, since the default branch's pin is at `main` already.
+Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever opens that pull request.
+It exits 2 on an option other than `--bump`, and where the default branch holds none of the differing pins to move; a pull request cut before the last move merged can meet the second until it is brought up to date, since the default branch's pins are at the tips already.
 
 ## Writing one
 
-Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan.sh`, which `mise run secrets:commit-scan` reaches as well.
+Each task is an executable `*.sh`, or `*.ts` where shell would read worse, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan.sh`, which `mise run secrets:commit-scan` reaches as well.
 Name it that way or the linting below never sees it, and mise will load it all the same.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
@@ -128,8 +150,9 @@ The exception is `.toml`: mise reads every one that is not a config file as a li
 Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
-A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
-Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
+A task here is a shell script or a TypeScript one, and its name says which: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, and every `*.ts` to biome, so a task in another language is named out of both and goes unchecked until `mise.toml` or `biome.json` reaches it.
+A TypeScript task runs on Node as it stands, which [strips the types without checking them](https://nodejs.org/api/typescript.html#type-stripping), so it keeps to syntax Node can strip, and nothing here type-checks it.
+Declare in the task's `#MISE` header, `//MISE` in TypeScript, whatever tool mise can install for it, Node included, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
 Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.

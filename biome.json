@@ -2,6 +2,7 @@
   "files": {
     "includes": [
       ".claude/skills/global-hooks/**",
+      "tasks/**",
       "!**/.claude-plugin/types",
       "!!.claude/worktrees"
     ]

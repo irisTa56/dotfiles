@@ -97,7 +97,8 @@ run = [
 description = "Lint markdown files"
 run = "rumdl check"
 
-# biome.json names the files: the function-hooks module under global-hooks.
+# biome.json names the files: the function-hooks module under global-hooks, and the
+# shared tasks written in TypeScript.
 [tasks."qa:ts"]
 description = "Lint and check formatting of TypeScript"
 run = "biome ci --error-on-warnings"
@@ -158,7 +159,7 @@ run = [
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = [{ task = "skills:size-check" }]
 
-# The shared tasks are shell, so what each must do is checked from outside it:
+# The shared tasks are shell or TypeScript, so what each must do is checked from outside it:
 # the Mix project runs its script on cases (elixir/lib/dotfiles/task_cases/).
 [tasks."qa:tasks"]
 description = "Check that each shared task under tasks/ does what its cases expect"

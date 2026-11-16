@@ -1,10 +1,10 @@
 # Checks that the shared tasks under tasks/ do what they promise, by running each
 # one's script on cases: a repository the case sets up, the arguments it passes,
-# and the exit status and output it expects. The tasks are shell, so the projects
+# and the exit status and output it expects. The tasks are shell or TypeScript, so the projects
 # that take them need none of this one; this project provides the check, and its
 # own tests test this module rather than any task.
 defmodule Dotfiles.TaskCases do
-  @case_modules [Dotfiles.TaskCases.SkillsSizeCheck]
+  @case_modules [Dotfiles.TaskCases.SkillsSizeCheck, Dotfiles.TaskCases.UpstreamPinCheck]
 
   # `root` is the repository whose tasks/ the cases run.
   def main([], root), do: run(Enum.flat_map(@case_modules, & &1.cases()), root)
@@ -12,7 +12,10 @@ defmodule Dotfiles.TaskCases do
   # Each case is a map: `name`; `task`, the script's path under `root`; `files`, as
   # {path, content}, written into a fresh git repository and staged; `delete`, paths
   # removed from disk after staging; `repository: false` for a directory git does
-  # not track; `args`; `exit`; and `output`, as for output_mismatches/2.
+  # not track; `git`, git commands run in the repository after staging, as lists of
+  # arguments; `args`; `env`, as {name, value}, for the task's run; `exit`; `output`,
+  # as for output_mismatches/2; `verify`, a function given the repository after the
+  # run that returns what it found amiss; and `prepare`, as for failure/2.
   def run(cases, root) do
     failures = for c <- cases, failure = failure(c, root), do: failure
 
@@ -22,17 +25,28 @@ defmodule Dotfiles.TaskCases do
     end
   end
 
+  # `prepare`, where a case has one, is given a directory of its own outside the
+  # case's repository, for the repositories the task reads beside that one, and
+  # returns fields that are merged into the case before it runs.
   defp failure(c, root) do
+    dir = scratch_dir()
+    aux = scratch_dir()
+
+    try do
+      c = if prepare = c[:prepare], do: Map.merge(c, prepare.(aux)), else: c
+      check(c, root, dir)
+    after
+      File.rm_rf!(dir)
+      File.rm_rf!(aux)
+    end
+  end
+
+  defp scratch_dir do
     dir =
       Path.join(System.tmp_dir!(), "task-case-#{Base.url_encode64(:crypto.strong_rand_bytes(9))}")
 
     File.mkdir!(dir)
-
-    try do
-      check(c, root, dir)
-    after
-      File.rm_rf!(dir)
-    end
+    dir
   end
 
   defp check(c, root, dir) do
@@ -55,14 +69,29 @@ defmodule Dotfiles.TaskCases do
     end
 
     if repository?, do: git!(["add", "-A"], opts)
+    Enum.each(Map.get(c, :git, []), &git!(&1, opts))
     Enum.each(Map.get(c, :delete, []), &File.rm!(Path.join(dir, &1)))
 
     {out, code} =
-      Dotfiles.Command.cmd("bash", [Path.join(root, c.task) | Map.get(c, :args, [])], opts)
+      Dotfiles.Command.cmd(
+        interpreter(c.task),
+        [Path.join(root, c.task) | Map.get(c, :args, [])],
+        Keyword.update!(opts, :env, &(&1 ++ Map.get(c, :env, [])))
+      )
 
-    case mismatches(c, code, out) do
+    verified = if verify = c[:verify], do: verify.(dir), else: []
+
+    case mismatches(c, code, out) ++ verified do
       [] -> nil
       found -> "#{c.task}, #{c.name}: #{Enum.join(found, "; ")}; output:\n#{out}"
+    end
+  end
+
+  # A shared task is a shell script or a TypeScript one, which node runs as it is.
+  defp interpreter(task) do
+    case Path.extname(task) do
+      ".sh" -> "bash"
+      ".ts" -> "node"
     end
   end
 

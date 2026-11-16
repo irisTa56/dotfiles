@@ -72,7 +72,7 @@ jobs:
   elixir-qa:
     runs-on: ubuntu-latest
     env:
-      # Erlang, Elixir and jq are named in the global config alone, so this job reads
+      # Erlang, Elixir, jq and Node are named in the global config alone, so this job reads
       # it where the others leave it out.
       MISE_IGNORED_CONFIG_PATHS: ""
       # In place of the baseline's `install_args`, which limits the action's
@@ -82,8 +82,9 @@ jobs:
       # per call. The integration tests of skills_update read its lockfile with the
       # real yq, and their fake gh applies the --jq filter with the real jq; those
       # of mise_multi_upgrade drive the mise this action installs, after clearing
-      # every MISE_ variable, this one included.
-      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq
+      # every MISE_ variable, this one included. qa:tasks runs the TypeScript tasks with
+      # node, and the Node the runner image ships is not the one the tasks declare.
+      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq,node
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # mise picks builds.hex.pm's precompiled Erlang on its own only on the Ubuntu
@@ -132,7 +133,7 @@ jobs:
         env:
           MIX_ENV: test
       - run: mise run qa:ex
-      # A check of the shell tasks under tasks/, which the Mix project provides.
+      # A check of the shared tasks under tasks/, which the Mix project provides.
       - run: mise run qa:tasks
 
   link-check-offline:
