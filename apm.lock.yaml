@@ -1,5 +1,5 @@
 lockfile_version: '1'
-generated_at: '2026-11-01T14:27:40.806641+00:00'
+generated_at: '2026-11-16T11:54:52.622687+00:00'
 apm_version: 0.35.0
 dependencies:
 - repo_url: anthropics/skills
@@ -191,6 +191,143 @@ dependencies:
     .claude/skills/handoff/SKILL.md: sha256:4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3
     .claude/skills/handoff/agents/openai.yaml: sha256:5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28
   content_hash: sha256:16e5b77eadb689d69c816bfe52cae6b5f425180340b77235ab8a3f402cf4b6f3
+- repo_url: morganlinton/beautifulrust
+  materialization_repo_url: morganlinton/BeautifulRust
+  name: rust-best-practices
+  host: github.com
+  resolved_commit: b9718436d77ee7bcf17cdcb6aa27628feb95d97a
+  version: unknown
+  virtual_path: skills/rust-best-practices
+  is_virtual: true
+  package_type: claude_skill
+  deployed_files:
+  - .claude/skills/rust-best-practices
+  - .claude/skills/rust-best-practices/SKILL.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/case.yaml
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.lock
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.toml
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/src/lib.rs
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/tests/arena.rs
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/01-builds-and-tests-pass.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/02-regen-tested-headless.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/03-system-params-by-value.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/04-keeps-bevy-prelude.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/05-plain-data-components.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/06-ordered-after-damage.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/07-no-panicking-queries.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/08-clippy-clean.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/09-health-never-exceeds-max.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/10-existing-code-not-rewritten.md
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/place-files.sh
+  - .claude/skills/rust-best-practices/evals/bevy-arena-regen/prompt.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/case.yaml
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/01-never-panics-on-bad-input.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/02-errors-name-the-file.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/03-malformed-lines-counted.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/04-paths-as-path-types.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/05-sorted-and-skipped-count.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/06-dependency-ranges.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/07-map-based-counting.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/graders/08-aggregation-unit-tested.md
+  - .claude/skills/rust-best-practices/evals/log-summary-cli/prompt.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/case.yaml
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/files/inventory.rs
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/01-deny-warnings-removed.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/02-no-rc-refcell-in-api.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/03-borrowed-param-types.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/04-error-implements-error.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/05-no-unwrap-on-fallible-paths.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/06-getter-renamed.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/07-bool-param-replaced.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/08-deterministic-report.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/09-format-over-concat.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/10-no-check-then-unwrap.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/11-changes-listed-with-reasons.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/12-signature-changes-called-out.md
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/place-files.sh
+  - .claude/skills/rust-best-practices/evals/refactor-inventory-module/prompt.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/case.yaml
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/01-implements-fromstr.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/02-implements-display.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/03-dedicated-error-type.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/04-common-traits-derived.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/05-fields-private.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/06-rustdoc-with-errors-section.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/07-doc-examples-use-question-mark.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/08-precedence-rules-tested.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/09-no-unwrap-in-library-code.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/graders/10-eq-hash-agree-with-ord.md
+  - .claude/skills/rust-best-practices/evals/semver-library-api/prompt.md
+  - .claude/skills/rust-best-practices/references/bevy.md
+  - .claude/skills/rust-best-practices/references/effective-rust.md
+  - .claude/skills/rust-best-practices/references/google-rust-style-guide.md
+  - .claude/skills/rust-best-practices/references/microsoft-rust-guidelines.md
+  - .claude/skills/rust-best-practices/references/rust-api-guidelines.md
+  - .claude/skills/rust-best-practices/references/rust-design-patterns.md
+  deployed_file_hashes:
+    .claude/skills/rust-best-practices/SKILL.md: sha256:f9446430549a64d9fb2d480c875c4920b1d98c2540b937bd41448200b2639f6a
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/case.yaml: sha256:5950689c9d31cf56fa7142510b5966ff5940b394965c7118739415965e47605d
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.lock: sha256:e600ab9927c3cbf9242c99e5907fb0320fa9f5baa9e3258c456eed0b2ef7a54a
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.toml: sha256:51c0f40a4291e19672e290a06a76b3f4175369b7724c129fe86d82e16c1dd138
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/src/lib.rs: sha256:67cde35eb3083ab11c48315615cf08e3b46c1247db09240df8baa8db01ac81db
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/tests/arena.rs: sha256:76e3f1507e775f30f336579a782cd3b02fb3a3c50416432f2abd51b1319518e0
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/01-builds-and-tests-pass.md: sha256:edbb6ad404cc81a2fd839414c89b818a8b310172221228f32d65445b474ddec0
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/02-regen-tested-headless.md: sha256:2c957f88a28903907599b713ca86775d0ce54756cc0961d74e66c56ca242effa
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/03-system-params-by-value.md: sha256:86bf0402ec280d0610c12d7e1c2b3bd84e649f43c32b9ae26a78c178b8bdfd14
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/04-keeps-bevy-prelude.md: sha256:0d80d3926c6073f469525c5d4fa4631619aad6a85f077af6d8ad165de11fa676
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/05-plain-data-components.md: sha256:b6bbb9510fd160094883a2dfd09958b204e5a80343bc7f0c763df3f68d548a7b
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/06-ordered-after-damage.md: sha256:7979e7fe11696cea9088c5815d6938ae1193060f692934588daf5ea91a8e7d57
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/07-no-panicking-queries.md: sha256:b7d02f4a4a7346805c0a10b8097df2b4f1c8d8fadd14d289df0d9496c67d243d
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/08-clippy-clean.md: sha256:fe76d8a14543365ca5a938b344437e88eab3dac18a19dfb1a3566da850dd48b2
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/09-health-never-exceeds-max.md: sha256:0942591879e29881af8984c8e5d66c06d478c1c249f3381599b7d468f0b308f2
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/10-existing-code-not-rewritten.md: sha256:da70d97732bb6d60510b2f72928f6f8c0f836f83466b582691ac5a838797e078
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/place-files.sh: sha256:841ddfa163cad7bfb1217717eca171b8464dea243cf19f3cf449d9a60b01251d
+    .claude/skills/rust-best-practices/evals/bevy-arena-regen/prompt.md: sha256:66a38ef4ee2cbfb0a555bb115563b71753ed0a0929b8e625d73a1f2bb6be8542
+    .claude/skills/rust-best-practices/evals/log-summary-cli/case.yaml: sha256:11b06f4c0d6d5486d818583c200fefa75c171dc8306aa3948c09fdd5f03f91cd
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/01-never-panics-on-bad-input.md: sha256:736c1d3a2799444df398070502b42c6ae1e515a80773783c5aeb20eaaece1796
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/02-errors-name-the-file.md: sha256:43ac9cd2498b9c2ef8f1d754d2b7e43cc7a86cbfc6f107cdef770d700ba8cb58
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/03-malformed-lines-counted.md: sha256:2e09e0eccef46cc8ed747f1111c6551a087df23b3ddd9f18d87a5f2584180cfe
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/04-paths-as-path-types.md: sha256:3c8cc7730d85398556cc1d3e738d0ff8de2f6b53ccf0758f15221ec36ac9095f
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/05-sorted-and-skipped-count.md: sha256:284381900b54b7e07335757faeb4486663d359f3c2d3bc7658c5e7d8dcdc42ef
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/06-dependency-ranges.md: sha256:d4076d13b3432953fbfb4e48e0146f8c184c240d839897797e60f69a02a45858
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/07-map-based-counting.md: sha256:a26b387a63e4a8e2455277d9608e58ea9318f0fe2024bc5a14e3263599e960a0
+    .claude/skills/rust-best-practices/evals/log-summary-cli/graders/08-aggregation-unit-tested.md: sha256:135807a5a3900c4e583ef36b17ded15eff44440083f8a8216a4c647d5149c92a
+    .claude/skills/rust-best-practices/evals/log-summary-cli/prompt.md: sha256:869fb3495d57db2b0bbb1d3cab0a367f9c0e99e1c97b82f442697cbb1f2022ec
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/case.yaml: sha256:c1a2d36e9cc12790ee6b4fe3eb17ff986d5d672f66164ffecf0350d568adc350
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/files/inventory.rs: sha256:da0d9d63a50e01fc56d815c3cd6b6bc8f59fe07938b0e6e4a9e34722957571da
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/01-deny-warnings-removed.md: sha256:8ee03ca3de16a7ef568b19b55b727a2ff3c3d1677965835ee187447de96d75ef
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/02-no-rc-refcell-in-api.md: sha256:58ab79f9a7d8fca3eff16cdd8079ba357fd01295f4bd5d7d2d3ba6506190238e
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/03-borrowed-param-types.md: sha256:b93b12e2410f3831688c13afc7689e6a4c70af5d655a748ba17856df8d388c7a
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/04-error-implements-error.md: sha256:875d83ad6e7d1ade58decc8d77b73e039f597dcd11b02698699f75795227e011
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/05-no-unwrap-on-fallible-paths.md: sha256:115ff30817867e0484dcc307857dd87dc24b6f115c49027899dbdf5b3d616227
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/06-getter-renamed.md: sha256:b1ad9dcd86f1d1561b8d8529d9cc166655a661d8fb4008bd7e5fdf4061612bbb
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/07-bool-param-replaced.md: sha256:fec5cfc16ad8b6471a4dcae339eef3c4f9bdb29fa62fc24775d17e02d04bec3a
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/08-deterministic-report.md: sha256:5d156f60430f31cfab617491762bc825023f4cebbc8323f5206b480c54af33eb
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/09-format-over-concat.md: sha256:fa5c3f445099145c2f2a80f96b05d9d3ca3257f610620f3349954279183d94af
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/10-no-check-then-unwrap.md: sha256:0538f879ff5ff29958a7ac2ec02f81ced21a13f32c5608c85d5ad8508dba292f
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/11-changes-listed-with-reasons.md: sha256:b200c101aeee5852d8ac3b6ac9296d331e7e82802acc036dde83bb926ca1f3d7
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/12-signature-changes-called-out.md: sha256:8382adeb1aefdb181fda7eb18ce2af7e17337907513c8800d55357fb69a6fe6f
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/place-files.sh: sha256:841ddfa163cad7bfb1217717eca171b8464dea243cf19f3cf449d9a60b01251d
+    .claude/skills/rust-best-practices/evals/refactor-inventory-module/prompt.md: sha256:e216aca10839bc2e6706b44262a15eee77b2cedaeac0fd8af6da1f1d910f453c
+    .claude/skills/rust-best-practices/evals/semver-library-api/case.yaml: sha256:886225ec97701df3ad1f4ea8e5841d70ce4edcd7297e2389d17f733e3e9c290e
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/01-implements-fromstr.md: sha256:dbf99eff3c48412ea8c9aa2ec93102484af911d018cf7e7446592259e9d16c60
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/02-implements-display.md: sha256:8965bde45ebe995e1654c86363c65d4e2c39a68105c24bab182b9f244744cb57
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/03-dedicated-error-type.md: sha256:bc4fb09e89510043960e58eedc1b2410fd0de56e750ae8a7f8ef7b66ca9ed6c9
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/04-common-traits-derived.md: sha256:a02a779c06dfba6e9c05c7a294c35a4a2a7aeb51344482a6d46ebff5d1bf9f09
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/05-fields-private.md: sha256:d9556c35ba8e2d0ad9cf932ef58de47a56abb26d1b6e0a38bdf7b753d2e72fe3
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/06-rustdoc-with-errors-section.md: sha256:d21f822ad9c78d43428e077a3cc31809fb3187092cd2c7e861232e82615051eb
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/07-doc-examples-use-question-mark.md: sha256:353f155493d064c76e2a6931cb775f4e92dd56ef347174d3a30fa1feedc48776
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/08-precedence-rules-tested.md: sha256:a511448bbaf85ee40f614eab72a9d68f0ed41903cc052711f3a6f9ca225f04c1
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/09-no-unwrap-in-library-code.md: sha256:0ad37cc7dc9c5ae0373eb3cb0f31ce32ac159bc5adbc24b93941bc1743109474
+    .claude/skills/rust-best-practices/evals/semver-library-api/graders/10-eq-hash-agree-with-ord.md: sha256:2bbc3e0ee2bc285938e49af5fdafa1d2012578947efac3f05689ab014734076d
+    .claude/skills/rust-best-practices/evals/semver-library-api/prompt.md: sha256:9367bdf7273debb1f66239c72a35c8f17431e56fbf6d98a797e6c698b5acd35e
+    .claude/skills/rust-best-practices/references/bevy.md: sha256:f8a96bccecd2e3faa2d79d206c24061ac9c5eb2dab3269573717b910ba5e8899
+    .claude/skills/rust-best-practices/references/effective-rust.md: sha256:c0fe4ea29d2601224ac68b307d8c6137dd932b2565c141c1527c88ba1c5d5415
+    .claude/skills/rust-best-practices/references/google-rust-style-guide.md: sha256:cfe61cd554c9dc32b412bb22dec7bd58e9eb4b3931db79124a61b8c2f573542c
+    .claude/skills/rust-best-practices/references/microsoft-rust-guidelines.md: sha256:648cfee06cea304e3d9c525e6de9047c296ce353e156a8117111094418ccc4b8
+    .claude/skills/rust-best-practices/references/rust-api-guidelines.md: sha256:392a94ed5151a7eeaf6f0d0f0cbd29904fa41ae4c4ae5ae98d79e7da3ba2a8af
+    .claude/skills/rust-best-practices/references/rust-design-patterns.md: sha256:3102f45153ac7c75179ee43b12d143b33e4aaba9b2209c454dd4f0542cae7ae7
+  content_hash: sha256:ad5e01c2874af048e67d66ce8a32e8e6da675577be0066f72ac766af01af7e4e
 deployments:
 - kind: project-relative
   target: claude
@@ -471,6 +608,573 @@ deployments:
   - basicmachines-co/basic-memory/skills/memory-notes
   active_owner: basicmachines-co/basic-memory/skills/memory-notes
   content_hash: sha256:7470f21b7fa11ea76195fad5a3ce58e5fd1270f1a13cfab9a70ec3ac6fa79683
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: null
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/SKILL.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:f9446430549a64d9fb2d480c875c4920b1d98c2540b937bd41448200b2639f6a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/case.yaml
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:5950689c9d31cf56fa7142510b5966ff5940b394965c7118739415965e47605d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.lock
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:e600ab9927c3cbf9242c99e5907fb0320fa9f5baa9e3258c456eed0b2ef7a54a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/Cargo.toml
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:51c0f40a4291e19672e290a06a76b3f4175369b7724c129fe86d82e16c1dd138
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/src/lib.rs
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:67cde35eb3083ab11c48315615cf08e3b46c1247db09240df8baa8db01ac81db
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/files/tests/arena.rs
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:76e3f1507e775f30f336579a782cd3b02fb3a3c50416432f2abd51b1319518e0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/01-builds-and-tests-pass.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:edbb6ad404cc81a2fd839414c89b818a8b310172221228f32d65445b474ddec0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/02-regen-tested-headless.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:2c957f88a28903907599b713ca86775d0ce54756cc0961d74e66c56ca242effa
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/03-system-params-by-value.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:86bf0402ec280d0610c12d7e1c2b3bd84e649f43c32b9ae26a78c178b8bdfd14
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/04-keeps-bevy-prelude.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:0d80d3926c6073f469525c5d4fa4631619aad6a85f077af6d8ad165de11fa676
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/05-plain-data-components.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:b6bbb9510fd160094883a2dfd09958b204e5a80343bc7f0c763df3f68d548a7b
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/06-ordered-after-damage.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:7979e7fe11696cea9088c5815d6938ae1193060f692934588daf5ea91a8e7d57
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/07-no-panicking-queries.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:b7d02f4a4a7346805c0a10b8097df2b4f1c8d8fadd14d289df0d9496c67d243d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/08-clippy-clean.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:fe76d8a14543365ca5a938b344437e88eab3dac18a19dfb1a3566da850dd48b2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/09-health-never-exceeds-max.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:0942591879e29881af8984c8e5d66c06d478c1c249f3381599b7d468f0b308f2
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/graders/10-existing-code-not-rewritten.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:da70d97732bb6d60510b2f72928f6f8c0f836f83466b582691ac5a838797e078
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/place-files.sh
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:841ddfa163cad7bfb1217717eca171b8464dea243cf19f3cf449d9a60b01251d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/bevy-arena-regen/prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:66a38ef4ee2cbfb0a555bb115563b71753ed0a0929b8e625d73a1f2bb6be8542
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/case.yaml
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:11b06f4c0d6d5486d818583c200fefa75c171dc8306aa3948c09fdd5f03f91cd
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/01-never-panics-on-bad-input.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:736c1d3a2799444df398070502b42c6ae1e515a80773783c5aeb20eaaece1796
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/02-errors-name-the-file.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:43ac9cd2498b9c2ef8f1d754d2b7e43cc7a86cbfc6f107cdef770d700ba8cb58
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/03-malformed-lines-counted.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:2e09e0eccef46cc8ed747f1111c6551a087df23b3ddd9f18d87a5f2584180cfe
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/04-paths-as-path-types.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:3c8cc7730d85398556cc1d3e738d0ff8de2f6b53ccf0758f15221ec36ac9095f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/05-sorted-and-skipped-count.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:284381900b54b7e07335757faeb4486663d359f3c2d3bc7658c5e7d8dcdc42ef
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/06-dependency-ranges.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:d4076d13b3432953fbfb4e48e0146f8c184c240d839897797e60f69a02a45858
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/07-map-based-counting.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:a26b387a63e4a8e2455277d9608e58ea9318f0fe2024bc5a14e3263599e960a0
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/graders/08-aggregation-unit-tested.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:135807a5a3900c4e583ef36b17ded15eff44440083f8a8216a4c647d5149c92a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/log-summary-cli/prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:869fb3495d57db2b0bbb1d3cab0a367f9c0e99e1c97b82f442697cbb1f2022ec
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/case.yaml
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:c1a2d36e9cc12790ee6b4fe3eb17ff986d5d672f66164ffecf0350d568adc350
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/files/inventory.rs
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:da0d9d63a50e01fc56d815c3cd6b6bc8f59fe07938b0e6e4a9e34722957571da
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/01-deny-warnings-removed.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:8ee03ca3de16a7ef568b19b55b727a2ff3c3d1677965835ee187447de96d75ef
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/02-no-rc-refcell-in-api.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:58ab79f9a7d8fca3eff16cdd8079ba357fd01295f4bd5d7d2d3ba6506190238e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/03-borrowed-param-types.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:b93b12e2410f3831688c13afc7689e6a4c70af5d655a748ba17856df8d388c7a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/04-error-implements-error.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:875d83ad6e7d1ade58decc8d77b73e039f597dcd11b02698699f75795227e011
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/05-no-unwrap-on-fallible-paths.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:115ff30817867e0484dcc307857dd87dc24b6f115c49027899dbdf5b3d616227
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/06-getter-renamed.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:b1ad9dcd86f1d1561b8d8529d9cc166655a661d8fb4008bd7e5fdf4061612bbb
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/07-bool-param-replaced.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:fec5cfc16ad8b6471a4dcae339eef3c4f9bdb29fa62fc24775d17e02d04bec3a
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/08-deterministic-report.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:5d156f60430f31cfab617491762bc825023f4cebbc8323f5206b480c54af33eb
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/09-format-over-concat.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:fa5c3f445099145c2f2a80f96b05d9d3ca3257f610620f3349954279183d94af
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/10-no-check-then-unwrap.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:0538f879ff5ff29958a7ac2ec02f81ced21a13f32c5608c85d5ad8508dba292f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/11-changes-listed-with-reasons.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:b200c101aeee5852d8ac3b6ac9296d331e7e82802acc036dde83bb926ca1f3d7
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/graders/12-signature-changes-called-out.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:8382adeb1aefdb181fda7eb18ce2af7e17337907513c8800d55357fb69a6fe6f
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/place-files.sh
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:841ddfa163cad7bfb1217717eca171b8464dea243cf19f3cf449d9a60b01251d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/refactor-inventory-module/prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:e216aca10839bc2e6706b44262a15eee77b2cedaeac0fd8af6da1f1d910f453c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/case.yaml
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:886225ec97701df3ad1f4ea8e5841d70ce4edcd7297e2389d17f733e3e9c290e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/01-implements-fromstr.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:dbf99eff3c48412ea8c9aa2ec93102484af911d018cf7e7446592259e9d16c60
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/02-implements-display.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:8965bde45ebe995e1654c86363c65d4e2c39a68105c24bab182b9f244744cb57
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/03-dedicated-error-type.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:bc4fb09e89510043960e58eedc1b2410fd0de56e750ae8a7f8ef7b66ca9ed6c9
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/04-common-traits-derived.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:a02a779c06dfba6e9c05c7a294c35a4a2a7aeb51344482a6d46ebff5d1bf9f09
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/05-fields-private.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:d9556c35ba8e2d0ad9cf932ef58de47a56abb26d1b6e0a38bdf7b753d2e72fe3
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/06-rustdoc-with-errors-section.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:d21f822ad9c78d43428e077a3cc31809fb3187092cd2c7e861232e82615051eb
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/07-doc-examples-use-question-mark.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:353f155493d064c76e2a6931cb775f4e92dd56ef347174d3a30fa1feedc48776
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/08-precedence-rules-tested.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:a511448bbaf85ee40f614eab72a9d68f0ed41903cc052711f3a6f9ca225f04c1
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/09-no-unwrap-in-library-code.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:0ad37cc7dc9c5ae0373eb3cb0f31ce32ac159bc5adbc24b93941bc1743109474
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/graders/10-eq-hash-agree-with-ord.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:2bbc3e0ee2bc285938e49af5fdafa1d2012578947efac3f05689ab014734076d
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/evals/semver-library-api/prompt.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:9367bdf7273debb1f66239c72a35c8f17431e56fbf6d98a797e6c698b5acd35e
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/bevy.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:f8a96bccecd2e3faa2d79d206c24061ac9c5eb2dab3269573717b910ba5e8899
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/effective-rust.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:c0fe4ea29d2601224ac68b307d8c6137dd932b2565c141c1527c88ba1c5d5415
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/google-rust-style-guide.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:cfe61cd554c9dc32b412bb22dec7bd58e9eb4b3931db79124a61b8c2f573542c
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/microsoft-rust-guidelines.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:648cfee06cea304e3d9c525e6de9047c296ce353e156a8117111094418ccc4b8
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/rust-api-guidelines.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:392a94ed5151a7eeaf6f0d0f0cbd29904fa41ae4c4ae5ae98d79e7da3ba2a8af
+- kind: project-relative
+  target: claude
+  value: .claude/skills/rust-best-practices/references/rust-design-patterns.md
+  runtime: null
+  scope: project
+  owners:
+  - morganlinton/beautifulrust/skills/rust-best-practices
+  active_owner: morganlinton/beautifulrust/skills/rust-best-practices
+  content_hash: sha256:3102f45153ac7c75179ee43b12d143b33e4aaba9b2209c454dd4f0542cae7ae7
 - kind: project-relative
   target: claude
   value: .claude/skills/skill-creator

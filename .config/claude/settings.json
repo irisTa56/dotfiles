@@ -19,5 +19,8 @@
   },
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "skillOverrides": {
+    "rust-best-practices": "off"
   }
 }

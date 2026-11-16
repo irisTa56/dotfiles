@@ -17,6 +17,7 @@ dependencies:
   - github/awesome-copilot/skills/draw-io-diagram-generator
   - github/awesome-copilot/skills/drawio
   - mattpocock/skills/skills/productivity/handoff
+  - morganlinton/BeautifulRust/skills/rust-best-practices
   # A gist deploys under its hash unless given an alias.
   - git: https://gist.github.com/irisTa56/4f4492cc558997fae5692cb3b5137f6a.git
     alias: japanese-tech-writing
