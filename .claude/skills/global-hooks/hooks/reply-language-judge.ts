@@ -1,5 +1,5 @@
-// Judges a final reply of the main conversation for the Stop hook in
-// scripts/reply_language_stop.ts.
+// Judges a final reply of the main conversation for the Stop command hook in
+// reply-language-stop.ts.
 // Replies in the middle of a turn may drift into English; the final reply has
 // too, after the turn filled with English tool output, so a final reply in
 // English is sent back once to be written in Japanese.

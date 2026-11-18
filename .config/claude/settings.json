@@ -1,17 +1,5 @@
 {
   "idleCompaction": false,
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.local/bin/reply_language_stop\""
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "deny": [
       "Artifact",

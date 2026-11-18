@@ -59,7 +59,6 @@ includes = ["tasks"]
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
 "~/.local/bin/notify_desktop" = { source = "scripts/notify_desktop.sh", mode = "symlink" }
-"~/.local/bin/reply_language_stop" = { source = "scripts/reply_language_stop.ts", mode = "symlink" }
 
 [bootstrap.hooks]
 pre-dotfiles = '''
