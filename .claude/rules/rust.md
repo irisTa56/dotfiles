@@ -12,17 +12,19 @@ Where the code around an edit already follows a convention one of them differs f
 
 ## Modules
 
-- Build a module around a struct or a trait.
-- Where that module grows too large to read as one, or where several implementations of a behaviour share one data structure, split it: the parent module defines the struct or trait, and its child modules provide the processing, as `impl` blocks and trait implementations.
+- Build a module around a struct or a trait, in one file.
+- Split it into a parent module and child modules only where it grows too large to read as one, or where several implementations of a behaviour share one data structure.
+  - The parent keeps the definition of the struct or trait, not only the declarations of its children, and the children provide the processing, as `impl` blocks and trait implementations.
   - A child then depends on its parent only for the abstraction, and the parent names nothing a child defines.
   - A child module does not call a private function of its parent: such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
-- A field is private. A child module reads its parent's private fields, which Rust lets a descendant module do; any other module builds and reads the value through the type's methods.
+- A field is private, in a struct that only carries data as well. A child module reads its parent's private fields, which Rust lets a descendant module do; any other module builds and reads the value through the type's methods.
 - An item is private unless something outside its module uses it, and `pub` only where something outside the crate does.
   - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks the second where it is on, and it is off by default: a crate you create sets it to `warn`. Nothing checks the first, and the lint's own fix is `pub(crate)`.
 
 ## Crates
 
-- A project with a single crate may keep it as one package in a subdirectory of the repository.
+- A module split into child modules, with the directory that takes, is no reason by itself to split its crate.
+- A project with a single crate may keep it as one package in a subdirectory of the repository, rather than in a workspace.
 
 ## Methods and functions
 
@@ -31,8 +33,8 @@ Where the code around an edit already follows a convention one of them differs f
 - Where no type of the crate fits, the processing is a free function in these two cases and in no other:
   - what it reads is spread over types that are peers, none of them holding another
   - the type that fits belongs to another crate
-- In every other case define a type for it, holding no more than the processing reads.
-- A function that is not private takes no `&mut` parameter other than `&mut self`, unless a trait it implements fixes the signature.
+- In every other case, a computation that has no receiver included, define a type for it, holding no more than the processing reads.
+- A function that is not private takes no `&mut` parameter other than `&mut self`, unless a trait it implements fixes the signature; that holds for a value of another crate's type and for a buffer the caller reuses as well.
   - What has to change a value is a method of that value's type where the crate defines the type, and otherwise returns the new value.
   - Only a private function has all its callers in the module, where which of them owns the value can be read.
 
