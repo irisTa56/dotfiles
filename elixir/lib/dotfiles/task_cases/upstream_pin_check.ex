@@ -584,8 +584,8 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         exit: 1,
         output: []
       },
-      # A file too large for the task to read back from git is a pin it cannot move, and
-      # no other file moves, so the run has nothing it could have moved.
+      # A file larger than a pipe's buffer is read back from git and hashed again whole,
+      # so the move must not stall on its size or leave that file's pin behind.
       %{
         name:
           "with --bump under GitHub Actions, moves a pin in a large file beside one in a small file",
