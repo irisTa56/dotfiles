@@ -1,15 +1,13 @@
 import type { EngineInterface, Register } from "claude-code";
 
-const context = ($: EngineInterface): Promise<string> =>
-  $.fs.read(`${$.plugin.root}/context/reply-language.md`);
-
-const withContext = async <R extends { additionalContext?: string[] }>(
-  $: EngineInterface,
-  result: R,
-): Promise<R> => ({
-  ...result,
-  additionalContext: [...(result.additionalContext ?? []), await context($)],
-});
+// The context, or none when the file cannot be read: a failed hook here would
+// take the plugin's other prompt.submit hooks, scheduled-chrome's guard among
+// them, out of the dispatch with it.
+const context = ($: EngineInterface): Promise<string[]> =>
+  $.fs.read(`${$.plugin.root}/context/reply-language.md`).then(
+    (text) => [text],
+    () => [],
+  );
 
 // Code is English by rule, and a quotation is in the language of what it
 // quotes, so neither says anything about the reply's own language. A fence
@@ -34,6 +32,9 @@ const isEnglish = (message: string): boolean => {
   return latin >= MIN_LATIN && !JAPANESE_SENTENCE.test(prose);
 };
 
+// Matches any text, the empty one included.
+const ALL = /(?:)/;
+
 const REWRITE =
   "直前の返答は英語で書かれている。同じ内容を日本語で書き直して、もう一度返答する。ユーザーが英語で求めた文やコードはそのまま残し、その周りの説明を日本語で書く。";
 
@@ -50,9 +51,12 @@ export const register: Register = (on) => {
   let rewriteAsked = false;
 
   // Every prompt, notifications and hand-backs delivered into a running turn
-  // included.
-  on("classic.UserPromptSubmit", async ($, e, next) =>
-    withContext($, await next(e)),
+  // included. Not classic.UserPromptSubmit: a managed plugin may continue that
+  // event past the user tier, and this hook would then never run. The matcher
+  // selects every text; it is there because a plugin registers an event once
+  // without one, and scheduled-chrome holds that registration.
+  on("prompt.submit", { text: ALL }, async ($, e, next) =>
+    next({ ...e, context: [...(e.context ?? []), ...(await context($))] }),
   );
 
   // A subagent stops through SubagentStop, so this is the main conversation's
