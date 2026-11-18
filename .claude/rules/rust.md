@@ -2,6 +2,7 @@
 description: How to lay out Rust modules, crates, methods, traits and visibility, and when to take a dependency
 paths:
   - "**/*.rs"
+  - "**/Cargo.toml"
 ---
 
 # Rust
