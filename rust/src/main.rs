@@ -11,7 +11,7 @@ fn main() -> ExitCode {
     let status = match args.split_first() {
         Some((task, rest)) if task == "pin-check" => pin_check::run(rest),
         _ => {
-            eprintln!("[fail] usage: dotfiles-tasks pin-check [--bump] [pathspec...]");
+            eprintln!("[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check");
             pin_check::Status::Unknown
         }
     };

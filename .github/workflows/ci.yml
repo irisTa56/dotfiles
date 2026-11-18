@@ -11,9 +11,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  # release.yml starts it on the release pull request, which a pull_request event
-  # never reaches: the job's token that pushes that branch starts no workflow.
-  workflow_dispatch:
   # Weekly, as k-boat does: both secret scans cover the whole history on a scheduled
   # run, which catches what a PR scan missed, and every job meets this week's release
   # of the tools mise.toml tracks at `latest` even when no PR comes in. GitHub
