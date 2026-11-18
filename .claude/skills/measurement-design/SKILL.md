@@ -52,6 +52,8 @@ Write the prose of a plan by [document-writing.md](../../rules/document-writing.
 
 ## Reading
 
+- Before reporting a number derived from raw data, check what the derivation assumes about that data, such as what each row or series stands for, which run it comes from and what period it covers, against the data itself.
+  - Where the number contradicts an earlier check, suspect the derivation before the system: re-check it before offering a cause for the contradiction.
 - Say which outcome fixed before the run the result fell in. A result that fits none sends you back to the design.
 - Attribute a difference to a factor only where the runs compared differ in that factor alone and come from the same sequence. Otherwise say what they cannot show, and name the run that would show it.
 - Give a quantity as the measured number or range with the number of runs behind it, and a difference with its interval, rather than an adjective such as "faster".
