@@ -54,27 +54,22 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
 
   # The bytes of `object` in `repo` exactly as git holds them, unlike show/2, which
   # trims; a miss comes back as a value the case reports.
-  defp show_bytes(repo, object) do
-    case Dotfiles.Command.cmd("git", ["show", object],
-           cd: repo,
-           env: clear_git_env(),
-           stderr_to_stdout: true
-         ) do
-      {out, 0} -> out
-      {out, _} -> {:missing, String.trim(out)}
-    end
-  end
+  defp show_bytes(repo, object), do: output(repo, ["show", object])
 
   # The message of the commit `ref` names, read the same way.
   defp message(repo, ref), do: read(repo, ["log", "-1", "--format=%B", ref])
 
   defp read(repo, args) do
+    with out when is_binary(out) <- output(repo, args), do: String.trim(out)
+  end
+
+  defp output(repo, args) do
     case Dotfiles.Command.cmd("git", args,
            cd: repo,
-           env: clear_git_env(),
+           env: Dotfiles.TaskCases.cleared_git_env(),
            stderr_to_stdout: true
          ) do
-      {out, 0} -> String.trim(out)
+      {out, 0} -> out
       {out, _} -> {:missing, String.trim(out)}
     end
   end
@@ -87,7 +82,7 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         for(part <- present, not String.contains?(msg, part), do: "the message lacks #{part}") ++
           for part <- absent, String.contains?(msg, part), do: "the message names #{part}"
 
-      missing ->
+      {:missing, _} = missing ->
         ["the pushed commit's message is #{inspect(missing)}"]
     end
   end
@@ -98,9 +93,14 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
     want = String.trim(want)
 
     case show(origin, "upstream-pin-bump:#{path}") do
-      ^want -> []
-      {:missing, out} -> ["upstream-pin-bump has no #{path}: #{out}"]
-      got -> ["upstream-pin-bump's #{path} ends #{inspect(String.slice(got, -120, 120))}"]
+      ^want ->
+        []
+
+      {:missing, out} ->
+        ["upstream-pin-bump has no #{path}: #{out}"]
+
+      got when is_binary(got) ->
+        ["upstream-pin-bump's #{path} ends #{inspect(String.slice(got, -120, 120))}"]
     end
   end
 
@@ -108,7 +108,7 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
   defp no_bump_pushed(origin) do
     case show(origin, "upstream-pin-bump") do
       {:missing, _} -> []
-      _ -> ["upstream-pin-bump was pushed"]
+      pushed when is_binary(pushed) -> ["upstream-pin-bump was pushed"]
     end
   end
 
@@ -138,17 +138,17 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
     ]
   end
 
-  # Setting up an upstream is the case's own doing, so a failure stops the run. A git
-  # hook running this exports GIT_DIR and its kin, cleared here as the runner clears them.
+  # Setting up an upstream is the case's own doing, so a failure stops the run.
   defp git!(dir, args) do
     {out, 0} =
-      Dotfiles.Command.cmd("git", args, cd: dir, env: clear_git_env(), stderr_to_stdout: true)
+      Dotfiles.Command.cmd("git", args,
+        cd: dir,
+        env: Dotfiles.TaskCases.cleared_git_env(),
+        stderr_to_stdout: true
+      )
 
     String.trim(out)
   end
-
-  defp clear_git_env,
-    do: for({name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: {name, nil})
 
   def cases do
     [
@@ -363,6 +363,8 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
             git: publish(origin),
             env: [
               {"GITHUB_ACTIONS", "true"},
+              {"GITHUB_SERVER_URL", "https://github.com"},
+              {"GITHUB_REPOSITORY", "o/consumer"},
               {"GIT_CONFIG_GLOBAL", config},
               {"GIT_CONFIG_NOSYSTEM", "1"}
             ],
@@ -374,7 +376,10 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
                 got -> ["the pushed commit's author is #{inspect(got)}"]
               end
             end,
-            output: ["what it brings: https://github.com/o/up/compare/#{old}...#{tip}"]
+            output: [
+              "what it brings: https://github.com/o/up/compare/#{old}...#{tip}",
+              "open its pull request: https://github.com/o/consumer/compare/upstream-pin-bump?expand=1"
+            ]
           }
         end,
         args: ["--bump"],

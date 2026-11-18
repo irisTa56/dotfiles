@@ -72,13 +72,17 @@ defmodule Dotfiles.TaskCases do
     dir
   end
 
+  @doc """
+  The environment entries that unset every `GIT_` variable, for a git run that must
+  act on the repository it is given. A git hook running this exports `GIT_DIR` and
+  its kin for its own repository, which would turn every git call toward that one.
+  """
+  def cleared_git_env,
+    do: for({name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: {name, nil})
+
   defp check(c, root, dir, shim) do
-    # A git hook running this sets GIT_DIR and the like for its own repository,
-    # which would turn every git call here toward that one; the ceiling keeps a
-    # case with no repository of its own from finding one above it.
-    env =
-      for({name, _} <- System.get_env(), String.starts_with?(name, "GIT_"), do: {name, nil}) ++
-        [{"GIT_CEILING_DIRECTORIES", Path.dirname(dir)}]
+    # The ceiling keeps a case with no repository of its own from finding one above it.
+    env = cleared_git_env() ++ [{"GIT_CEILING_DIRECTORIES", Path.dirname(dir)}]
 
     opts = [cd: dir, env: env, stderr_to_stdout: true]
     repository? = Map.get(c, :repository, true)
