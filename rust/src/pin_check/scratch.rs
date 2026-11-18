@@ -3,8 +3,7 @@
 use std::io;
 use std::path::Path;
 
-use super::report::{fail, fail_git};
-use super::{Checked, Pin, Scratch, Status};
+use super::{Checked, Failure, Pin, Scratch, Status};
 use crate::git::{Git, Run};
 
 impl Checked {
@@ -65,10 +64,8 @@ impl Scratch {
         let tip = match self.fetch(&pin.url, "HEAD") {
             Ok(tip) => tip,
             Err(run) => {
-                fail_git(
-                    &run,
-                    &format!("could not read the default branch of {}", pin.url),
-                );
+                Failure(&format!("could not read the default branch of {}", pin.url))
+                    .report_git(&run);
                 return Checked::Unknown;
             }
         };
@@ -76,26 +73,25 @@ impl Scratch {
         let pinned = match self.fetch(&pin.url, &pin.commit) {
             Ok(pinned) => pinned,
             Err(run) => {
-                fail_git(
-                    &run,
-                    &format!("could not read {} from {}", pin.commit, pin.url),
-                );
+                Failure(&format!("could not read {} from {}", pin.commit, pin.url))
+                    .report_git(&run);
                 return Checked::Unknown;
             }
         };
         let Some(pinned_tree) = self.tree_at(&pinned, &pin.path) else {
-            fail(&format!(
+            Failure(&format!(
                 "{place} does not exist at the pinned {}",
                 pin.commit
-            ));
+            ))
+            .report();
             return Checked::Unknown;
         };
         let files = pin.files.join(", ");
         // A pin moved to a tip without the path would fail every run after, so it stays.
         let Some(tip_tree) = tip_tree else {
-            fail(&format!(
+            Failure(&format!(
                 "{place} is gone from the default branch ({tip}), pinned in {files}; a bump leaves this pin where it is"
-            ));
+            )).report();
             return Checked::Gone;
         };
         if pinned_tree == tip_tree {
@@ -106,11 +102,12 @@ impl Scratch {
             return Checked::Matches;
         }
         // Not which is the older: the pin may be ahead of the default branch as well as behind.
-        fail(&format!(
+        Failure(&format!(
             "{place} differs from the default branch, pinned in {files}"
-        ));
-        fail(&format!("pinned: {}", pin.commit));
-        fail(&format!("tip:    {tip}"));
+        ))
+        .report();
+        Failure(&format!("pinned: {}", pin.commit)).report();
+        Failure(&format!("tip:    {tip}")).report();
         Checked::Differs(tip)
     }
 }

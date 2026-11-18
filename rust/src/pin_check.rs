@@ -35,6 +35,10 @@ pub(crate) struct Request<'a> {
     pathspecs: &'a [String],
 }
 
+/// What a run could not do, as the line that says so.
+#[derive(Debug, Clone, Copy)]
+struct Failure<'m>(&'m str);
+
 /// A file's contents, in which markers are found and moved. They are bytes, since a file
 /// need not be UTF-8, and a move leaves every byte outside its markers as it was.
 #[derive(Debug, Clone, Copy)]

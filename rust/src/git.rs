@@ -39,6 +39,15 @@ impl Run {
     pub(crate) fn stderr(&self) -> &str {
         &self.stderr
     }
+
+    /// The run of a git that could not be started, or not fed its input.
+    fn unstarted(error: &std::io::Error) -> Self {
+        Run {
+            status: NO_STATUS,
+            stdout: Vec::new(),
+            stderr: format!("could not run git: {error}\n"),
+        }
+    }
 }
 
 /// A git whose runs leave out the variables that tie git to one repository.
@@ -123,11 +132,11 @@ impl<'a> Call<'a> {
             .stderr(Stdio::piped());
         let child = match command.spawn() {
             Ok(child) => child,
-            Err(error) => return unstarted(&error),
+            Err(error) => return Run::unstarted(&error),
         };
         let output = match feed(child, self.input) {
             Ok(output) => output,
-            Err(error) => return unstarted(&error),
+            Err(error) => return Run::unstarted(&error),
         };
         Run {
             status: output.status.code().unwrap_or(NO_STATUS),
@@ -145,12 +154,4 @@ fn feed(
         stdin.write_all(input)?;
     }
     child.wait_with_output()
-}
-
-fn unstarted(error: &std::io::Error) -> Run {
-    Run {
-        status: NO_STATUS,
-        stdout: Vec::new(),
-        stderr: format!("could not run git: {error}\n"),
-    }
 }

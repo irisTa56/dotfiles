@@ -2,8 +2,7 @@
 
 use std::{env, io};
 
-use super::report::{fail, fail_git};
-use super::{Checked, Differing, Move, Pins, Request, Scratch, Status};
+use super::{Checked, Differing, Failure, Move, Pins, Request, Scratch, Status};
 use crate::git::Git;
 
 impl<'a> Request<'a> {
@@ -22,7 +21,7 @@ impl<'a> Request<'a> {
             Ok(status) => status,
             // An error from the filesystem is no answer about the pins, so it exits as one.
             Err(error) => {
-                fail(&format!("stopped on {error}"));
+                Failure(&format!("stopped on {error}")).report();
                 Status::Unknown
             }
         }
@@ -30,9 +29,10 @@ impl<'a> Request<'a> {
 
     fn check(&self) -> io::Result<Status> {
         if let Some(option) = self.pathspecs.iter().find(|arg| arg.starts_with('-')) {
-            fail(&format!(
+            Failure(&format!(
                 "unknown argument '{option}'; this takes --bump, then git pathspecs"
-            ));
+            ))
+            .report();
             return Ok(Status::Unknown);
         }
         let git = Git::new();
@@ -43,34 +43,31 @@ impl<'a> Request<'a> {
         grep.extend(self.pathspecs.iter().map(String::as_str));
         let listed = git.run(&grep);
         if listed.status() > 1 {
-            return Ok(fail_git(
-                &listed,
-                "could not list the tracked files to read pins from",
-            ));
+            return Ok(
+                Failure("could not list the tracked files to read pins from").report_git(&listed),
+            );
         }
         let root = git.run(&["rev-parse", "--show-toplevel"]);
         if !root.success() {
-            return Ok(fail_git(&root, "could not find the repository's root"));
+            return Ok(Failure("could not find the repository's root").report_git(&root));
         }
         env::set_current_dir(root.stdout().trim())?;
         let names = listed.stdout();
         let files: Vec<&str> = names.split('\0').filter(|f| !f.is_empty()).collect();
         let pins = Pins::read(&files)?;
         if pins.0.is_empty() {
-            fail("found no upstream pin in the tracked files");
+            Failure("found no upstream pin in the tracked files").report();
             return Ok(Status::Unknown);
         }
 
         let scratch = Scratch::new(git)?;
         let init = scratch.git(&["init", "-q"]);
         if !init.success() {
-            return Ok(fail_git(
-                &init,
-                &format!(
-                    "could not create a scratch repository at {}",
-                    scratch.dir().display()
-                ),
-            ));
+            return Ok(Failure(&format!(
+                "could not create a scratch repository at {}",
+                scratch.dir().display()
+            ))
+            .report_git(&init));
         }
         let mut status = Status::Ok;
         let mut differing = Differing(Vec::new());

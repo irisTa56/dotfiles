@@ -4,8 +4,7 @@
 use std::collections::HashMap;
 use std::{fs, io};
 
-use super::report::fail;
-use super::{Differing, Marker, Move, Moves, Pin, Pins, Status, Text};
+use super::{Differing, Failure, Marker, Move, Moves, Pin, Pins, Status, Text};
 
 impl Pin {
     fn marker(&self) -> Marker<'_> {
@@ -78,7 +77,7 @@ impl Differing<'_> {
             moved.0.extend(file_moved.0);
         }
         for line in moved.describe() {
-            fail(&format!("moved the pin of {line}"));
+            Failure(&format!("moved the pin of {line}")).report();
         }
         Ok(Status::Differs)
     }
