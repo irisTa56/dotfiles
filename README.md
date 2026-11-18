@@ -157,7 +157,7 @@ The same `hooks/hooks.json` names one function-hooks module under `modules`, `ho
 - `hooks/scheduled-chrome.ts` denies Claude in Chrome's tools in a run a scheduled task started, in its main conversation and in its subagents, until a person replies in that session; the built-in browser stays available.
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
 
-Beside the module, `hooks/hooks.json` registers `hooks/reply-language-stop.ts` as a Stop command hook, run by `node`, for the same reason.
+Beside the module, `hooks/hooks.json` registers `hooks/reply-language-stop.ts` as a Stop command hook, run by `node`: a managed plugin can continue `classic.Stop` past the user tier too, and a command hook in `hooks.json` still runs where the module's hook on that event does not.
 It sends a final reply of the main conversation whose prose outside code and quotations runs past a couple of English sentences with no Japanese sentence in it back once to be rewritten in Japanese, since final replies have switched to English after a turn filled with English tool output; a reply in the middle of a turn is left to drift.
 Its judgment is in `hooks/reply-language-judge.ts`, which `claude plugin test` covers, and it keeps what one stop leaves for the next in a file per session under the system temporary directory.
 
