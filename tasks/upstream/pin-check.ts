@@ -88,6 +88,9 @@ function readPins(files: string[]): Pin[] {
     for (const [, url, path, ref] of readFileSync(file, "utf8").matchAll(
       MARKER,
     )) {
+      // Every group of MARKER takes part in a match; this tells the type checker so.
+      if (url === undefined || path === undefined || ref === undefined)
+        continue;
       const key = `${url}\0${path}\0${ref}`;
       const pin = pins.get(key) ?? { url, path, ref, files: [] };
       if (!pin.files.includes(file)) pin.files.push(file);
