@@ -44,11 +44,13 @@ defmodule Dotfiles.TaskCases do
   end
 
   # A task wrapping the dotfiles-tasks binary installs the release it pins with
-  # `mise x <tool> -- <command>` and runs the command; here a stand-in for that mise
+  # `mise install <tool>` and runs it with `mise x <tool> -- <command>`; here a stand-in
+  # for that mise installs nothing, exiting as TASK_CASE_MISE_INSTALL_STATUS says, and
   # runs the command alone, which finds the build of this working tree that
   # `rust:build` leaves under rust/target.
   @mise_shim """
   #!/bin/sh
+  [ "$1" = install ] && exit "${TASK_CASE_MISE_INSTALL_STATUS:-0}"
   while [ "$#" -gt 0 ] && [ "$1" != -- ]; do shift; done
   shift
   exec "$@"

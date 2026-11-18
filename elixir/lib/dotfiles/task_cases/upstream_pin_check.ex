@@ -391,6 +391,36 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         env: [{"GITHUB_ACTIONS", nil}],
         exit: 2
       },
+      # A token without contents: write, or a fork's pull request, gets the push refused.
+      %{
+        name:
+          "with --bump under GitHub Actions, fails as unable to tell where origin refuses the push",
+        prepare: fn aux ->
+          {url, [old, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          origin = origin(aux)
+          hook = Path.join(origin, "hooks/pre-receive")
+
+          File.write!(hook, """
+          #!/bin/sh
+          while read -r _ _ ref; do [ "$ref" = refs/heads/upstream-pin-bump ] && exit 1; done
+          exit 0
+          """)
+
+          File.chmod!(hook, 0o755)
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", old)}\n"}],
+            git: publish(origin),
+            verify: fn _ -> no_bump_pushed(origin) end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 2,
+        output: ["could not push the move to upstream-pin-bump"]
+      },
       %{
         name: "with --bump under GitHub Actions, leaves an existing upstream-pin-bump alone",
         prepare: fn aux ->
@@ -619,6 +649,17 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         end,
         exit: 2,
         output: []
+      },
+      # Installing the release can fail, for a version not yet published or a host no
+      # binary is built for, and that is no answer about the pins.
+      %{
+        name: "fails as unable to tell where the release it pins cannot be installed",
+        files: [
+          {"Cargo.toml", "# git::https://example.com/u.git//p?ref=#{String.duplicate("a", 40)}\n"}
+        ],
+        env: [{"TASK_CASE_MISE_INSTALL_STATUS", "1"}],
+        exit: 2,
+        output: ""
       },
       %{
         name: "fails as unable to tell on an option it does not take",
