@@ -321,6 +321,19 @@ describe("the file-backed state", () => {
     }
   });
 
+  // Sessions run side by side, so one session's stop must not move another's flag.
+  test("keeps each session's value apart from another session's", () => {
+    for (const a of [false, true]) {
+      for (const b of [false, true]) {
+        const files = disk();
+        fileState("/tmp/x", files).write("a", a);
+        fileState("/tmp/x", files).write("b", b);
+        expect(fileState("/tmp/x", files).read("a")).toBe(a);
+        expect(fileState("/tmp/x", files).read("b")).toBe(b);
+      }
+    }
+  });
+
   test("reads a session with no file yet as one with no block", () => {
     expect(handleStop(raw(true), fileState("/tmp/x", disk()))).not.toBe("");
   });
