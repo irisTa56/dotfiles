@@ -566,6 +566,6 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         output: ["takes --bump"]
       }
     ]
-    |> Enum.map(&Map.merge(&1, %{task: @task, subcommand: "pin-check"}))
+    |> Enum.map(&Map.merge(&1, %{task: @task}))
   end
 end

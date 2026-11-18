@@ -15,8 +15,7 @@ defmodule Dotfiles.TaskCases do
   # not track; `git`, git commands run in the repository after staging, as lists of
   # arguments; `args`; `env`, as {name, value}, for the task's run; `exit`; `output`,
   # as for output_mismatches/2; `verify`, a function given the repository after the
-  # run that returns what it found amiss; `prepare`, as for failure/2; and
-  # `subcommand`, as for command/2.
+  # run that returns what it found amiss; and `prepare`, as for failure/2.
   def run(cases, root) do
     failures = for c <- cases, failure = failure(c, root), do: failure
 
@@ -73,13 +72,17 @@ defmodule Dotfiles.TaskCases do
     Enum.each(Map.get(c, :git, []), &git!(&1, opts))
     Enum.each(Map.get(c, :delete, []), &File.rm!(Path.join(dir, &1)))
 
-    {program, args} = command(c, root)
+    # A task wrapping the dotfiles-tasks binary calls it by name, and runs a release
+    # where mise reads its header; here it runs the build of this working tree, which
+    # `rust:build` leaves under rust/target.
+    build = Path.join(root, "rust/target/debug")
+    path = {"PATH", Enum.join([build | List.wrap(System.get_env("PATH"))], ":")}
 
     {out, code} =
       Dotfiles.Command.cmd(
-        program,
-        args ++ Map.get(c, :args, []),
-        Keyword.update!(opts, :env, &(&1 ++ Map.get(c, :env, [])))
+        "bash",
+        [Path.join(root, c.task) | Map.get(c, :args, [])],
+        Keyword.update!(opts, :env, &(&1 ++ [path | Map.get(c, :env, [])]))
       )
 
     verified = if verify = c[:verify], do: verify.(dir), else: []
@@ -89,14 +92,6 @@ defmodule Dotfiles.TaskCases do
       found -> "#{c.task}, #{c.name}: #{Enum.join(found, "; ")}; output:\n#{out}"
     end
   end
-
-  # A task whose case names a `subcommand` is a wrapper around the dotfiles-tasks binary,
-  # which runs a released build; the case runs the build of this working tree instead,
-  # which `rust:build` leaves under rust/target.
-  defp command(%{subcommand: sub}, root),
-    do: {Path.join(root, "rust/target/debug/dotfiles-tasks"), [sub]}
-
-  defp command(c, root), do: {"bash", [Path.join(root, c.task)]}
 
   # Setting up the case's repository is this check's own doing, so a failure there
   # stops the run rather than reading as the task's.

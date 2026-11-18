@@ -86,20 +86,24 @@ defmodule Dotfiles.TaskCasesTest do
     assert_received {:bash, dir} when is_binary(dir)
   end
 
-  test "runs a case naming a subcommand on the working tree's dotfiles-tasks build" do
+  # A task that wraps the dotfiles-tasks binary calls it by name, so a case runs the
+  # wrapper itself against the build of this working tree rather than a release.
+  test "runs the task with the working tree's dotfiles-tasks build first on PATH" do
+    Dotfiles.TestEnv.put_env([{"PATH", "/usr/bin"}])
     parent = self()
 
     FakeCommand.install(fn
       "git", _, _ ->
         {"", 0}
 
-      program, args, _ ->
-        send(parent, {:ran, program, args})
+      "bash", args, opts ->
+        send(parent, {:bash, args, opts[:env]})
         {"", 0}
     end)
 
-    assert run([a_case(%{subcommand: "pin-check", args: ["a"]})]) == {"", 0}
-    assert_received {:ran, "/repo/rust/target/debug/dotfiles-tasks", ["pin-check", "a"]}
+    assert run([a_case(%{args: ["a"]})]) == {"", 0}
+    assert_received {:bash, ["/repo/tasks/x/y.sh", "a"], env}
+    assert {"PATH", "/repo/rust/target/debug:/usr/bin"} in env
   end
 
   # A case whose task reads another repository, an upstream, sets that one up apart

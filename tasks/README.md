@@ -31,6 +31,7 @@ A block carrying `run`, `run_windows` or `file` replaces the shared task instead
 Pin `ref` to a commit on `main`, not a branch, and spell it in full.
 For a sha mise clones the whole repository and checks the commit out, so a commit no branch reaches is not in the clone: a pin taken from a branch since deleted, or from a pull request this repository squash-merged, fails the next time the cache is cold rather than when it was written.
 A failing include takes every task in the consuming repository with it, that repository's own included.
+A task that runs the `dotfiles-tasks` binary fails instead, at mise's install, on a commit whose wrapper names a release not yet published: the commit that merges a release moves the wrapper, and the release is published once its binaries are built, minutes later, so a pin taken in between, by hand or by `--bump`, works from then on.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
 It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
