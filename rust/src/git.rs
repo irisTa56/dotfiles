@@ -11,14 +11,26 @@ const NO_STATUS: i32 = 2;
 /// What one git run printed, and how it exited.
 #[derive(Debug)]
 pub(crate) struct Run {
-    pub(crate) status: i32,
-    pub(crate) stdout: String,
-    pub(crate) stderr: String,
+    status: i32,
+    stdout: String,
+    stderr: String,
 }
 
 impl Run {
+    pub(crate) fn status(&self) -> i32 {
+        self.status
+    }
+
     pub(crate) fn success(&self) -> bool {
         self.status == 0
+    }
+
+    pub(crate) fn stdout(&self) -> &str {
+        &self.stdout
+    }
+
+    pub(crate) fn stderr(&self) -> &str {
+        &self.stderr
     }
 }
 

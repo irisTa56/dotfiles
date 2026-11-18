@@ -9,7 +9,7 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let status = match args.split_first() {
-        Some((task, rest)) if task == "pin-check" => pin_check::run(rest),
+        Some((task, rest)) if task == "pin-check" => pin_check::Request::new(rest).run(),
         _ => {
             eprintln!("[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check");
             pin_check::Status::Unknown
