@@ -3,5 +3,8 @@
   "claudeMdExcludes": [
     "**/.claude/worktrees/*/.claude/CLAUDE.md",
     "**/.claude/worktrees/*/.claude/rules/**"
-  ]
+  ],
+  "skillOverrides": {
+    "rust-best-practices": "on"
+  }
 }
