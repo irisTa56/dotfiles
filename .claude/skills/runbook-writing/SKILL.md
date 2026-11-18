@@ -21,8 +21,8 @@ Write its prose by [document-writing.md](../../rules/document-writing.md), and w
   - A figure from a past run can still help as what to expect, such as how long a step takes.
 - Write no procedure for a situation not yet seen on the machine.
   - An unexercised procedure reads like a tested one; keep the thinking in the record and write the steps when the situation shows up.
-- Drop a step because an earlier run already did it only after reading on each target that its result still holds, since a reboot or a newer version of the files the step puts there undoes it; where that cannot be read before handing over, keep the step.
-  - A page adapted from an earlier run's carries over that page's omissions unexamined, so check each of them this way too; the cold reader cannot, having the page alone.
+- Drop a step because an earlier run already did it only after reading on each target that its result still holds, and keep on the page a check that fails where it no longer does, since a reboot or a newer version of the files the step puts there can undo it before the run; where it cannot be read before handing over, keep the step.
+  - A page adapted from an earlier run's presupposes what that run left on the targets, such as files of a given version in place or a host not rebooted since, so list those presuppositions and treat each as a dropped step; the cold reader cannot find them, having the page alone.
 - Where the procedure runs an experiment, settle its design with the `measurement-design` skill before writing the page. The page carries every part of that design the executor acts on or records, such as what is varied and why, how each outcome reads, the threshold a difference must clear, and what invalidates the comparison.
   - Send incidental explanation — how a machine step is implemented, a tool's behaviour, a defence of the method — to a code comment or the plan.
 
