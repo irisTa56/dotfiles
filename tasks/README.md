@@ -7,6 +7,7 @@ The first half of this file is for a repository taking them, the second for whoe
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
+A task that runs the `dotfiles-tasks` binary, as `upstream:pin-check` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -154,6 +155,7 @@ Keep such a file out of here.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`, and pins the release it runs in its header; the release's version line ends in `# x-release-please-version`, so the release pull request moves it.
+A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
