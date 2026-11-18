@@ -329,6 +329,68 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         env: [{"GITHUB_ACTIONS", "true"}],
         exit: 1
       },
+      # The link a person follows from the bump is GitHub's comparison of the two
+      # commits, and the commit is the bot's, since a runner has no git identity of its
+      # own; the upstream is reached at a github.com URL that git's config rewrites to
+      # a local one.
+      %{
+        name:
+          "with --bump under GitHub Actions, commits as the bot and links GitHub's comparison",
+        prepare: fn aux ->
+          {local, [old, tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          url = "https://github.com/o/up.git"
+          config = Path.join(aux, "gitconfig")
+          File.write!(config, "[url \"#{local}\"]\n\tinsteadOf = #{url}\n")
+          origin = origin(aux)
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", old)}\n"}],
+            git: publish(origin),
+            env: [
+              {"GITHUB_ACTIONS", "true"},
+              {"GIT_CONFIG_GLOBAL", config},
+              {"GIT_CONFIG_NOSYSTEM", "1"}
+            ],
+            verify: fn _ ->
+              bot = "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+
+              case read(origin, ["log", "-1", "--format=%an <%ae>", "upstream-pin-bump"]) do
+                ^bot -> []
+                got -> ["the pushed commit's author is #{inspect(got)}"]
+              end
+            end,
+            output: ["what it brings: https://github.com/o/up/compare/#{old}...#{tip}"]
+          }
+        end,
+        args: ["--bump"],
+        exit: 1
+      },
+      # A pin it could not tell about leaves the run unable to tell, while the bump still
+      # moves the pin that differs.
+      %{
+        name:
+          "with --bump, moves a differing pin and still fails as unable to tell beside an unreadable one",
+        prepare: fn aux ->
+          {url, [old, tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          unreadable =
+            "# #{marker("file://" <> Path.join(aux, "missing"), "x", String.duplicate("a", 40))}\n"
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", old)}\n" <> unreadable}],
+            verify: fn dir ->
+              holds(dir, "Cargo.toml", "# #{marker(url, "lints", tip)}\n" <> unreadable)
+            end,
+            output: ["moved the pin of #{url}//lints to #{tip}"]
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", nil}],
+        exit: 2
+      },
       %{
         name: "with --bump under GitHub Actions, leaves an existing upstream-pin-bump alone",
         prepare: fn aux ->
