@@ -308,6 +308,19 @@ describe("the file-backed state", () => {
     expect(handleStop(raw(true), fileState("/tmp/x", files))).toBe("");
   });
 
+  // Every value written, after every value before it, is what a later process
+  // reads: a stop that clears the flag has to clear it on disk too.
+  test("reads back the last value written, from a fresh store", () => {
+    for (const before of [false, true]) {
+      for (const last of [false, true]) {
+        const files = disk();
+        fileState("/tmp/x", files).write("s", before);
+        fileState("/tmp/x", files).write("s", last);
+        expect(fileState("/tmp/x", files).read("s")).toBe(last);
+      }
+    }
+  });
+
   test("reads a session with no file yet as one with no block", () => {
     expect(handleStop(raw(true), fileState("/tmp/x", disk()))).not.toBe("");
   });
