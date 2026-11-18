@@ -13,7 +13,7 @@ Where the code around an edit already follows a convention one of them differs f
 ## Modules
 
 - Build a module around a struct or a trait, in one file.
-- Split it into a parent module and child modules only where it grows too large to read as one, or where several implementations of a behaviour share one data structure.
+- Split it into a parent module and child modules where there is a reason to, such as the module growing too large to read as one, or several implementations of a behaviour sharing one data structure.
   - The parent keeps the definition of the struct or trait, not only the declarations of its children, and the children provide the processing, as `impl` blocks and trait implementations.
   - A child then depends on its parent only for the abstraction, and the parent names nothing a child defines.
   - A child module does not call a private function of its parent: such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
