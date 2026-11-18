@@ -1,50 +1,81 @@
-import type { On } from "claude-code";
+import type { On, PromptOrigin } from "claude-code";
 import { describe, expect, test } from "claude-code/testing";
 
-type Context = Promise<{ additionalContext?: string[] }>;
 type Engine = {
   classic: {
     Stop: (input: never) => Promise<{ block?: string }>;
-    UserPromptSubmit: (input: never) => Context;
+  };
+  prompt: {
+    submit: (input: never) => Promise<{ context?: readonly string[] }>;
   };
 };
 
 // A line the context file holds, to tell it apart from other context.
 const MARK = "ユーザーへの返答は";
-// Context another hook beneath already added.
-const BENEATH = "beneath";
+// Context a hook above already attached on the way down.
+const ABOVE = "above";
 
-// The engine beneath the mod: the plugin's context file holds the line, and
-// the hooks beneath add their own context.
-const engine = (on: On, stopBlock?: string): void => {
+// The engine beneath the mod: the plugin's context file holds the line, and a
+// prompt enters with the context that reached the bottom.
+const engine = (on: On, stopBlock?: string, readable = true): void => {
   on("fs.read", (_, e) =>
-    e.path.endsWith("/context/reply-language.md")
+    readable && e.path.endsWith("/context/reply-language.md")
       ? { value: `- ${MARK}日本語で書く。` }
       : { deny: "ENOENT" },
   );
   on("classic.Stop", () =>
     stopBlock === undefined ? {} : { block: stopBlock },
   );
-  on("classic.UserPromptSubmit", () => ({ additionalContext: [BENEATH] }));
+  on("prompt.submit", (_, e) => ({ text: e.text, context: e.context }));
 };
 
-const prompt = async ($: Engine, on: On, source: string): Promise<string[]> => {
+const submit = ($: Engine, kind: PromptOrigin["kind"]) =>
+  $.prompt.submit({ text: "p", origin: { kind }, context: [ABOVE] } as never);
+
+const prompt = async (
+  $: Engine,
+  on: On,
+  kind: PromptOrigin["kind"],
+): Promise<readonly string[]> => {
   engine(on);
-  const r = await $.classic.UserPromptSubmit({ prompt: "p", source } as never);
-  return r.additionalContext ?? [];
+  return (await submit($, kind)).context ?? [];
 };
 
 const carries = (context: readonly string[]): number =>
   context.filter((c) => c.includes(MARK)).length;
 
 describe("a prompt", () => {
-  for (const source of ["user", "system"]) {
-    test(`from ${source} gets the reply-language context once`, async ($, on) => {
-      const context = await prompt($, on, source);
+  for (const kind of ["composer", "task-notification"] as const) {
+    test(`from ${kind} gets the reply-language context once`, async ($, on) => {
+      const context = await prompt($, on, kind);
       expect(carries(context)).toBe(1);
-      expect(context).toContain(BENEATH);
+      expect(context).toContain(ABOVE);
     });
   }
+});
+
+describe("a prompt whose context file cannot be read", () => {
+  test("enters without the context and the failure is reported", async ($, on) => {
+    // Whatever the mod shows the person (toast, transcript line, notice).
+    const reports: string[] = [];
+    on("ui.toast", (_, e, next) => {
+      reports.push(e.text);
+      return next(e);
+    });
+    on("ui.log", (_, e, next) => {
+      if (e.to !== "debug") reports.push(e.text);
+      return next(e);
+    });
+    on("ui.notice", (_, e, next) => {
+      if (e.text !== undefined) reports.push(e.text);
+      return next(e);
+    });
+    engine(on, undefined, false);
+    const context = (await submit($, "composer")).context ?? [];
+    expect(carries(context)).toBe(0);
+    expect(context).toContain(ABOVE);
+    expect(reports.length).toBeGreaterThan(0);
+  });
 });
 
 // Returns the block the Stop event ends with: a re-prompt, or none.
@@ -281,10 +312,7 @@ describe("a final reply", () => {
       ...english,
       stop_hook_active: false,
     } as never);
-    await $.classic.UserPromptSubmit({
-      prompt: "<task-notification>done</task-notification>",
-      source: "system",
-    } as never);
+    await submit($, "task-notification");
     const again = await $.classic.Stop({
       ...english,
       stop_hook_active: true,
@@ -306,7 +334,7 @@ describe("a final reply", () => {
     engine(on);
     const english = { last_assistant_message: ENGLISH };
     await $.classic.Stop({ ...english, stop_hook_active: false } as never);
-    await $.classic.UserPromptSubmit({ prompt: "p", source: "user" } as never);
+    await submit($, "composer");
     // A turn's first stop never follows a block.
     const next = await $.classic.Stop({
       ...english,
@@ -338,9 +366,9 @@ describe("a final reply", () => {
       $,
       on,
       { last_assistant_message: ENGLISH },
-      BENEATH,
+      "beneath",
     );
-    expect(block).toBe(BENEATH);
+    expect(block).toBe("beneath");
   });
 
   // A subagent's replies go to its parent agent, not the user.
