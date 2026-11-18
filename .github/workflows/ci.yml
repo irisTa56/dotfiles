@@ -145,6 +145,7 @@ jobs:
       - run: mise run qa:ex
       # A check of the shared tasks under tasks/, which the Mix project provides.
       - run: mise run qa:tasks
+      - run: mise run qa:release-pins
 
   link-check-offline:
     runs-on: ubuntu-latest

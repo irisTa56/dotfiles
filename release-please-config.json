@@ -11,7 +11,9 @@
           "type": "generic",
           "path": "/tasks/upstream/pin-check.sh"
         }
-      ]
+      ],
+      "draft": true,
+      "force-tag-creation": true
     }
   }
 }

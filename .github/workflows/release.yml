@@ -3,7 +3,10 @@ name: Release
 # Releases the dotfiles-tasks binary under rust/, which the shared tasks under tasks/
 # run at the version their #MISE headers pin. release-please keeps a release pull
 # request open for what has merged since the last release; merging it tags the
-# release, and the build below attaches the binaries.
+# release as a draft, the jobs below attach the binaries, and only then is it
+# published. The repository has immutable releases on, so once published neither the
+# tag nor an asset can change, and the version a header pins names fixed bytes, as
+# the commit an include pins does.
 #
 # Everything runs on the job's GITHUB_TOKEN, so no credential is added. Opening the
 # pull request with it needs the repository setting "Allow GitHub Actions to create
@@ -18,8 +21,9 @@ name: Release
 on:
   push:
     branches: [main]
-  # Builds the binaries for a release that already exists, for one whose build failed:
-  # release-please tags a release once, so a rerun of the push run builds nothing.
+  # Builds and publishes a release still in draft, one whose build failed: release-please
+  # tags a release once, so a rerun of the push run builds nothing. A published release
+  # is immutable, so publish refuses one.
   workflow_dispatch:
     inputs:
       tag:
@@ -43,6 +47,8 @@ jobs:
       - id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
 
+  # Runs dependencies' build scripts, so it holds no token that can write: what it
+  # builds goes to publish as an artifact.
   build:
     needs: release-please
     # always(), since a skipped release-please would otherwise skip this too.
@@ -52,19 +58,12 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             runner: macos-latest
-          - target: x86_64-apple-darwin
-            runner: macos-latest
           # musl links the binary statically, so it runs whatever glibc a host has.
           - target: x86_64-unknown-linux-musl
             runner: ubuntu-latest
           - target: aarch64-unknown-linux-musl
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
-    permissions:
-      contents: write
-      # The build provenance attestation that mise checks on install.
-      id-token: write
-      attestations: write
     env:
       # The workflow-level settings ci.yml explains, for the same reasons.
       MISE_IGNORED_CONFIG_PATHS: ${{ github.workspace }}/.config/mise/config.toml
@@ -74,6 +73,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.release-please.outputs.tag || inputs.tag }}
+          persist-credentials: false
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
           install_args: rust
@@ -85,19 +85,38 @@ jobs:
         working-directory: rust
         env:
           TARGET: ${{ matrix.target }}
-      - id: archive
-        run: |
-          name="dotfiles-tasks-$TARGET.tar.gz"
-          tar -czf "$name" -C "rust/target/$TARGET/release" dotfiles-tasks
-          echo "name=$name" >> "$GITHUB_OUTPUT"
+      - run: tar -czf "dotfiles-tasks-$TARGET.tar.gz" -C "rust/target/$TARGET/release" dotfiles-tasks
         env:
           TARGET: ${{ matrix.target }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.target }}
+          path: dotfiles-tasks-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  # Runs no code from the repository: it attests what build made, attaches it to the
+  # draft, and publishes it.
+  publish:
+    needs: [release-please, build]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # The build provenance attestation that mise checks on install.
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
+    steps:
+      - run: test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          merge-multiple: true
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: ${{ steps.archive.outputs.name }}
-      # --clobber, so that a rebuild replaces what a failed build attached.
-      - run: gh release upload --clobber "$TAG" "$NAME"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
-          NAME: ${{ steps.archive.outputs.name }}
+          subject-path: dotfiles-tasks-*.tar.gz
+      # --clobber, so that a rebuild of a draft replaces what a failed run attached.
+      - run: gh release upload --clobber "$TAG" dotfiles-tasks-*.tar.gz
+      - run: gh release edit "$TAG" --draft=false
