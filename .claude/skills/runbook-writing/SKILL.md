@@ -45,6 +45,7 @@ These hold for commands in a document and for commands you hand the user in a re
     - This holds for every command on the page, including one in a note or a script's usage comment.
   - Give a variable used across code blocks a full, descriptive name (`cache_size_mb`, not `sz`), and set it again in a code block that runs in another shell or on another host.
 - Never have a person verify or retype what the program already knows: the program compares, and fails when the comparison fails.
+  - After a command that changes state, such as a limit, a mode or a setting, the check queries the state again and compares what it reads with the intended value, since a tool can exit 0 after the target refused the value.
   - Chain the command that depends on a check on it with `&&`, whether the check is inline or a script that exits non-zero. A pasted code block runs on past a failed line, so without the chain the next command runs on bad data.
   - Have the check say what it compared when it fails, or the executor cannot tell a failed check from a skipped step.
 - Keep a hand-run code block free of logic — no nested `if`, no choosing between outcomes. Move the logic into a script, or split the code block into stages.
