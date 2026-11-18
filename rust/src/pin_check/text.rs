@@ -10,9 +10,10 @@ use super::{Marker, Moved, Moves, Text};
 
 /// A marker is the form mise's `git::` include takes, so a `task_config.includes` entry is
 /// one as it stands. The URL is a scheme, a host and the path segments after it, ending at
-/// the first `//` past the scheme's, which is where mise splits it too; requiring the scheme
-/// keeps a URL from opening with `-`, which git would take as an option. Only a full sha
-/// counts: a branch or a short sha moves, so there would be no fixed commit to compare
+/// the first `//` past the scheme's. mise ends an include's URL at the last `.git//`
+/// instead, which is the same place wherever a single `//` follows the host. Requiring the
+/// scheme keeps a URL from opening with `-`, which git would take as an option. Only a full
+/// sha counts: a branch or a short sha moves, so there would be no fixed commit to compare
 /// against, and [`Text::markers`] drops a match that more hex digits follow. In Unicode
 /// mode a class matches only valid UTF-8, so each group it captures is UTF-8.
 static MARKER: LazyLock<Regex> = LazyLock::new(|| {
