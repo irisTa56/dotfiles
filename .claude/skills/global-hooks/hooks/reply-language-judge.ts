@@ -61,3 +61,22 @@ export const judgeStop = (e: StopInput, rewriteAsked: boolean): StopVerdict => {
     ? { block: REWRITE, rewriteAsked: true }
     : { rewriteAsked: false };
 };
+
+// Where the hook keeps, per session, whether its last stop ended in its own
+// request for a rewrite.
+export type StopState = {
+  read: (session: string) => boolean;
+  write: (session: string, rewriteAsked: boolean) => void;
+};
+
+// The Stop command hook's stdin text in, its stdout text out: a block decision
+// or nothing. The state is written before the decision is printed, so a failed
+// write fails open rather than asking for the rewrite again and again.
+export const handleStop = (raw: string, state: StopState): string => {
+  const input: StopInput & { session_id: string } = JSON.parse(raw);
+  const verdict = judgeStop(input, state.read(input.session_id));
+  state.write(input.session_id, verdict.rewriteAsked);
+  return verdict.block === undefined
+    ? ""
+    : JSON.stringify({ decision: "block", reason: verdict.block });
+};

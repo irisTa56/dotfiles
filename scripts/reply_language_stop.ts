@@ -14,31 +14,25 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  judgeStop,
-  type StopInput,
-} from "../.claude/skills/global-hooks/hooks/reply-language-judge.ts";
-
-const input: StopInput & { session_id: string } = JSON.parse(
-  readFileSync(0, "utf8"),
-);
+import { handleStop } from "../.claude/skills/global-hooks/hooks/reply-language-judge.ts";
 
 const dir = join(tmpdir(), "claude-reply-language");
-const state = join(dir, input.session_id.replace(/[^\w-]/g, "_"));
+const file = (session: string): string =>
+  join(dir, session.replace(/[^\w-]/g, "_"));
 
-let rewriteAsked = false;
-try {
-  rewriteAsked = readFileSync(state, "utf8") === "1";
-} catch {
-  // No earlier stop in this session.
-}
-
-const verdict = judgeStop(input, rewriteAsked);
-mkdirSync(dir, { recursive: true });
-writeFileSync(state, verdict.rewriteAsked ? "1" : "0");
-
-if (verdict.block !== undefined) {
-  process.stdout.write(
-    JSON.stringify({ decision: "block", reason: verdict.block }),
-  );
-}
+process.stdout.write(
+  handleStop(readFileSync(0, "utf8"), {
+    read: (session) => {
+      try {
+        return readFileSync(file(session), "utf8") === "1";
+      } catch {
+        // No earlier stop in this session.
+        return false;
+      }
+    },
+    write: (session, rewriteAsked) => {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(file(session), rewriteAsked ? "1" : "0");
+    },
+  }),
+);

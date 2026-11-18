@@ -1,5 +1,11 @@
 import { describe, expect, test } from "claude-code/testing";
-import { judgeStop, type StopInput } from "./reply-language-judge";
+import {
+  handleStop,
+  judgeStop,
+  REWRITE,
+  type StopInput,
+  type StopState,
+} from "./reply-language-judge";
 
 // Returns the rewrite request one stop ends with, or none.
 const stop = (input: Partial<StopInput>): string | undefined =>
@@ -228,5 +234,45 @@ describe("a final reply", () => {
       agent_id: "sub-1",
     });
     expect(block).toBeUndefined();
+  });
+});
+
+// The hook as Claude Code runs it: its stdin text in, its stdout text out, with
+// what one stop leaves for the next kept per session.
+describe("the Stop hook", () => {
+  const memory = (): StopState => {
+    const asked = new Map<string, boolean>();
+    return {
+      read: (session) => asked.get(session) ?? false,
+      write: (session, value) => {
+        asked.set(session, value);
+      },
+    };
+  };
+  const raw = (session: string, active: boolean): string =>
+    JSON.stringify({
+      session_id: session,
+      stop_hook_active: active,
+      last_assistant_message: ENGLISH,
+      hook_event_name: "Stop",
+    });
+
+  test("blocks an English final reply with the rewrite request", () => {
+    expect(JSON.parse(handleStop(raw("s", false), memory()))).toEqual({
+      decision: "block",
+      reason: REWRITE,
+    });
+  });
+
+  test("lets the rewrite through on the stop after its own block", () => {
+    const state = memory();
+    handleStop(raw("s", false), state);
+    expect(handleStop(raw("s", true), state)).toBe("");
+  });
+
+  test("keeps one session's block from letting another session's reply through", () => {
+    const state = memory();
+    handleStop(raw("a", false), state);
+    expect(handleStop(raw("b", true), state)).not.toBe("");
   });
 });
