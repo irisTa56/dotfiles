@@ -12,70 +12,18 @@ const context = ($: EngineInterface): Promise<string[]> =>
     },
   );
 
-// Code is English by rule, and a quotation is in the language of what it
-// quotes, so neither says anything about the reply's own language. A fence
-// opens and closes at a line start, so a backtick run named in prose is not one.
-const CODE = /^[ \t]*(```|~~~)[\s\S]*?^[ \t]*\1|`[^`\n]*`|https?:\/\/\S+/gm;
-const QUOTE = /「[^」\n]*」|『[^』\n]*』|"[^"\n]*"|“[^”\n]*”/g;
-// Japanese grammar, its particles and endings, is written in hiragana, and a
-// Japanese sentence is punctuated with 。 and 、; a term or a file name an English reply names is
-// kanji or katakana, so it carries neither.
-const JAPANESE_SENTENCE = /[\p{Script=Hiragana}。、]/u;
-const LATIN = /[A-Za-z]/g;
-// A reply of fewer Latin letters than this, about two English sentences, is
-// accepted in any language: a heading over a list of paths, or a title the user
-// asked for in English.
-const MIN_LATIN = 200;
-
-// English is a reply with no Japanese sentence outside code and quotations. A
-// Japanese reply listing English commit subjects or paths still has one.
-const isEnglish = (message: string): boolean => {
-  const prose = message.replace(CODE, " ").replace(QUOTE, " ");
-  const latin = prose.match(LATIN)?.length ?? 0;
-  return latin >= MIN_LATIN && !JAPANESE_SENTENCE.test(prose);
-};
-
 // Matches any text, the empty one included.
 const ALL = /(?:)/;
 
-const REWRITE =
-  "直前の返答は英語で書かれている。同じ内容を日本語で書き直して、もう一度返答する。ユーザーが英語で求めた文やコードはそのまま残し、その周りの説明を日本語で書く。";
-
-// Adds the reply-language context to each prompt. Replies in the middle of a
-// turn may drift into English; the final reply has too, after the turn filled
-// with English tool output, so a final reply in English is sent back once to be
-// written in Japanese.
+// Adds the reply-language context to each prompt. A final reply in English is
+// sent back by reply-language-stop.ts, a Stop command hook rather than a hook
+// here: a managed plugin may continue classic.Stop past the user tier.
 export const register: Register = (on) => {
-  // Whether the last judged stop ended in this hook's own request for a
-  // rewrite. stop_hook_active alone does not say so: any Stop hook's block sets
-  // it, /goal's included, and a reply that follows another hook's block is
-  // judged like any other. A turn's first stop never has it set, so a flag left
-  // from an earlier turn is overwritten there.
-  let rewriteAsked = false;
-
   // Every prompt, notifications and hand-backs delivered into a running turn
-  // included. Not classic.UserPromptSubmit: a managed plugin may continue that
-  // event past the user tier, and this hook would then never run. The matcher
+  // included. Not classic.UserPromptSubmit, for the same reason. The matcher
   // selects every text; it is there because a plugin registers an event once
   // without one, and scheduled-chrome holds that registration.
   on("prompt.submit", { text: ALL }, async ($, e, next) =>
     next({ ...e, context: [...(e.context ?? []), ...(await context($))] }),
   );
-
-  // A subagent stops through SubagentStop, so this is the main conversation's
-  // reply; the agent_id check only guards that. The reply written after this
-  // hook's own block is let through, so the rewrite is asked for once.
-  on("classic.Stop", async (_, e, next) => {
-    const result = await next(e);
-    if (e.agent_id !== undefined) return result;
-    if (rewriteAsked && e.stop_hook_active) {
-      rewriteAsked = false;
-      return result;
-    }
-    rewriteAsked =
-      result.block === undefined &&
-      e.last_assistant_message !== undefined &&
-      isEnglish(e.last_assistant_message);
-    return rewriteAsked ? { ...result, block: REWRITE } : result;
-  });
 };
