@@ -1,5 +1,6 @@
 import { describe, expect, test } from "claude-code/testing";
 import {
+  fileState,
   handleStop,
   judgeStop,
   REWRITE,
@@ -274,5 +275,40 @@ describe("the Stop hook", () => {
     const state = memory();
     handleStop(raw("a", false), state);
     expect(handleStop(raw("b", true), state)).not.toBe("");
+  });
+});
+
+// The store the script builds over the file system: each stop is a process of
+// its own, so a block one process wrote is what the next one reads.
+describe("the file-backed state", () => {
+  const disk = () => {
+    const files = new Map<string, string>();
+    return {
+      read: (path: string): string => {
+        const text = files.get(path);
+        if (text === undefined) throw new Error(`ENOENT: ${path}`);
+        return text;
+      },
+      write: (path: string, text: string): void => {
+        files.set(path, text);
+      },
+      mkdir: (): void => {},
+    };
+  };
+  const raw = (active: boolean): string =>
+    JSON.stringify({
+      session_id: "s",
+      stop_hook_active: active,
+      last_assistant_message: ENGLISH,
+    });
+
+  test("lets the rewrite through in the process after the one that blocked", () => {
+    const files = disk();
+    expect(handleStop(raw(false), fileState("/tmp/x", files))).not.toBe("");
+    expect(handleStop(raw(true), fileState("/tmp/x", files))).toBe("");
+  });
+
+  test("reads a session with no file yet as one with no block", () => {
+    expect(handleStop(raw(true), fileState("/tmp/x", disk()))).not.toBe("");
   });
 });

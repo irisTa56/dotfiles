@@ -80,3 +80,32 @@ export const handleStop = (raw: string, state: StopState): string => {
     ? ""
     : JSON.stringify({ decision: "block", reason: verdict.block });
 };
+
+// The file operations fileState needs, which the script takes from node:fs;
+// this module cannot import it, since the plugin's validation type-checks it
+// without Node's types.
+export type Files = {
+  read: (path: string) => string;
+  write: (path: string, text: string) => void;
+  mkdir: (path: string) => void;
+};
+
+// A file per session under dir, holding "1" after this hook's own block. A
+// session with no file yet, or one that cannot be read, has had no block.
+export const fileState = (dir: string, files: Files): StopState => {
+  const path = (session: string): string =>
+    `${dir}/${session.replace(/[^\w-]/g, "_")}`;
+  return {
+    read: (session) => {
+      try {
+        return files.read(path(session)) === "1";
+      } catch {
+        return false;
+      }
+    },
+    write: (session, rewriteAsked) => {
+      files.mkdir(dir);
+      files.write(path(session), rewriteAsked ? "1" : "0");
+    },
+  };
+};

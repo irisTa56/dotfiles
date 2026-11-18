@@ -14,25 +14,18 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { handleStop } from "../.claude/skills/global-hooks/hooks/reply-language-judge.ts";
-
-const dir = join(tmpdir(), "claude-reply-language");
-const file = (session: string): string =>
-  join(dir, session.replace(/[^\w-]/g, "_"));
+import {
+  fileState,
+  handleStop,
+} from "../.claude/skills/global-hooks/hooks/reply-language-judge.ts";
 
 process.stdout.write(
-  handleStop(readFileSync(0, "utf8"), {
-    read: (session) => {
-      try {
-        return readFileSync(file(session), "utf8") === "1";
-      } catch {
-        // No earlier stop in this session.
-        return false;
-      }
-    },
-    write: (session, rewriteAsked) => {
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(file(session), rewriteAsked ? "1" : "0");
-    },
-  }),
+  handleStop(
+    readFileSync(0, "utf8"),
+    fileState(join(tmpdir(), "claude-reply-language"), {
+      read: (path) => readFileSync(path, "utf8"),
+      write: (path, text) => writeFileSync(path, text),
+      mkdir: (path) => mkdirSync(path, { recursive: true }),
+    }),
+  ),
 );
