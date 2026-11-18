@@ -5,25 +5,22 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-/// The exit status given to a git that could not be started, or that a signal stopped:
-/// the same "could not tell" a task exits with.
-const NO_STATUS: i32 = 2;
-
 /// What one git run printed, and how it exited.
 #[derive(Debug)]
 pub(crate) struct Run {
-    status: i32,
+    /// None where git could not be started, or a signal stopped it.
+    status: Option<i32>,
     stdout: Vec<u8>,
     stderr: String,
 }
 
 impl Run {
-    pub(crate) fn status(&self) -> i32 {
+    pub(crate) fn status(&self) -> Option<i32> {
         self.status
     }
 
     pub(crate) fn success(&self) -> bool {
-        self.status == 0
+        self.status == Some(0)
     }
 
     /// What git printed, as text: a name or an id, say.
@@ -43,7 +40,7 @@ impl Run {
     /// The run of a git that could not be started, or not fed its input.
     fn unstarted(error: &std::io::Error) -> Self {
         Run {
-            status: NO_STATUS,
+            status: None,
             stdout: Vec::new(),
             stderr: format!("could not run git: {error}\n"),
         }
@@ -139,7 +136,7 @@ impl<'a> Call<'a> {
             Err(error) => return Run::unstarted(&error),
         };
         Run {
-            status: output.status.code().unwrap_or(NO_STATUS),
+            status: output.status.code(),
             stdout: output.stdout,
             stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
         }

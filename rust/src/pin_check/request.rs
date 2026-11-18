@@ -5,6 +5,10 @@ use std::{env, io};
 use super::{Checked, Differing, Failure, Move, Pins, Request, Scratch, Status};
 use crate::git::Git;
 
+/// The status `git grep` exits with where nothing matches, which only means no tracked
+/// file spells a pin.
+const GREP_NO_MATCH: i32 = 1;
+
 impl<'a> Request<'a> {
     /// Reads `args`: `--bump` first, and then git pathspecs.
     pub(crate) fn new(args: &'a [String]) -> Self {
@@ -42,7 +46,7 @@ impl<'a> Request<'a> {
         let mut grep = vec!["grep", "-lzI", "--full-name", "-e", "git::", "--"];
         grep.extend(self.pathspecs.iter().map(String::as_str));
         let listed = git.run(&grep);
-        if listed.status() > 1 {
+        if !listed.success() && listed.status() != Some(GREP_NO_MATCH) {
             return Ok(
                 Failure("could not list the tracked files to read pins from").report_git(&listed),
             );

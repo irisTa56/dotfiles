@@ -85,6 +85,12 @@ jobs:
         working-directory: rust
         env:
           TARGET: ${{ matrix.target }}
+      # A published release cannot be replaced, so the binary runs on its own target
+      # before it is uploaded: given no task, it prints its usage and exits 2.
+      - run: rust/target/"$TARGET"/release/dotfiles-tasks; test "$?" -eq 2
+        shell: bash {0}
+        env:
+          TARGET: ${{ matrix.target }}
       - run: tar -czf "dotfiles-tasks-$TARGET.tar.gz" -C "rust/target/$TARGET/release" dotfiles-tasks
         env:
           TARGET: ${{ matrix.target }}

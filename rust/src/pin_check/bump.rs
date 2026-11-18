@@ -10,6 +10,8 @@ use super::{Differing, Failure, Marker, Move, Moves, Scratch, Status, Text};
 /// commits to it, so a later run leaves it alone; merging that pull request deletes it where
 /// the repository deletes merged branches, and the next run pushes afresh.
 const BUMP_BRANCH: &str = "upstream-pin-bump";
+/// The status `git ls-remote --exit-code` exits with where no ref matches.
+const LS_REMOTE_NO_REF: i32 = 2;
 const BOT_NAME: &str = "github-actions[bot]";
 const BOT_EMAIL: &str = "41898282+github-actions[bot]@users.noreply.github.com";
 
@@ -30,7 +32,7 @@ impl Scratch {
             .report();
             return Status::Differs;
         }
-        if exists.status() != 2 {
+        if exists.status() != Some(LS_REMOTE_NO_REF) {
             return Failure(&format!(
                 "could not tell whether {BUMP_BRANCH} exists on origin"
             ))

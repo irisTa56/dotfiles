@@ -164,7 +164,7 @@ env = { MIX_QUIET = "1" }
 run = "mix dotfiles.release_pins"
 
 [tasks."qa:rust"]
-description = "Check formatting of, lint and test the Rust workspace"
+description = "Check formatting of, lint and test the dotfiles-tasks package"
 dir = "{{config_root}}/rust"
 run = [
   "cargo fmt --check",
