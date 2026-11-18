@@ -17,9 +17,9 @@ const ABOVE = "above";
 
 // The engine beneath the mod: the plugin's context file holds the line, and a
 // prompt enters with the context that reached the bottom.
-const engine = (on: On, stopBlock?: string): void => {
+const engine = (on: On, stopBlock?: string, readable = true): void => {
   on("fs.read", (_, e) =>
-    e.path.endsWith("/context/reply-language.md")
+    readable && e.path.endsWith("/context/reply-language.md")
       ? { value: `- ${MARK}日本語で書く。` }
       : { deny: "ENOENT" },
   );
@@ -52,6 +52,30 @@ describe("a prompt", () => {
       expect(context).toContain(ABOVE);
     });
   }
+});
+
+describe("a prompt whose context file cannot be read", () => {
+  test("enters without the context and the failure is reported", async ($, on) => {
+    // Whatever the mod shows the person (toast, transcript line, notice).
+    const reports: string[] = [];
+    on("ui.toast", (_, e, next) => {
+      reports.push(e.text);
+      return next(e);
+    });
+    on("ui.log", (_, e, next) => {
+      if (e.to !== "debug") reports.push(e.text);
+      return next(e);
+    });
+    on("ui.notice", (_, e, next) => {
+      if (e.text !== undefined) reports.push(e.text);
+      return next(e);
+    });
+    engine(on, undefined, false);
+    const context = (await submit($, "composer")).context ?? [];
+    expect(carries(context)).toBe(0);
+    expect(context).toContain(ABOVE);
+    expect(reports.length).toBeGreaterThan(0);
+  });
 });
 
 // Returns the block the Stop event ends with: a re-prompt, or none.

@@ -1,12 +1,15 @@
 import type { EngineInterface, Register } from "claude-code";
 
-// The context, or none when the file cannot be read: a failed hook here would
-// take the plugin's other prompt.submit hooks, scheduled-chrome's guard among
-// them, out of the dispatch with it.
+// The context, or none when the file cannot be read, with the cause logged: a
+// failed hook here would take the plugin's other prompt.submit hooks,
+// scheduled-chrome's guard among them, out of the dispatch with it.
 const context = ($: EngineInterface): Promise<string[]> =>
   $.fs.read(`${$.plugin.root}/context/reply-language.md`).then(
     (text) => [text],
-    () => [],
+    (error) => {
+      $.ui.log(`reply-language context was not attached: ${error}`);
+      return [];
+    },
   );
 
 // Code is English by rule, and a quotation is in the language of what it
