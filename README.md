@@ -203,6 +203,9 @@ It also holds one when GitHub lists no such pull request for its last commit, th
 `apm update <package>` followed by `apm install` takes a held skill anyway.
 `executables.allow` being empty in `apm.yml` keeps a package's hooks out of `.claude/settings.json`, though a `.claude-plugin/plugin.json` still deploys and loads its folder as a plugin.
 
+A skill only some repositories want is installed here all the same and turned off for every project: `.config/claude/settings.json` sets it to `"off"` under [`skillOverrides`](https://code.claude.com/docs/en/skills#override-skill-visibility-from-settings), which hides it from Claude and from the `/` menu, and a repository that wants it sets it to `"on"` in its own `.claude/settings.json`.
+`rust-best-practices` is one, since its advice is for Rust code alone.
+
 ### Gist-sourced skills
 
 Some skills are published as a single-file GitHub gist holding a `SKILL.md`.
