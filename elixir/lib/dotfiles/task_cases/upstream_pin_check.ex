@@ -112,6 +112,13 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
     end
   end
 
+  # What a case's verify reports where the task fetched into `repo`.
+  defp not_fetched_into(repo) do
+    if File.exists?(Path.join(repo, "FETCH_HEAD")),
+      do: ["#{repo} was fetched into"],
+      else: []
+  end
+
   defp holds(dir, path, want) do
     got = File.read!(Path.join(dir, path))
     if got == want, do: [], else: ["#{path} holds #{inspect(got)}"]
@@ -169,6 +176,26 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
             upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"README.md" => "r"}])
 
           %{files: [{"Cargo.toml", "# upstream: #{marker(url, "lints", pin)}\n"}]}
+        end,
+        exit: 0,
+        output: ["[ok]"]
+      },
+      # A git hook, such as a pre-push one that runs this check, exports GIT_DIR for the
+      # repository it runs for, which would point the scratch repository's runs at it.
+      %{
+        name: "leaves the repository of a git hook it runs under alone",
+        prepare: fn aux ->
+          {url, [pin, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"README.md" => "r"}])
+
+          hook = Path.join(aux, "hook.git")
+          git!(aux, ["init", "-q", "--bare", hook])
+
+          %{
+            files: [{"Cargo.toml", "# upstream: #{marker(url, "lints", pin)}\n"}],
+            env: [{"GIT_DIR", hook}],
+            verify: fn _ -> not_fetched_into(hook) end
+          }
         end,
         exit: 0,
         output: ["[ok]"]
