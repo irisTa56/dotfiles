@@ -55,4 +55,19 @@ defmodule Dotfiles.ReleasePinsTest do
 
     assert Dotfiles.ReleasePins.mismatches(root) == []
   end
+
+  # A marked line without a version, such as `@latest`, is amiss like any other; the
+  # check must say so rather than crash.
+  test "names a wrapper whose marked line has no version", %{root: root} do
+    cargo(root, "0.2.0")
+
+    put(
+      root,
+      "tasks/a/b.sh",
+      ~s(#!/usr/bin/env bash\nexec mise x 'github:o/r@latest' -- x "$@" # x-release-please-version\n)
+    )
+
+    assert [line] = Dotfiles.ReleasePins.mismatches(root)
+    assert line =~ "tasks/a/b.sh"
+  end
 end

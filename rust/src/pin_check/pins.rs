@@ -23,7 +23,7 @@ impl Pins {
         let mut pins: Vec<Pin> = Vec::new();
         let mut seen: HashMap<(String, String, String), usize> = HashMap::new();
         for &file in files {
-            let text = String::from_utf8_lossy(&fs::read(file)?).into_owned();
+            let text = fs::read(file)?;
             for (_, found) in Text(&text).markers() {
                 let key = (
                     found.url.to_owned(),
@@ -71,7 +71,7 @@ impl Differing<'_> {
             .collect();
         let mut moved = Moves::default();
         for file in self.files() {
-            let text = String::from_utf8_lossy(&fs::read(file)?).into_owned();
+            let text = fs::read(file)?;
             let (text, file_moved) = Text(&text)
                 .rewrite(|found| tips.get(&found.to_string()).map(|tip| (*tip).to_owned()));
             fs::write(file, text)?;

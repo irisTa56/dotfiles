@@ -4,7 +4,7 @@ use std::fmt;
 use std::ops::Range;
 use std::sync::LazyLock;
 
-use regex::Regex;
+use regex::bytes::Regex;
 
 use super::{Marker, Moved, Moves, Text};
 
@@ -13,7 +13,8 @@ use super::{Marker, Moved, Moves, Text};
 /// the first `//` past the scheme's, which is where mise splits it too; requiring the scheme
 /// keeps a URL from opening with `-`, which git would take as an option. Only a full sha
 /// counts: a branch or a short sha moves, so there would be no fixed commit to compare
-/// against, and [`Text::markers`] drops a match that more hex digits follow.
+/// against, and [`Text::markers`] drops a match that more hex digits follow. In Unicode
+/// mode a class matches only valid UTF-8, so each group it captures is UTF-8.
 static MARKER: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r#"git::([a-z][a-z0-9+.-]*://[^\s"'?/]*(?:/[^\s"'?/]+)*?)//([^\s"'?]+)\?ref=([0-9a-f]{40})"#,
@@ -34,10 +35,12 @@ impl<'t> Text<'t> {
         MARKER.captures_iter(text).filter_map(move |found| {
             let whole = found.get(0).expect("a match has a whole");
             let more_hex = text[whole.end()..]
-                .bytes()
-                .next()
-                .is_some_and(|next| next.is_ascii_digit() || (b'a'..=b'f').contains(&next));
-            let group = |n| found.get(n).expect("a marker has three groups").as_str();
+                .first()
+                .is_some_and(|next| next.is_ascii_digit() || (b'a'..=b'f').contains(next));
+            let group = |n| {
+                let bytes = found.get(n).expect("a marker has three groups").as_bytes();
+                std::str::from_utf8(bytes).expect("MARKER captures only UTF-8")
+            };
             (!more_hex).then(|| {
                 (
                     whole.range(),
@@ -56,22 +59,23 @@ impl<'t> Text<'t> {
     pub(super) fn rewrite(
         self,
         mut tip_for: impl FnMut(&Marker) -> Option<String>,
-    ) -> (String, Moves) {
+    ) -> (Vec<u8>, Moves) {
         let text = self.0;
         let mut moved = Moves::default();
-        let mut result = String::with_capacity(text.len());
+        let mut result = Vec::with_capacity(text.len());
         let mut last = 0;
         for (range, found) in self.markers() {
             let Some(tip) = tip_for(&found).filter(|tip| tip != found.commit) else {
                 continue;
             };
-            result.push_str(&text[last..range.start]);
-            result.push_str(
-                &Marker {
+            result.extend_from_slice(&text[last..range.start]);
+            result.extend_from_slice(
+                Marker {
                     commit: &tip,
                     ..found
                 }
-                .to_string(),
+                .to_string()
+                .as_bytes(),
             );
             last = range.end;
             moved.0.push(Moved {
@@ -81,7 +85,7 @@ impl<'t> Text<'t> {
                 tip,
             });
         }
-        result.push_str(&text[last..]);
+        result.extend_from_slice(&text[last..]);
         (result, moved)
     }
 }

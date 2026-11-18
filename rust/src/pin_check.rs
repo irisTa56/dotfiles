@@ -35,9 +35,10 @@ pub(crate) struct Request<'a> {
     pathspecs: &'a [String],
 }
 
-/// A file's text, in which markers are found and moved.
+/// A file's contents, in which markers are found and moved. They are bytes, since a file
+/// need not be UTF-8, and a move leaves every byte outside its markers as it was.
 #[derive(Debug, Clone, Copy)]
-struct Text<'t>(&'t str);
+struct Text<'t>(&'t [u8]);
 
 /// A marker as a text spells it: `git::<url>//<path>?ref=<commit>`.
 #[derive(Debug, Clone, Copy)]

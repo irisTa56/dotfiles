@@ -37,7 +37,18 @@ impl Scratch {
             );
         }
 
-        let fetched = git.run(&["fetch", "-q", "--depth=1", "origin", "HEAD"]);
+        // A shallow checkout, as actions/checkout leaves by default, takes the default
+        // branch's tip alone; a full one fetches it whole, since a depth would leave it
+        // shallow for the steps after this one.
+        let shallow = git.run(&["rev-parse", "--is-shallow-repository"]);
+        if !shallow.success() {
+            return fail_git(&shallow, "could not tell whether the checkout is shallow");
+        }
+        let fetched = if shallow.stdout().trim() == "true" {
+            git.run(&["fetch", "-q", "--depth=1", "origin", "HEAD"])
+        } else {
+            git.run(&["fetch", "-q", "origin", "HEAD"])
+        };
         if !fetched.success() {
             return fail_git(&fetched, "could not fetch origin's default branch");
         }
@@ -93,7 +104,8 @@ impl Scratch {
                     &format!("could not read {file} on origin's default branch"),
                 ));
             }
-            let fields: Vec<&str> = listed.stdout().split_whitespace().collect();
+            let entry = listed.stdout();
+            let fields: Vec<&str> = entry.split_whitespace().collect();
             let [mode, _, _, ..] = fields[..] else {
                 continue;
             };
@@ -104,7 +116,7 @@ impl Scratch {
                     &format!("could not read {file} on origin's default branch"),
                 ));
             }
-            let (after, file_moved) = Text(before.stdout()).rewrite(tip_for);
+            let (after, file_moved) = Text(before.stdout_bytes()).rewrite(tip_for);
             if file_moved.0.is_empty() {
                 continue;
             }
@@ -154,7 +166,7 @@ impl Scratch {
             .env("GIT_AUTHOR_EMAIL", BOT_EMAIL)
             .env("GIT_COMMITTER_NAME", BOT_NAME)
             .env("GIT_COMMITTER_EMAIL", BOT_EMAIL)
-            .input(&message)
+            .input(message.as_bytes())
             .run();
         if !commit.success() {
             return fail_git(&commit, "could not commit the move");

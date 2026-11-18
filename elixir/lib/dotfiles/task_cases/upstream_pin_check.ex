@@ -52,6 +52,19 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
   # comes back as a value the case reports rather than stopping the run.
   defp show(repo, object), do: read(repo, ["show", object])
 
+  # The bytes of `object` in `repo` exactly as git holds them, unlike show/2, which
+  # trims; a miss comes back as a value the case reports.
+  defp show_bytes(repo, object) do
+    case Dotfiles.Command.cmd("git", ["show", object],
+           cd: repo,
+           env: clear_git_env(),
+           stderr_to_stdout: true
+         ) do
+      {out, 0} -> out
+      {out, _} -> {:missing, String.trim(out)}
+    end
+  end
+
   # The message of the commit `ref` names, read the same way.
   defp message(repo, ref), do: read(repo, ["log", "-1", "--format=%B", ref])
 
@@ -366,6 +379,92 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         end,
         args: ["--bump"],
         exit: 1
+      },
+      # A file that is not UTF-8 text may still hold a pin; moving the pin must leave every
+      # other byte of it as it was.
+      %{
+        name: "with --bump, keeps every byte of a file outside the pin it moves",
+        prepare: fn aux ->
+          {url, [old, tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          %{
+            files: [{"Cargo.toml", "# caf\xe9\n# #{marker(url, "lints", old)}\n# \xff\xfe\n"}],
+            verify: fn dir ->
+              holds(
+                dir,
+                "Cargo.toml",
+                "# caf\xe9\n# #{marker(url, "lints", tip)}\n# \xff\xfe\n"
+              )
+            end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", nil}],
+        exit: 1,
+        output: []
+      },
+      %{
+        name:
+          "with --bump under GitHub Actions, pushes every byte of a file outside the pin it moves",
+        prepare: fn aux ->
+          {url, [old, tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          origin = origin(aux)
+
+          %{
+            files: [{"Cargo.toml", "# caf\xe9\n# #{marker(url, "lints", old)}\n# \xff\xfe\n"}],
+            git: publish(origin),
+            verify: fn _ ->
+              want = "# caf\xe9\n# #{marker(url, "lints", tip)}\n# \xff\xfe\n"
+
+              case show_bytes(origin, "upstream-pin-bump:Cargo.toml") do
+                ^want -> []
+                got -> ["the pushed Cargo.toml is #{inspect(got, binaries: :as_binaries)}"]
+              end
+            end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 1,
+        output: []
+      },
+      # Later steps of the job may read history from the checkout, so the bump must leave
+      # how much of it the repository holds as it found it.
+      %{
+        name: "with --bump under GitHub Actions, leaves a full checkout's history as it was",
+        prepare: fn aux ->
+          {url, [old, _tip]} =
+            upstream(aux, "up", [%{"lints/a.toml" => "a"}, %{"lints/a.toml" => "b"}])
+
+          origin = origin(aux)
+
+          %{
+            files: [{"Cargo.toml", "# #{marker(url, "lints", old)}\n"}],
+            git:
+              publish(origin) ++
+                [
+                  @identity ++ ["commit", "-q", "--allow-empty", "-m", "second"],
+                  @identity ++ ["commit", "-q", "--allow-empty", "-m", "third"]
+                ],
+            verify: fn dir ->
+              shallow = git!(dir, ["rev-parse", "--is-shallow-repository"])
+              count = git!(dir, ["rev-list", "--count", "HEAD"])
+
+              if {shallow, count} == {"false", "3"},
+                do: [],
+                else: [
+                  "the checkout reports shallow=#{shallow} with #{count} commits; wanted false, 3"
+                ]
+            end
+          }
+        end,
+        args: ["--bump"],
+        env: [{"GITHUB_ACTIONS", "true"}],
+        exit: 1,
+        output: []
       },
       # A pin it could not tell about leaves the run unable to tell, while the bump still
       # moves the pin that differs.

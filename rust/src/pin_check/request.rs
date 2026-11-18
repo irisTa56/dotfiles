@@ -53,11 +53,8 @@ impl<'a> Request<'a> {
             return Ok(fail_git(&root, "could not find the repository's root"));
         }
         env::set_current_dir(root.stdout().trim())?;
-        let files: Vec<&str> = listed
-            .stdout()
-            .split('\0')
-            .filter(|f| !f.is_empty())
-            .collect();
+        let names = listed.stdout();
+        let files: Vec<&str> = names.split('\0').filter(|f| !f.is_empty()).collect();
         let pins = Pins::read(&files)?;
         if pins.0.is_empty() {
             fail("found no upstream pin in the tracked files");

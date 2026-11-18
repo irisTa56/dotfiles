@@ -1,5 +1,6 @@
 //! Runs git and hands back what it printed, whatever its exit status.
 
+use std::borrow::Cow;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -12,7 +13,7 @@ const NO_STATUS: i32 = 2;
 #[derive(Debug)]
 pub(crate) struct Run {
     status: i32,
-    stdout: String,
+    stdout: Vec<u8>,
     stderr: String,
 }
 
@@ -25,7 +26,13 @@ impl Run {
         self.status == 0
     }
 
-    pub(crate) fn stdout(&self) -> &str {
+    /// What git printed, as text: a name or an id, say.
+    pub(crate) fn stdout(&self) -> Cow<'_, str> {
+        String::from_utf8_lossy(&self.stdout)
+    }
+
+    /// What git printed, byte for byte: a file's contents, which need not be UTF-8.
+    pub(crate) fn stdout_bytes(&self) -> &[u8] {
         &self.stdout
     }
 
@@ -48,8 +55,8 @@ impl Git {
         let mut git = Git {
             cleared: Vec::new(),
         };
-        let names = git.run(&["rev-parse", "--local-env-vars"]).stdout;
-        git.cleared = names.lines().map(str::to_owned).collect();
+        let names = git.run(&["rev-parse", "--local-env-vars"]);
+        git.cleared = names.stdout().lines().map(str::to_owned).collect();
         git
     }
 
@@ -77,7 +84,7 @@ pub(crate) struct Call<'a> {
     args: &'a [&'a str],
     dir: Option<&'a Path>,
     env: Vec<(&'a str, &'a str)>,
-    input: Option<&'a str>,
+    input: Option<&'a [u8]>,
 }
 
 impl<'a> Call<'a> {
@@ -91,7 +98,7 @@ impl<'a> Call<'a> {
         self
     }
 
-    pub(crate) fn input(mut self, input: &'a str) -> Self {
+    pub(crate) fn input(mut self, input: &'a [u8]) -> Self {
         self.input = Some(input);
         self
     }
@@ -124,7 +131,7 @@ impl<'a> Call<'a> {
         };
         Run {
             status: output.status.code().unwrap_or(NO_STATUS),
-            stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+            stdout: output.stdout,
             stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
         }
     }
@@ -132,10 +139,10 @@ impl<'a> Call<'a> {
 
 fn feed(
     mut child: std::process::Child,
-    input: Option<&str>,
+    input: Option<&[u8]>,
 ) -> std::io::Result<std::process::Output> {
     if let (Some(input), Some(mut stdin)) = (input, child.stdin.take()) {
-        stdin.write_all(input.as_bytes())?;
+        stdin.write_all(input)?;
     }
     child.wait_with_output()
 }
@@ -143,7 +150,7 @@ fn feed(
 fn unstarted(error: &std::io::Error) -> Run {
     Run {
         status: NO_STATUS,
-        stdout: String::new(),
+        stdout: Vec::new(),
         stderr: format!("could not run git: {error}\n"),
     }
 }

@@ -14,10 +14,7 @@ defmodule Dotfiles.ReleasePins do
       paths ->
         version = cargo_version(root)
 
-        for path <- paths,
-            pinned = pinned_version(File.read!(Path.join(root, path))),
-            pinned != version,
-            do: "#{path} pins #{pinned}, but rust/Cargo.toml is at #{version}"
+        Enum.flat_map(paths, &mismatch(&1, File.read!(Path.join(root, &1)), version))
     end
   end
 
@@ -30,10 +27,20 @@ defmodule Dotfiles.ReleasePins do
     |> Enum.sort()
   end
 
-  # The version follows the `@` of the tool spec that the marked line passes `mise x`.
+  defp mismatch(path, text, version) do
+    case pinned_version(text) do
+      ^version -> []
+      nil -> ["#{path} carries #{@marker} on a line with no @<version>"]
+      pinned -> ["#{path} pins #{pinned}, but rust/Cargo.toml is at #{version}"]
+    end
+  end
+
+  # The version follows the `@` of the tool spec on the marked line; nil where it has none.
   defp pinned_version(text) do
-    [_, version] = Regex.run(~r/@([0-9][^'"\s]*).*#{@marker}/, text)
-    version
+    case Regex.run(~r/@([0-9][^'"\s]*).*#{@marker}/, text) do
+      [_, version] -> version
+      nil -> nil
+    end
   end
 
   defp cargo_version(root) do
