@@ -3,6 +3,7 @@ biome = "latest"
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
+rust = { version = "latest", components = "clippy,rustfmt" }
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
@@ -97,8 +98,7 @@ run = [
 description = "Lint markdown files"
 run = "rumdl check"
 
-# biome.json names the files: the function-hooks module under global-hooks, and the
-# shared tasks written in TypeScript.
+# biome.json names the files: the function-hooks module under global-hooks.
 [tasks."qa:ts"]
 description = "Lint and check formatting of TypeScript"
 run = "biome ci --error-on-warnings"
@@ -155,14 +155,30 @@ run = [
   "mix test --warnings-as-errors",
 ]
 
+[tasks."qa:rust"]
+description = "Check formatting of, lint and test the Rust workspace"
+dir = "{{config_root}}/rust"
+run = [
+  "cargo fmt --check",
+  "cargo clippy --all-targets --locked -- -D warnings",
+  "cargo test --locked",
+]
+
+[tasks."rust:build"]
+description = "Build the dotfiles-tasks binary that the shared tasks' cases run"
+dir = "{{config_root}}/rust"
+run = "cargo build --locked"
+
 [tasks."qa:skills"]
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = [{ task = "skills:size-check" }]
 
-# The shared tasks are shell or TypeScript, so what each must do is checked from outside it:
-# the Mix project runs its script on cases (elixir/lib/dotfiles/task_cases/).
+# What each shared task must do is checked from outside it: the Mix project runs its
+# script on cases (elixir/lib/dotfiles/task_cases/), and a task that wraps the
+# dotfiles-tasks binary on the build of this working tree, which rust:build leaves.
 [tasks."qa:tasks"]
 description = "Check that each shared task under tasks/ does what its cases expect"
+depends = ["rust:build"]
 dir = "{{config_root}}/elixir"
 env = { MIX_QUIET = "1" }
 run = "mix dotfiles.task_cases"

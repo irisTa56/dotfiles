@@ -1,7 +1,7 @@
 # What the shared task upstream:pin-check must do, each case a repository it runs in,
 # reading upstream repositories that the case's prepare sets up beside it.
 defmodule Dotfiles.TaskCases.UpstreamPinCheck do
-  @task "tasks/upstream/pin-check.ts"
+  @task "tasks/upstream/pin-check.sh"
   @identity ["-c", "user.name=t", "-c", "user.email=t@example.com"]
 
   defp marker(url, path, sha), do: "git::#{url}//#{path}?ref=#{sha}"
@@ -414,6 +414,17 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         exit: 0,
         output: ["[ok]"]
       },
+      # A ref longer than a sha-1, such as a sha-256, is not one this compares; reading
+      # its first 40 digits as one would pin a commit nobody named.
+      %{
+        name: "reads no pin from a ref with more hex digits than a sha-1",
+        files: [
+          {"Cargo.toml",
+           "# git::https://example.com/a.git//lints?ref=#{String.duplicate("0123456789abcdef", 4)}\n"}
+        ],
+        exit: 2,
+        output: ["found no upstream pin"]
+      },
       # A URL that opens with a dash would be read by git as an option of its own.
       %{
         name: "reads no pin from a URL git would take for an option",
@@ -555,6 +566,6 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         output: ["takes --bump"]
       }
     ]
-    |> Enum.map(&Map.put(&1, :task, @task))
+    |> Enum.map(&Map.merge(&1, %{task: @task, subcommand: "pin-check"}))
   end
 end

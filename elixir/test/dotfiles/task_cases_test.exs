@@ -86,20 +86,20 @@ defmodule Dotfiles.TaskCasesTest do
     assert_received {:bash, dir} when is_binary(dir)
   end
 
-  test "runs a TypeScript task with node rather than bash" do
+  test "runs a case naming a subcommand on the working tree's dotfiles-tasks build" do
     parent = self()
 
     FakeCommand.install(fn
       "git", _, _ ->
         {"", 0}
 
-      "node", args, _ ->
-        send(parent, {:node, args})
+      program, args, _ ->
+        send(parent, {:ran, program, args})
         {"", 0}
     end)
 
-    assert run([a_case(%{task: "tasks/x/y.ts", args: ["a"]})]) == {"", 0}
-    assert_received {:node, ["/repo/tasks/x/y.ts", "a"]}
+    assert run([a_case(%{subcommand: "pin-check", args: ["a"]})]) == {"", 0}
+    assert_received {:ran, "/repo/rust/target/debug/dotfiles-tasks", ["pin-check", "a"]}
   end
 
   # A case whose task reads another repository, an upstream, sets that one up apart

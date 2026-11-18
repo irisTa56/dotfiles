@@ -1,0 +1,13 @@
+[package]
+name = "dotfiles-tasks"
+version = "0.1.0"
+description = "The shared tasks that other repositories run through mise"
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+regex = "1"
+tempfile = "3"
+
+[lints]
+workspace = true

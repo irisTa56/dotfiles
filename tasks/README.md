@@ -127,7 +127,7 @@ It does not tell whether a pin is a commit on the default branch: one that no br
 Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-The task declares the Node it runs on, and mise installs that for the task alone.
+The task runs a released `dotfiles-tasks` binary, which its `#MISE` header pins and mise installs for the task alone from this repository's GitHub Releases.
 `shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
 With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
@@ -143,7 +143,7 @@ It exits 2 as well on an error from the filesystem, such as a scratch directory 
 
 ## Writing one
 
-Each task is an executable `*.sh`, or `*.ts` where shell would read worse, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan.sh`, which `mise run secrets:commit-scan` reaches as well.
+Each task is an executable `*.sh`, and the directory it sits in is its namespace: `secrets/commit-scan.sh` is the task `secrets:commit-scan.sh`, which `mise run secrets:commit-scan` reaches as well.
 Name it that way or the linting below never sees it, and mise will load it all the same.
 mise [loads every executable under a task directory](https://mise.jdx.dev/tasks/file-tasks.html), at whatever depth, so an executable placed here to be run by another task would become a task of its own in every consuming repository, under a name nobody chose.
 A file that is not executable is not loaded either, with one exception, and a task can source one through `$MISE_TASK_DIR`.
@@ -152,9 +152,9 @@ The exception is `.toml`: mise reads every one that is not a config file as a li
 Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
-A task here is a shell script or a TypeScript one, and its name says which: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, and every `*.ts` to biome, so a task in another language is named out of both and goes unchecked until `mise.toml` or `biome.json` reaches it.
-A TypeScript task runs on Node as it stands, which [strips the types without checking them](https://nodejs.org/api/typescript.html#type-stripping), so it keeps to syntax Node can strip, and nothing here type-checks it.
-Declare in the task's `#MISE` header, `//MISE` in TypeScript, whatever tool mise can install for it, Node included, and start no later comment line with `MISE`.
+A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
+Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`, and pins the release it runs in its header; the release's version line ends in `# x-release-please-version`, so the release pull request moves it.
+Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
 Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.

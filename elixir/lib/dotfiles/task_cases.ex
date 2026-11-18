@@ -1,8 +1,8 @@
 # Checks that the shared tasks under tasks/ do what they promise, by running each
 # one's script on cases: a repository the case sets up, the arguments it passes,
-# and the exit status and output it expects. The tasks are shell or TypeScript, so the projects
-# that take them need none of this one; this project provides the check, and its
-# own tests test this module rather than any task.
+# and the exit status and output it expects. The tasks are shell, some wrapping a
+# Rust binary, so the projects that take them need none of this one; this project
+# provides the check, and its own tests test this module rather than any task.
 defmodule Dotfiles.TaskCases do
   @case_modules [Dotfiles.TaskCases.SkillsSizeCheck, Dotfiles.TaskCases.UpstreamPinCheck]
 
@@ -15,7 +15,8 @@ defmodule Dotfiles.TaskCases do
   # not track; `git`, git commands run in the repository after staging, as lists of
   # arguments; `args`; `env`, as {name, value}, for the task's run; `exit`; `output`,
   # as for output_mismatches/2; `verify`, a function given the repository after the
-  # run that returns what it found amiss; and `prepare`, as for failure/2.
+  # run that returns what it found amiss; `prepare`, as for failure/2; and
+  # `subcommand`, as for command/2.
   def run(cases, root) do
     failures = for c <- cases, failure = failure(c, root), do: failure
 
@@ -72,10 +73,12 @@ defmodule Dotfiles.TaskCases do
     Enum.each(Map.get(c, :git, []), &git!(&1, opts))
     Enum.each(Map.get(c, :delete, []), &File.rm!(Path.join(dir, &1)))
 
+    {program, args} = command(c, root)
+
     {out, code} =
       Dotfiles.Command.cmd(
-        interpreter(c.task),
-        [Path.join(root, c.task) | Map.get(c, :args, [])],
+        program,
+        args ++ Map.get(c, :args, []),
         Keyword.update!(opts, :env, &(&1 ++ Map.get(c, :env, [])))
       )
 
@@ -87,13 +90,13 @@ defmodule Dotfiles.TaskCases do
     end
   end
 
-  # A shared task is a shell script or a TypeScript one, which node runs as it is.
-  defp interpreter(task) do
-    case Path.extname(task) do
-      ".sh" -> "bash"
-      ".ts" -> "node"
-    end
-  end
+  # A task whose case names a `subcommand` is a wrapper around the dotfiles-tasks binary,
+  # which runs a released build; the case runs the build of this working tree instead,
+  # which `rust:build` leaves under rust/target.
+  defp command(%{subcommand: sub}, root),
+    do: {Path.join(root, "rust/target/debug/dotfiles-tasks"), [sub]}
+
+  defp command(c, root), do: {"bash", [Path.join(root, c.task)]}
 
   # Setting up the case's repository is this check's own doing, so a failure there
   # stops the run rather than reading as the task's.
