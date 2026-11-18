@@ -1,14 +1,24 @@
-[workspace]
-resolver = "3"
-members = ["crates/*"]
-
-[workspace.package]
+[package]
+name = "dotfiles-tasks"
+version = "0.0.0"
+description = "The shared tasks that other repositories run through mise"
 edition = "2024"
 repository = "https://github.com/irisTa56/dotfiles"
+publish = false
 
-[workspace.lints.rust]
+[dependencies]
+regex = "1"
+tempfile = "3"
+
+[lints.rust]
 unsafe_code = "forbid"
 unreachable_pub = "warn"
 
-[workspace.lints.clippy]
+[lints.clippy]
 pedantic = { level = "warn", priority = -1 }
+
+# A release binary is what consumers download, so it is built small.
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
