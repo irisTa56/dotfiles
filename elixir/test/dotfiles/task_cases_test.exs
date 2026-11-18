@@ -86,10 +86,11 @@ defmodule Dotfiles.TaskCasesTest do
     assert_received {:bash, dir} when is_binary(dir)
   end
 
-  # A task that wraps the dotfiles-tasks binary calls it by name, so a case runs the
-  # wrapper itself against the build of this working tree rather than a release.
-  test "runs the task with the working tree's dotfiles-tasks build first on PATH" do
-    Dotfiles.TestEnv.put_env([{"PATH", "/usr/bin"}])
+  # A task that wraps the dotfiles-tasks binary installs a release with `mise x` and
+  # runs it, so a case stands a `mise` in for that, which runs the command it is given,
+  # and the build of this working tree is the dotfiles-tasks the command finds.
+  test "runs the task with a stand-in mise and the working tree's dotfiles-tasks build first on PATH" do
+    Dotfiles.TestEnv.put_env([{"PATH", "/bin:/usr/bin"}])
     parent = self()
 
     FakeCommand.install(fn
@@ -97,13 +98,18 @@ defmodule Dotfiles.TaskCasesTest do
         {"", 0}
 
       "bash", args, opts ->
-        send(parent, {:bash, args, opts[:env]})
+        {_, path} = List.keyfind(opts[:env], "PATH", 0)
+        [shim, build, rest] = String.split(path, ":", parts: 3)
+        mise = Path.join(shim, "mise")
+        {out, 0} = System.cmd(mise, ["x", "tool@1", "--", "echo", "ran"])
+        send(parent, {:bash, args, build, rest, out})
         {"", 0}
     end)
 
     assert run([a_case(%{args: ["a"]})]) == {"", 0}
-    assert_received {:bash, ["/repo/tasks/x/y.sh", "a"], env}
-    assert {"PATH", "/repo/rust/target/debug:/usr/bin"} in env
+
+    assert_received {:bash, ["/repo/tasks/x/y.sh", "a"], "/repo/rust/target/debug",
+                     "/bin:/usr/bin", "ran\n"}
   end
 
   # A case whose task reads another repository, an upstream, sets that one up apart

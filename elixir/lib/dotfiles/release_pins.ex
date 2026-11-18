@@ -30,8 +30,9 @@ defmodule Dotfiles.ReleasePins do
     |> Enum.sort()
   end
 
+  # The version follows the `@` of the tool spec that the marked line passes `mise x`.
   defp pinned_version(text) do
-    [_, version] = Regex.run(~r/version="([^"]+)".*#{@marker}/, text)
+    [_, version] = Regex.run(~r/@([0-9][^'"\s]*).*#{@marker}/, text)
     version
   end
 

@@ -31,14 +31,35 @@ defmodule Dotfiles.TaskCases do
   defp failure(c, root) do
     dir = scratch_dir()
     aux = scratch_dir()
+    shim = scratch_dir()
 
     try do
       c = if prepare = c[:prepare], do: Map.merge(c, prepare.(aux)), else: c
-      check(c, root, dir)
+      check(c, root, dir, shim)
     after
       File.rm_rf!(dir)
       File.rm_rf!(aux)
+      File.rm_rf!(shim)
     end
+  end
+
+  # A task wrapping the dotfiles-tasks binary installs the release it pins with
+  # `mise x <tool> -- <command>` and runs the command; here a stand-in for that mise
+  # runs the command alone, which finds the build of this working tree that
+  # `rust:build` leaves under rust/target.
+  @mise_shim """
+  #!/bin/sh
+  while [ "$#" -gt 0 ] && [ "$1" != -- ]; do shift; done
+  shift
+  exec "$@"
+  """
+
+  defp path(root, shim) do
+    mise = Path.join(shim, "mise")
+    File.write!(mise, @mise_shim)
+    File.chmod!(mise, 0o755)
+    build = Path.join(root, "rust/target/debug")
+    {"PATH", Enum.join([shim, build | List.wrap(System.get_env("PATH"))], ":")}
   end
 
   defp scratch_dir do
@@ -49,7 +70,7 @@ defmodule Dotfiles.TaskCases do
     dir
   end
 
-  defp check(c, root, dir) do
+  defp check(c, root, dir, shim) do
     # A git hook running this sets GIT_DIR and the like for its own repository,
     # which would turn every git call here toward that one; the ceiling keeps a
     # case with no repository of its own from finding one above it.
@@ -72,11 +93,7 @@ defmodule Dotfiles.TaskCases do
     Enum.each(Map.get(c, :git, []), &git!(&1, opts))
     Enum.each(Map.get(c, :delete, []), &File.rm!(Path.join(dir, &1)))
 
-    # A task wrapping the dotfiles-tasks binary calls it by name, and runs a release
-    # where mise reads its header; here it runs the build of this working tree, which
-    # `rust:build` leaves under rust/target.
-    build = Path.join(root, "rust/target/debug")
-    path = {"PATH", Enum.join([build | List.wrap(System.get_env("PATH"))], ":")}
+    path = path(root, shim)
 
     {out, code} =
       Dotfiles.Command.cmd(

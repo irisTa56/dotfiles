@@ -1,11 +1,11 @@
 name: Release
 
 # Releases the dotfiles-tasks binary under rust/, which the shared tasks under tasks/
-# run at the version their #MISE headers pin. release-please keeps a release pull
+# run at the version they pin. release-please keeps a release pull
 # request open for what has merged since the last release; merging it tags the
 # release as a draft, the jobs below attach the binaries, and only then is it
 # published. The repository has immutable releases on, so once published neither the
-# tag nor an asset can change, and the version a header pins names fixed bytes, as
+# tag nor an asset can change, and the version a task pins names fixed bytes, as
 # the commit an include pins does.
 #
 # Everything runs on the job's GITHUB_TOKEN, so no credential is added. Opening the

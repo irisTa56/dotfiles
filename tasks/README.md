@@ -6,6 +6,7 @@ The first half of this file is for a repository taking them, the second for whoe
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
+A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it through `mise x` instead, and runs either way.
 Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
 A task that runs the `dotfiles-tasks` binary, as `upstream:pin-check` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
@@ -129,7 +130,7 @@ It does not tell whether a pin is a commit on the default branch: one that no br
 Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-The task runs a released `dotfiles-tasks` binary, which its `#MISE` header pins and mise installs for the task alone from this repository's GitHub Releases.
+The task runs a released `dotfiles-tasks` binary, which its script pins and installs with `mise x` from this repository's GitHub Releases, so the job needs nothing beyond mise and git.
 `shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
 With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
@@ -155,7 +156,8 @@ Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
-Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`, and pins the release it runs in its header; the release's version line ends in `# x-release-please-version`, so the release pull request moves it.
+Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
+It installs and runs the release it pins with `mise x` rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and that line ends in `# x-release-please-version`, so the release pull request moves its version.
 A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.

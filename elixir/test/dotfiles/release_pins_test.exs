@@ -24,7 +24,7 @@ defmodule Dotfiles.ReleasePinsTest do
       put(
         root,
         path,
-        ~s(#!/usr/bin/env bash\n#MISE tools={"github:o/r"={version="#{version}", bin="x"}} # x-release-please-version\nexec x\n)
+        ~s(#!/usr/bin/env bash\nexec mise x 'github:o/r[version_prefix=x-v,bin=x]@#{version}' -- x "$@" # x-release-please-version\n)
       )
 
   test "names a wrapper that pins another version than rust/Cargo.toml's", %{root: root} do
