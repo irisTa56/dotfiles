@@ -6,11 +6,12 @@
 
 use std::fmt;
 use std::io::{self, Read, Write};
-use std::os::unix::process::ExitStatusExt;
-use std::process::{Command, ExitCode, ExitStatus, Stdio};
+use std::process::{Command, ExitCode, Stdio};
 
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
+
+use crate::failure::{Failure, exit_code};
 
 const USAGE: &str = "\
 Usage: mise run skills:update [package...]
@@ -325,33 +326,4 @@ impl GithubQuery {
             value => Ok(value.to_owned()),
         })
     }
-}
-
-/// What ends a run before it finishes: a message for stderr and the exit status.
-struct Failure {
-    message: String,
-    code: u8,
-}
-
-impl Failure {
-    fn new(message: fmt::Arguments<'_>, code: u8) -> Self {
-        Failure {
-            message: message.to_string(),
-            code,
-        }
-    }
-
-    fn report(self) -> ExitCode {
-        let _ = writeln!(io::stderr(), "{}", self.message);
-        ExitCode::from(self.code)
-    }
-}
-
-/// The status a command ended with, a signal giving the one a shell gives.
-fn exit_code(status: ExitStatus) -> u8 {
-    status
-        .code()
-        .or_else(|| status.signal().map(|signal| 128 + signal))
-        .and_then(|code| u8::try_from(code).ok())
-        .unwrap_or(1)
 }

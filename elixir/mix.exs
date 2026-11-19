@@ -17,8 +17,8 @@ defmodule Dotfiles.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      # :crypto for random temporary directory names: the ccusage popup's, and
-      # each test's through Dotfiles.TestEnv.tmp_dir!/1.
+      # :crypto for random temporary directory names, each test's through
+      # Dotfiles.TestEnv.tmp_dir!/1.
       extra_applications: [:logger, :crypto]
     ]
   end

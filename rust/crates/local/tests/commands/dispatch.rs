@@ -20,7 +20,7 @@ fn fails_with_usage_on_an_unknown_command() {
         ),
         (
             Some(2),
-            "[fail] usage: dotfiles-local <command> [args...]; commands: skills-update, with-new-terminal\n"
+            "[fail] usage: dotfiles-local <command> [args...]; commands: ccusage-popup, skills-update, with-new-terminal\n"
         )
     );
 }
