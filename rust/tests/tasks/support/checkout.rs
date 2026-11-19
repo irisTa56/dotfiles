@@ -245,13 +245,19 @@ impl Checkout {
     /// Runs `secrets-push-scan` with `args` in the repository, fed `refs` on stdin, as git
     /// feeds a pre-push hook the refs a push sends.
     pub(crate) fn secrets_push_scan(&self, args: &[&str], refs: &str) -> Run {
+        self.push_scan(".", args, refs.as_bytes(), &[])
+    }
+
+    /// Runs `secrets-push-scan` as `secrets_push_scan` does, fed `refs` as bytes, which
+    /// need not be UTF-8, as a ref name git allows need not be.
+    pub(crate) fn secrets_push_scan_bytes(&self, args: &[&str], refs: &[u8]) -> Run {
         self.push_scan(".", args, refs, &[])
     }
 
     /// Runs `secrets-push-scan` as `secrets_push_scan` does, in the directory `dir` of the
     /// repository.
     pub(crate) fn secrets_push_scan_in(&self, dir: &str, args: &[&str], refs: &str) -> Run {
-        self.push_scan(dir, args, refs, &[])
+        self.push_scan(dir, args, refs.as_bytes(), &[])
     }
 
     /// Runs `secrets-push-scan` as `secrets_push_scan` does, with `env` set as `task` sets
@@ -262,14 +268,14 @@ impl Checkout {
         refs: &str,
         env: &[(&str, Option<&OsStr>)],
     ) -> Run {
-        self.push_scan(".", args, refs, env)
+        self.push_scan(".", args, refs.as_bytes(), env)
     }
 
     fn push_scan(
         &self,
         dir: &str,
         args: &[&str],
-        refs: &str,
+        refs: &[u8],
         env: &[(&str, Option<&OsStr>)],
     ) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
@@ -283,7 +289,7 @@ impl Checkout {
                 None => command.env_remove(name),
             };
         }
-        Run::fed(command, refs.as_bytes())
+        Run::fed(command, refs)
     }
 
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the

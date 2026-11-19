@@ -32,6 +32,17 @@ fn path_without_trufflehog(first: Option<&TempDir>) -> OsString {
     std::env::join_paths(dirs).expect("no directory on PATH holds a colon")
 }
 
+/// A directory holding a stand-in `trufflehog` that runs `script` with `sh`, for what the
+/// real one cannot be made to do.
+fn stand_in(script: &str) -> TempDir {
+    let bin = TempDir::new().expect("a temporary directory can be made");
+    let trufflehog = bin.path().join("trufflehog");
+    fs::write(&trufflehog, format!("#!/bin/sh\n{script}")).expect("the stand-in can be written");
+    fs::set_permissions(&trufflehog, fs::Permissions::from_mode(0o755))
+        .expect("the stand-in can be made executable");
+    bin
+}
+
 /// The line git feeds a pre-push hook for one ref.
 fn line(local_ref: &str, local_sha: &str, remote_ref: &str, remote_sha: &str) -> String {
     format!("{local_ref} {local_sha} {remote_ref} {remote_sha}\n")
@@ -224,12 +235,7 @@ fn fails_without_the_remote_name_git_gives_a_pre_push_hook() {
 fn fails_with_what_trufflehog_said_where_its_scan_fails() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let bin = TempDir::new().expect("a temporary directory can be made");
-    let stand_in = bin.path().join("trufflehog");
-    fs::write(&stand_in, "#!/bin/sh\necho scan broke >&2\nexit 3\n")
-        .expect("the stand-in can be written");
-    fs::set_permissions(&stand_in, fs::Permissions::from_mode(0o755))
-        .expect("the stand-in can be made executable");
+    let bin = stand_in("echo scan broke >&2\nexit 3\n");
     let path = path_without_trufflehog(Some(&bin));
     checkout
         .secrets_push_scan_with(
@@ -254,4 +260,85 @@ fn fails_naming_trufflehog_where_it_is_not_on_path() {
             &[("PATH", Some(&path))],
         )
         .expect(1, &["trufflehog"]);
+}
+
+// git allows a ref name that is not UTF-8, and a push of one that sends no secret is
+// scanned like any other rather than refused for the name.
+#[test]
+fn passes_a_push_of_a_ref_whose_name_is_not_utf8() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
+    let name = b"refs/heads/caf\xe9";
+    let refs = [
+        &name[..],
+        b" ",
+        sha.as_bytes(),
+        b" ",
+        name,
+        b" ",
+        ZERO.as_bytes(),
+        b"\n",
+    ]
+    .concat();
+    let run = checkout.secrets_push_scan_bytes(&["origin"], &refs);
+    assert_eq!((run.code(), run.output()), (0, ""));
+}
+
+// A report whose lines no longer say which commit holds the secret cannot be told to be
+// about commits the push does not send, so the push must not pass on it.
+#[test]
+fn fails_where_trufflehogs_report_lines_lack_the_commit() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
+    let bin = stand_in("echo '{\"SourceMetadata\":{\"Data\":{}}}'\n");
+    let path = path_without_trufflehog(Some(&bin));
+    let run = checkout.secrets_push_scan_with(
+        &["origin"],
+        &main_line(&checkout, &sha),
+        &[("PATH", Some(&path))],
+    );
+    assert_eq!(run.code(), 1, "output: {}", run.output());
+}
+
+// One ref's secret stops the push, whatever the refs after it hold.
+#[test]
+fn fails_on_a_secret_in_the_first_ref_the_push_sends_when_a_later_one_is_clean() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, first) = ahead_of(&origin, &[("a.txt", &leaking())]);
+    checkout.git(&["switch", "-q", "-c", "topic", "origin/main"]);
+    checkout.write("b.txt", "fine\n");
+    checkout.git(&["add", "b.txt"]);
+    let second = commit(&checkout, "topic");
+    let refs = [
+        main_line(&checkout, &first),
+        line("refs/heads/topic", &second, "refs/heads/topic", ZERO),
+    ]
+    .concat();
+    checkout
+        .secrets_push_scan(&["origin"], &refs)
+        .expect(1, &[&format!("commit {first}")]);
+}
+
+// Verifying a candidate sends it to its provider, which a push must never do, and a scan
+// that hit an error has not answered for every commit; the real trufflehog shows neither
+// offline, so a stand-in records what it was asked.
+#[test]
+fn asks_trufflehog_not_to_verify_and_to_fail_on_a_scan_error() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
+    let bin = stand_in("printf '%s\\n' \"$@\" >\"$(dirname \"$0\")/args\"\n");
+    let path = path_without_trufflehog(Some(&bin));
+    checkout
+        .secrets_push_scan_with(
+            &["origin"],
+            &main_line(&checkout, &sha),
+            &[("PATH", Some(&path))],
+        )
+        .expect(0, &[]);
+    let args = fs::read_to_string(bin.path().join("args")).expect("the stand-in ran");
+    let args: Vec<&str> = args.lines().collect();
+    assert!(
+        args.contains(&"--no-verification") && args.contains(&"--fail-on-scan-errors"),
+        "trufflehog was run with {args:?}"
+    );
 }

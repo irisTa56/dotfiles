@@ -11,10 +11,10 @@
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fmt;
-use std::io::{self, BufRead};
+use std::io::{self, Read};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, ExitCode, Output, Stdio};
 
 use serde_json::Value;
 
@@ -45,6 +45,11 @@ struct Sending {
     /// own clone, where a tag of the same name wins over the branch.
     tip: String,
 }
+
+/// trufflehog's run over the history behind one commit: its `--json` report on stdout,
+/// and its log on stderr.
+#[derive(Debug)]
+struct Report(Output);
 
 /// A secret trufflehog found in a commit the push sends.
 #[derive(Debug)]
@@ -113,22 +118,28 @@ impl Push {
     }
 
     /// The local object of each ref the push sends, read from the lines git feeds the hook,
-    /// `<local ref> <local sha> <remote ref> <remote sha>`. A deletion arrives with an
-    /// all-zero local sha, and adds nothing.
+    /// `<local ref> <local sha> <remote ref> <remote sha>`. A ref's name may hold any bytes
+    /// git allows, so the lines are split as bytes. A deletion arrives with an all-zero local
+    /// sha, and adds nothing.
     fn pushed() -> Result<Vec<String>, ExitCode> {
-        let mut pushed = Vec::new();
-        for line in io::stdin().lock().lines() {
-            let line = line.map_err(|error| {
+        let mut input = Vec::new();
+        io::stdin()
+            .lock()
+            .read_to_end(&mut input)
+            .map_err(|error| {
                 Stream::Stderr.line(format_args!("could not read the pushed refs: {error}"));
                 ExitCode::from(STOPPED)
             })?;
-            if let Some(local) = line.split_whitespace().nth(1)
-                && local.bytes().any(|byte| byte != b'0')
-            {
-                pushed.push(local.to_owned());
-            }
-        }
-        Ok(pushed)
+        Ok(input
+            .split(|&byte| byte == b'\n')
+            .filter_map(|line| {
+                line.split(u8::is_ascii_whitespace)
+                    .filter(|field| !field.is_empty())
+                    .nth(1)
+            })
+            .filter(|local| local.iter().any(|&byte| byte != b'0'))
+            .map(|local| String::from_utf8_lossy(local).into_owned())
+            .collect())
     }
 
     /// What the push sends of the ref at `local`, or None where the remote holds all of it
@@ -154,19 +165,19 @@ impl Push {
         }))
     }
 
-    /// The secrets trufflehog finds in the commits `sending` holds. It walks the whole
-    /// history behind the tip, and only the hits in those commits are kept.
+    /// The secrets trufflehog finds in the commits `sending` holds.
+    fn hits(&self, sending: &Sending) -> Result<Vec<Hit>, ExitCode> {
+        self.trufflehog(&sending.tip)?.hits_in(sending)
+    }
+
+    /// trufflehog's report on the whole history behind `tip`, from a scan that completed.
     ///
     /// `--trust-local-git-config` is left off: with it trufflehog reads the repository with
     /// go-git, which rejects a config that sets `extensions.worktreeConfig`. Verification
     /// stays off so a push never sends a candidate to its provider.
-    ///
-    /// trufflehog's log is held back, since it counts every hit it walked and so would
-    /// announce a secret on a push the filter lets through, and is printed where the scan
-    /// failed, the one time it says something this cannot.
-    fn hits(&self, sending: &Sending) -> Result<Vec<Hit>, ExitCode> {
+    fn trufflehog(&self, tip: &str) -> Result<Report, ExitCode> {
         let output = Command::new("trufflehog")
-            .args(["git", &self.url, "--branch", &sending.tip])
+            .args(["git", &self.url, "--branch", tip])
             .args([
                 "--json",
                 "--no-verification",
@@ -179,42 +190,58 @@ impl Push {
                 Stream::Stderr.line(format_args!("could not run trufflehog: {error}"));
                 ExitCode::from(STOPPED)
             })?;
-        let unanswered = |reason: Option<&dyn fmt::Display>| {
-            Stream::Stderr.bytes(&output.stderr);
-            if let Some(reason) = reason {
-                Stream::Stderr.line(format_args!("could not read trufflehog's report: {reason}"));
-            }
-            ExitCode::from(STOPPED)
-        };
-        if !output.status.success() {
-            return Err(unanswered(None));
+        let report = Report(output);
+        if !report.0.status.success() {
+            return Err(report.unanswered(None));
         }
+        Ok(report)
+    }
+}
+
+impl Report {
+    /// The hits in the commits `sending` holds; trufflehog walked the history behind them
+    /// too. A result that names no commit cannot be told to be in them or not, and passing
+    /// it over would let a push through on a report this cannot read.
+    fn hits_in(&self, sending: &Sending) -> Result<Vec<Hit>, ExitCode> {
         let mut hits = Vec::new();
-        for line in String::from_utf8_lossy(&output.stdout).lines() {
+        for line in String::from_utf8_lossy(&self.0.stdout).lines() {
             if line.is_empty() {
                 continue;
             }
             let result: Value =
-                serde_json::from_str(line).map_err(|error| unanswered(Some(&error)))?;
-            let hit = Hit::from_result(&result);
+                serde_json::from_str(line).map_err(|error| self.unanswered(Some(&error)))?;
+            let hit = Hit::from_result(&result)
+                .ok_or_else(|| self.unanswered(Some(&"a result names no commit")))?;
             if sending.commits.contains(&hit.commit) {
                 hits.push(hit);
             }
         }
         Ok(hits)
     }
+
+    /// Reports a scan that gave no answer, and returns the code to end with. trufflehog's
+    /// log is held back otherwise, since it counts every hit it walked and so would announce
+    /// a secret on a push the filter lets through; here it is the one account of why.
+    fn unanswered(&self, reason: Option<&dyn fmt::Display>) -> ExitCode {
+        Stream::Stderr.bytes(&self.0.stderr);
+        if let Some(reason) = reason {
+            Stream::Stderr.line(format_args!("could not read trufflehog's report: {reason}"));
+        }
+        ExitCode::from(STOPPED)
+    }
 }
 
 impl Hit {
-    /// The hit one line of trufflehog's `--json` report describes.
-    fn from_result(result: &Value) -> Self {
+    /// The hit one line of trufflehog's `--json` report describes, or None where it names
+    /// no commit.
+    fn from_result(result: &Value) -> Option<Self> {
         let git = &result["SourceMetadata"]["Data"]["Git"];
-        Hit {
+        Some(Hit {
             detector: text(&result["DetectorName"]),
             line: text(&git["line"]),
             file: git["file"].as_str().map(str::to_owned),
-            commit: text(&git["commit"]),
-        }
+            commit: git["commit"].as_str()?.to_owned(),
+        })
     }
 }
 
