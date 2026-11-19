@@ -10,7 +10,7 @@
 # installation mise then cannot find, checks no link, so it exits 2 rather than with
 # mise's own status. The binary runs from where mise installed it rather than through
 # `mise x`, which leaves the tools a task's header declares off PATH.
-tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.4.0' # x-release-please-version
+tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.5.0' # x-release-please-version
 mise install --quiet "$tool" || exit 2
 dir=$(mise where "$tool") || exit 2
 exec "$dir/dotfiles-tasks" link-check-staged "$@"
