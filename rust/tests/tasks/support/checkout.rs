@@ -145,6 +145,13 @@ impl Checkout {
         self.task("pin-check", args, env)
     }
 
+    /// Runs `pin-check` with `args` in the repository, with `closed`, stdout or stderr, a
+    /// pipe whose reading end is already closed. The run's output is the other stream
+    /// alone.
+    pub(crate) fn pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
+        self.task_closing("pin-check", closed, args)
+    }
+
     /// Runs `size-check` with `args` in the repository.
     pub(crate) fn size_check(&self, args: &[&str]) -> Run {
         self.task("size-check", args, &[])
@@ -154,29 +161,7 @@ impl Checkout {
     /// a pipe whose reading end is already closed. The run's output is the other stream
     /// alone.
     pub(crate) fn size_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
-        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg("size-check").args(args).stdin(Stdio::null());
-        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
-        drop(closed_reader);
-        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
-        match closed {
-            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
-            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
-        };
-        let mut child = command.spawn().expect("the command runs");
-        // The command holds the pipes' writing ends until it is dropped.
-        drop(command);
-        let mut output = String::new();
-        reader
-            .read_to_string(&mut output)
-            .expect("the output is UTF-8");
-        let status = child.wait().expect("the command's run ends");
-        Run {
-            code: status
-                .code()
-                .expect("the command exits rather than being killed"),
-            output,
-        }
+        self.task_closing("size-check", closed, args)
     }
 
     /// Runs `size-check` as `size_check` does, with `env` set as `task` sets it.
@@ -199,33 +184,12 @@ impl Checkout {
         Run::of(command)
     }
 
-    /// Runs `pin-check` with `args` in the repository, with `closed`, stdout or stderr, a
-    /// pipe whose reading end is already closed. The run's output is the other stream
-    /// alone.
-    pub(crate) fn pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
+    /// Runs the subcommand `task` with `args` in the repository, with `closed`, stdout or
+    /// stderr, a pipe whose reading end is already closed.
+    fn task_closing(&self, task: &str, closed: Stream, args: &[&str]) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg("pin-check").args(args).stdin(Stdio::null());
-        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
-        drop(closed_reader);
-        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
-        match closed {
-            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
-            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
-        };
-        let mut child = command.spawn().expect("the command runs");
-        // The command holds the pipes' writing ends until it is dropped.
-        drop(command);
-        let mut output = String::new();
-        reader
-            .read_to_string(&mut output)
-            .expect("the output is UTF-8");
-        let status = child.wait().expect("the command's run ends");
-        Run {
-            code: status
-                .code()
-                .expect("the command exits rather than being killed"),
-            output,
-        }
+        command.arg(task).args(args);
+        Run::closing(command, closed)
     }
 
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
@@ -241,13 +205,33 @@ impl Checkout {
 impl Run {
     /// Runs `command` to its end, reading stdout and stderr as one stream.
     fn of(mut command: Command) -> Self {
-        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
+        let (reader, writer) = io::pipe().expect("a pipe can be made");
         command
-            .stdin(Stdio::null())
             .stdout(writer.try_clone().expect("the pipe can be shared"))
             .stderr(writer);
-        let mut child = command.spawn().expect("the command runs");
-        // The command holds the pipe's writing ends until it is dropped, and reading
+        Run::reading(command, reader)
+    }
+
+    /// Runs `command` to its end with `closed` a pipe whose reading end is already
+    /// closed, reading the other stream alone.
+    fn closing(mut command: Command, closed: Stream) -> Self {
+        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
+        drop(closed_reader);
+        let (reader, writer) = io::pipe().expect("a pipe can be made");
+        match closed {
+            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
+            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
+        };
+        Run::reading(command, reader)
+    }
+
+    /// Runs `command`, its stdout and stderr already set, to its end, reading `reader`.
+    fn reading(mut command: Command, mut reader: io::PipeReader) -> Self {
+        let mut child = command
+            .stdin(Stdio::null())
+            .spawn()
+            .expect("the command runs");
+        // The command holds the pipes' writing ends until it is dropped, and reading
         // waits for every one to close.
         drop(command);
         let mut output = String::new();

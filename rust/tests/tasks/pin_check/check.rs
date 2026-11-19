@@ -228,14 +228,23 @@ fn fails_as_unable_to_tell_on_an_option_it_does_not_take() {
         .expect(2, &["takes --bump"]);
 }
 
-// A reader that stops early, as `| head` does, closes stdout before the [ok] lines are
-// all out, and the run still has to end with the status that says every pin matches.
+// A reader that stops early, as `| head` does, closes stdout before the pins are all
+// checked, and the pins after an [ok] line it could not take are still checked.
 #[test]
-fn passes_matching_pins_when_stdout_is_closed() {
-    let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
-    let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
+fn checks_the_pins_after_an_ok_line_when_stdout_is_closed() {
+    let tasks = Upstream::new(&[&[("tasks/a.sh", Some("a"))]]);
+    let lints = Upstream::new(&[
+        &[("lints/a.toml", Some("a"))],
+        &[("lints/a.toml", Some("b"))],
+    ]);
+    // Pins are checked in the order the file spells them, so the [ok] line comes first.
+    let cargo = format!(
+        "# {}\n# {}\n",
+        tasks.marker("tasks", 0),
+        lints.marker("lints", 0)
+    );
     let run = Checkout::new(&[("Cargo.toml", &cargo)]).pin_check_closing(Stream::Stdout, &[]);
-    assert_eq!((run.code(), run.output()), (0, ""));
+    run.expect(1, &[&format!("{}//lints differs", lints.url())]);
 }
 
 // A caller that reads only stdout may close stderr, and the run still has to end with
