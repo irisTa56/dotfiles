@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.2.1...dotfiles-tasks-v0.3.0) (2026-11-19)
+
+
+### Features
+
+* **tasks:** add a link-check-staged subcommand that checks the links a commit stages ([#442](https://github.com/irisTa56/dotfiles/issues/442)) ([52834f1](https://github.com/irisTa56/dotfiles/commit/52834f1c3aa97d042f6b158774e1970132d65f0e))
+
 ## [0.2.1](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.2.0...dotfiles-tasks-v0.2.1) (2026-11-19)
 
 
