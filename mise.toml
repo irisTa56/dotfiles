@@ -6,6 +6,7 @@ rumdl = "latest"
 rust = { version = "latest", components = "clippy,rustfmt" }
 shellcheck = "latest"
 shfmt = "latest"
+trufflehog = "latest"
 yq = "latest"
 "pipx:apm-cli" = "latest"
 

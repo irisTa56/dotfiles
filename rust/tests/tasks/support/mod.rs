@@ -5,4 +5,5 @@ pub(crate) mod checkout;
 pub(crate) mod git;
 pub(crate) mod mise;
 pub(crate) mod origin;
+pub(crate) mod secret;
 pub(crate) mod upstream;

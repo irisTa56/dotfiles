@@ -2,18 +2,11 @@
 //! stages a secret, checked by the real gitleaks.
 
 use crate::support::checkout::Checkout;
-
-/// A GitHub personal access token in gitleaks' `github-pat` form, put together here so
-/// that no scan of this repository finds one in its source.
-fn token() -> String {
-    let alphabet: Vec<char> = ('A'..='Z').chain('a'..='z').chain('0'..='9').collect();
-    let tail: String = (0..36).map(|n| alphabet[(n * 7 + 3) % 62]).collect();
-    format!("{}_{tail}", "ghp")
-}
+use crate::support::secret::github_token;
 
 /// A file assigning the token, as a commit might stage one.
 fn leaking() -> String {
-    format!("token = \"{}\"\n", token())
+    format!("token = \"{}\"\n", github_token())
 }
 
 // A secret the commit stages would otherwise land in history.
