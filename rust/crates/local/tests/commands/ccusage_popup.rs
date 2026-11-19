@@ -21,10 +21,11 @@ struct Sandbox {
     root: PathBuf,
 }
 
-/// What a run left: its exit status, its stderr, and the HTML Quick Look was handed,
-/// if the run got that far.
+/// What a run left: its exit status, its stdout and stderr, and the HTML Quick Look was
+/// handed, if the run got that far.
 struct Run {
     code: Option<i32>,
+    out: String,
     err: String,
     html: Option<String>,
 }
@@ -97,7 +98,7 @@ impl Sandbox {
             "qlmanage",
             &format!(
                 "[ \"$1\" = -p ] || exit 2\necho \"$2\" > '{path}'\n/bin/cat \"$2\" > '{html}'\n\
-                 echo 'qlmanage chatters' >&2\nexit {code}\n",
+                 echo 'qlmanage chatters'\necho 'qlmanage warns' >&2\nexit {code}\n",
                 path = self.root.join("html.path").display(),
                 html = self.root.join("html").display(),
             ),
@@ -136,6 +137,7 @@ impl Sandbox {
         let _ = fs::remove_file(self.root.join("html"));
         Run {
             code: output.status.code(),
+            out: String::from_utf8_lossy(&output.stdout).into_owned(),
             err: String::from_utf8_lossy(&output.stderr).into_owned(),
             html,
         }
@@ -466,6 +468,12 @@ fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
     assert_line(by_repo, "Date moved-repo beta alpha other Total");
     assert_line(by_repo, "2026-11-01 $16.00 $8.00 $7.00 $224.75 $255.75");
     assert_eq!(sandbox.log("git.unexpected"), Vec::<String>::new());
+    // git, failing on the directories that are no repository, and qlmanage say nothing
+    // the person sees; only ccusage's own warning passes through.
+    assert_eq!(
+        (run.out.as_str(), run.err.as_str()),
+        ("", "ccusage warns\n")
+    );
 }
 
 #[test]
