@@ -3,10 +3,10 @@
 //! `--jq` filter it is given with the real jq, as gh does, so the filters are checked
 //! here too. apm is a fake that records how it was called.
 
-use std::fs;
+use std::fs::{self, File};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 use jiff::{SignedDuration, Timestamp};
 
@@ -164,6 +164,29 @@ impl Sandbox {
         }
     }
 
+    /// Makes yq print `json` for any lockfile, through an absolute path to cat, so that it
+    /// runs where PATH holds the sandbox's `bin` alone.
+    fn yq_printing(&self, json: &str) {
+        let lock = self.root.join("lock.json");
+        fs::write(&lock, json).expect("the JSON yq prints is written");
+        self.fake(
+            "yq",
+            &format!("echo 'yq warns' >&2\nexec /bin/cat '{}'\n", lock.display()),
+        );
+    }
+
+    /// Runs `skills-update` with `args` from the sandbox, with its `bin` alone on PATH,
+    /// and returns its stdout and stderr apart.
+    fn run_isolated(&self, args: &[&str]) -> Output {
+        Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+            .arg("skills-update")
+            .args(args)
+            .current_dir(&self.root)
+            .env("PATH", self.root.join("bin"))
+            .output()
+            .expect("dotfiles-local starts")
+    }
+
     /// The tests' own PATH, after the sandbox's `bin`.
     fn search_path(&self) -> std::ffi::OsString {
         let inherited = std::env::var_os("PATH").unwrap_or_default();
@@ -272,6 +295,50 @@ fn passes_on_what_apm_prints_to_either_stream_on_stdout() {
         "apm says update\napm warns update\napm says install\napm warns install\napm says audit\napm warns audit\n"
     );
     assert_eq!(String::from_utf8_lossy(&output.stderr), "");
+}
+
+// apm colors its output where it sees a terminal, so it must be given pipes whatever the
+// binary's own stdout is, and what it prints through them must still reach that stdout.
+#[test]
+fn gives_apm_a_pipe_for_each_stream_even_when_its_own_stdout_is_a_file() {
+    let sandbox = Sandbox::new("apm-pipes", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.skill("recent", &Answer::Merged(OLD));
+    sandbox.fake(
+        "apm",
+        "dir=$(dirname \"$0\")/..\n\
+         for stream in stdout stderr; do\n\
+         if test -p \"/dev/$stream\"; then kind=pipe; else kind=other; fi\n\
+         echo \"$1 $stream $kind\" >> \"$dir/apm.streams\"\n\
+         done\n\
+         echo \"apm says $1\"\n\
+         echo \"apm warns $1\" >&2\n",
+    );
+    let stdout_file = sandbox.root.join("stdout.txt");
+
+    let status = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+        .arg("skills-update")
+        .current_dir(&sandbox.root)
+        .env("PATH", sandbox.search_path())
+        .stdout(File::create(&stdout_file).expect("the stdout file is created"))
+        .stderr(Stdio::null())
+        .status()
+        .expect("dotfiles-local starts");
+
+    assert!(status.success(), "{status}");
+    let streams = sandbox.log("apm.streams");
+    let expected: Vec<String> = ["update", "install", "audit"]
+        .iter()
+        .flat_map(|step| [format!("{step} stdout pipe"), format!("{step} stderr pipe")])
+        .collect();
+    assert_eq!(
+        streams, expected,
+        "apm's stdout and stderr must each be a pipe"
+    );
+    assert_eq!(
+        fs::read_to_string(&stdout_file).expect("the stdout file is read"),
+        "apm says update\napm warns update\napm says install\napm warns install\napm says audit\napm warns audit\n"
+    );
 }
 
 #[test]
@@ -534,7 +601,7 @@ fn fails_at_a_dependency_with_no_repository_before_asking_github_anything() {
     assert_eq!(run.code, Some(1), "{}", run.out);
     assert!(
         run.out
-            .starts_with("a dependency in apm.lock.yaml names no repository: {"),
+            .starts_with("a dependency in apm.lock.yaml has no repository: {"),
         "{}",
         run.out
     );
@@ -577,5 +644,146 @@ fn reads_only_the_first_argument_as_a_flag() {
     assert_eq!(
         (run.code, run.out.as_str()),
         (Some(1), "Not in apm.lock.yaml: --yes\n")
+    );
+}
+
+/// One dependency GitHub is asked about, and none that is not.
+const WHOLE: &str =
+    r#"{"dependencies": [{"name": "whole", "host": "github.com", "repo_url": "o/whole"}]}"#;
+
+// A missing command ends the run rather than counting as an answer, such as a hold for
+// every skill where gh is missing.
+#[test]
+fn fails_with_exit_1_naming_a_command_it_cannot_run() {
+    for (missing, lock, message) in [
+        ("yq", WHOLE, "cannot run yq: "),
+        ("gh", WHOLE, "cannot run gh: "),
+        (
+            "apm",
+            r#"{"dependencies": [{"name": "own", "host": "gist.github.com"}]}"#,
+            "apm update --yes own failed (",
+        ),
+    ] {
+        let sandbox = Sandbox::new(&format!("missing-{missing}"), LOCK);
+        sandbox.yq_printing(lock);
+        fs::remove_file(sandbox.root.join("bin").join(missing)).expect("the fake is removed");
+
+        let output = sandbox.run_isolated(&[]);
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert_eq!(output.status.code(), Some(1), "{missing}: {stderr}");
+        assert!(
+            stderr
+                .lines()
+                .last()
+                .is_some_and(|line| line.starts_with(message)),
+            "{missing}: {stderr}"
+        );
+        assert_eq!(sandbox.apm_calls(), Vec::<String>::new(), "{missing}");
+    }
+}
+
+#[test]
+fn fails_with_yqs_own_status() {
+    let sandbox = Sandbox::new("yq-status", LOCK);
+    sandbox.fake("yq", "exit 3\n");
+
+    let output = sandbox.run_isolated(&[]);
+
+    assert_eq!(
+        (
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).as_ref()
+        ),
+        (Some(3), "yq could not read apm.lock.yaml (exit 3)\n")
+    );
+}
+
+#[test]
+fn passes_on_what_yq_and_gh_print_to_stderr() {
+    let sandbox = Sandbox::new("tool-stderr", LOCK);
+    sandbox.yq_printing(WHOLE);
+    sandbox.fake("gh", "echo 'gh warns' >&2\n");
+
+    let output = sandbox.run_isolated(&[]);
+
+    assert_eq!(
+        (
+            output.status.code(),
+            String::from_utf8_lossy(&output.stdout).as_ref(),
+            String::from_utf8_lossy(&output.stderr).as_ref()
+        ),
+        (
+            Some(0),
+            "whole: held, no commit on this path\nNothing to update.\n",
+            "yq warns\ngh warns\n"
+        )
+    );
+}
+
+#[test]
+fn fails_with_128_and_the_signal_when_a_signal_ends_apm() {
+    let sandbox = Sandbox::new("apm-signal", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.skill("recent", &Answer::Merged(OLD));
+    sandbox.fake("apm", "kill -9 $$\n");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(run.code, Some(137), "{}", run.out);
+    assert!(
+        run.out
+            .ends_with("apm update --yes o/r/skills/old o/r/skills/recent own failed (exit 137)\n"),
+        "{}",
+        run.out
+    );
+}
+
+#[test]
+fn fails_at_a_dependency_with_no_name() {
+    let sandbox = Sandbox::new(
+        "no-name",
+        "dependencies:\n- host: gist.github.com\n  repo_url: me/abc\n",
+    );
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(
+        (run.code, run.out.as_str()),
+        (
+            Some(1),
+            "a dependency in apm.lock.yaml has no name: {\"host\":\"gist.github.com\",\"repo_url\":\"me/abc\"}\n"
+        )
+    );
+}
+
+// apm reads nothing from whoever runs the command, so a prompt it might put ends at once
+// rather than waiting on a terminal or pipe no one answers.
+#[test]
+fn gives_apm_no_input() {
+    let sandbox = Sandbox::new("apm-stdin", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.skill("recent", &Answer::Merged(OLD));
+    let streams = sandbox.root.join("apm.stdin");
+    sandbox.fake(
+        "apm",
+        &format!(
+            "if test -p /dev/stdin; then echo pipe; else echo other; fi >> '{}'\n",
+            streams.display()
+        ),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+        .arg("skills-update")
+        .current_dir(&sandbox.root)
+        .env("PATH", sandbox.search_path())
+        .stdin(Stdio::piped())
+        .output()
+        .expect("dotfiles-local starts");
+
+    assert!(output.status.success());
+    assert_eq!(
+        fs::read_to_string(streams).expect("apm recorded its input"),
+        "other\nother\nother\n"
     );
 }

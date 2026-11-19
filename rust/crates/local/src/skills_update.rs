@@ -5,8 +5,7 @@
 //! which the mise task calling it leaves as the root of the checkout it ran in.
 
 use std::fmt;
-use std::io::{self, Write};
-use std::os::fd::AsFd;
+use std::io::{self, Read, Write};
 use std::os::unix::process::ExitStatusExt;
 use std::process::{Command, ExitCode, ExitStatus, Stdio};
 
@@ -82,7 +81,10 @@ fn update(packages: &[String]) -> Result<(), Failure> {
     apm(&["audit".to_owned()])
 }
 
-/// Runs apm with `args`, its output and errors both going to stdout.
+/// Runs apm with `args`, its output and errors both passed on to stdout.
+///
+/// They reach stdout through a pipe rather than as stdout itself, so apm writes as it
+/// does for a reader that is not a terminal, without colors.
 fn apm(args: &[String]) -> Result<(), Failure> {
     let failed = |detail: &dyn fmt::Display, code| {
         Failure::new(
@@ -90,21 +92,43 @@ fn apm(args: &[String]) -> Result<(), Failure> {
             code,
         )
     };
-    let _ = io::stdout().flush();
-    let stdout = io::stdout()
-        .as_fd()
-        .try_clone_to_owned()
-        .map_err(|error| failed(&error, 1))?;
-    let status = Command::new("apm")
+    let (mut reader, writer) = io::pipe().map_err(|error| failed(&error, 1))?;
+    let errors = writer.try_clone().map_err(|error| failed(&error, 1))?;
+    // The command, holding this side's write ends of the pipe, is dropped at the end of
+    // this statement, so the reading below ends once apm has closed its own.
+    let mut child = Command::new("apm")
         .args(args)
-        .stderr(Stdio::from(stdout))
-        .status()
+        .stdin(Stdio::null())
+        .stdout(writer)
+        .stderr(errors)
+        .spawn()
         .map_err(|error| failed(&error, 1))?;
+    pass_on(&mut reader);
+    let status = child.wait().map_err(|error| failed(&error, 1))?;
     if status.success() {
         return Ok(());
     }
     let code = exit_code(status);
     Err(failed(&format_args!("exit {code}"), code))
+}
+
+/// Copies what `reader` yields to stdout until it ends, dropping a write that fails, so
+/// that apm is never left blocked on a pipe no one reads.
+fn pass_on(reader: &mut impl Read) {
+    let mut stdout = io::stdout();
+    let mut buffer = [0; 8192];
+    loop {
+        match reader.read(&mut buffer) {
+            Ok(0) => return,
+            Ok(read) => {
+                let _ = stdout
+                    .write_all(&buffer[..read])
+                    .and_then(|()| stdout.flush());
+            }
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+            Err(_) => return,
+        }
+    }
 }
 
 /// The dependencies apm.lock.yaml lists.
@@ -203,7 +227,7 @@ impl Dependency {
         let field = |name: &str| entry.get(name).and_then(Value::as_str).map(str::to_owned);
         let malformed = |what: &str| {
             Failure::new(
-                format_args!("a dependency in apm.lock.yaml names no {what}: {entry}"),
+                format_args!("a dependency in apm.lock.yaml has no {what}: {entry}"),
                 1,
             )
         };
