@@ -75,8 +75,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
         with:
-          # lychee for the link-check-staged tests, which run the real one offline.
-          install_args: rust lychee
+          # lychee for the link-check-staged tests, which run the real one offline, and
+          # gitleaks for the secrets:commit-scan tests, which run the task's script.
+          install_args: rust lychee gitleaks
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
 

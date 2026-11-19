@@ -175,4 +175,4 @@ A task runs in the consuming repository: its working directory is that repositor
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
 
 What a task must do is checked here without the consuming repositories ever running the check, by the `dotfiles-tasks` package's tests, which `qa:rust` runs: each sets up a repository, runs the subcommand there, and checks the exit status and output, and a task's tests run its wrapper too, with a stand-in for mise.
-They sit under `rust/tests/tasks/`, a module for each task with a subcommand; the tasks still written in shell have none yet.
+They sit under `rust/tests/tasks/`, a module for each task; the one for `secrets:commit-scan`, which stays a shell script, runs the script itself, and `secrets:push-scan` has none yet.
