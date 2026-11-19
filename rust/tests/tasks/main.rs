@@ -5,7 +5,7 @@
 //! dead code.
 
 mod dispatch;
-mod link_check;
+mod link_check_staged;
 mod skills_size_check;
 mod support;
 mod upstream_pin_check;

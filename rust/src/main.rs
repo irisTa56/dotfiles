@@ -2,7 +2,7 @@
 //! wrappers under tasks/ pin the release that runs them.
 
 mod git;
-mod link_check;
+mod link_check_staged;
 mod skills_size_check;
 mod stream;
 mod upstream_pin_check;
@@ -14,7 +14,7 @@ use stream::Stream;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.split_first() {
-        Some((task, _)) if task == "link-check-staged" => link_check::Lychee::check_staged(),
+        Some((task, _)) if task == "link-check-staged" => link_check_staged::Lychee::check_staged(),
         // The wrappers under tasks/ call these checks as pin-check and size-check, and a
         // release moves only the version they pin, so those names stay accepted until the
         // wrappers call the new ones.
