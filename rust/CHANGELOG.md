@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.4.0...dotfiles-tasks-v0.5.0) (2026-11-19)
+
+
+### Features
+
+* **tasks:** add secrets-push-scan to dotfiles-tasks ([#449](https://github.com/irisTa56/dotfiles/issues/449)) ([47cac9f](https://github.com/irisTa56/dotfiles/commit/47cac9f20d65a0068f27e9504230fc463d3654d5))
+
 ## [0.4.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.3.0...dotfiles-tasks-v0.4.0) (2026-11-19)
 
 
