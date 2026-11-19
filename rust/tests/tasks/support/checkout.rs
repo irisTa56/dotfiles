@@ -195,7 +195,21 @@ impl Checkout {
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
     /// repository, finding `mise` in place of mise.
     pub(crate) fn pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
-        let wrapper = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks/upstream/pin-check.sh");
+        self.wrapper("upstream/pin-check.sh", args, mise)
+    }
+
+    /// Runs the wrapper consumers run, `tasks/skills/size-check.sh`, with `args` in the
+    /// repository, finding `mise` in place of mise.
+    pub(crate) fn size_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
+        self.wrapper("skills/size-check.sh", args, mise)
+    }
+
+    /// Runs the wrapper at `path` under `tasks/` with `args` in the repository, finding
+    /// `mise` in place of mise.
+    fn wrapper(&self, path: &str, args: &[&str], mise: &Mise) -> Run {
+        let wrapper = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../tasks")
+            .join(path);
         let mut command = isolated("bash", self.dir.path());
         command.arg(wrapper).args(args).env("PATH", mise.path());
         Run::of(command)

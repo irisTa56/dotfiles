@@ -14,17 +14,16 @@ pub(crate) struct Mise {
 }
 
 impl Mise {
-    /// A mise whose `install` exits with `status`, and whose `x <tool> -- <command>`
-    /// runs the command alone, which finds the built binary as `dotfiles-tasks`.
+    /// A mise whose `install` exits with `status`, and whose `where <tool>` prints this
+    /// directory, which holds the built binary as `dotfiles-tasks`.
     pub(crate) fn installing_with(status: i32) -> Self {
         let dir = TempDir::new().expect("a temporary directory can be made");
         let mise = dir.path().join("mise");
         let script = format!(
             "#!/bin/sh\n\
              [ \"$1\" = install ] && exit {status}\n\
-             while [ \"$#\" -gt 0 ] && [ \"$1\" != -- ]; do shift; done\n\
-             shift\n\
-             exec \"$@\"\n"
+             [ \"$1\" = where ] && exec dirname \"$0\"\n\
+             exit 64\n"
         );
         fs::write(&mise, script).expect("the stand-in can be written");
         fs::set_permissions(&mise, fs::Permissions::from_mode(0o755))

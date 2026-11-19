@@ -4,6 +4,8 @@ name: CI
 # Each `qa:` task runs by name in one job; which tasks need a job, and why, is in
 # the comment above `[tasks.pre-commit]` in mise.toml. A new job also needs a place in
 # the main ruleset's required checks before a merge waits on it.
+# A check written in Rust sits under `qa:rust:`, as the package's own checks do, and
+# rust-qa runs them all through `qa:rust`, so adding one needs no change here.
 
 on:
   # No path filter: these checks are required status checks on main, so they must
@@ -46,8 +48,6 @@ jobs:
           # each at the release it was first saved with until mise.toml changed.
           cache: false
       - run: mise run qa:md
-      # The skills are markdown too, and this check needs only git and POSIX utilities.
-      - run: mise run qa:skills
 
   shell-qa:
     runs-on: ubuntu-latest
@@ -143,7 +143,6 @@ jobs:
           MIX_ENV: test
       - run: mise run qa:ex
       # A check of the shared tasks under tasks/, which the Mix project provides.
-      - run: mise run qa:tasks
       - run: mise run qa:release-pins
 
   link-check-offline:
