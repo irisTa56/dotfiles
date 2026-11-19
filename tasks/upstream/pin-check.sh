@@ -7,6 +7,6 @@
 # #MISE tools= header would not: a job that sets MISE_TASK_RUN_AUTO_INSTALL=false
 # installs no task's tools. A failed install is no answer about the pins, so it exits 2
 # rather than with mise's own status.
-tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.1.0' # x-release-please-version
+tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.2.0' # x-release-please-version
 mise install --quiet "$tool" || exit 2
 exec mise x "$tool" -- dotfiles-tasks pin-check "$@"
