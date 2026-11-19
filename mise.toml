@@ -171,13 +171,15 @@ run = "mix dotfiles.release_pins"
 description = "Run every check under qa:rust:"
 depends = ["qa:rust:*"]
 
+# Each command names the whole workspace: run in rust/, cargo would otherwise take only
+# the dotfiles-tasks package at its root.
 [tasks."qa:rust:crate"]
-description = "Check formatting of, lint and test the dotfiles-tasks package"
+description = "Check formatting of, lint and test every package of the Rust workspace"
 dir = "{{config_root}}/rust"
 run = [
-  "cargo fmt --check",
-  "cargo clippy --all-targets --locked -- -D warnings",
-  "cargo test --locked",
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --all-targets --locked -- -D warnings",
+  "cargo test --workspace --locked",
 ]
 
 # The subcommand built from the working tree rather than the release the shared task
