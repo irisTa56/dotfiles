@@ -1,13 +1,15 @@
-//! The repository a run of the binary checks, and how the run ended.
+//! The repository a run of the binary or its wrapper checks, and how the run ended.
 
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{self, Read};
-use std::process::Stdio;
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 use tempfile::TempDir;
 
 use super::git::{IDENTITY, git, isolated};
+use super::mise::Mise;
 use super::origin::Origin;
 
 /// The repository a run checks: a fresh git repository with the files a test stages.
@@ -15,7 +17,7 @@ pub(crate) struct Checkout {
     dir: TempDir,
 }
 
-/// How a run of the binary ended: its exit code, and stdout and stderr as one stream.
+/// How a run ended: its exit code, and stdout and stderr as one stream.
 pub(crate) struct Run {
     code: i32,
     output: String,
@@ -98,21 +100,36 @@ impl Checkout {
     /// Runs `pin-check` with `args` in the repository, with each variable of `env` set
     /// over the isolated environment, or removed from it where its value is `None`.
     pub(crate) fn run_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
-        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command
-            .arg("pin-check")
-            .args(args)
-            .stdin(Stdio::null())
-            .stdout(writer.try_clone().expect("the pipe can be shared"))
-            .stderr(writer);
+        command.arg("pin-check").args(args);
         for (name, value) in env {
             match value {
                 Some(value) => command.env(name, value),
                 None => command.env_remove(name),
             };
         }
-        let mut child = command.spawn().expect("the binary runs");
+        Run::of(command)
+    }
+
+    /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
+    /// repository, finding `mise` in place of mise.
+    pub(crate) fn run_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
+        let wrapper = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks/upstream/pin-check.sh");
+        let mut command = isolated("bash", self.dir.path());
+        command.arg(wrapper).args(args).env("PATH", mise.path());
+        Run::of(command)
+    }
+}
+
+impl Run {
+    /// Runs `command` to its end, reading stdout and stderr as one stream.
+    fn of(mut command: Command) -> Self {
+        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
+        command
+            .stdin(Stdio::null())
+            .stdout(writer.try_clone().expect("the pipe can be shared"))
+            .stderr(writer);
+        let mut child = command.spawn().expect("the command runs");
         // The command holds the pipe's writing ends until it is dropped, and reading
         // waits for every one to close.
         drop(command);
@@ -120,23 +137,21 @@ impl Checkout {
         reader
             .read_to_string(&mut output)
             .expect("the output is UTF-8");
-        let status = child.wait().expect("the binary's run ends");
+        let status = child.wait().expect("the command's run ends");
         Run {
             code: status
                 .code()
-                .expect("the binary exits rather than being killed"),
+                .expect("the command exits rather than being killed"),
             output,
         }
     }
-}
 
-impl Run {
-    /// The code the binary exited with.
+    /// The code the run exited with.
     pub(crate) fn code(&self) -> i32 {
         self.code
     }
 
-    /// What the binary printed, stdout and stderr as one stream.
+    /// What the run printed, stdout and stderr as one stream.
     pub(crate) fn output(&self) -> &str {
         &self.output
     }
