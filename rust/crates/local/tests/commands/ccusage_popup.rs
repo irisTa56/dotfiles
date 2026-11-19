@@ -675,8 +675,9 @@ fn fails_with_ccusages_status_when_ccusage_fails() {
 #[test]
 fn shows_costs_to_the_nearest_cent_grouped_by_thousands_and_shares_to_a_tenth() {
     let days = [
+        // Cache writes count toward the input the cache could have served.
         Day {
-            input: 2000,
+            create: 1000,
             read: 1000,
             ..Day::new("2026-11-01", 1234.567)
         },
@@ -688,10 +689,13 @@ fn shows_costs_to_the_nearest_cent_grouped_by_thousands_and_shares_to_a_tenth() 
 
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 
-    assert_line(&html, "2026-11-01 2,000 10 0 1,000 1,010 33.3% $1,234.57");
+    assert_line(
+        &html,
+        "2026-11-01 1,000 10 1,000 1,000 1,010 33.3% $1,234.57",
+    );
     assert_line(&html, "2026-11-02 1,000 10 0 0 1,010 0.0% $0.13");
     assert_line(&html, "2026-11-03 1,000 10 0 0 1,010 0.0% $0.13");
-    assert_line(&html, "Total 4,000 30 0 1,000 3,030 20.0% $1,234.82");
+    assert_line(&html, "Total 3,000 30 1,000 1,000 3,030 20.0% $1,234.82");
 }
 
 impl Sandbox {
@@ -933,4 +937,23 @@ fn takes_a_projects_cwd_from_the_first_jsonl_log_by_name_that_records_one() {
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 
     assert_line(&html, "Date repo Total");
+}
+
+#[test]
+fn orders_keys_of_equal_cost_by_name() {
+    let days = [
+        Day {
+            model: "claude-b",
+            ..Day::new("2026-11-01", 1.0)
+        },
+        Day {
+            model: "claude-a",
+            ..Day::new("2026-11-01", 1.0)
+        },
+    ];
+    let sandbox = Sandbox::new("equal-costs", &usage(&[("-p", &days)]));
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    assert_line(&html, "Date a b Total");
 }
