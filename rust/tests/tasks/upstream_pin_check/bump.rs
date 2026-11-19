@@ -392,6 +392,28 @@ fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_re
         );
 }
 
+// A branch left behind would have the next run take its pull request to be open and open
+// none, so a deletion origin refuses is said, with what a person has to do.
+#[test]
+fn under_github_actions_says_so_where_origin_refuses_to_delete_the_branch_it_could_not_propose() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    origin.refuse_deleting(BUMP);
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
+        )
+        .expect(
+            2,
+            &["could not delete upstream-pin-bump; delete it by hand"],
+        );
+    assert!(origin.commit(BUMP).is_some());
+}
+
 // A refused run opens no pull request, so a later run that GitHub accepts must still open
 // it, or the move waits on the branch with nobody told.
 #[test]

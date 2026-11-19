@@ -93,6 +93,20 @@ impl Origin {
             .expect("the hook can be made executable");
     }
 
+    /// Makes the repository refuse to delete `branch`, while it still takes pushes to it.
+    pub(crate) fn refuse_deleting(&self, branch: &str) {
+        let hook = self.dir.path().join("hooks/pre-receive");
+        fs::write(
+            &hook,
+            format!(
+                "#!/bin/sh\nwhile read -r _ new ref; do [ \"$ref\" = refs/heads/{branch} ] && [ \"$new\" = 0000000000000000000000000000000000000000 ] && exit 1; done\nexit 0\n"
+            ),
+        )
+        .expect("the hook can be written");
+        fs::set_permissions(&hook, fs::Permissions::from_mode(0o755))
+            .expect("the hook can be made executable");
+    }
+
     /// The bytes of `object`, as `git show` names one, or `None` where there is none.
     pub(crate) fn show(&self, object: &str) -> Option<Vec<u8>> {
         query(self.path(), &["show", object])
