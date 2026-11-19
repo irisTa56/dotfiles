@@ -740,6 +740,7 @@ fn shows_how_long_ago_each_version_was_released() {
     sandbox.outdated_in(
         Place::Dir(dir),
         &[
+            ("fd", "8.0", "8.1"),
             ("gh", "2.1", "2.2"),
             ("jq", "1.6", "1.7"),
             ("yq", "4.1", "4.2"),
@@ -759,6 +760,8 @@ fn shows_how_long_ago_each_version_was_released() {
             0,
         );
     };
+    // A version the list no longer holds has no age to show.
+    remote("fd", json!([{"version": "8.1", "created_at": days_ago(3)}]));
     remote(
         "gh",
         json!([
@@ -797,6 +800,7 @@ fn shows_how_long_ago_each_version_was_released() {
          /work/project\n\
          Tool  Requested  Current  Released  Latest  Released\n\
          ----  ---------  -------  --------  ------  --------\n\
+         fd    8          8.0      -         8.1     3d ago\n\
          gh    2          2.1      1d ago    2.2     -\n\
          jq    1          1.6      30d ago   1.7     today\n\
          uv    0          0.1      ?         0.2     -\n\
