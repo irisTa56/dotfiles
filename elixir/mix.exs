@@ -1,5 +1,5 @@
-# The Elixir commands of this repository, each a Mix task in the `dotfiles`
-# namespace that a mise task or a shell function runs from this directory.
+# The Elixir checks of this repository, each a Mix task in the `dotfiles`
+# namespace that a mise task runs from this directory.
 defmodule Dotfiles.MixProject do
   use Mix.Project
 
@@ -23,8 +23,7 @@ defmodule Dotfiles.MixProject do
     ]
   end
 
-  # The fakes the tests stand in for external commands with, compiled for the
-  # test environment alone.
+  # The helpers the tests share, compiled for the test environment alone.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
