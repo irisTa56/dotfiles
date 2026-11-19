@@ -29,3 +29,19 @@ fn passes_its_arguments_to_pin_check_as_given() {
         .run_wrapper(&["lints b.toml"], &Mise::installing_with(0))
         .expect(0, &["[ok]"]);
 }
+
+// The binary's exit code is the consumer's answer, so the wrapper must end with it rather
+// than with its own; and a run without --bump leaves the differing pin where it was.
+#[test]
+fn exits_as_pin_check_does_on_a_pin_whose_path_changed() {
+    let up = Upstream::new(&[
+        &[("lints/a.toml", Some("a"))],
+        &[("lints/a.toml", Some("b"))],
+    ]);
+    let cargo = format!("# {}\n", up.marker("lints", 0));
+    let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
+    checkout
+        .run_wrapper(&[], &Mise::installing_with(0))
+        .expect(1, &[&format!("{}//lints differs", up.url())]);
+    assert_eq!(checkout.read("Cargo.toml"), cargo.as_bytes());
+}
