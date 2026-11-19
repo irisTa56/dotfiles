@@ -63,7 +63,7 @@ impl Sandbox {
         self.fake(
             "ccusage",
             &format!(
-                "echo \"$*\" >> '{log}'\n/bin/cat '{answer}'\nexit {code}\n",
+                "echo \"$*\" >> '{log}'\n/bin/cat '{answer}'\necho 'ccusage warns' >&2\nexit {code}\n",
                 log = self.root.join("ccusage.log").display(),
                 answer = answer.display(),
             ),
@@ -249,7 +249,7 @@ fn says_so_when_the_range_holds_no_usage_and_removes_the_report() {
              </pre>\n"
         )
     );
-    assert_eq!(run.err, "");
+    assert_eq!(run.err, "ccusage warns\n");
     sandbox.assert_report_removed();
 }
 
@@ -262,7 +262,7 @@ fn fails_when_quick_look_fails_removing_the_report_all_the_same() {
 
     assert_eq!(run.code, Some(1), "{}", run.err);
     assert!(run.html.is_some_and(|html| html.contains("No usage data.")));
-    assert_eq!(run.err, "Quick Look preview failed\n");
+    assert_eq!(run.err, "ccusage warns\nQuick Look preview failed\n");
     sandbox.assert_report_removed();
 }
 
@@ -280,7 +280,11 @@ fn fails_when_there_is_no_quick_look() {
     );
 
     assert_eq!(run.code, Some(1), "{}", run.err);
-    assert!(run.err.starts_with("cannot run qlmanage: "), "{}", run.err);
+    assert!(
+        run.err.starts_with("ccusage warns\ncannot run qlmanage: "),
+        "{}",
+        run.err
+    );
     sandbox.assert_report_removed();
 }
 
@@ -426,6 +430,12 @@ fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
     Sandbox::session(&config, "-beta", text(&beta));
     Sandbox::session(&config, "-moved", "/nowhere/moved-repo");
     Sandbox::session(&config, "-gone", "/tmp/gone");
+    Sandbox::session(&config, "-var-gone", "/var/dotfiles-local-test-gone");
+    Sandbox::session(
+        &config,
+        "-private-gone",
+        "/private/dotfiles-local-test-gone",
+    );
     Sandbox::session(&config, "-plain", text(&plain));
     let day = |cost| [Day::new("2026-11-01", cost)];
     sandbox.ccusage(
@@ -436,6 +446,8 @@ fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
             ("-beta", &day(8.0)),
             ("-moved", &day(16.0)),
             ("-gone", &day(0.25)),
+            ("-var-gone", &day(64.0)),
+            ("-private-gone", &day(128.0)),
             ("-plain", &day(0.5)),
             ("-nolog", &day(32.0)),
         ]),
@@ -452,7 +464,7 @@ fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
         .split_once("Cost (USD) by repository - daily")
         .expect("the report has a table by repository");
     assert_line(by_repo, "Date moved-repo beta alpha other Total");
-    assert_line(by_repo, "2026-11-01 $16.00 $8.00 $7.00 $32.75 $63.75");
+    assert_line(by_repo, "2026-11-01 $16.00 $8.00 $7.00 $224.75 $255.75");
     assert_eq!(sandbox.log("git.unexpected"), Vec::<String>::new());
 }
 
@@ -588,7 +600,7 @@ fn fails_on_ccusage_output_with_no_per_project_breakdown() {
     assert_eq!(run.code, Some(1));
     assert_eq!(
         run.err,
-        "ccusage output has no per-project breakdown (\"projects\" key)\n"
+        "ccusage warns\nccusage output has no per-project breakdown (\"projects\" key)\n"
     );
     assert_eq!(run.html, None);
 }
@@ -652,7 +664,7 @@ fn fails_with_ccusages_status_when_ccusage_fails() {
     assert_eq!(run.code, Some(3));
     assert!(
         run.err
-            .starts_with("ccusage claude daily --instances --json --since "),
+            .starts_with("ccusage warns\nccusage claude daily --instances --json --since "),
         "{}",
         run.err
     );
@@ -689,7 +701,11 @@ impl Sandbox {
         let run = self.run(args);
         assert_eq!(
             (run.code, run.err.as_str(), run.html),
-            (Some(1), format!("{message}\n").as_str(), None)
+            (
+                Some(1),
+                format!("ccusage warns\n{message}\n").as_str(),
+                None
+            )
         );
     }
 }
@@ -702,11 +718,12 @@ fn fails_on_ccusage_output_that_is_not_json() {
 
     assert_eq!(run.code, Some(1), "{}", run.err);
     assert!(
-        run.err.starts_with("ccusage printed no JSON: "),
+        run.err
+            .starts_with("ccusage warns\nccusage printed no JSON: "),
         "{}",
         run.err
     );
-    assert_eq!(run.err.lines().count(), 1, "{}", run.err);
+    assert_eq!(run.err.lines().count(), 2, "{}", run.err);
 }
 
 #[test]
@@ -774,8 +791,146 @@ fn fails_on_a_session_log_it_cannot_read() {
     assert_eq!(run.code, Some(1), "{}", run.err);
     assert!(
         run.err
-            .starts_with(&format!("cannot read {}: ", log.display())),
+            .starts_with(&format!("ccusage warns\ncannot read {}: ", log.display())),
         "{}",
         run.err
     );
+}
+
+/// The whole report for two days on two models, one of them named with a character of
+/// more than one byte, each model on one of the days alone.
+const TWO_MODELS: &str = "\
+Claude Code usage - daily
+
+Date        Input  Output  Cache Create  Cache Read  Total Tokens  Cache Hit  Cost (USD)
+----------  -----  ------  ------------  ----------  ------------  ---------  ----------
+2026-11-01  1,000      10             0           0         1,010       0.0%       $1.50
+2026-11-02  1,000      10             0           0         1,010       0.0%      $12.25
+----------  -----  ------  ------------  ----------  ------------  ---------  ----------
+Total       2,000      20             0           0         2,020       0.0%      $13.75
+
+Cost (USD) by model - daily
+
+Date        opus-4  \u{fc}-model   Total
+----------  ------  -------  ------
+2026-11-01            $1.50   $1.50
+2026-11-02  $12.25           $12.25
+----------  ------  -------  ------
+Total       $12.25    $1.50  $13.75
+
+Cost (USD) by repository - daily
+
+Date         other   Total
+----------  ------  ------
+2026-11-01   $1.50   $1.50
+2026-11-02  $12.25  $12.25
+----------  ------  ------
+Total       $13.75  $13.75";
+
+// Quick Look shows the report in a monospace font, so the columns line up as they are
+// padded here, a blank cell where a key has no cost that day.
+#[test]
+fn lays_out_each_table_in_aligned_columns() {
+    let days = [
+        Day {
+            model: "claude-\u{fc}-model",
+            ..Day::new("2026-11-01", 1.5)
+        },
+        Day::new("2026-11-02", 12.25),
+    ];
+    let sandbox = Sandbox::new("layout", &usage(&[("-p", &days)]));
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    let report = html
+        .split_once(";padding:16px\">\n")
+        .and_then(|(_, rest)| rest.strip_suffix("\n</pre>\n"))
+        .expect("the report sits in the <pre>");
+    assert_eq!(report, TWO_MODELS);
+}
+
+#[test]
+fn keeps_a_model_name_whose_last_nine_characters_are_not_a_date() {
+    let days = [
+        Day {
+            model: "claude-opus-4-2025051x",
+            ..Day::new("2026-11-01", 1.0)
+        },
+        Day {
+            model: "claude-opus-4-latest-1",
+            ..Day::new("2026-11-01", 2.0)
+        },
+    ];
+    let sandbox = Sandbox::new("not-a-date", &usage(&[("-p", &days)]));
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    assert_line(&html, "Date opus-4-latest-1 opus-4-2025051x Total");
+}
+
+// A scratchpad's path names its uid in digits; a path without them is no scratchpad,
+// even where its next component names a project.
+#[test]
+fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
+    let sandbox = Sandbox::new("scratchpad-uid", NO_USAGE);
+    let config = sandbox.config();
+    let repo = sandbox.dir("repo");
+    Sandbox::session(&config, "-repo", text(&repo));
+    Sandbox::session(
+        &config,
+        "-uid",
+        "/private/tmp/claude-501/-repo/s/scratchpad",
+    );
+    Sandbox::session(
+        &config,
+        "-no-uid",
+        "/private/tmp/claude-/-repo/s/scratchpad",
+    );
+    let git = repo.join(".git");
+    sandbox.repositories(&[(&repo, text(&git))]);
+    sandbox.ccusage(
+        &usage(&[
+            ("-uid", &[Day::new("2026-11-01", 1.0)]),
+            ("-no-uid", &[Day::new("2026-11-01", 2.0)]),
+        ]),
+        0,
+    );
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    let (_, by_repo) = html
+        .split_once("Cost (USD) by repository - daily")
+        .expect("the report has a table by repository");
+    assert_line(by_repo, "Date repo other Total");
+    assert_line(by_repo, "2026-11-01 $1.00 $2.00 $3.00");
+}
+
+// A project's sessions are its *.jsonl logs, read in name order until one records a cwd.
+#[test]
+fn takes_a_projects_cwd_from_the_first_jsonl_log_by_name_that_records_one() {
+    let sandbox = Sandbox::new("first-log", NO_USAGE);
+    let (repo, wrong) = (sandbox.dir("repo"), sandbox.dir("wrong"));
+    let dir = sandbox.config().join("projects/-p");
+    fs::create_dir_all(&dir).expect("the project's directory is created");
+    let cwd = |path: &Path| format!("{}\n", serde_json::json!({ "cwd": text(path) }));
+    for (name, content) in [
+        ("0.txt", cwd(&wrong)),
+        (".0.jsonl", cwd(&wrong)),
+        ("a.jsonl", "{\"type\":\"summary\"}\n".to_owned()),
+        ("b.jsonl", cwd(&repo)),
+    ] {
+        fs::write(dir.join(name), content).expect("the log is written");
+    }
+    // Many logs after it, so that an order other than by name is all but sure to reach
+    // one of them first.
+    for name in 'c'..='z' {
+        fs::write(dir.join(format!("{name}.jsonl")), cwd(&wrong)).expect("the log is written");
+    }
+    let (repo_git, wrong_git) = (repo.join(".git"), wrong.join(".git"));
+    sandbox.repositories(&[(&repo, text(&repo_git)), (&wrong, text(&wrong_git))]);
+    sandbox.ccusage(&usage(&[("-p", &[Day::new("2026-11-01", 1.0)])]), 0);
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    assert_line(&html, "Date repo Total");
 }
