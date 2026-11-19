@@ -272,10 +272,9 @@ impl Checkout {
         refs: &str,
         env: &[(&str, Option<&OsStr>)],
     ) -> Run {
-        let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks/secrets/push-scan.sh");
-        let mut command = isolated("bash", self.dir.path());
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
         command
-            .arg(script)
+            .arg("secrets-push-scan")
             .args(args)
             .current_dir(self.dir.path().join(dir));
         for (name, value) in env {
