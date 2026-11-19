@@ -7,6 +7,7 @@ use tempfile::TempDir;
 
 use crate::support::checkout::{Checkout, Run};
 use crate::support::git::IDENTITY;
+use crate::support::github::GitHubApi;
 use crate::support::origin::Origin;
 use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
@@ -20,15 +21,27 @@ enum Runner {
     GitHubActions,
 }
 
+/// The repository a run under GitHub Actions is for, as `GITHUB_REPOSITORY` names it.
+const REPOSITORY: &str = "o/consumer";
+/// The pull request the stand-in API says it opened.
+const OPENED: &str = "https://github.com/o/consumer/pull/7";
+
 impl Runner {
-    /// Runs `upstream-pin-check --bump` in `checkout`, with `env` set over what the runner sets.
+    /// Runs `upstream-pin-check --bump` in `checkout`, with `env` set over what the runner
+    /// sets. Under GitHub Actions that is a token and a stand-in API that opens any pull
+    /// request it is asked for.
     fn bump(self, checkout: &Checkout, env: &[(&str, Option<&OsStr>)]) -> Run {
-        let actions = match self {
-            Runner::Local => None,
-            Runner::GitHubActions => Some(OsStr::new("true")),
+        let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+        let runner: &[(&str, Option<&OsStr>)] = match self {
+            Runner::Local => &[("GITHUB_ACTIONS", None)],
+            Runner::GitHubActions => &[
+                ("GITHUB_ACTIONS", Some(OsStr::new("true"))),
+                ("GITHUB_TOKEN", Some(OsStr::new("t0ken"))),
+                ("GITHUB_API_URL", Some(OsStr::new(api.url()))),
+                ("GITHUB_REPOSITORY", Some(OsStr::new(REPOSITORY))),
+            ],
         };
-        checkout
-            .upstream_pin_check_with(&["--bump"], &[&[("GITHUB_ACTIONS", actions)], env].concat())
+        checkout.upstream_pin_check_with(&["--bump"], &[runner, env].concat())
     }
 }
 
@@ -73,7 +86,7 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
         &[
             "pushed the move to upstream-pin-bump",
             &format!("{}//lints to {}", up.url(), up.commit(1)),
-            "/compare/upstream-pin-bump?expand=1",
+            &format!("opened its pull request: {OPENED}"),
         ],
     );
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
@@ -88,8 +101,65 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
     assert_eq!(origin.commit(&format!("{BUMP}~1")), origin.commit("main"));
 }
 
-// The link a person follows from the bump is GitHub's comparison of the two commits,
-// and the commit is the bot's, since a runner has no git identity of its own; the
+// The pull request goes from the branch to the default branch origin's HEAD names, on
+// the job's token, and its title and body are the move's commit message.
+#[test]
+fn under_github_actions_opens_the_pull_request_of_the_branch_it_pushes() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
+        )
+        .expect(1, &[&format!("opened its pull request: {OPENED}")]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.method, "POST");
+    assert_eq!(request.path, format!("/repos/{REPOSITORY}/pulls"));
+    assert_eq!(request.authorization.as_deref(), Some("Bearer t0ken"));
+    assert_eq!(request.body["head"], BUMP);
+    assert_eq!(request.body["base"], "main");
+    assert_eq!(
+        request.body["title"],
+        "chore: move upstream pins to their default branches"
+    );
+    let body = request.body["body"].as_str().unwrap_or_default();
+    assert!(
+        body.contains(&format!("{}//lints to {}", up.url(), up.commit(1))),
+        "{body}"
+    );
+}
+
+// The pull request goes into whichever branch origin's HEAD names.
+#[test]
+fn under_github_actions_opens_the_pull_request_into_origins_default_branch_by_its_name() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    origin.rename_main("trunk");
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
+        )
+        .expect(1, &[]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["base"], "trunk");
+}
+
+// The link the move's message gives is GitHub's comparison of the two commits, and the
+// commit is the bot's, since a runner has no git identity of its own; the
 // upstream is reached at a github.com URL that git's config rewrites to a local one.
 #[test]
 fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
@@ -110,21 +180,17 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
         .bump(
             &checkout,
             &[
-                ("GITHUB_SERVER_URL", Some(OsStr::new("https://github.com"))),
-                ("GITHUB_REPOSITORY", Some(OsStr::new("o/consumer"))),
                 ("GIT_CONFIG_GLOBAL", Some(config.as_os_str())),
                 ("GIT_CONFIG_NOSYSTEM", Some(OsStr::new("1"))),
             ],
         )
         .expect(
             1,
-            &[
-                &format!(
-                    "what it brings: https://github.com/o/up/compare/{}...{}",
-                    up.commit(0), up.commit(1)
-                ),
-                "open its pull request: https://github.com/o/consumer/compare/upstream-pin-bump?expand=1",
-            ],
+            &[&format!(
+                "what it brings: https://github.com/o/up/compare/{}...{}",
+                up.commit(0),
+                up.commit(1)
+            )],
         );
     let bot = "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>";
     assert_eq!(
@@ -273,18 +339,112 @@ fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() 
     assert_eq!(origin.commit(BUMP), None);
 }
 
+// The step has to hand the job's token over; without it nothing is pushed, so the next
+// run, with the token, still opens the pull request.
 #[test]
-fn under_github_actions_leaves_an_existing_bump_branch_alone() {
+fn under_github_actions_pushes_nothing_without_the_token_to_open_the_pull_request() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let cargo = format!("# {}\n", up.marker("lints", 0));
-    let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.publish(&origin);
-    checkout.git(&["push", "-q", "origin", &format!("main:{BUMP}")]);
+    Runner::GitHubActions
+        .bump(&checkout, &[("GITHUB_TOKEN", None)])
+        .expect(2, &["GITHUB_TOKEN: ${{ github.token }}"]);
+    assert_eq!(origin.commit(BUMP), None);
+}
+
+// curl is what opens the pull request, and a runner image need not have it.
+#[test]
+fn under_github_actions_pushes_nothing_without_curl_to_open_the_pull_request() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let bin = without_curl();
+    Runner::GitHubActions
+        .bump(&checkout, &[("PATH", Some(bin.path().as_os_str()))])
+        .expect(2, &["needs curl on PATH"]);
+    assert_eq!(origin.commit(BUMP), None);
+}
+
+// Without the repository setting GitHub refuses the job's token a pull request; the
+// branch stays pushed, for a person to open it from.
+#[test]
+fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_request() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let refusal = "GitHub Actions is not permitted to create or approve pull requests.";
+    let api = GitHubApi::answering(403, &format!(r#"{{"message":"{refusal}"}}"#));
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[
+                ("GITHUB_API_URL", Some(OsStr::new(api.url()))),
+                ("GITHUB_SERVER_URL", Some(OsStr::new("https://github.com"))),
+            ],
+        )
+        .expect(
+            2,
+            &[
+                refusal,
+                "pull-requests: write",
+                "Allow GitHub Actions to create and approve pull requests",
+                "https://github.com/o/consumer/compare/upstream-pin-bump?expand=1",
+            ],
+        );
+    assert!(origin.commit(BUMP).is_some());
+}
+
+// While the branch's pull request is open, a newer tip moves the pins on that branch,
+// over the commits a person added there, rather than opening another pull request.
+#[test]
+fn under_github_actions_moves_the_pins_on_an_existing_bump_branch_over_what_it_holds() {
+    let up = Upstream::changing_lints(3);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let added = origin.commit_onto_main_as(BUMP, "NOTE.md", "kept");
+    let api = GitHubApi::answering(500, "{}");
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
+        )
+        .expect(
+            1,
+            &[&format!(
+                "pushed the move onto upstream-pin-bump: {}//lints to {}",
+                up.url(),
+                up.commit(2)
+            )],
+        );
+    assert_eq!(origin.commit(&format!("{BUMP}~1")), Some(added));
+    assert_eq!(
+        origin.show(&format!("{BUMP}:Cargo.toml")),
+        Some(format!("# {}\n", up.marker("lints", 2)).into_bytes())
+    );
+    assert_eq!(
+        origin.show(&format!("{BUMP}:NOTE.md")),
+        Some(b"kept".to_vec())
+    );
+    assert!(api.requests().is_empty(), "{:?}", api.requests());
+}
+
+// A run after the branch has the move, before its pull request merges, has nothing to add.
+#[test]
+fn under_github_actions_leaves_a_bump_branch_holding_the_tips_already_as_it_is() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let moved = format!("# {}\n", up.marker("lints", 1));
+    let added = origin.commit_onto_main_as(BUMP, "Cargo.toml", &moved);
     Runner::GitHubActions
         .bump(&checkout, &[])
-        .expect(1, &["upstream-pin-bump already exists on origin"]);
-    assert_eq!(origin.commit(BUMP), origin.commit("main"));
+        .expect(1, &["upstream-pin-bump holds none of these pins to move"]);
+    assert_eq!(origin.commit(BUMP), Some(added));
 }
 
 // A pin added on a pull request's branch is not on the default branch yet.
@@ -387,4 +547,25 @@ fn under_github_actions_pushes_no_move_of_a_pin_origin_holds_at_a_commit_whose_p
         .bump(&checkout, &[])
         .expect(2, &["holds none of these pins to move"]);
     assert_eq!(origin.commit(BUMP), None);
+}
+
+/// A directory to take for PATH, linking every command on the tests' own PATH but curl.
+/// git runs commands of its own from PATH, such as `git-upload-pack`, so they come along.
+fn without_curl() -> TempDir {
+    let bin = TempDir::new().expect("a temporary directory can be made");
+    let path = std::env::var_os("PATH").unwrap_or_default();
+    for dir in std::env::split_paths(&path) {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let link = bin.path().join(&name);
+            if name != "curl" && !link.exists() {
+                // A name met twice keeps the first, as PATH does; a broken entry is skipped.
+                let _ = std::os::unix::fs::symlink(entry.path(), link);
+            }
+        }
+    }
+    bin
 }

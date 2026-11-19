@@ -137,18 +137,46 @@ It does not tell whether a pin is a commit on the default branch: one that no br
 Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs from the directory `mise where` prints, so the job needs nothing beyond mise and git.
+The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs from the directory `mise where` prints, so the job needs nothing beyond mise and git, and curl for the pull request `--bump` opens.
 `shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
 With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
 Run by hand, it rewrites each pin in the files that spell it, for whoever ran it to commit.
-Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there, pushes that commit to a new `upstream-pin-bump` branch, and prints the link that opens its pull request.
-Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer tip waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
-It pushes through `origin` as the checkout left it, so the job's token needs `contents: write` and the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
-A run whose token cannot push, a pull request from a fork's among them, exits 2 at the push.
-It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
-Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever opens that pull request.
-It exits 2 on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+
+Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit, and proposes the move as a pull request instead, as `release-please` proposes a release:
+
+- Where no `upstream-pin-bump` branch exists, it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there, pushes that commit to a new `upstream-pin-bump` branch, opens the branch's pull request into the default branch, and prints the pull request's URL.
+- Where the branch exists, its pull request is still open, so it commits the moves onto the files as that branch has them and pushes the commit there, over any commit a person added and without forcing, and the pull request shows it; a branch whose pins are at the tips already is left as it is.
+  Merging the pull request deletes the branch where the repository deletes merged branches, and deleting it by hand works as well, after which the next run opens a pull request afresh.
+
+The job needs this, which `contents: write` and `pull-requests: write` give the job's own token:
+
+```yaml
+# .github/workflows/<workflow>.yml, in the consuming repository
+jobs:
+  upstream-pin-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@<sha>
+      - uses: jdx/mise-action@<sha>
+      - run: mise run upstream:pin-check -- --bump
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+```
+
+- It pushes through `origin` as the checkout left it, so the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
+- It opens the pull request through GitHub's REST API with curl, which GitHub's hosted runners have, on the token the step's `GITHUB_TOKEN` hands it; a step does not see the job's token unless its `env` names it.
+- GitHub lets the job's token open a pull request only where the repository setting "Allow GitHub Actions to create and approve pull requests" is on, under Settings → Actions → General; the same setting lets the token approve one, and no permission separates the two.
+- [GitHub starts no workflow run on a pull request the job's token opened or pushed to](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow) until a person with write access selects "Approve workflows to run" on it, so its required checks wait for that.
+
+Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever merges that pull request.
+
+It exits 2, pushing nothing, where a new branch's pull request could not be opened: without `GITHUB_TOKEN` in the step's `env`, or without curl.
+It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where GitHub refuses to open the pull request, which leaves the branch pushed and prints both GitHub's reason and the link that opens the pull request by hand.
+It exits 2 too on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
 It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one
