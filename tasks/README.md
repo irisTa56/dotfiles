@@ -1,14 +1,15 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `upstream:pin-check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `skills:size-check` and `upstream:pin-check` below.
+This repository checks its own skills with the subcommand `skills:size-check` runs, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, and runs either way.
-Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
-A task that runs the `dotfiles-tasks` binary, as `upstream:pin-check` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
+Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `sed` and `tr`.
+A task that runs the `dotfiles-tasks` binary, as `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -91,13 +92,15 @@ The bypass otherwise at hand is `--no-verify`, which drops every other pre-commi
 
 It fails where the body of a skill git tracks, its frontmatter left out, is longer than what Claude Code re-attaches of an invoked skill after a compaction, and names each such `SKILL.md` with its length.
 A rule past that point is missing from the session once a compaction has run, so a skill over the limit moves what it reads only at one moment into files it reads by path.
-The script's header says how the limit is set and counted.
+How the limit is set and counted is in `rust/src/size_check.rs`, the `dotfiles-tasks` subcommand the task runs.
 
 It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
 A skill that passes prints nothing, so a commit's output stays quiet; `--verbose` before the pathspec prints each passing skill's length against the limit too, such as `mise run skills:size-check -- --verbose ':(glob)skills/*/SKILL.md'`, for sizing a skill rather than measuring it by hand.
 It asks git for the list, so an ignored skill, such as one a package manager installs, is left out, and a skill staged for the commit is checked.
 It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
+A `SKILL.md` it cannot read, in a directory it may not search or behind a symlink that loops among them, or one that is not UTF-8, fails as well, since its length is unknown, and the skills after it are still read.
 It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook, and passes over a skill deleted there but not yet from the index.
+It exits 2 on an argument past the pathspec, and where the release it runs cannot be installed.
 
 ### `upstream:pin-check`
 
@@ -158,7 +161,7 @@ Keep such a file out of here.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
-It installs the release it pins with `mise install` and runs it with `mise x`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`; the line that spells the release ends in `# x-release-please-version`, so the release pull request moves its version.
+It installs the release it pins with `mise install`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since `mise x` would leave the tools the header declares off `PATH`; the line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.
 A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
@@ -169,6 +172,5 @@ A task runs in the consuming repository: its working directory is that repositor
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/running-tasks.html#task-environment) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
 
-What a task must do can be checked here without the consuming repositories ever running the check: `qa:tasks` runs a task's script on cases, each a repository it sets up, the arguments it passes and the exit status and output it expects.
-The Mix project under `elixir/` provides that check, and a task's cases are a module of their own under `elixir/lib/dotfiles/task_cases/`, listed in `Dotfiles.TaskCases`; `skills:size-check` has them, and the tasks older than the check do not yet.
-A task that wraps the `dotfiles-tasks` binary is checked instead by that package's tests, which `qa:rust` runs: `upstream:pin-check`'s are under `rust/tests/tasks/pin_check/`, and run the wrapper itself with a stand-in for mise.
+What a task must do is checked here without the consuming repositories ever running the check, by the `dotfiles-tasks` package's tests, which `qa:rust` runs: each sets up a repository, runs the subcommand there, and checks the exit status and output, and a task's tests run its wrapper too, with a stand-in for mise.
+They sit under `rust/tests/tasks/`, a module for each task with a subcommand; the tasks still written in shell have none yet.

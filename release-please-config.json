@@ -8,6 +8,10 @@
       "extra-files": [
         {
           "type": "generic",
+          "path": "/tasks/skills/size-check.sh"
+        },
+        {
+          "type": "generic",
           "path": "/tasks/upstream/pin-check.sh"
         }
       ],

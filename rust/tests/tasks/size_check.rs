@@ -1,5 +1,7 @@
 //! `dotfiles-tasks size-check`: whether the body of each skill git tracks fits in what a
-//! compaction re-attaches.
+//! compaction re-attaches, and the wrapper `tasks/skills/size-check.sh`.
+
+mod wrapper;
 
 use tempfile::TempDir;
 
