@@ -74,7 +74,7 @@ Running it again changes nothing, and it lands in the config every worktree shar
 It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
 A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
 
-It exits 1 on a hit, and on a scan that could not answer, such as trufflehog failing or a report it cannot read, and 2 where the release it runs cannot be installed; either refuses the push.
+It exits 1 on a hit, and 2 where the release it runs cannot be installed; a scan that could not answer exits non-zero as well, with git's own status where a git command failed, and any of these refuses the push.
 
 ### `link-check:staged`
 
