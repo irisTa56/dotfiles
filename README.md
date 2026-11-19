@@ -107,24 +107,31 @@ For a script shared across this machine, wherever it is called from, what decide
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
-2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, with its source in `scripts/` and its link in `[dotfiles]`.
+2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a script with its source in `scripts/` and its link in `[dotfiles]`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
    - `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
    - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
    - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
    - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-3. Anything else: an alias or function in `zsh_fragments/zshrc.sh` for a person to type, with anything longer than a line in `scripts/`.
+3. Anything else: an alias or function in `zsh_fragments/zshrc.sh`, or a mise task, for a person to run, with anything longer than a line in `scripts/` or in a subcommand of `dotfiles-local`.
    - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
 
-Under item 3, a script written in Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
+A command for this machine alone that is written in Rust is a subcommand of `dotfiles-local`, the binary of the `rust/crates/local` package, so that it is compiled with warnings as errors and tested in CI, a dependency it takes is pinned in `rust/Cargo.lock`, and every such command shares one name on `PATH`.
 
-- Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.release_pins`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
-  - The caller sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the command's own output.
+- `local:install` installs the binary into `~/.local/bin` from a checkout on `main`, and fails on any other branch, since every caller runs the installed copy.
+  - `mise bootstrap` runs it, and so do the post-merge and post-checkout hooks that `mise install` registers, once `main` moves or is switched to.
+  - A feature branch tries its change in its own worktree with `cargo run --manifest-path rust/Cargo.toml -p dotfiles-local -- <command>`; the installed binary runs main's code until the branch merges.
+- Each command is a module, `src/<name>.rs` with a `run` that takes the arguments after the command's name and returns the exit code, and an arm in `src/main.rs` that picks it by that name and lists it in the binary's usage.
+- The binary runs in its caller's working directory, so a mise task that runs it sets no `dir` and the command acts on the root of the checkout the task ran in, and a command a shell function runs reads a relative path from where the function was called.
+- Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust` runs them with the rest of the workspace.
+  - A test that needs a real tool, such as yq or jq, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
+- A dependency it adds or updates changes `rust/Cargo.lock`, which `dotfiles-tasks`'s releases cover, so a `feat` or `fix` commit with that change opens a release pull request.
+
+The Mix project under `elixir/` holds the `qa:release-pins` check alone, which a new command does not join.
+
+- The check is a Mix task in the `dotfiles` namespace, `mix dotfiles.release_pins`, which its mise task runs from `elixir/` by setting `dir` to it.
+  - The mise task sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the task's own output.
   - Files follow Elixir's layout: the task in `lib/mix/tasks/dotfiles.<name>.ex`, the module doing the work in `lib/dotfiles/<name>.ex`, and a unit test at the same path under `test/`.
-- A module runs every external command through `Dotfiles.Command.cmd/3`, so a unit test answers in each command's place with a handler it installs in `Dotfiles.FakeCommand`, and starts no process; `test_helper.exs` makes that fake the default, so a command the test did not expect fails it.
-- A test that uses a real implementation, such as the real git, mise, yq or jq, a fake shell script, or a second `mix`, goes in `test/integration/` and is tagged `:integration`, so `mix test --exclude integration` runs the unit tests alone and `mise run qa:ex` runs both.
-  - One that runs the module in the test's own VM calls `Dotfiles.TestEnv.real_commands/0`; a second `mix` starts a VM that does not run `test_helper.exs`, where the real commands are already the default.
-- A test that needs a directory takes it from `Dotfiles.TestEnv.tmp_dir!/1` rather than ExUnit's `:tmp_dir`, which sits inside the checkout: in a worktree its path holds `.claude/worktrees/`, and mise there loads this repository's configs.
-- A command that reads a path relative to where it was called from takes that directory as an argument, since the task's own working directory is the project.
+- A test that needs a directory takes it from `Dotfiles.TestEnv.tmp_dir!/1` rather than ExUnit's `:tmp_dir`, whose path two suites running at once in one checkout would share.
 
 ## Agent Instructions
 
