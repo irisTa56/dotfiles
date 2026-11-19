@@ -1,12 +1,10 @@
-//! `dotfiles-tasks pin-check`, run as a built binary in repositories each test sets up.
-
-mod support;
+//! Runs without `--bump`: reading the pins and comparing each with its upstream.
 
 use tempfile::TempDir;
 
-use support::checkout::Checkout;
-use support::git::git;
-use support::upstream::{Upstream, marker};
+use crate::support::checkout::Checkout;
+use crate::support::git::git;
+use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
 // A wrong pathspec, or a pin spelled so that it is not read, would otherwise pass having
 // checked nothing.
@@ -89,9 +87,6 @@ fn fails_on_a_pin_whose_path_is_gone_from_the_default_branch() {
         .run(&[])
         .expect(1, &["is gone from the default branch"]);
 }
-
-/// A commit spelled as a pin can spell one, which no upstream in these tests has.
-const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 #[test]
 fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read() {

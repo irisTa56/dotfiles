@@ -1,17 +1,14 @@
-//! `dotfiles-tasks pin-check --bump`, run as a built binary in repositories each test
-//! sets up: outside GitHub Actions it moves the pins in the working tree, and under it
-//! pushes the move on origin's default branch to a branch of its own.
-
-mod support;
+//! Runs with `--bump`: outside GitHub Actions it moves the pins in the working tree, and
+//! under it pushes the move on origin's default branch to a branch of its own.
 
 use std::ffi::OsStr;
 
 use tempfile::TempDir;
 
-use support::checkout::{Checkout, Run};
-use support::git::IDENTITY;
-use support::origin::Origin;
-use support::upstream::{Upstream, marker};
+use crate::support::checkout::{Checkout, Run};
+use crate::support::git::IDENTITY;
+use crate::support::origin::Origin;
+use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
 /// The branch a bump under GitHub Actions pushes its move to.
 const BUMP: &str = "upstream-pin-bump";
@@ -235,9 +232,6 @@ fn under_github_actions_pushes_a_moved_file_at_the_mode_it_has_on_the_default_br
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
     assert_eq!(origin.mode(BUMP, "run.sh").as_deref(), Some("100755"));
 }
-
-/// A commit spelled as a pin can spell one, which no upstream in these tests has.
-const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 // A pin it could not tell about leaves the run unable to tell, while the bump still
 // moves the pin that differs.

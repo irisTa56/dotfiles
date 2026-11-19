@@ -6,6 +6,9 @@ use tempfile::TempDir;
 
 use super::git::{IDENTITY, git};
 
+/// A commit spelled as a pin can spell one, which no upstream in these tests has.
+pub(crate) const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
 /// An upstream repository on `main`, reached by a `file://` URL.
 pub(crate) struct Upstream {
     dir: TempDir,
