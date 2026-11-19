@@ -18,6 +18,15 @@ fn fails_as_unable_to_check_where_the_release_it_pins_cannot_be_installed() {
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
+// A release mise installed can still be one it cannot locate, and running a binary from
+// the empty path it prints then is no answer about the skills either.
+#[test]
+fn fails_as_unable_to_check_where_mise_cannot_locate_the_release_it_installed() {
+    let run = Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
+        .size_check_wrapper(&[], &Mise::installing_but_not_locating());
+    assert_eq!(run.code(), 2, "output: {}", run.output());
+}
+
 // A consumer names its skills with a pathspec, which reaches the binary only as written:
 // one holding a space, split in two, would be read as a pathspec and an argument past it.
 #[test]

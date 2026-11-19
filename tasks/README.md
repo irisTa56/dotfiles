@@ -1,6 +1,7 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `upstream:pin-check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `skills:size-check` and `upstream:pin-check` below.
+This repository checks its own skills with the subcommand `skills:size-check` runs, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them

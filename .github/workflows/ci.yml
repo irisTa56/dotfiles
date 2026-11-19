@@ -142,7 +142,8 @@ jobs:
         env:
           MIX_ENV: test
       - run: mise run qa:ex
-      # A check of the shared tasks under tasks/, which the Mix project provides.
+      # That each shared task wrapping dotfiles-tasks pins the release rust/Cargo.toml is
+      # at, which the Mix project checks.
       - run: mise run qa:release-pins
 
   link-check-offline:
