@@ -8,7 +8,7 @@ The first half of this file is for a repository taking them, the second for whoe
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
 A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
-Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `sed` and `tr`.
+Beyond that the library assumes git and bash.
 A task that runs the `dotfiles-tasks` binary, as `secrets:push-scan`, `link-check:staged`, `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
@@ -137,7 +137,7 @@ It does not tell whether a pin is a commit on the default branch: one that no br
 Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
-The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs with `mise x`, so the job needs nothing beyond mise and git.
+The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs from the directory `mise where` prints, so the job needs nothing beyond mise and git.
 `shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
 With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
