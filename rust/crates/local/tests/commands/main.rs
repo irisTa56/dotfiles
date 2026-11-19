@@ -5,5 +5,6 @@
 
 mod ccusage_popup;
 mod dispatch;
+mod mise_multi_upgrade;
 mod skills_update;
 mod with_new_terminal;
