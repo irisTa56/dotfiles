@@ -893,6 +893,7 @@ fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
         "-uid",
         "/private/tmp/claude-501/-repo/s/scratchpad",
     );
+    Sandbox::session(&config, "-tmp-uid", "/tmp/claude-501/-repo/s/scratchpad");
     Sandbox::session(
         &config,
         "-no-uid",
@@ -903,6 +904,7 @@ fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
     sandbox.ccusage(
         &usage(&[
             ("-uid", &[Day::new("2026-11-01", 1.0)]),
+            ("-tmp-uid", &[Day::new("2026-11-01", 4.0)]),
             ("-no-uid", &[Day::new("2026-11-01", 2.0)]),
         ]),
         0,
@@ -914,7 +916,7 @@ fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
         .split_once("Cost (USD) by repository - daily")
         .expect("the report has a table by repository");
     assert_line(by_repo, "Date repo other Total");
-    assert_line(by_repo, "2026-11-01 $1.00 $2.00 $3.00");
+    assert_line(by_repo, "2026-11-01 $5.00 $2.00 $7.00");
 }
 
 // A project's sessions are its *.jsonl logs, read in name order until one records a cwd.
