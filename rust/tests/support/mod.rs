@@ -4,10 +4,7 @@
 // Each file under tests/ is a crate of its own, which compiles all of this.
 #![allow(dead_code, reason = "each test crate uses its own share of these")]
 
-mod checkout;
-mod git;
-mod upstream;
-
-pub(crate) use checkout::Checkout;
-pub(crate) use git::git;
-pub(crate) use upstream::{Upstream, marker};
+pub(crate) mod checkout;
+pub(crate) mod git;
+pub(crate) mod origin;
+pub(crate) mod upstream;

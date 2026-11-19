@@ -4,7 +4,9 @@ mod support;
 
 use tempfile::TempDir;
 
-use support::{Checkout, Upstream, git, marker};
+use support::checkout::Checkout;
+use support::git::git;
+use support::upstream::{Upstream, marker};
 
 // A wrong pathspec, or a pin spelled so that it is not read, would otherwise pass having
 // checked nothing.
@@ -50,7 +52,7 @@ fn leaves_the_repository_of_a_git_hook_it_runs_under_alone() {
     git(hook.path(), &["init", "-q", "--bare"]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .run_with(&[], &[("GIT_DIR", hook.path().as_os_str())])
+        .run_with(&[], &[("GIT_DIR", Some(hook.path().as_os_str()))])
         .expect(0, &["[ok]"]);
     assert!(
         !hook.path().join("FETCH_HEAD").exists(),
@@ -214,7 +216,7 @@ fn fails_as_unable_to_tell_where_it_cannot_make_its_scratch_repository() {
     let missing = aux.path().join("no-such-dir");
     let cargo = format!("# {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .run_with(&[], &[("TMPDIR", missing.as_os_str())])
+        .run_with(&[], &[("TMPDIR", Some(missing.as_os_str()))])
         .expect(2, &["[fail] stopped on"]);
 }
 

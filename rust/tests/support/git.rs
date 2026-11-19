@@ -18,6 +18,16 @@ pub(super) fn isolate(command: &mut Command, dir: &Path) {
     );
 }
 
+/// Runs git in `dir` to read what a run left there, returning its stdout as git wrote
+/// it, or `None` where git fails, as on an object that does not exist.
+pub(super) fn query(dir: &Path, args: &[&str]) -> Option<Vec<u8>> {
+    let mut command = Command::new("git");
+    command.args(args).current_dir(dir);
+    isolate(&mut command, dir);
+    let output = command.output().expect("git runs");
+    output.status.success().then_some(output.stdout)
+}
+
 /// Runs git in `dir`, as setup that must succeed, and returns its trimmed stdout.
 pub(crate) fn git(dir: &Path, args: &[&str]) -> String {
     let mut command = Command::new("git");

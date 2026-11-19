@@ -7,7 +7,8 @@ use std::process::{Command, Stdio};
 
 use tempfile::TempDir;
 
-use super::git::{git, isolate};
+use super::git::{IDENTITY, git, isolate};
+use super::origin::Origin;
 
 /// The repository a run checks: a fresh git repository with the files a test stages.
 pub(crate) struct Checkout {
@@ -27,18 +28,46 @@ impl Checkout {
         let checkout = Checkout { dir };
         checkout.git(&["init", "-q"]);
         for (path, content) in files {
-            let file = checkout.dir.path().join(path);
-            fs::create_dir_all(file.parent().expect("a file has a parent"))
-                .expect("the file's directory can be made");
-            fs::write(&file, content).expect("the file can be written");
+            checkout.write(path, content);
         }
         checkout.git(&["add", "-A"]);
         checkout
     }
 
-    /// Runs git in the repository, as setup that must succeed.
-    pub(crate) fn git(&self, args: &[&str]) {
-        git(self.dir.path(), args);
+    /// Writes `contents` to `path` in the working tree, staging nothing.
+    pub(crate) fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
+        let file = self.dir.path().join(path);
+        fs::create_dir_all(file.parent().expect("a file has a parent"))
+            .expect("the file's directory can be made");
+        fs::write(&file, contents).expect("the file can be written");
+    }
+
+    /// The bytes of `path` in the working tree.
+    pub(crate) fn read(&self, path: &str) -> Vec<u8> {
+        fs::read(self.dir.path().join(path)).expect("the file can be read")
+    }
+
+    /// Runs git in the repository, as setup that must succeed, and returns its trimmed
+    /// stdout.
+    pub(crate) fn git(&self, args: &[&str]) -> String {
+        git(self.dir.path(), args)
+    }
+
+    /// Commits what is staged and makes it `origin`'s `main`.
+    pub(crate) fn publish(&self, origin: &Origin) {
+        self.git(&[&IDENTITY[..], &["commit", "-qm", "base"]].concat());
+        self.git(&["branch", "-M", "main"]);
+        self.git(&["remote", "add", "origin", origin.location()]);
+        self.git(&["push", "-q", "origin", "main"]);
+    }
+
+    /// Puts the repository on `origin`'s `main` with its own files staged over it, so
+    /// that the checkout differs from origin.
+    pub(crate) fn stage_over(&self, origin: &Origin) {
+        self.git(&["remote", "add", "origin", origin.location()]);
+        self.git(&["fetch", "-q", "origin", "main"]);
+        self.git(&["reset", "-q", "origin/main"]);
+        self.git(&["add", "-A"]);
     }
 
     /// Runs `pin-check` with `args` in the repository.
@@ -46,9 +75,9 @@ impl Checkout {
         self.run_with(args, &[])
     }
 
-    /// Runs `pin-check` with `args` in the repository, with `env` set over the
-    /// isolated environment.
-    pub(crate) fn run_with(&self, args: &[&str], env: &[(&str, &OsStr)]) -> Run {
+    /// Runs `pin-check` with `args` in the repository, with each variable of `env` set
+    /// over the isolated environment, or removed from it where its value is `None`.
+    pub(crate) fn run_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
         let (mut reader, writer) = io::pipe().expect("a pipe can be made");
         let mut command = Command::new(env!("CARGO_BIN_EXE_dotfiles-tasks"));
         command
@@ -59,7 +88,12 @@ impl Checkout {
             .stdout(writer.try_clone().expect("the pipe can be shared"))
             .stderr(writer);
         isolate(&mut command, self.dir.path());
-        command.envs(env.iter().copied());
+        for (name, value) in env {
+            match value {
+                Some(value) => command.env(name, value),
+                None => command.env_remove(name),
+            };
+        }
         let mut child = command.spawn().expect("the binary runs");
         // The command holds the pipe's writing ends until it is dropped, and reading
         // waits for every one to close.
