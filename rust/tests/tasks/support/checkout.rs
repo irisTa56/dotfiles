@@ -135,6 +135,26 @@ impl Checkout {
         self.git(&["add", "-A"]);
     }
 
+    /// Runs `link-check-staged` in the repository.
+    pub(crate) fn link_check_staged(&self) -> Run {
+        self.task("link-check-staged", &[], &[])
+    }
+
+    /// Runs `link-check-staged` as `link_check_staged` does, with `env` set as `task`
+    /// sets it.
+    pub(crate) fn link_check_staged_with(&self, env: &[(&str, Option<&OsStr>)]) -> Run {
+        self.task("link-check-staged", &[], env)
+    }
+
+    /// Runs `link-check-staged` in the directory `dir` of the repository.
+    pub(crate) fn link_check_staged_in(&self, dir: &str) -> Run {
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
+        command
+            .arg("link-check-staged")
+            .current_dir(self.dir.path().join(dir));
+        Run::of(command)
+    }
+
     /// Runs `pin-check` with `args` in the repository.
     pub(crate) fn pin_check(&self, args: &[&str]) -> Run {
         self.task("pin-check", args, &[])

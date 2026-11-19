@@ -2,6 +2,7 @@
 //! wrappers under tasks/ pin the release that runs them.
 
 mod git;
+mod link_check;
 mod pin_check;
 mod size_check;
 mod stream;
@@ -13,13 +14,14 @@ use stream::Stream;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.split_first() {
+        Some((task, _)) if task == "link-check-staged" => link_check::Lychee::check_staged(),
         Some((task, rest)) if task == "pin-check" => {
             ExitCode::from(pin_check::Request::new(rest).run() as u8)
         }
         Some((task, rest)) if task == "size-check" => size_check::Request::new(rest).run(),
         _ => {
             Stream::Stderr.line(format_args!(
-                "[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check, size-check"
+                "[fail] usage: dotfiles-tasks <task> [args...]; tasks: link-check-staged, pin-check, size-check"
             ));
             ExitCode::from(pin_check::Status::Unknown as u8)
         }

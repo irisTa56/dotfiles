@@ -3,7 +3,9 @@
 use std::borrow::Cow;
 use std::io::Write;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{Command, ExitCode, Stdio};
+
+use crate::stream::Stream;
 
 /// What one git run printed, and how it exited.
 #[derive(Debug)]
@@ -35,6 +37,18 @@ impl Run {
 
     pub(crate) fn stderr(&self) -> &str {
         &self.stderr
+    }
+
+    /// Reports what a failed run said, and returns the code to end the task with: git's
+    /// own status, such as 128 outside a repository, or `otherwise` where it has none,
+    /// git having never run or been stopped by a signal.
+    pub(crate) fn failure(&self, otherwise: u8) -> ExitCode {
+        Stream::Stderr.bytes(self.stderr.as_bytes());
+        ExitCode::from(
+            self.status
+                .and_then(|status| u8::try_from(status).ok())
+                .unwrap_or(otherwise),
+        )
     }
 
     /// The run of a git that could not be started, or not fed its input.
