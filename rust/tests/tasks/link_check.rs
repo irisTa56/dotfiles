@@ -224,3 +224,32 @@ fn fails_as_a_shell_does_on_a_command_it_cannot_run_where_lychee_is_not_executab
         .link_check_staged_with(&[("PATH", Some(bin.path().as_os_str()))])
         .expect(126, &["lychee"]);
 }
+
+// git reads a pathspec starting with `:` as magic, so a name like that would match
+// nothing, and its links would go unchecked.
+#[test]
+fn checks_a_staged_file_whose_name_git_could_read_as_pathspec_magic() {
+    staged(&[(":x.md", "[gone](missing.md)\n")])
+        .link_check_staged()
+        .expect(1, &[":x.md", "missing.md"]);
+}
+
+// Each commit would otherwise request every link of its files again, and the
+// repository ignores the cache where it sits, at the root. lychee keeps no entry for a
+// link to a local file, but writes the file all the same.
+#[test]
+fn keeps_lychees_cache_at_the_root_when_run_from_a_subdirectory() {
+    let checkout = staged(&[
+        ("a.md", "[b](b.md)\n"),
+        ("b.md", "fine\n"),
+        ("sub/c.md", "fine\n"),
+    ]);
+    checkout.link_check_staged_in("sub").expect(0, &[]);
+    assert_eq!(
+        (
+            checkout.exists(".lycheecache"),
+            checkout.exists("sub/.lycheecache")
+        ),
+        (true, false)
+    );
+}

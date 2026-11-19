@@ -107,6 +107,11 @@ impl Checkout {
         .expect("the directory's mode can be set");
     }
 
+    /// Whether the working tree holds anything at `path`.
+    pub(crate) fn exists(&self, path: &str) -> bool {
+        self.dir.path().join(path).exists()
+    }
+
     /// The bytes of `path` in the working tree.
     pub(crate) fn read(&self, path: &str) -> Vec<u8> {
         fs::read(self.dir.path().join(path)).expect("the file can be read")
