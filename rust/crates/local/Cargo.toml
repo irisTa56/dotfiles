@@ -6,5 +6,9 @@ edition = "2024"
 repository = "https://github.com/irisTa56/dotfiles"
 publish = false
 
+[dependencies]
+jiff = "1"
+serde_json = "1"
+
 [lints]
 workspace = true

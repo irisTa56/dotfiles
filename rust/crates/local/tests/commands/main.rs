@@ -4,4 +4,5 @@
 //! dead code.
 
 mod dispatch;
+mod skills_update;
 mod with_new_terminal;

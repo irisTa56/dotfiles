@@ -117,7 +117,7 @@ Take the first of these that fits:
 
 Under item 3, a script written in Elixir goes in the Mix project under `elixir/` rather than in `scripts/`, so that it is compiled with warnings as errors and tested in CI, and a dependency it takes is pinned in `mix.lock`.
 
-- Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.skills_update`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
+- Each command is a Mix task in the `dotfiles` namespace, such as `mix dotfiles.release_pins`, which a mise task or a shell function runs from `elixir/`, so a mise task sets `dir` to it.
   - The caller sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the command's own output.
   - Files follow Elixir's layout: the task in `lib/mix/tasks/dotfiles.<name>.ex`, the module doing the work in `lib/dotfiles/<name>.ex`, and a unit test at the same path under `test/`.
 - A module runs every external command through `Dotfiles.Command.cmd/3`, so a unit test answers in each command's place with a handler it installs in `Dotfiles.FakeCommand`, and starts no process; `test_helper.exs` makes that fake the default, so a command the test did not expect fails it.
