@@ -3,6 +3,7 @@ biome = "latest"
 gitleaks = "latest"
 lychee = "latest"
 rumdl = "latest"
+rust = { version = "latest", components = "clippy,rustfmt" }
 shellcheck = "latest"
 shfmt = "latest"
 yq = "latest"
@@ -154,14 +155,38 @@ run = [
   "mix test --warnings-as-errors",
 ]
 
+# The release pull request moves the version in rust/Cargo.toml and in each wrapper
+# under tasks/ together; this fails where a wrapper was left behind.
+[tasks."qa:release-pins"]
+description = "Check that each shared task pins the dotfiles-tasks release rust/Cargo.toml is at"
+dir = "{{config_root}}/elixir"
+env = { MIX_QUIET = "1" }
+run = "mix dotfiles.release_pins"
+
+[tasks."qa:rust"]
+description = "Check formatting of, lint and test the dotfiles-tasks package"
+dir = "{{config_root}}/rust"
+run = [
+  "cargo fmt --check",
+  "cargo clippy --all-targets --locked -- -D warnings",
+  "cargo test --locked",
+]
+
+[tasks."rust:build"]
+description = "Build the dotfiles-tasks binary that the shared tasks' cases run"
+dir = "{{config_root}}/rust"
+run = "cargo build --locked"
+
 [tasks."qa:skills"]
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = [{ task = "skills:size-check" }]
 
-# The shared tasks are shell, so what each must do is checked from outside it:
-# the Mix project runs its script on cases (elixir/lib/dotfiles/task_cases/).
+# What each shared task must do is checked from outside it: the Mix project runs its
+# script on cases (elixir/lib/dotfiles/task_cases/), and a task that wraps the
+# dotfiles-tasks binary on the build of this working tree, which rust:build leaves.
 [tasks."qa:tasks"]
 description = "Check that each shared task under tasks/ does what its cases expect"
+depends = ["rust:build"]
 dir = "{{config_root}}/elixir"
 env = { MIX_QUIET = "1" }
 run = "mix dotfiles.task_cases"

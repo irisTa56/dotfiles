@@ -86,6 +86,110 @@ defmodule Dotfiles.TaskCasesTest do
     assert_received {:bash, dir} when is_binary(dir)
   end
 
+  # A task that wraps the dotfiles-tasks binary installs a release with `mise x` and
+  # runs it, so a case stands a `mise` in for that, which runs the command it is given,
+  # and the build of this working tree is the dotfiles-tasks the command finds.
+  test "runs the task with a stand-in mise and the working tree's dotfiles-tasks build first on PATH" do
+    Dotfiles.TestEnv.put_env([{"PATH", "/bin:/usr/bin"}])
+    parent = self()
+
+    FakeCommand.install(fn
+      "git", _, _ ->
+        {"", 0}
+
+      "bash", args, opts ->
+        {_, path} = List.keyfind(opts[:env], "PATH", 0)
+        [shim, build, rest] = String.split(path, ":", parts: 3)
+        mise = Path.join(shim, "mise")
+        {out, 0} = System.cmd(mise, ["x", "tool@1", "--", "echo", "ran"])
+        send(parent, {:bash, args, build, rest, out})
+        {"", 0}
+    end)
+
+    assert run([a_case(%{args: ["a"]})]) == {"", 0}
+
+    assert_received {:bash, ["/repo/tasks/x/y.sh", "a"], "/repo/rust/target/debug",
+                     "/bin:/usr/bin", "ran\n"}
+  end
+
+  # A case whose task reads another repository, an upstream, sets that one up apart
+  # from the case's own, and names it in the files and arguments it then gives.
+  test "runs prepare in a directory apart from the case's repository and takes the fields it returns" do
+    parent = self()
+
+    FakeCommand.install(fn
+      "git", _, _ ->
+        {"", 0}
+
+      "bash", args, opts ->
+        send(parent, {:bash, args, opts[:cd], File.read!(Path.join(opts[:cd], "f"))})
+        {"", 0}
+    end)
+
+    prepare = fn aux ->
+      send(parent, {:aux, aux, File.dir?(aux)})
+      %{files: [{"f", aux}], args: [aux]}
+    end
+
+    assert run([a_case(%{prepare: prepare})]) == {"", 0}
+    assert_received {:aux, aux, true}
+    assert_received {:bash, ["/repo/tasks/x/y.sh", ^aux], dir, ^aux}
+    refute String.starts_with?(aux, dir) or String.starts_with?(dir, aux)
+    refute File.exists?(aux)
+  end
+
+  test "runs the task with the variables a case's env sets" do
+    parent = self()
+
+    FakeCommand.install(fn
+      "git", _, _ ->
+        {"", 0}
+
+      "bash", _, opts ->
+        send(parent, {:env, opts[:env]})
+        {"", 0}
+    end)
+
+    assert run([a_case(%{env: [{"GITHUB_ACTIONS", "true"}]})]) == {"", 0}
+    assert_received {:env, env}
+    assert {"GITHUB_ACTIONS", "true"} in env
+  end
+
+  # A task that pushes is set up with a remote, which only exists once the case's
+  # repository does.
+  test "runs a case's git commands in its repository after staging its files" do
+    parent = self()
+
+    FakeCommand.install(fn
+      "git", args, opts ->
+        send(parent, {:git, args, opts[:cd]})
+        {"", 0}
+
+      "bash", _, _ ->
+        {"", 0}
+    end)
+
+    assert run([a_case(%{git: [["commit", "-qm", "base"]]})]) == {"", 0}
+    assert_received {:git, ["add", "-A"], dir}
+    assert_received {:git, ["commit", "-qm", "base"], ^dir}
+  end
+
+  test "reports what a case's verify finds in the repository after the task ran" do
+    parent = self()
+    fake(fn _ -> {"", 0} end)
+
+    verify = fn dir ->
+      send(parent, {:verify, File.dir?(dir)})
+      ["mise.toml still holds the old pin"]
+    end
+
+    {out, code} = run([a_case(%{verify: verify})])
+
+    assert code == 1
+    assert_received {:verify, true}
+    assert out =~ "tasks/x/y.sh, a case: mise.toml still holds the old pin"
+  end
+
   test "reports every case whose task exits otherwise, and fails" do
     fake(fn _ -> {"", 0} end)
 

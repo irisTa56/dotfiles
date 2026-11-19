@@ -1,5 +1,7 @@
 [global]
 disable = ["MD013"]
+# release-please generates this changelog, so its format is release-please's to decide rather than this repository's.
+exclude = ["rust/CHANGELOG.md"]
 
 [per-file-ignores]
 ".claude/skills/global-hooks/context/reply-language.md" = ["MD041"]

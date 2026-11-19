@@ -29,3 +29,6 @@ apm_modules/
 
 # lychee request cache, written by link-check:staged
 .lycheecache
+
+# Cargo build output
+/rust/target/

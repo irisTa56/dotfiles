@@ -1,12 +1,14 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `shared-tasks:check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan`, `link-check:staged` and `skills:size-check`, which gate a commit or a push here too, and `upstream:pin-check` below.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
+A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, and runs either way.
 Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `awk` and `iconv`.
+A task that runs the `dotfiles-tasks` binary, as `upstream:pin-check` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -30,6 +32,7 @@ A block carrying `run`, `run_windows` or `file` replaces the shared task instead
 Pin `ref` to a commit on `main`, not a branch, and spell it in full.
 For a sha mise clones the whole repository and checks the commit out, so a commit no branch reaches is not in the clone: a pin taken from a branch since deleted, or from a pull request this repository squash-merged, fails the next time the cache is cold rather than when it was written.
 A failing include takes every task in the consuming repository with it, that repository's own included.
+A task that runs the `dotfiles-tasks` binary fails instead, at mise's install, on a commit whose wrapper names a release not yet published: the commit that merges a release moves the wrapper, and the release is published once its binaries are built, minutes later, so a pin taken in between, by hand or by `--bump`, works from then on.
 mise [keys its clone cache on the repository URL and the ref alone, and reuses an existing clone without fetching](https://github.com/jdx/mise/blob/v2026.9.11/src/task/task_file_providers/remote_task_git.rs), so a branch ref stays at whatever it first resolved to; a new commit sha is a new key and clones afresh.
 It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
@@ -96,26 +99,51 @@ It asks git for the list, so an ignored skill, such as one a package manager ins
 It exits 1 where git lists no skill, so a wrong pathspec fails rather than passing having read nothing, and where a `SKILL.md` opens a frontmatter it never closes; one that opens none is counted whole.
 It reads the working tree whole rather than the staged diff, so it serves as a CI gate as well as in a pre-commit hook, and passes over a skill deleted there but not yet from the index.
 
-### `shared-tasks:check`
+### `upstream:pin-check`
 
-It says whether the pin carries the same `tasks/` as the tip of `main`.
-It answers for what the commits carry under `tasks/` rather than for the commits, so a `main` that moved without touching this directory, which is most of its commits, asks for no bump, while one that changed these instructions does, since they sit under `tasks/` too.
-It exits 1 when the two differ and names both commits, without saying which is the older, since the pin may be ahead of `main` as well as behind it.
-It exits 2 when it could not tell instead — run outside mise, tasks that are not in a repository git will read, a scratch repository it could not create, or a remote it could not read `tasks/` on `refs/heads/main` from — and says which of those it was.
-It does not tell whether the pin is a commit on `main`: one that no branch reaches but carries the same `tasks/` passes, and fails only once the cache is cold, as [the pinning rule above](#taking-them) warns.
-Run inside this repository it exits 0 and checks nothing, since its own working tree carries no pin.
+It says whether each path a repository pins in an upstream repository is the same at the pinned commit as on the tip of that upstream's default branch.
+It is for a repository that took something from an upstream at one commit and wants to hear when that thing changes there, without following the upstream automatically.
+
+A pin is a marker of the form `git::<url>//<path>?ref=<40-character commit sha>` anywhere in a file git tracks, a comment included, where `<url>` opens with its scheme, such as `https://`:
+
+```toml
+# Cargo.toml: the lints taken in part from an upstream
+# upstream: git::https://github.com/morganlinton/BeautifulRust.git//lints?ref=<40-character commit sha>
+```
+
+A `task_config.includes` entry is in that form already, so the pin [Taking them](#taking-them) asks for is checked as one of these, with no marker to add.
+It reads every tracked file by default; git pathspecs as arguments narrow that, such as `mise run upstream:pin-check -- mise.toml Cargo.toml`.
+A pin spelled in several files is checked once, and a difference names each file that spells it.
+
+It compares what the two commits carry under the path rather than the commits, so an upstream that moved without touching the path, which is most of its commits, asks for no bump.
+It compares the upstream with itself and never with the repository's own files, so a repository that took only part of the path, or edited what it took, still passes until the upstream changes.
+It exits 1 when a pinned path differs and names both commits, without saying which is the older, since the pin may be ahead of the default branch as well as behind it.
+It exits 1 too where the path is gone from the default branch, and says so.
+It exits 2 when it could not tell instead, and says why:
+
+- the release of `dotfiles-tasks` it runs could not be installed
+- no tracked file, or none the pathspecs name, holds a pin
+- an upstream it could not read, or a pinned commit that upstream does not have
+- a path the pinned commit does not have
+- a scratch directory or repository it could not create
+
+It does not tell whether a pin is a commit on the default branch: one that no branch reaches but carries the same path passes, which for an include fails only once mise's cache is cold, as [the pinning rule above](#taking-them) warns.
+Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
+The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs with `mise x`, so the job needs nothing beyond mise and git.
+`shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
-With `--bump`, where it would exit 1 it first moves the pin to the tip of `main` and prints the URL comparing the two commits, then exits 1 all the same.
-Run by hand, it rewrites the pin in `mise.toml` at the repository root, for whoever ran it to commit.
-Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the move onto `mise.toml` as origin's default branch has it, pushes that commit to a new `shared-tasks-bump` branch, and prints the link that opens its pull request.
-Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer `main` waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
+With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
+Run by hand, it rewrites each pin in the files that spell it, for whoever ran it to commit.
+Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit: it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there, pushes that commit to a new `upstream-pin-bump` branch, and prints the link that opens its pull request.
+Where that branch exists already it is left alone, commits a person added to it included, so a move to a still newer tip waits until the branch is gone: merging its pull request deletes it where the repository deletes merged branches, and deleting it by hand works as well.
 It pushes through `origin` as the checkout left it, so the job's token needs `contents: write` and the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
 A run whose token cannot push, a pull request from a fork's among them, exits 2 at the push.
 It stops short of opening the pull request: a workflow's token can open one only under the repository setting that also lets it approve one.
-Running the tasks the move changes, and deciding whether a new one joins the repository's hooks or CI, stay with whoever opens that pull request.
-It exits 2 on any other argument, and wherever it cannot make the move, saying why; a pull request cut before the last move merged can meet this until it is brought up to date, since the default branch's pin is at `main` already.
+Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever opens that pull request.
+It exits 2 on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one
 
@@ -129,6 +157,9 @@ Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
+Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
+It installs the release it pins with `mise install` and runs it with `mise x`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`; the line that spells the release ends in `# x-release-please-version`, so the release pull request moves its version.
+A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.

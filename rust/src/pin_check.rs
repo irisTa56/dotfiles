@@ -1,0 +1,110 @@
+//! `upstream:pin-check`: whether the upstream paths this repository pins have changed on
+//! their default branches, and with `--bump`, moving the pins that have.
+//!
+//! What a pin is, and what each exit code means, is in tasks/README.md under
+//! "upstream:pin-check". This module defines the values a run passes around; its child
+//! modules provide what each does.
+
+mod bump;
+mod moves;
+mod pins;
+mod report;
+mod request;
+mod scratch;
+mod text;
+
+use tempfile::TempDir;
+
+use crate::git::Git;
+
+/// How a run ends, ordered so that the worst of several outcomes is their maximum.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum Status {
+    /// Nothing to act on.
+    Ok = 0,
+    /// A pinned path differs from its upstream's default branch.
+    Differs = 1,
+    /// It could not tell.
+    Unknown = 2,
+}
+
+/// A run's arguments: `--bump`, and then git pathspecs.
+#[derive(Debug)]
+pub(crate) struct Request<'a> {
+    bump: bool,
+    pathspecs: &'a [String],
+}
+
+/// What a run could not do, as the line that says so.
+#[derive(Debug, Clone, Copy)]
+struct Failure<'m>(&'m str);
+
+/// A file's contents, in which markers are found and moved. They are bytes, since a file
+/// need not be UTF-8, and a move leaves every byte outside its markers as it was.
+#[derive(Debug, Clone, Copy)]
+struct Text<'t>(&'t [u8]);
+
+/// A marker as a text spells it: `git::<url>//<path>?ref=<commit>`.
+#[derive(Debug, Clone, Copy)]
+struct Marker<'t> {
+    url: &'t str,
+    path: &'t str,
+    commit: &'t str,
+}
+
+/// One pin: an upstream URL, a path in it, and the commit pinned, with the tracked files
+/// that spell it.
+#[derive(Debug)]
+struct Pin {
+    url: String,
+    path: String,
+    commit: String,
+    files: Vec<String>,
+}
+
+/// The pins the tracked files spell, each once, in the order first met.
+#[derive(Debug)]
+struct Pins(Vec<Pin>);
+
+/// A pin that differs, and the default branch's tip it would move to.
+#[derive(Debug)]
+struct Move<'p> {
+    pin: &'p Pin,
+    tip: String,
+}
+
+/// The pins whose paths differ, which a bump moves.
+#[derive(Debug)]
+struct Differing<'p>(Vec<Move<'p>>);
+
+/// A pin as one text spelled it, and the tip the move put there in its place.
+#[derive(Debug)]
+struct Moved {
+    url: String,
+    path: String,
+    from: String,
+    tip: String,
+}
+
+/// What a bump moved, over however many files and markers.
+#[derive(Debug, Default)]
+struct Moves(Vec<Moved>);
+
+/// What checking one pin found.
+#[derive(Debug)]
+enum Checked {
+    Matches,
+    /// The path is gone from the default branch, so there is nothing to move the pin to.
+    Gone,
+    /// The path differs from the one at this default branch tip.
+    Differs(String),
+    Unknown,
+}
+
+/// A scratch repository that upstream commits are fetched into, trees without blobs, and
+/// removed with it.
+#[derive(Debug)]
+struct Scratch {
+    git: Git,
+    dir: TempDir,
+}

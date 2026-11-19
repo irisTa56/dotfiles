@@ -1,0 +1,128 @@
+name: Release
+
+# Releases the dotfiles-tasks binary under rust/, which the shared tasks under tasks/
+# run at the version they pin. release-please keeps a release pull
+# request open for what has merged since the last release; merging it tags the
+# release as a draft, the jobs below attach the binaries, and only then is it
+# published. The repository has immutable releases on, so once published neither the
+# tag nor an asset can change, and the version a task pins names fixed bytes, as
+# the commit an include pins does.
+#
+# Everything runs on the job's GITHUB_TOKEN, so no credential is added. Opening the
+# pull request with it needs the repository setting "Allow GitHub Actions to create
+# and approve pull requests". ci.yml's run on that pull request waits for a person to
+# approve it, each time release-please rewrites the branch; a run started any other
+# way, such as by workflow_dispatch, lands on the same commit but does not count
+# toward the pull request's required checks. A person merges it.
+#
+# Follows the CI baseline in .claude/rules/ci-baseline.md; it departs from it in using
+# `if:`, since what runs after release-please depends on what it did.
+
+on:
+  push:
+    branches: [main]
+  # Builds and publishes a release still in draft, one whose build failed: release-please
+  # tags a release once, so a rerun of the push run builds nothing. A published release
+  # is immutable, so publish refuses one.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release's tag, such as dotfiles-tasks-v0.1.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      created: ${{ steps.release.outputs['rust--release_created'] }}
+      tag: ${{ steps.release.outputs['rust--tag_name'] }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+
+  # Runs dependencies' build scripts, so it holds no token that can write: what it
+  # builds goes to publish as an artifact.
+  build:
+    needs: release-please
+    # always(), since a skipped release-please would otherwise skip this too.
+    if: always() && (needs.release-please.outputs.created == 'true' || github.event_name == 'workflow_dispatch')
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+          # musl links the binary statically, so it runs whatever glibc a host has.
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    env:
+      # The workflow-level settings ci.yml explains, for the same reasons.
+      MISE_IGNORED_CONFIG_PATHS: ${{ github.workspace }}/.config/mise/config.toml
+      MISE_TASK_RUN_AUTO_INSTALL: "false"
+      MISE_NO_HOOKS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.release-please.outputs.tag || inputs.tag }}
+          persist-credentials: false
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          install_args: rust
+          cache: false # as in ci.yml's `markdown-lint`
+      - run: rustup target add "$TARGET"
+        env:
+          TARGET: ${{ matrix.target }}
+      - run: cargo build --locked --release --target "$TARGET"
+        working-directory: rust
+        env:
+          TARGET: ${{ matrix.target }}
+      # A published release cannot be replaced, so the binary runs on its own target
+      # before it is uploaded: given no task, it prints its usage and exits 2.
+      - run: rust/target/"$TARGET"/release/dotfiles-tasks; test "$?" -eq 2
+        shell: bash {0}
+        env:
+          TARGET: ${{ matrix.target }}
+      - run: tar -czf "dotfiles-tasks-$TARGET.tar.gz" -C "rust/target/$TARGET/release" dotfiles-tasks
+        env:
+          TARGET: ${{ matrix.target }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.target }}
+          path: dotfiles-tasks-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  # Runs no code from the repository: it attests what build made, attaches it to the
+  # draft, and publishes it.
+  publish:
+    needs: [release-please, build]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # The build provenance attestation that mise checks on install.
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.release-please.outputs.tag || inputs.tag }}
+    steps:
+      - run: test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          merge-multiple: true
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dotfiles-tasks-*.tar.gz
+      # --clobber, so that a rebuild of a draft replaces what a failed run attached.
+      - run: gh release upload --clobber "$TAG" dotfiles-tasks-*.tar.gz
+      - run: gh release edit "$TAG" --draft=false
