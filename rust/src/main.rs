@@ -15,8 +15,9 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.split_first() {
         Some((task, _)) if task == "link-check-staged" => link_check::Lychee::check_staged(),
-        // pin-check and size-check are the names a wrapper pinning an earlier release still
-        // calls.
+        // The wrappers under tasks/ call these checks as pin-check and size-check, and a
+        // release moves only the version they pin, so those names stay accepted until the
+        // wrappers call the new ones.
         Some((task, rest)) if task == "upstream-pin-check" || task == "pin-check" => {
             ExitCode::from(upstream_pin_check::Request::new(rest).run() as u8)
         }
