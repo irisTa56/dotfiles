@@ -84,7 +84,8 @@ A file whose name contains a newline, or is not UTF-8, is not matched, and goes 
 It runs at the repository root, so lychee runs under that repository's `lychee.toml`, whose [settings](https://lychee.cli.rs/guides/config/) decide how links are checked — whether over the network, how long a result is cached, which fragments are looked for — with `--cache` added.
 lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lycheecache`, there, so the repository has to ignore it; it lives in each checkout, so a new worktree starts with it empty.
 
-A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
+It exits 1 on a broken link, and 2 where the release it runs cannot be installed; either blocks the commit.
+A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
