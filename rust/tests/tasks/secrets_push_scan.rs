@@ -319,11 +319,12 @@ fn fails_on_a_secret_in_the_first_ref_the_push_sends_when_a_later_one_is_clean()
         .expect(1, &[&format!("commit {first}")]);
 }
 
-// Verifying a candidate sends it to its provider, which a push must never do, and a scan
-// that hit an error has not answered for every commit; the real trufflehog shows neither
-// offline, so a stand-in records what it was asked.
+// Verifying a candidate sends it to its provider, which a push must never do; a scan that
+// hit an error has not answered for every commit; and a push is no time for trufflehog to
+// look for a newer release of itself. The real trufflehog shows none of these offline, so
+// a stand-in records what it was asked.
 #[test]
-fn asks_trufflehog_not_to_verify_and_to_fail_on_a_scan_error() {
+fn asks_trufflehog_not_to_verify_to_fail_on_a_scan_error_and_not_to_update() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
     let bin = stand_in("printf '%s\\n' \"$@\" >\"$(dirname \"$0\")/args\"\n");
@@ -338,7 +339,26 @@ fn asks_trufflehog_not_to_verify_and_to_fail_on_a_scan_error() {
     let args = fs::read_to_string(bin.path().join("args")).expect("the stand-in ran");
     let args: Vec<&str> = args.lines().collect();
     assert!(
-        args.contains(&"--no-verification") && args.contains(&"--fail-on-scan-errors"),
+        ["--no-verification", "--fail-on-scan-errors", "--no-update"]
+            .iter()
+            .all(|flag| args.contains(flag)),
         "trufflehog was run with {args:?}"
     );
+}
+
+// A ref whose commits the remote holds already sends nothing, and a scan of it would answer
+// for what the remote has, so no scan runs, and one that would fail does not stop the push.
+#[test]
+fn passes_a_ref_the_remote_holds_already_without_scanning_it() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, _) = ahead_of(&origin, &[]);
+    let held = checkout.git(&["rev-parse", "origin/main"]);
+    let bin = stand_in("echo scan broke >&2\nexit 3\n");
+    let path = path_without_trufflehog(Some(&bin));
+    let run = checkout.secrets_push_scan_with(
+        &["origin"],
+        &line("refs/heads/other", &held, "refs/heads/other", ZERO),
+        &[("PATH", Some(&path))],
+    );
+    assert_eq!((run.code(), run.output()), (0, ""));
 }
