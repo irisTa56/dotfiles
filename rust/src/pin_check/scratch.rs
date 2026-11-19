@@ -38,7 +38,7 @@ impl Scratch {
         self.dir.path()
     }
 
-    pub(super) fn git(&self, args: &[&str]) -> Run {
+    fn git(&self, args: &[&str]) -> Run {
         self.git.call(args).dir(self.dir()).run()
     }
 

@@ -167,6 +167,14 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
         exit: 2,
         output: ["found no upstream pin"]
       },
+      # git grep exits 1 where no tracked file spells git:: at all, which is no failure of
+      # git's, so the run says the same as for a marker it does not read.
+      %{
+        name: "fails when no tracked file spells a marker at all",
+        files: [{"Cargo.toml", "[package]\n"}],
+        exit: 2,
+        output: "[fail] found no upstream pin in the tracked files\n"
+      },
       # Most commits to an upstream leave the pinned path alone, and a check failing
       # on each of them would get ignored.
       %{
@@ -234,7 +242,11 @@ defmodule Dotfiles.TaskCases.UpstreamPinCheck do
           %{files: [{"Cargo.toml", "# #{marker(url, "lints", String.duplicate("a", 40))}\n"}]}
         end,
         exit: 2,
-        output: ["could not read the default branch of file://"]
+        # git's own reason comes first, so the run says why it could not tell.
+        output: [
+          "does not appear to be a git repository",
+          "could not read the default branch of file://"
+        ]
       },
       # A pin taken from a branch since deleted, or squash-merged, names a commit the
       # upstream no longer has.
