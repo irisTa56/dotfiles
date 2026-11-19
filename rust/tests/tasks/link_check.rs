@@ -1,5 +1,7 @@
 //! `dotfiles-tasks link-check-staged`: whether the links of the files a commit stages
-//! resolve, checked by lychee.
+//! resolve, checked by lychee, and the wrapper `tasks/link-check/staged.sh`.
+
+mod wrapper;
 
 use std::fs;
 use std::path::PathBuf;

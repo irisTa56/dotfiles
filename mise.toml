@@ -186,6 +186,14 @@ run = [
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- size-check"
 
+# The shared task, run by the subcommand built from the working tree for the reason
+# `qa:rust:skills` gives; a commit here, on a release pull request's branch included,
+# waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
+# subcommand's failure tells a commit to skip.
+[tasks."link-check:staged.sh"]
+description = "Check the links of staged files"
+run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-staged"
+
 # Offline, so a pull request never waits on a third-party host and a host being down
 # never fails one; `link-check:staged` requests the links of the files a commit
 # touches, and `link-check` below requests every link, which CI runs weekly without
