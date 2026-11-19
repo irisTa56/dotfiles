@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.2.0...dotfiles-tasks-v0.2.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **tasks:** survive a closed stdout or stderr in pin-check ([#438](https://github.com/irisTa56/dotfiles/issues/438)) ([ae9201b](https://github.com/irisTa56/dotfiles/commit/ae9201be13189bc860e09a789bce67b6033b2e4d))
+* **tasks:** write every task's output through one closed-pipe-safe stream ([#441](https://github.com/irisTa56/dotfiles/issues/441)) ([18f67b4](https://github.com/irisTa56/dotfiles/commit/18f67b44f17b884ed2fc6fdd9fb4a7d7653a9e04))
+
 ## [0.2.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.1.0...dotfiles-tasks-v0.2.0) (2026-11-19)
 
 
