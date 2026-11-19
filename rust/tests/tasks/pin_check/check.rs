@@ -2,7 +2,7 @@
 
 use tempfile::TempDir;
 
-use crate::support::checkout::Checkout;
+use crate::support::checkout::{Checkout, Stream};
 use crate::support::git::git;
 use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
@@ -226,4 +226,38 @@ fn fails_as_unable_to_tell_on_an_option_it_does_not_take() {
     Checkout::new(&[])
         .pin_check(&["--frobnicate"])
         .expect(2, &["takes --bump"]);
+}
+
+// A reader that stops early, as `| head` does, closes stdout before the [ok] lines are
+// all out, and the run still has to end with the status that says every pin matches.
+#[test]
+fn passes_matching_pins_when_stdout_is_closed() {
+    let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
+    let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
+    let run = Checkout::new(&[("Cargo.toml", &cargo)]).pin_check_closing(Stream::Stdout, &[]);
+    assert_eq!((run.code(), run.output()), (0, ""));
+}
+
+// A caller that reads only stdout may close stderr, and the run still has to end with
+// the status that says a pin differs.
+#[test]
+fn fails_on_a_pin_whose_path_changed_when_stderr_is_closed() {
+    let up = Upstream::new(&[
+        &[("lints/a.toml", Some("a"))],
+        &[("lints/a.toml", Some("b"))],
+    ]);
+    let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
+    let run = Checkout::new(&[("Cargo.toml", &cargo)]).pin_check_closing(Stream::Stderr, &[]);
+    assert_eq!((run.code(), run.output()), (1, ""));
+}
+
+// git's own reason goes to stderr ahead of the run's line, so it too is dropped rather
+// than ending the run on a stderr its reader closed.
+#[test]
+fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read_when_stderr_is_closed() {
+    let aux = TempDir::new().expect("a temporary directory can be made");
+    let url = format!("file://{}", aux.path().join("missing").display());
+    let cargo = format!("# {}\n", marker(&url, "lints", ABSENT_COMMIT));
+    let run = Checkout::new(&[("Cargo.toml", &cargo)]).pin_check_closing(Stream::Stderr, &[]);
+    assert_eq!((run.code(), run.output()), (2, ""));
 }

@@ -1,5 +1,6 @@
 //! Fetching upstream commits into the scratch repository, and checking a pin there.
 
+use std::io::{self, Write};
 use std::path::Path;
 
 use super::{Checked, Failure, Pin, Scratch, Status};
@@ -105,7 +106,10 @@ impl Scratch {
             return Checked::Gone;
         };
         if pinned_tree == tip_tree {
-            println!(
+            // A reader that stopped reading, as `head` does, wants no more lines, and
+            // the exit status still reports every pin.
+            let _ = writeln!(
+                io::stdout(),
                 "[ok] {place} at the pinned {} matches the default branch ({tip})",
                 pin.commit
             );

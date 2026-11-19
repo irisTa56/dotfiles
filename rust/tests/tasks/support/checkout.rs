@@ -199,6 +199,35 @@ impl Checkout {
         Run::of(command)
     }
 
+    /// Runs `pin-check` with `args` in the repository, with `closed`, stdout or stderr, a
+    /// pipe whose reading end is already closed. The run's output is the other stream
+    /// alone.
+    pub(crate) fn pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
+        command.arg("pin-check").args(args).stdin(Stdio::null());
+        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
+        drop(closed_reader);
+        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
+        match closed {
+            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
+            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
+        };
+        let mut child = command.spawn().expect("the command runs");
+        // The command holds the pipes' writing ends until it is dropped.
+        drop(command);
+        let mut output = String::new();
+        reader
+            .read_to_string(&mut output)
+            .expect("the output is UTF-8");
+        let status = child.wait().expect("the command's run ends");
+        Run {
+            code: status
+                .code()
+                .expect("the command exits rather than being killed"),
+            output,
+        }
+    }
+
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
     /// repository, finding `mise` in place of mise.
     pub(crate) fn pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
