@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.5.0...dotfiles-tasks-v0.6.0) (2026-11-19)
+
+
+### Features
+
+* **tasks:** open the pin move's pull request from upstream:pin-check --bump ([#453](https://github.com/irisTa56/dotfiles/issues/453)) ([3d8de01](https://github.com/irisTa56/dotfiles/commit/3d8de014d214fbcf9be4dbe5bf913308e77cb977))
+
 ## [0.5.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.4.0...dotfiles-tasks-v0.5.0) (2026-11-19)
 
 
