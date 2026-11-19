@@ -162,6 +162,7 @@ Keep such a file out of here.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
+The subcommand takes the task's name with its colon as a hyphen, as `link-check-staged` does for `link-check:staged`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
 It installs the release it pins with `mise install`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since `mise x` would leave the tools the header declares off `PATH`; the line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.
 A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
