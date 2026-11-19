@@ -18,7 +18,7 @@ fn fails_as_unable_to_tell_on_an_unknown_task_naming_the_tasks() {
         (run.code(), run.output()),
         (
             2,
-            "[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check, size-check\n"
+            "[fail] usage: dotfiles-tasks <task> [args...]; tasks: link-check-staged, pin-check, size-check\n"
         )
     );
 }

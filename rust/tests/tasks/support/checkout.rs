@@ -107,6 +107,11 @@ impl Checkout {
         .expect("the directory's mode can be set");
     }
 
+    /// Whether the working tree holds anything at `path`.
+    pub(crate) fn exists(&self, path: &str) -> bool {
+        self.dir.path().join(path).exists()
+    }
+
     /// The bytes of `path` in the working tree.
     pub(crate) fn read(&self, path: &str) -> Vec<u8> {
         fs::read(self.dir.path().join(path)).expect("the file can be read")
@@ -133,6 +138,26 @@ impl Checkout {
         self.git(&["fetch", "-q", "origin", "main"]);
         self.git(&["reset", "-q", "origin/main"]);
         self.git(&["add", "-A"]);
+    }
+
+    /// Runs `link-check-staged` in the repository.
+    pub(crate) fn link_check_staged(&self) -> Run {
+        self.task("link-check-staged", &[], &[])
+    }
+
+    /// Runs `link-check-staged` as `link_check_staged` does, with `env` set as `task`
+    /// sets it.
+    pub(crate) fn link_check_staged_with(&self, env: &[(&str, Option<&OsStr>)]) -> Run {
+        self.task("link-check-staged", &[], env)
+    }
+
+    /// Runs `link-check-staged` in the directory `dir` of the repository.
+    pub(crate) fn link_check_staged_in(&self, dir: &str) -> Run {
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
+        command
+            .arg("link-check-staged")
+            .current_dir(self.dir.path().join(dir));
+        Run::of(command)
     }
 
     /// Runs `pin-check` with `args` in the repository.

@@ -5,6 +5,7 @@
 //! dead code.
 
 mod dispatch;
+mod link_check;
 mod pin_check;
 mod size_check;
 mod support;

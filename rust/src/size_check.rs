@@ -125,15 +125,7 @@ impl<'a> Request<'a> {
     fn list(pathspec: &str) -> Result<Vec<u8>, ExitCode> {
         let listed = Git::inheriting().run(&["ls-files", "-z", "--", pathspec]);
         if !listed.success() {
-            Stream::Stderr.bytes(listed.stderr().as_bytes());
-            // git's own status, such as 128 outside a repository; one that never ran, or
-            // that a signal stopped, has none, and says no more about the skills.
-            return Err(ExitCode::from(
-                listed
-                    .status()
-                    .and_then(|status| u8::try_from(status).ok())
-                    .unwrap_or(UNCHECKED),
-            ));
+            return Err(listed.failure(UNCHECKED));
         }
         if listed.stdout_bytes().is_empty() {
             Stream::Stderr.line(format_args!("git tracks no skill at {pathspec} to check."));
