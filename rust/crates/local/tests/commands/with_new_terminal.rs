@@ -293,3 +293,17 @@ fn fails_with_exit_1_where_there_is_no_osascript() {
         run.stderr()
     );
 }
+
+// What follows the last command, such as a CR line end or spaces, is left out.
+#[test]
+fn leaves_out_whitespace_after_the_last_command() {
+    let sandbox = Sandbox::new("trailing", "exit 0");
+    fs::write(sandbox.root.join("crlf.sh"), "echo a\r\nls  \r\n").expect("the script is written");
+    let run = sandbox.run(&["crlf.sh"]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    assert!(
+        run.applescript
+            .expect("osascript ran")
+            .contains("do script \"setopt no_bang_hist && clear\\necho a\r\\nls\"\n"),
+    );
+}
