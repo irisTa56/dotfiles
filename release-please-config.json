@@ -8,6 +8,10 @@
       "extra-files": [
         {
           "type": "generic",
+          "path": "/tasks/link-check/staged.sh"
+        },
+        {
+          "type": "generic",
           "path": "/tasks/skills/size-check.sh"
         },
         {

@@ -229,6 +229,12 @@ impl Checkout {
         self.wrapper("skills/size-check.sh", args, mise)
     }
 
+    /// Runs the wrapper consumers run, `tasks/link-check/staged.sh`, in the repository,
+    /// finding `mise` in place of mise.
+    pub(crate) fn link_check_staged_wrapper(&self, mise: &Mise) -> Run {
+        self.wrapper("link-check/staged.sh", &[], mise)
+    }
+
     /// Runs the wrapper at `path` under `tasks/` with `args` in the repository, finding
     /// `mise` in place of mise.
     fn wrapper(&self, path: &str, args: &[&str], mise: &Mise) -> Run {

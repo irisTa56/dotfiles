@@ -1,15 +1,15 @@
 # Shared tasks
 
 `tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `skills:size-check` and `upstream:pin-check` below.
-This repository checks its own skills with the subcommand `skills:size-check` runs, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
+This repository checks its own skills and staged links with the subcommands `skills:size-check` and `link-check:staged` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, and runs either way.
+A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee.
 Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `sed` and `tr`.
-A task that runs the `dotfiles-tasks` binary, as `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
+A task that runs the `dotfiles-tasks` binary, as `link-check:staged`, `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -80,11 +80,12 @@ It runs lychee on the files the commit stages, so it belongs in a pre-commit hoo
 It takes the staged files among those `lychee .` would read there, so the repository's `lychee.toml` (`extensions`, `exclude_path`) and `.gitignore` decide which files count, as they do for a run over the whole tree.
 Every link in such a file is checked, so an old link in a staged file can fail the commit as well; a link in an unstaged file never does.
 The files are chosen from the index but read from disk, as `lychee .` reads them, so a staged file with edits left unstaged — part of it staged with `git add -p`, or edited again after `git add` — is checked as it is on disk: a broken link only in those edits fails the commit, and one staged but since removed on disk passes it.
-A file whose name contains a newline is not matched, and goes unchecked.
+A file whose name contains a newline, or is not UTF-8, is not matched, and goes unchecked.
 It runs at the repository root, so lychee runs under that repository's `lychee.toml`, whose [settings](https://lychee.cli.rs/guides/config/) decide how links are checked — whether over the network, how long a result is cached, which fragments are looked for — with `--cache` added.
 lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lycheecache`, there, so the repository has to ignore it; it lives in each checkout, so a new worktree starts with it empty.
 
-A failure prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked.
+It exits 1 on a broken link, and 2 where the release it runs cannot be installed; either blocks the commit.
+A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
