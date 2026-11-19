@@ -1,15 +1,22 @@
 # Shared tasks
 
-`tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `skills:size-check` and `upstream:pin-check` below.
+`tasks/` holds the repository-agnostic mise tasks this repository lends to others, each in a section below:
+
+- `secrets:commit-scan`, which gates a commit here too
+- `secrets:push-scan`, which gates a push here too
+- `link-check:staged`, which gates a commit here too
+- `skills:size-check`
+- `upstream:pin-check`
+
 This repository checks its own skills, staged links and pushes with the subcommands `skills:size-check`, `link-check:staged` and `secrets:push-scan` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
+A job that sets [`MISE_TASK_RUN_AUTO_INSTALL=false`](https://mise.jdx.dev/configuration/settings.html#task.run_auto_install) turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
 Beyond that the library assumes git and bash.
-A task that runs the `dotfiles-tasks` binary, as `secrets:push-scan`, `link-check:staged`, `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
+A task that runs the `dotfiles-tasks` binary, which every one of them but `secrets:commit-scan` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -200,7 +207,7 @@ Keep such a file out of here.
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
 The subcommand takes the task's name with its colon as a hyphen, as `link-check-staged` does for `link-check:staged`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
-It installs the release it pins with `mise install`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since `mise x` would leave the tools the header declares off `PATH`; the line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.
+It installs the release it pins with `mise install`, rather than declaring it in a [`#MISE tools=` header](https://mise.jdx.dev/tasks/task-configuration.html#tools), which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since [`mise x`](https://mise.jdx.dev/cli/exec.html) would leave the tools the header declares off `PATH`; the line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.
 A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
