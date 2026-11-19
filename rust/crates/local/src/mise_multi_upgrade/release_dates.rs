@@ -7,7 +7,7 @@ use serde_json::Value;
 
 use super::group::Group;
 use super::mise::Mise;
-use super::parallel;
+use super::parallel::Pool;
 
 /// The versions each tool shown lists, by its name.
 #[derive(Debug)]
@@ -36,7 +36,7 @@ impl ReleaseDates {
                 tools.push(row.tool());
             }
         }
-        let versions = parallel::map(&tools, |tool| Versions::ask(tool));
+        let versions = Pool::for_mise().map(&tools, |tool| Versions::ask(tool));
         ReleaseDates {
             tools: tools.into_iter().map(str::to_owned).zip(versions).collect(),
         }

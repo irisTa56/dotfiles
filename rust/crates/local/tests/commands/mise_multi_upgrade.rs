@@ -1508,3 +1508,23 @@ fn leaves_out_a_linked_worktree_that_the_real_git_reports() {
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert!(run.out.contains(&worktree_arg), "{}", run.out);
 }
+
+#[test]
+fn asks_mise_for_the_versions_of_a_tool_once_however_many_places_show_it() {
+    let sandbox = Sandbox::new("ls-remote-once");
+    for dir in ["/work/a", "/work/b"] {
+        sandbox.project(dir);
+        sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
+    }
+    sandbox.outdated_in(Place::Global, &[("jq", "1.6", "1.7")]);
+
+    let run = sandbox.run(&["--dry-run"], "");
+
+    assert_eq!(run.code, Some(0), "{}", run.err);
+    let asked: Vec<String> = sandbox
+        .mise_calls()
+        .into_iter()
+        .filter(|call| call.starts_with("ls-remote"))
+        .collect();
+    assert_eq!(asked, ["ls-remote jq --json"]);
+}

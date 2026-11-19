@@ -3,7 +3,7 @@
 use std::io::{self, Write};
 
 use super::group::{Found, Group};
-use super::parallel;
+use super::parallel::Pool;
 use super::place::Place;
 use super::question::{Answer, Question};
 use super::release_dates::ReleaseDates;
@@ -22,7 +22,7 @@ pub(super) struct Survey {
 impl Survey {
     /// Asks every place in `places`, a few at a time, for the runs `report` names.
     pub(super) fn take(places: &[Place], report: Report) -> Result<Self, Failure> {
-        let found = parallel::map(places, |place| Group::find(place.clone(), report));
+        let found = Pool::for_mise().map(places, |place| Group::find(place.clone(), report));
         let mut survey = Survey {
             groups: Vec::new(),
             skipped: Vec::new(),
