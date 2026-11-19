@@ -93,7 +93,7 @@ The bypass otherwise at hand is `--no-verify`, which drops every other pre-commi
 
 It fails where the body of a skill git tracks, its frontmatter left out, is longer than what Claude Code re-attaches of an invoked skill after a compaction, and names each such `SKILL.md` with its length.
 A rule past that point is missing from the session once a compaction has run, so a skill over the limit moves what it reads only at one moment into files it reads by path.
-How the limit is set and counted is in `rust/src/size_check.rs`, the `dotfiles-tasks` subcommand the task runs.
+How the limit is set and counted is in `rust/src/skills_size_check.rs`, the `dotfiles-tasks` subcommand the task runs.
 
 It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
 A skill that passes prints nothing, so a commit's output stays quiet; `--verbose` before the pathspec prints each passing skill's length against the limit too, such as `mise run skills:size-check -- --verbose ':(glob)skills/*/SKILL.md'`, for sizing a skill rather than measuring it by hand.

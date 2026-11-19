@@ -112,7 +112,7 @@ impl<'a> Request<'a> {
             [pathspec] => Ok(pathspec),
             [_, unread @ ..] => {
                 Stream::Stderr.line(format_args!(
-                    "size-check does not read {}; its arguments are [--verbose] [pathspec], in that order.",
+                    "skills-size-check does not read {}; its arguments are [--verbose] [pathspec], in that order.",
                     unread.join(" ")
                 ));
                 Err(ExitCode::from(UNCHECKED))

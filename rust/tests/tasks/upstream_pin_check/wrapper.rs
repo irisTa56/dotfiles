@@ -10,8 +10,8 @@ use crate::support::upstream::{ABSENT_COMMIT, Upstream};
 #[test]
 fn fails_as_unable_to_tell_where_the_release_it_pins_cannot_be_installed() {
     let cargo = format!("# git::https://example.com/u.git//p?ref={ABSENT_COMMIT}\n");
-    let run =
-        Checkout::new(&[("Cargo.toml", &cargo)]).pin_check_wrapper(&[], &Mise::installing_with(1));
+    let run = Checkout::new(&[("Cargo.toml", &cargo)])
+        .upstream_pin_check_wrapper(&[], &Mise::installing_with(1));
     assert_eq!(run.code(), 2, "{}", run.output());
     assert_eq!(run.output(), "");
 }
@@ -19,7 +19,7 @@ fn fails_as_unable_to_tell_where_the_release_it_pins_cannot_be_installed() {
 // A consumer narrows the files read with pathspecs, which reach the binary only as
 // written: a name holding a space, split in two, would name no file at all.
 #[test]
-fn passes_its_arguments_to_pin_check_as_given() {
+fn passes_its_arguments_to_upstream_pin_check_as_given() {
     let up = Upstream::new(&[
         &[("lints/a.toml", Some("a"))],
         &[("lints/a.toml", Some("b"))],
@@ -27,14 +27,14 @@ fn passes_its_arguments_to_pin_check_as_given() {
     let behind = format!("# {}\n", up.marker("lints", 0));
     let current = format!("# {}\n", up.marker("lints", 1));
     Checkout::new(&[("Cargo.toml", &behind), ("lints b.toml", &current)])
-        .pin_check_wrapper(&["lints b.toml"], &Mise::installing_with(0))
+        .upstream_pin_check_wrapper(&["lints b.toml"], &Mise::installing_with(0))
         .expect(0, &["[ok]"]);
 }
 
 // The binary's exit code is the consumer's answer, so the wrapper must end with it rather
 // than with its own; and a run without --bump leaves the differing pin where it was.
 #[test]
-fn exits_as_pin_check_does_on_a_pin_whose_path_changed() {
+fn exits_as_upstream_pin_check_does_on_a_pin_whose_path_changed() {
     let up = Upstream::new(&[
         &[("lints/a.toml", Some("a"))],
         &[("lints/a.toml", Some("b"))],
@@ -42,7 +42,7 @@ fn exits_as_pin_check_does_on_a_pin_whose_path_changed() {
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout
-        .pin_check_wrapper(&[], &Mise::installing_with(0))
+        .upstream_pin_check_wrapper(&[], &Mise::installing_with(0))
         .expect(1, &[&format!("{}//lints differs", up.url())]);
     assert_eq!(checkout.read("Cargo.toml"), cargo.as_bytes());
 }

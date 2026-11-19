@@ -1,5 +1,5 @@
-//! `dotfiles-tasks size-check`: whether the body of each skill git tracks fits in what a
-//! compaction re-attaches, and the wrapper `tasks/skills/size-check.sh`.
+//! `dotfiles-tasks skills-size-check`: whether the body of each skill git tracks fits in
+//! what a compaction re-attaches, and the wrapper `tasks/skills/size-check.sh`.
 
 mod wrapper;
 
@@ -28,7 +28,7 @@ fn over() -> String {
 #[test]
 fn reports_a_skill_past_the_limit_with_what_may_move_into_references_and_what_stays() {
     Checkout::new(&[(".claude/skills/big/SKILL.md", &skill(&over()))])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(
             1,
             &[
@@ -46,14 +46,14 @@ fn reports_a_skill_past_the_limit_with_what_may_move_into_references_and_what_st
 fn counts_a_character_outside_the_bmp_as_two_code_units() {
     let body = format!("{}😀", "a".repeat(LIMIT - 1));
     Checkout::new(&[(".claude/skills/e/SKILL.md", &skill(&body))])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(1, &[&format!(".claude/skills/e/SKILL.md: {}", LIMIT + 1)]);
 }
 
 #[test]
 fn passes_a_body_at_the_limit_printing_nothing() {
     let run = Checkout::new(&[(".claude/skills/full/SKILL.md", &skill(&"a".repeat(LIMIT)))])
-        .size_check(&[]);
+        .skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -61,7 +61,7 @@ fn passes_a_body_at_the_limit_printing_nothing() {
 #[test]
 fn with_verbose_reports_a_passing_skills_length_against_the_limit() {
     let run = Checkout::new(&[(".claude/skills/full/SKILL.md", &skill(&"a".repeat(LIMIT)))])
-        .size_check(&["--verbose"]);
+        .skills_size_check(&["--verbose"]);
     assert_eq!(
         (run.code(), run.output()),
         (
@@ -77,7 +77,7 @@ fn with_verbose_and_a_pathspec_reports_the_passing_skills_and_still_fails() {
         ("skills/big/SKILL.md", &skill(&over())),
         ("skills/small/SKILL.md", &skill("a")),
     ])
-    .size_check(&["--verbose", ":(glob)skills/*/SKILL.md"])
+    .skills_size_check(&["--verbose", ":(glob)skills/*/SKILL.md"])
     .expect(
         1,
         &[
@@ -92,15 +92,15 @@ fn with_verbose_and_a_pathspec_reports_the_passing_skills_and_still_fails() {
 #[test]
 fn fails_naming_an_argument_it_does_not_read_rather_than_dropping_it() {
     Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
-        .size_check(&[":(glob).claude/skills/*/SKILL.md", "--verbose"])
-        .expect(2, &["does not read --verbose"]);
+        .skills_size_check(&[":(glob).claude/skills/*/SKILL.md", "--verbose"])
+        .expect(2, &["skills-size-check does not read --verbose"]);
 }
 
 // Run where git lists nothing, the check would otherwise pass having read no skill.
 #[test]
 fn fails_when_git_tracks_no_skill_to_check() {
     Checkout::new(&[])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(1, &["git tracks no skill"]);
 }
 
@@ -109,7 +109,7 @@ fn fails_with_gits_status_where_git_cannot_list_the_skills() {
     let checkout = Checkout::new(&[]);
     checkout.remove(".git");
     checkout
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(128, &["not a git repository"]);
 }
 
@@ -126,7 +126,7 @@ fn leaves_out_an_ignored_skill_and_a_tracked_directory_with_no_skill_md() {
         (".claude/skills/vendored/SKILL.md", &skill(&over())),
         (".claude/skills/plugin/hooks.json", "{}"),
     ])
-    .size_check(&[]);
+    .skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -136,7 +136,7 @@ fn checks_only_the_skill_md_one_level_under_claude_skills() {
         (".claude/skills/x/SKILL.md", &skill("a")),
         (".claude/skills/x/fixtures/y/SKILL.md", &skill(&over())),
     ])
-    .size_check(&[]);
+    .skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -146,7 +146,7 @@ fn checks_the_skills_a_pathspec_argument_names_in_place_of_claude_skills() {
         ("skills/big/SKILL.md", &skill(&over())),
         (".claude/skills/small/SKILL.md", &skill(&over())),
     ])
-    .size_check(&[":(glob)skills/*/SKILL.md"]);
+    .skills_size_check(&[":(glob)skills/*/SKILL.md"]);
     run.expect(1, &[&format!("skills/big/SKILL.md: {}", LIMIT + 1)]);
     assert!(
         !run.output().contains(".claude/skills/small"),
@@ -158,14 +158,14 @@ fn checks_the_skills_a_pathspec_argument_names_in_place_of_claude_skills() {
 #[test]
 fn leaves_a_crlf_frontmatter_out_of_the_count() {
     let run = Checkout::new(&[(".claude/skills/crlf/SKILL.md", &crlf(&"a".repeat(LIMIT)))])
-        .size_check(&[]);
+        .skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
 #[test]
 fn reports_a_skill_past_the_limit_behind_a_crlf_frontmatter() {
     Checkout::new(&[(".claude/skills/crlf/SKILL.md", &crlf(&over()))])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(
             1,
             &[&format!(".claude/skills/crlf/SKILL.md: {}", LIMIT + 1)],
@@ -176,7 +176,7 @@ fn reports_a_skill_past_the_limit_behind_a_crlf_frontmatter() {
 #[test]
 fn counts_the_whole_of_a_skill_with_no_frontmatter() {
     Checkout::new(&[(".claude/skills/bare/SKILL.md", &over())])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(
             1,
             &[&format!(".claude/skills/bare/SKILL.md: {}", LIMIT + 1)],
@@ -187,7 +187,7 @@ fn counts_the_whole_of_a_skill_with_no_frontmatter() {
 fn counts_the_whole_of_a_skill_with_no_frontmatter_and_a_rule_line_in_it() {
     let contents = format!("{}\n---\nshort tail\n", over());
     Checkout::new(&[(".claude/skills/rule/SKILL.md", &contents)])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(
             1,
             &[&format!(".claude/skills/rule/SKILL.md: {}", LIMIT + 1 + 16)],
@@ -198,7 +198,7 @@ fn counts_the_whole_of_a_skill_with_no_frontmatter_and_a_rule_line_in_it() {
 fn fails_on_a_frontmatter_that_never_closes_rather_than_reading_it_as_all_frontmatter() {
     let contents = format!("---\nname: x\n{}", over());
     Checkout::new(&[(".claude/skills/open/SKILL.md", &contents)])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(
             1,
             &[".claude/skills/open/SKILL.md: its frontmatter has no closing ---"],
@@ -211,20 +211,20 @@ fn reads_a_skill_under_a_non_ascii_directory_and_the_ones_after_it() {
         (".claude/skills/é/SKILL.md", &skill("a")),
         (".claude/skills/zz/SKILL.md", &skill(&over())),
     ])
-    .size_check(&[])
+    .skills_size_check(&[])
     .expect(1, &[&format!(".claude/skills/zz/SKILL.md: {}", LIMIT + 1)]);
 }
 
 #[test]
 fn reports_a_skill_past_the_limit_under_a_non_ascii_directory() {
     Checkout::new(&[(".claude/skills/é/SKILL.md", &skill(&over()))])
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(1, &[&format!(".claude/skills/é/SKILL.md: {}", LIMIT + 1)]);
 }
 
 #[test]
 fn passes_a_short_skill_under_a_non_ascii_directory() {
-    let run = Checkout::new(&[(".claude/skills/é/SKILL.md", &skill("a"))]).size_check(&[]);
+    let run = Checkout::new(&[(".claude/skills/é/SKILL.md", &skill("a"))]).skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -237,7 +237,7 @@ fn passes_over_a_tracked_skill_deleted_from_disk_and_reads_the_rest() {
         (".claude/skills/zz/SKILL.md", &skill(&over())),
     ]);
     checkout.remove(".claude/skills/aa/SKILL.md");
-    let run = checkout.size_check(&[]);
+    let run = checkout.skills_size_check(&[]);
     run.expect(1, &[&format!(".claude/skills/zz/SKILL.md: {}", LIMIT + 1)]);
     assert!(!run.output().contains("skills/aa"), "{}", run.output());
 }
@@ -250,7 +250,7 @@ fn checks_the_skills_in_the_index_a_git_hook_names() {
     let hook = TempDir::new().expect("a temporary directory can be made");
     let index = hook.path().join("index");
     Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
-        .size_check_with(&[], &[("GIT_INDEX_FILE", Some(index.as_os_str()))])
+        .skills_size_check_with(&[], &[("GIT_INDEX_FILE", Some(index.as_os_str()))])
         .expect(1, &["git tracks no skill"]);
 }
 
@@ -259,7 +259,7 @@ fn checks_the_skills_in_the_index_a_git_hook_names() {
 #[test]
 fn fails_on_a_skill_that_is_not_utf_8() {
     Checkout::holding(".claude/skills/bad/SKILL.md", b"---\nn: x\n---\nab\xffcd\n")
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(1, &[".claude/skills/bad/SKILL.md: it is not UTF-8"]);
 }
 
@@ -270,7 +270,7 @@ fn passes_over_a_tracked_skill_whose_path_is_now_a_directory() {
     let checkout = Checkout::new(&[(".claude/skills/aa/SKILL.md", &skill("a"))]);
     checkout.remove(".claude/skills/aa/SKILL.md");
     checkout.make_dir(".claude/skills/aa/SKILL.md");
-    let run = checkout.size_check(&[]);
+    let run = checkout.skills_size_check(&[]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -280,7 +280,7 @@ fn fails_on_a_skill_it_cannot_read() {
     let checkout = Checkout::new(&[(".claude/skills/locked/SKILL.md", &skill("a"))]);
     checkout.lock(".claude/skills/locked/SKILL.md");
     checkout
-        .size_check(&[])
+        .skills_size_check(&[])
         .expect(1, &[".claude/skills/locked/SKILL.md: could not be read"]);
 }
 
@@ -290,7 +290,7 @@ fn fails_on_a_skill_it_cannot_read() {
 fn fails_on_a_skill_in_a_directory_it_cannot_search() {
     let checkout = Checkout::new(&[(".claude/skills/locked/SKILL.md", &skill(&over()))]);
     checkout.lock(".claude/skills/locked");
-    let run = checkout.size_check(&[]);
+    let run = checkout.skills_size_check(&[]);
     checkout.unlock(".claude/skills/locked");
     run.expect(1, &[".claude/skills/locked/SKILL.md"]);
 }
@@ -306,7 +306,7 @@ fn does_not_panic_when_stdout_is_closed_while_it_reports_with_verbose() {
         .iter()
         .map(|(path, contents)| (path.as_str(), contents.as_str()))
         .collect();
-    let run = Checkout::new(&files).size_check_closing(Stream::Stdout, &["--verbose"]);
+    let run = Checkout::new(&files).skills_size_check_closing(Stream::Stdout, &["--verbose"]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -315,7 +315,7 @@ fn does_not_panic_when_stdout_is_closed_while_it_reports_with_verbose() {
 #[test]
 fn fails_on_a_skill_past_the_limit_when_stderr_is_closed() {
     let run = Checkout::new(&[(".claude/skills/big/SKILL.md", &skill(&over()))])
-        .size_check_closing(Stream::Stderr, &[]);
+        .skills_size_check_closing(Stream::Stderr, &[]);
     assert_eq!((run.code(), run.output()), (1, ""));
 }
 
@@ -329,7 +329,7 @@ fn passes_over_a_tracked_skill_whose_directory_is_now_a_file() {
     ]);
     checkout.remove(".claude/skills/aa");
     checkout.write(".claude/skills/aa", "a file");
-    let run = checkout.size_check(&[]);
+    let run = checkout.skills_size_check(&[]);
     run.expect(1, &[&format!(".claude/skills/zz/SKILL.md: {}", LIMIT + 1)]);
     assert!(!run.output().contains("skills/aa"), "{}", run.output());
 }
@@ -341,6 +341,6 @@ fn reads_an_empty_pathspec_as_the_default_one() {
         (".claude/skills/small/SKILL.md", &skill("a")),
         ("README.md", &over()),
     ])
-    .size_check(&[""]);
+    .skills_size_check(&[""]);
     assert_eq!((run.code(), run.output()), (0, ""));
 }
