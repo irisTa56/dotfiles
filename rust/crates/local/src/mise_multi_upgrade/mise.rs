@@ -14,20 +14,19 @@ impl Mise {
         Mise { args }
     }
 
-    /// What mise prints on stdout, or `None` where it fails. Its stderr is left to the
-    /// terminal: its warnings would break the JSON read from stdout, and its errors are
-    /// what the user needs to see.
+    /// What mise prints on stdout, given no input, or `None` where it fails. Its stderr
+    /// is left to the terminal: its warnings would break the JSON read from stdout, and
+    /// its errors are what the user needs to see.
     pub(super) fn output(&self) -> io::Result<Option<Vec<u8>>> {
         let output = Command::new("mise")
             .args(&self.args)
-            .stdin(Stdio::null())
             .stderr(Stdio::inherit())
             .output()?;
         Ok(output.status.success().then_some(output.stdout))
     }
 
-    /// Runs mise, passing on what it prints on stdout and leaving its stderr to the
-    /// terminal.
+    /// Runs mise, given no input, passing on what it prints on stdout and leaving its
+    /// stderr to the terminal.
     ///
     /// Its stdout reaches this one through a pipe rather than as this one itself, so
     /// mise writes as it does for a reader that is not a terminal.

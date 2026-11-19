@@ -16,38 +16,16 @@ pub(super) struct Tracked {
 }
 
 impl Tracked {
-    /// Asks mise for the configs it tracks.
+    /// The project directories of the configs mise tracks, less those `options` leave
+    /// out.
     pub(super) fn list(options: &Options) -> Result<Self, Failure> {
-        let mise = Mise::new(
-            ["config", "ls", "--tracked-configs"]
-                .map(str::to_owned)
-                .to_vec(),
-        );
-        let out = match mise.output() {
-            Ok(Some(out)) => out,
-            Ok(None) => return Err(Failure::new(format_args!("{mise} failed"), 1)),
-            Err(error) => {
-                return Err(Failure::new(format_args!("cannot run mise: {error}"), 1));
-            }
-        };
-        let mut dirs: Vec<String> = String::from_utf8_lossy(&out)
-            .lines()
-            .filter(|line| !line.is_empty())
-            .map(project_dir)
-            .collect();
+        let mut dirs: Vec<String> = configs()?.iter().map(|path| project_dir(path)).collect();
         dirs.sort();
         dirs.dedup();
-        let temp = if options.include_tmpdirs() {
-            None
-        } else {
-            Some(TempDirs::find())
-        };
+        let temp = (!options.include_tmpdirs()).then(TempDirs::find);
         let mut kept = Vec::new();
         for dir in dirs {
-            if temp.as_ref().is_some_and(|temp| temp.contain(&dir)) {
-                continue;
-            }
-            if options.include_worktrees() || !linked_worktree(&dir)? {
+            if keep(&dir, options, temp.as_ref())? {
                 kept.push(dir);
             }
         }
@@ -60,6 +38,33 @@ impl Tracked {
             .chain(self.dirs.into_iter().map(Place::Dir))
             .collect()
     }
+}
+
+/// The paths of the configs mise tracks.
+fn configs() -> Result<Vec<String>, Failure> {
+    let mise = Mise::new(
+        ["config", "ls", "--tracked-configs"]
+            .map(str::to_owned)
+            .to_vec(),
+    );
+    match mise.output() {
+        Ok(Some(out)) => Ok(String::from_utf8_lossy(&out)
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(str::to_owned)
+            .collect()),
+        Ok(None) => Err(Failure::new(format_args!("{mise} failed"), 1)),
+        Err(error) => Err(Failure::new(format_args!("cannot run mise: {error}"), 1)),
+    }
+}
+
+/// Whether a run keeps `dir`: a temporary directory in `temp`, the ones left out, is
+/// not kept, and a linked worktree only where `options` take them in.
+fn keep(dir: &str, options: &Options, temp: Option<&TempDirs>) -> Result<bool, Failure> {
+    if temp.is_some_and(|temp| temp.contain(dir)) {
+        return Ok(false);
+    }
+    Ok(options.include_worktrees() || !linked_worktree(dir)?)
 }
 
 /// The directories a config may sit in under the project it configures, each with the

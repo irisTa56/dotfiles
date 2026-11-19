@@ -120,13 +120,15 @@ impl Sandbox {
     }
 
     /// A mise that answers each argument list from the files `answer` writes for it,
-    /// and otherwise as mise does where nothing is outdated, recording each call.
+    /// and otherwise as mise does where nothing is outdated, recording each call and
+    /// whatever it is given on stdin.
     fn fake_mise(&self) {
         let root = self.root.display();
         self.fake(
             "mise",
             &format!(
                 "printf '%s\\n' \"$*\" >> '{root}/mise.log'\n\
+                 /bin/cat >> '{root}/mise.stdin'\n\
                  answer='{root}/answers/'$(printf '%s' \"$*\" | /usr/bin/tr ' /' '_%')\n\
                  [ -f \"$answer.err\" ] && /bin/cat \"$answer.err\" >&2\n\
                  [ -f \"$answer.out\" ] && /bin/cat \"$answer.out\"\n\
@@ -1527,4 +1529,26 @@ fn asks_mise_for_the_versions_of_a_tool_once_however_many_places_show_it() {
         .filter(|call| call.starts_with("ls-remote"))
         .collect();
     assert_eq!(asked, ["ls-remote jq --json"]);
+}
+
+// mise is given no input, so it cannot take an answer meant for a later question, nor
+// what is left once the questions are answered.
+#[test]
+fn gives_mise_no_input_of_the_runs_own() {
+    let sandbox = Sandbox::new("mise-stdin");
+    for dir in ["/work/a", "/work/b"] {
+        sandbox.project(dir);
+        sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
+    }
+    // More than a read buffer holds, so some of it is still unread when mise runs.
+    let input = format!("y\ny\n{}", "left over\n".repeat(4096));
+
+    let run = sandbox.run(&[], &input);
+
+    assert_eq!(run.code, Some(0), "{}", run.err);
+    assert_eq!(sandbox.upgrades().len(), 2);
+    assert_eq!(
+        fs::read_to_string(sandbox.root.join("mise.stdin")).expect("mise ran"),
+        ""
+    );
 }

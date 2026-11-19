@@ -16,12 +16,7 @@ impl TempDirs {
     /// the command was first written with, and `/tmp` whatever that is.
     pub(super) fn find() -> Self {
         let cwd = std::env::current_dir().ok();
-        let picked = ["TMPDIR", "TEMP", "TMP"]
-            .into_iter()
-            .filter_map(|name| std::env::var_os(name).map(PathBuf::from))
-            .chain([PathBuf::from("/tmp")])
-            .chain(cwd.clone())
-            .find(|dir| writable_dir(dir));
+        let picked = system_temp_dir(cwd.as_deref());
         let mut dirs: Vec<String> = Vec::new();
         for dir in picked.iter().chain([&PathBuf::from("/tmp")]) {
             let names = [expand(dir, cwd.as_deref()), fs::canonicalize(dir).ok()];
@@ -43,6 +38,17 @@ impl TempDirs {
                 .is_some_and(|rest| rest.is_empty() || rest.starts_with('/'))
         })
     }
+}
+
+/// The first of `TMPDIR`, `TEMP`, `TMP`, `/tmp` and `cwd` that names a directory that can
+/// be written, if any.
+fn system_temp_dir(cwd: Option<&Path>) -> Option<PathBuf> {
+    ["TMPDIR", "TEMP", "TMP"]
+        .into_iter()
+        .filter_map(|name| std::env::var_os(name).map(PathBuf::from))
+        .chain([PathBuf::from("/tmp")])
+        .chain(cwd.map(Path::to_path_buf))
+        .find(|dir| writable_dir(dir))
 }
 
 /// Whether `dir` is a directory whose permissions let something be written in it.
