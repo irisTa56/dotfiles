@@ -362,3 +362,34 @@ fn passes_a_ref_the_remote_holds_already_without_scanning_it() {
     );
     assert_eq!((run.code(), run.output()), (0, ""));
 }
+
+// A ref line naming an object the repository lacks leaves nothing to tell new commits by,
+// and git's own status stops the push rather than letting it through unscanned.
+#[test]
+fn fails_with_gits_status_on_a_pushed_object_the_repository_lacks() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, _) = ahead_of(&origin, &[]);
+    let missing = "1".repeat(40);
+    checkout
+        .secrets_push_scan(
+            &["origin"],
+            &line("refs/heads/main", &missing, "refs/heads/main", ZERO),
+        )
+        .expect(128, &["bad object"]);
+}
+
+// A report this cannot read answers for no commit, so the push stops on it.
+#[test]
+fn fails_where_trufflehogs_report_is_not_json() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
+    let bin = stand_in("echo 'not json'\n");
+    let path = path_without_trufflehog(Some(&bin));
+    checkout
+        .secrets_push_scan_with(
+            &["origin"],
+            &main_line(&checkout, &sha),
+            &[("PATH", Some(&path))],
+        )
+        .expect(1, &["could not read trufflehog's report"]);
+}
