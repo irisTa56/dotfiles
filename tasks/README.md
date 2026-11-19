@@ -145,9 +145,13 @@ Run by hand, it rewrites each pin in the files that spell it, for whoever ran it
 
 Under GitHub Actions it leaves the working tree alone, which is often a pull request's merge commit, and proposes the move as a pull request instead, as `release-please` proposes a release:
 
-- Where no `upstream-pin-bump` branch exists, it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there, pushes that commit to a new `upstream-pin-bump` branch, opens the branch's pull request into the default branch, and prints the pull request's URL.
-- Where the branch exists, its pull request is still open, so it commits the moves onto the files as that branch has them and pushes the commit there, over any commit a person added and without forcing, and the pull request shows it; a branch whose pins are at the tips already is left as it is.
-  Merging the pull request deletes the branch where the repository deletes merged branches, and deleting it by hand works as well, after which the next run opens a pull request afresh.
+- Where no `upstream-pin-bump` branch exists, it opens a pull request of its own:
+  - it commits the moves onto those files as origin's default branch has them, moving each of its pins of a differing path from whatever commit it names there;
+  - it pushes that commit to a new `upstream-pin-bump` branch;
+  - it opens the branch's pull request into the default branch, and prints the pull request's URL.
+- Where the branch exists, its pull request is still open, so it commits the moves onto the files as that branch has them and pushes the commit there, over any commit a person added and without forcing, and the pull request shows it.
+  - A branch whose pins are at the tips already is left as it is.
+  - Merging the pull request deletes the branch where the repository deletes merged branches, and deleting it by hand works as well, after which the next run opens a pull request afresh.
 
 The job needs this, which `contents: write` and `pull-requests: write` give the job's own token:
 
@@ -168,8 +172,10 @@ jobs:
 ```
 
 - It pushes through `origin` as the checkout left it, so the checkout has to keep its credentials, as `actions/checkout` does unless told `persist-credentials: false`.
-- It opens the pull request through GitHub's REST API with curl, which GitHub's hosted runners have, on the token the step's `GITHUB_TOKEN` hands it; a step does not see the job's token unless its `env` names it.
-- GitHub lets the job's token open a pull request only where the repository setting "Allow GitHub Actions to create and approve pull requests" is on, under Settings → Actions → General; the same setting lets the token approve one, and no permission separates the two.
+- It opens the pull request through GitHub's REST API with curl, which [GitHub's hosted runner images carry](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md), on the token the step's `GITHUB_TOKEN` hands it.
+  - A step sees the job's token only where its `env` names it, as [GitHub's own steps that call the API](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/using-github-cli-in-workflows) do.
+- GitHub lets the job's token open a pull request only where [the repository setting "Allow GitHub Actions to create and approve pull requests"](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests) is on, under "Workflow permissions" in Settings → Actions → General.
+  - The same setting lets the token approve a pull request, and no permission separates the two.
 - [GitHub starts no workflow run on a pull request the job's token opened or pushed to](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow) until a person with write access selects "Approve workflows to run" on it, so its required checks wait for that.
 
 Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever merges that pull request.
