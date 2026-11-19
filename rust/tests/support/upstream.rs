@@ -13,7 +13,7 @@ pub(crate) struct Upstream {
 }
 
 /// One upstream commit: each path with its content, `None` deleting the path.
-pub(crate) type Change<'c> = &'c [(&'c str, Option<&'c str>)];
+type Change<'c> = &'c [(&'c str, Option<&'c str>)];
 
 impl Upstream {
     /// A repository whose `lints` changes in each of its `commits` commits.

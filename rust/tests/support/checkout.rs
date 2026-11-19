@@ -55,7 +55,7 @@ impl Checkout {
     }
 
     /// Writes `contents` to `path` in the working tree, staging nothing.
-    pub(crate) fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
+    fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
         let file = self.dir.path().join(path);
         fs::create_dir_all(file.parent().expect("a file has a parent"))
             .expect("the file's directory can be made");
