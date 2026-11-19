@@ -367,8 +367,8 @@ fn under_github_actions_pushes_nothing_without_curl_to_open_the_pull_request() {
     assert_eq!(origin.commit(BUMP), None);
 }
 
-// Without the repository setting GitHub refuses the job's token a pull request; the
-// branch stays pushed, for a person to open it from.
+// Without the repository setting GitHub refuses the job's token a pull request; the run
+// says what grants it.
 #[test]
 fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_request() {
     let up = Upstream::changing_lints(2);
@@ -380,10 +380,7 @@ fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_re
     Runner::GitHubActions
         .bump(
             &checkout,
-            &[
-                ("GITHUB_API_URL", Some(OsStr::new(api.url()))),
-                ("GITHUB_SERVER_URL", Some(OsStr::new("https://github.com"))),
-            ],
+            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
         )
         .expect(
             2,
@@ -391,10 +388,67 @@ fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_re
                 refusal,
                 "pull-requests: write",
                 "Allow GitHub Actions to create and approve pull requests",
-                "https://github.com/o/consumer/compare/upstream-pin-bump?expand=1",
             ],
         );
-    assert!(origin.commit(BUMP).is_some());
+}
+
+// A refused run opens no pull request, so a later run that GitHub accepts must still open
+// it, or the move waits on the branch with nobody told.
+#[test]
+fn under_github_actions_opens_the_pull_request_in_a_later_run_after_github_refused_one() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let refusing = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(refusing.url())))],
+        )
+        .expect(2, &[]);
+    let accepting = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(
+            &checkout,
+            &[("GITHUB_API_URL", Some(OsStr::new(accepting.url())))],
+        )
+        .expect(1, &[OPENED]);
+    let requests = accepting.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.method, "POST");
+    assert_eq!(request.path, format!("/repos/{REPOSITORY}/pulls"));
+}
+
+// A 422 says what is wrong with the request in `errors`, such as a pull request already
+// open for the branch; naming a permission or setting that is not the cause sends the
+// reader to change the wrong thing.
+#[test]
+fn under_github_actions_reports_the_reason_github_gives_for_a_422_and_blames_no_setting() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let reason = "A pull request already exists for o:upstream-pin-bump.";
+    let api = GitHubApi::answering(
+        422,
+        &format!(
+            r#"{{"message":"Validation Failed","errors":[{{"resource":"PullRequest","code":"custom","message":"{reason}"}}]}}"#
+        ),
+    );
+    let run = Runner::GitHubActions.bump(
+        &checkout,
+        &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
+    );
+    run.expect(2, &[reason]);
+    assert!(
+        !run.output()
+            .contains("Allow GitHub Actions to create and approve pull requests"),
+        "{}",
+        run.output()
+    );
 }
 
 // While the branch's pull request is open, a newer tip moves the pins on that branch,

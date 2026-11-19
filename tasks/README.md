@@ -175,7 +175,8 @@ jobs:
 Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever merges that pull request.
 
 It exits 2, pushing nothing, where a new branch's pull request could not be opened: without `GITHUB_TOKEN` in the step's `env`, or without curl.
-It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where GitHub refuses to open the pull request, which leaves the branch pushed and prints both GitHub's reason and the link that opens the pull request by hand.
+It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where the pull request could not be opened: GitHub refused it, which prints GitHub's reason, or the API gave no answer within a minute.
+It then deletes the branch it pushed, since a run that finds the branch takes its pull request to be open, so the next run opens one; where it cannot delete the branch it says so, and the branch has to be deleted by hand.
 It exits 2 too on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
 It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 

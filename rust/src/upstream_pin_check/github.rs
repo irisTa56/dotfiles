@@ -9,8 +9,10 @@ use super::{Failure, GitHub, PullRequest, Status};
 
 /// Where GitHub Actions leaves `GITHUB_API_URL` unset, which it does not on GitHub.com.
 const DEFAULT_API: &str = "https://api.github.com";
-/// The status curl exits with on an HTTP error under `--fail-with-body`.
-const CURL_HTTP_ERROR: i32 = 22;
+/// How long curl waits to connect, and for the whole request, in seconds, so that a
+/// stalled API ends the run rather than holding the job until its own timeout.
+const CONNECT_TIMEOUT: &str = "10";
+const MAX_TIME: &str = "60";
 
 impl GitHub {
     /// Reads what opening a pull request needs from the step's environment, and checks
@@ -61,27 +63,49 @@ impl GitHub {
             "body": pull.body,
         });
         let output = Command::new("curl")
-            .args(["-sS", "--fail-with-body", "-X", "POST"])
+            .args(["-sS", "-X", "POST"])
+            .args(["--connect-timeout", CONNECT_TIMEOUT, "--max-time", MAX_TIME])
             .arg("-H")
             .arg(format!("@{}", header.display()))
             .args(["-H", "Accept: application/vnd.github+json"])
             .args(["-H", "X-GitHub-Api-Version: 2022-11-28"])
             .args(["--data-binary", &body.to_string()])
+            .args(["--write-out", "\n%{http_code}"])
             .arg(format!("{}/repos/{}/pulls", self.api, self.repository))
             .output()
             .map_err(|error| format!("could not run curl: {error}"))?;
+        if !output.status.success() {
+            return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
+        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let (answer, code) = stdout.rsplit_once('\n').unwrap_or(("", &stdout));
         let answer: serde_json::Value =
-            serde_json::from_slice(&output.stdout).unwrap_or(serde_json::Value::Null);
-        match output.status.code() {
-            Some(0) => answer["html_url"]
+            serde_json::from_str(answer).unwrap_or(serde_json::Value::Null);
+        match code.trim() {
+            "201" => answer["html_url"]
                 .as_str()
                 .map(str::to_owned)
                 .ok_or_else(|| "GitHub's answer named no pull request".to_owned()),
-            Some(CURL_HTTP_ERROR) => Err(format!(
-                "GitHub refused it: {}",
-                answer["message"].as_str().unwrap_or("no reason given")
-            )),
-            _ => Err(String::from_utf8_lossy(&output.stderr).trim().to_owned()),
+            code => Err(refusal(code, &answer)),
         }
     }
+}
+
+/// What GitHub said in refusing, with `HTTP code`: its message, each validation error's,
+/// and where the refusal is one of permission, what grants it.
+fn refusal(code: &str, answer: &serde_json::Value) -> String {
+    let mut reason = format!(
+        "GitHub refused it with HTTP {code}: {}",
+        answer["message"].as_str().unwrap_or("no reason given")
+    );
+    for error in answer["errors"].as_array().into_iter().flatten() {
+        if let Some(message) = error["message"].as_str() {
+            reason.push_str("; ");
+            reason.push_str(message);
+        }
+    }
+    if code == "401" || code == "403" {
+        reason.push_str("; opening one needs the job's token with pull-requests: write, and the repository setting \"Allow GitHub Actions to create and approve pull requests\"");
+    }
+    reason
 }

@@ -2,7 +2,6 @@
 //! pull request.
 
 use std::collections::HashMap;
-use std::env;
 use std::fmt::Write;
 
 use super::{
@@ -260,8 +259,9 @@ impl Scratch {
         Ok(())
     }
 
-    /// Opens the pull request of [`BUMP_BRANCH`] into `base`. Where GitHub refuses, the
-    /// branch stays pushed and the link that opens the pull request by hand is printed.
+    /// Opens the pull request of [`BUMP_BRANCH`] into `base`. Where it cannot, the branch
+    /// this run pushed is deleted again, since a run that finds the branch takes its pull
+    /// request to be open and opens none.
     fn open_pull_request(&self, github: &GitHub, base: &str, message: &Message) -> Status {
         let body = message.list();
         let pull = PullRequest {
@@ -276,19 +276,28 @@ impl Scratch {
                 Status::Differs
             }
             Err(reason) => {
-                Failure(&format!(
-                    "could not open its pull request: {reason}; opening one needs the job's token with pull-requests: write, and the repository setting \"Allow GitHub Actions to create and approve pull requests\""
-                ))
-                .report();
-                let server = env::var("GITHUB_SERVER_URL")
-                    .unwrap_or_else(|_| "https://github.com".to_owned());
-                Failure(&format!(
-                    "open it by hand: {server}/{}/compare/{BUMP_BRANCH}?expand=1",
-                    github.repository
-                ))
-                .report();
+                Failure(&format!("could not open its pull request: {reason}")).report();
+                self.withdraw_push();
                 Status::Unknown
             }
+        }
+    }
+
+    /// Deletes [`BUMP_BRANCH`] from origin, where this run pushed it.
+    fn withdraw_push(&self) {
+        let deleted = self.git.run(&[
+            "push",
+            "-q",
+            "origin",
+            &format!(":refs/heads/{BUMP_BRANCH}"),
+        ]);
+        if deleted.success() {
+            Failure(&format!(
+                "deleted {BUMP_BRANCH} again, so that the next run opens its pull request"
+            ))
+            .report();
+        } else {
+            Failure(&format!("could not delete {BUMP_BRANCH}; delete it by hand, or the next run will open no pull request")).report_git(&deleted);
         }
     }
 }
