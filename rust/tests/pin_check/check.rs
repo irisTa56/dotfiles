@@ -1,184 +1,10 @@
-//! `dotfiles-tasks pin-check`, run as a built binary in repositories each test sets up.
-
-use std::ffi::OsStr;
-use std::fs;
-use std::io::{self, Read};
-use std::path::Path;
-use std::process::{Command, Stdio};
+//! Runs without `--bump`: reading the pins and comparing each with its upstream.
 
 use tempfile::TempDir;
 
-/// The repository a run checks: a fresh git repository with the files a test stages.
-struct Checkout {
-    dir: TempDir,
-}
-
-/// How a run of the binary ended: its exit code, and stdout and stderr as one stream.
-struct Run {
-    code: i32,
-    output: String,
-}
-
-impl Checkout {
-    /// A repository holding `files`, given as path and content, staged.
-    fn new(files: &[(&str, &str)]) -> Self {
-        let dir = TempDir::new().expect("a temporary directory can be made");
-        let checkout = Checkout { dir };
-        checkout.git(&["init", "-q"]);
-        for (path, content) in files {
-            let file = checkout.dir.path().join(path);
-            fs::create_dir_all(file.parent().expect("a file has a parent"))
-                .expect("the file's directory can be made");
-            fs::write(&file, content).expect("the file can be written");
-        }
-        checkout.git(&["add", "-A"]);
-        checkout
-    }
-
-    /// Runs git in the repository, as setup that must succeed.
-    fn git(&self, args: &[&str]) {
-        git(self.dir.path(), args);
-    }
-
-    /// Runs `pin-check` with `args` in the repository.
-    fn run(&self, args: &[&str]) -> Run {
-        self.run_with(args, &[])
-    }
-
-    /// Runs `pin-check` with `args` in the repository, with `env` set over the
-    /// isolated environment.
-    fn run_with(&self, args: &[&str], env: &[(&str, &OsStr)]) -> Run {
-        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
-        let mut command = Command::new(env!("CARGO_BIN_EXE_dotfiles-tasks"));
-        command
-            .arg("pin-check")
-            .args(args)
-            .current_dir(self.dir.path())
-            .stdin(Stdio::null())
-            .stdout(writer.try_clone().expect("the pipe can be shared"))
-            .stderr(writer);
-        isolate(&mut command, self.dir.path());
-        command.envs(env.iter().copied());
-        let mut child = command.spawn().expect("the binary runs");
-        // The command holds the pipe's writing ends until it is dropped, and reading
-        // waits for every one to close.
-        drop(command);
-        let mut output = String::new();
-        reader
-            .read_to_string(&mut output)
-            .expect("the output is UTF-8");
-        let status = child.wait().expect("the binary's run ends");
-        Run {
-            code: status
-                .code()
-                .expect("the binary exits rather than being killed"),
-            output,
-        }
-    }
-}
-
-/// Keeps git, run by a test or by the binary, to the repository it is run in: a git hook
-/// running the tests exports `GIT_DIR` and its kin for its own repository, and a
-/// directory above the temporary one could be a repository.
-fn isolate(command: &mut Command, dir: &Path) {
-    for (name, _) in std::env::vars_os() {
-        if name.to_string_lossy().starts_with("GIT_") {
-            command.env_remove(name);
-        }
-    }
-    command.env(
-        "GIT_CEILING_DIRECTORIES",
-        dir.parent().expect("a temporary directory has a parent"),
-    );
-}
-
-/// Runs git in `dir`, as setup that must succeed, and returns its trimmed stdout.
-fn git(dir: &Path, args: &[&str]) -> String {
-    let mut command = Command::new("git");
-    command.args(args).current_dir(dir);
-    isolate(&mut command, dir);
-    let output = command.output().expect("git runs");
-    assert!(
-        output.status.success(),
-        "git {args:?} in {dir:?} failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    String::from_utf8(output.stdout)
-        .expect("git's output is UTF-8")
-        .trim()
-        .to_owned()
-}
-
-/// The git identity setup commits are made with, since the host may have none.
-const IDENTITY: [&str; 4] = ["-c", "user.name=t", "-c", "user.email=t@example.com"];
-
-/// An upstream repository on `main`, reached by a `file://` URL.
-struct Upstream {
-    dir: TempDir,
-    commits: Vec<String>,
-}
-
-/// One upstream commit: each path with its content, `None` deleting the path.
-type Change<'c> = &'c [(&'c str, Option<&'c str>)];
-
-impl Upstream {
-    /// A repository with one commit per item of `changes`, in order.
-    fn new(changes: &[Change<'_>]) -> Self {
-        let dir = TempDir::new().expect("a temporary directory can be made");
-        git(dir.path(), &["init", "-q", "-b", "main"]);
-        let commits = changes
-            .iter()
-            .map(|change| {
-                for (path, content) in *change {
-                    let file = dir.path().join(path);
-                    match content {
-                        Some(content) => {
-                            fs::create_dir_all(file.parent().expect("a file has a parent"))
-                                .expect("the file's directory can be made");
-                            fs::write(&file, content).expect("the file can be written");
-                        }
-                        None => fs::remove_file(&file).expect("the file can be removed"),
-                    }
-                }
-                git(dir.path(), &["add", "-A"]);
-                git(
-                    dir.path(),
-                    &[&IDENTITY[..], &["commit", "-q", "--allow-empty", "-m", "c"]].concat(),
-                );
-                git(dir.path(), &["rev-parse", "HEAD"])
-            })
-            .collect();
-        Upstream { dir, commits }
-    }
-
-    fn url(&self) -> String {
-        format!("file://{}", self.dir.path().display())
-    }
-
-    /// The marker that pins `path` at the `index`th commit.
-    fn marker(&self, path: &str, index: usize) -> String {
-        marker(&self.url(), path, &self.commits[index])
-    }
-}
-
-/// A marker as the tracked files spell one.
-fn marker(url: &str, path: &str, commit: &str) -> String {
-    format!("git::{url}//{path}?ref={commit}")
-}
-
-impl Run {
-    /// Asserts that the run exited with `code` and printed each of `parts`.
-    fn expect(&self, code: i32, parts: &[&str]) {
-        assert_eq!(self.code, code, "exit code; output:\n{}", self.output);
-        for part in parts {
-            assert!(
-                self.output.contains(part),
-                "the output lacks {part:?}:\n{}",
-                self.output
-            );
-        }
-    }
-}
+use crate::support::checkout::Checkout;
+use crate::support::git::git;
+use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
 // A wrong pathspec, or a pin spelled so that it is not read, would otherwise pass having
 // checked nothing.
@@ -197,9 +23,9 @@ fn fails_when_no_tracked_file_holds_a_pin() {
 #[test]
 fn fails_when_no_tracked_file_spells_a_marker_at_all() {
     let run = Checkout::new(&[("Cargo.toml", "[package]\n")]).run(&[]);
-    assert_eq!(run.code, 2, "{}", run.output);
+    assert_eq!(run.code(), 2, "{}", run.output());
     assert_eq!(
-        run.output,
+        run.output(),
         "[fail] found no upstream pin in the tracked files\n"
     );
 }
@@ -224,7 +50,7 @@ fn leaves_the_repository_of_a_git_hook_it_runs_under_alone() {
     git(hook.path(), &["init", "-q", "--bare"]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .run_with(&[], &[("GIT_DIR", hook.path().as_os_str())])
+        .run_with(&[], &[("GIT_DIR", Some(hook.path().as_os_str()))])
         .expect(0, &["[ok]"]);
     assert!(
         !hook.path().join("FETCH_HEAD").exists(),
@@ -245,8 +71,8 @@ fn fails_on_a_pin_whose_path_changed_naming_both_commits_and_the_file() {
         1,
         &[
             &format!("{}//lints differs", up.url()),
-            &format!("pinned: {}", up.commits[0]),
-            &format!("tip:    {}", up.commits[1]),
+            &format!("pinned: {}", up.commit(0)),
+            &format!("tip:    {}", up.commit(1)),
             "Cargo.toml",
         ],
     );
@@ -261,9 +87,6 @@ fn fails_on_a_pin_whose_path_is_gone_from_the_default_branch() {
         .run(&[])
         .expect(1, &["is gone from the default branch"]);
 }
-
-/// A commit spelled as a pin can spell one, which no upstream in these tests has.
-const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 #[test]
 fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read() {
@@ -388,7 +211,7 @@ fn fails_as_unable_to_tell_where_it_cannot_make_its_scratch_repository() {
     let missing = aux.path().join("no-such-dir");
     let cargo = format!("# {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .run_with(&[], &[("TMPDIR", missing.as_os_str())])
+        .run_with(&[], &[("TMPDIR", Some(missing.as_os_str()))])
         .expect(2, &["[fail] stopped on"]);
 }
 
