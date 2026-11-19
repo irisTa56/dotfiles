@@ -8,7 +8,7 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::process::ExitStatusExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 
 /// What a run is told on arguments it cannot read.
@@ -37,7 +37,7 @@ pub(crate) fn run(args: &[String]) -> ExitCode {
     };
     // A byte that is not UTF-8 is replaced rather than refused, so one in a comment
     // line goes with the line.
-    let contents = match fs::read(request.script_path) {
+    let contents = match fs::read(expand_home(request.script_path)) {
         Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
         Err(error) => {
             return fail(
@@ -155,6 +155,20 @@ fn is_switch(arg: &str) -> bool {
     arg.strip_prefix('-').is_some_and(|rest| {
         !(rest.is_empty() || rest.starts_with(|c: char| c == ' ' || c.is_ascii_digit()))
     })
+}
+
+/// `path` with a leading `~` the shell left alone, as in a quoted path, read as the
+/// home directory.
+fn expand_home(path: &str) -> PathBuf {
+    let rest = match path.strip_prefix('~') {
+        Some("") => "",
+        Some(rest) if rest.starts_with('/') => &rest[1..],
+        _ => return PathBuf::from(path),
+    };
+    match std::env::var_os("HOME") {
+        Some(home) => Path::new(&home).join(rest),
+        None => PathBuf::from(path),
+    }
 }
 
 /// `s` as the inside of a string literal of the script osascript runs.
