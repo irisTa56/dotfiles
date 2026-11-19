@@ -118,7 +118,7 @@ fn fails_on_a_secret_another_remote_holds_but_the_pushed_one_does_not() {
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
     let other = Origin::new();
     checkout.add_remote("other", &other);
-    checkout.git(&["push", "-q", "other", "main"]);
+    checkout.git(&["push", "-q", "other", "HEAD:refs/heads/main"]);
     checkout
         .secrets_push_scan(&["origin"], &main_line(&checkout, &sha))
         .expect(1, &[&format!("commit {sha}")]);
