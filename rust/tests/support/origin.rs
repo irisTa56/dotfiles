@@ -6,6 +6,7 @@ use std::path::Path;
 
 use tempfile::TempDir;
 
+use super::checkout::Checkout;
 use super::git::{IDENTITY, git, query};
 
 /// A bare repository that a checkout names as its `origin`.
@@ -21,21 +22,11 @@ impl Origin {
         Origin { dir }
     }
 
-    /// A bare repository whose `main` holds `files`, given as path and content, pushed
-    /// from a repository of its own.
+    /// A bare repository whose `main` holds `files`, given as path and content, published
+    /// from a checkout of its own.
     pub(crate) fn with_main(files: &[(&str, &str)]) -> Self {
         let origin = Origin::new();
-        let seed = TempDir::new().expect("a temporary directory can be made");
-        git(seed.path(), &["init", "-q", "-b", "main"]);
-        for (path, content) in files {
-            fs::write(seed.path().join(path), content).expect("the file can be written");
-        }
-        git(seed.path(), &["add", "-A"]);
-        git(
-            seed.path(),
-            &[&IDENTITY[..], &["commit", "-qm", "base"]].concat(),
-        );
-        git(seed.path(), &["push", "-q", origin.location(), "main"]);
+        Checkout::new(files).publish(&origin);
         origin
     }
 
