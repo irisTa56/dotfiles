@@ -11,11 +11,19 @@ regex = "1"
 serde_json = "1"
 tempfile = "3"
 
-[lints.rust]
+[lints]
+workspace = true
+
+# dotfiles-local, the commands for this machine alone, built from the main checkout and
+# never released.
+[workspace]
+members = ["crates/local"]
+
+[workspace.lints.rust]
 unsafe_code = "forbid"
 unreachable_pub = "warn"
 
-[lints.clippy]
+[workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 # A print macro panics on a pipe whose reader has gone; src/stream.rs writes instead.
 print_stdout = "warn"
@@ -26,3 +34,9 @@ print_stderr = "warn"
 strip = true
 lto = true
 codegen-units = 1
+
+# What `mise run local:install` builds dotfiles-local with. The release profile's LTO
+# only makes a download smaller, and this binary is built where it runs.
+[profile.local]
+inherits = "release"
+lto = false

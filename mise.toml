@@ -28,14 +28,26 @@ sh_paths = "scripts tasks zsh_fragments .claude/skills/sync-base/scripts .claude
 # hook anything else put in its place is gone after the second install.
 # The push scan is registered in git's config instead, which runs beside any
 # pre-push hook file and is safe to set on every install (see tasks/README.md).
+# Two more keep dotfiles-local current with main: `local:install` after a merge into
+# main, such as sync-base's fast-forward, and after a switch to main. Set in the
+# repository's config, they run in every worktree, whatever branch it is on, and
+# `local:install` fails off main, so each tests the branch before running mise.
+# post-checkout also runs on a checkout of files, whose third argument is 0
+# where a switch's is 1. A failed hook would fail `git switch`, which stops sync-base
+# before main moves, so a failed install only warns. git passes the hook's arguments
+# after the command too, and the trailing `:` takes them.
 # git before 2.54 ignores those keys, so the last line says so rather than
-# leaving pushes unscanned in silence.
+# leaving pushes unscanned and dotfiles-local stale in silence.
 [hooks]
 postinstall = '''
 mise generate git-pre-commit --task pre-commit --write
 git config hook.secrets-push-scan.event pre-push
 git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
-git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning: this git ignores hook.* config, so pushes are not scanned; git 2.54 or later runs it" >&2
+git config hook.local-install-on-merge.event post-merge
+git config hook.local-install-on-merge.command 'if test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
+git config hook.local-install-on-switch.event post-checkout
+git config hook.local-install-on-switch.command 'if test "$3" = 1 && test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
+git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning: this git ignores hook.* config, so pushes are not scanned and dotfiles-local is not installed when main moves; git 2.54 or later runs them" >&2
 '''
 
 # tasks/ holds the task definitions this repository shares with others (see README).
@@ -171,13 +183,15 @@ run = "mix dotfiles.release_pins"
 description = "Run every check under qa:rust:"
 depends = ["qa:rust:*"]
 
+# Each command names the whole workspace: run in rust/, cargo would otherwise take only
+# the dotfiles-tasks package at its root.
 [tasks."qa:rust:crate"]
-description = "Check formatting of, lint and test the dotfiles-tasks package"
+description = "Check formatting of, lint and test every package of the Rust workspace"
 dir = "{{config_root}}/rust"
 run = [
-  "cargo fmt --check",
-  "cargo clippy --all-targets --locked -- -D warnings",
-  "cargo test --locked",
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --all-targets --locked -- -D warnings",
+  "cargo test --workspace --locked",
 ]
 
 # The subcommand built from the working tree rather than the release the shared task
@@ -241,7 +255,25 @@ run = [
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
   # starts the server to check it, and `add-json` fails on one already there.
   "jq -e '.mcpServers[\"basic-memory\"]' ~/.claude.json >/dev/null 2>&1 || claude mcp add-json -s user basic-memory '{\"command\":\"uvx\",\"args\":[\"basic-memory\",\"mcp\"]}'",
+  # Last, since off main it fails, and the steps above need no branch.
+  { task = "local:install" },
 ]
+
+# Installs dotfiles-local from this checkout, and only from main: every caller runs the
+# installed copy, so a feature branch's build would stand in for main's everywhere; such
+# a branch tries its change with `cargo run` in its worktree. Silence off main would let
+# bootstrap pass with no binary in place, so this fails there instead. `cargo install`
+# copies the binary, so a later `cargo clean` leaves it working, and rebuilds and copies
+# again on every run, changed or not.
+[tasks."local:install"]
+description = "Install dotfiles-local into ~/.local/bin from this checkout, on main only"
+run = '''
+test "$(git branch --show-current)" = main || {
+  echo "dotfiles-local installs from main only: run this in a checkout on main, or try a branch with cargo run" >&2
+  exit 1
+}
+cargo install --locked --path rust/crates/local --profile local --root ~/.local
+'''
 
 [tasks.link-check]
 description = "Check if links are valid, showing redirects"

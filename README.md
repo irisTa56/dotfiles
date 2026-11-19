@@ -35,7 +35,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
-- The `bootstrap` task runs last, on every run, as the sections below describe: `setup:dotfiles`, `apm install`, and the `basic-memory` MCP server.
+- The `bootstrap` task runs last, on every run: `setup:dotfiles`, `apm install`, and the `basic-memory` MCP server, as the sections below describe, and then `local:install`, which installs `dotfiles-local` into `~/.local/bin` from `main` and fails on any other branch.
 
 The global config, `.config/mise/config.toml`, holds the tools and settings that reach every repository; the root `mise.toml` pins the tools this repository's own tasks use.
 
