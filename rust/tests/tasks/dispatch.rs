@@ -9,3 +9,16 @@ fn fails_as_unable_to_tell_on_an_unknown_task_when_stderr_is_closed() {
     let run = Checkout::new(&[]).task_closing("frobnicate", Stream::Stderr, &[]);
     assert_eq!((run.code(), run.output()), (2, ""));
 }
+
+// A name with no subcommand, such as a misspelt one, is told which tasks there are.
+#[test]
+fn fails_as_unable_to_tell_on_an_unknown_task_naming_the_tasks() {
+    let run = Checkout::new(&[]).task("frobnicate", &[], &[]);
+    assert_eq!(
+        (run.code(), run.output()),
+        (
+            2,
+            "[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check, size-check\n"
+        )
+    );
+}

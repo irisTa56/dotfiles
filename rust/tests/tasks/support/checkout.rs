@@ -172,7 +172,7 @@ impl Checkout {
     /// Runs the subcommand `task` with `args` in the repository, with each variable of
     /// `env` set over the isolated environment, or removed from it where its value is
     /// `None`.
-    fn task(&self, task: &str, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
+    pub(crate) fn task(&self, task: &str, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
         command.arg(task).args(args);
         for (name, value) in env {
