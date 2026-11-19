@@ -1,4 +1,5 @@
-//! The repository a run of the binary or its wrapper checks, and how the run ended.
+//! The repository a run of the binary, its wrapper or a shell task checks, and how the run
+//! ended.
 
 use std::ffi::OsStr;
 use std::fs;
@@ -225,6 +226,15 @@ impl Checkout {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
         command.arg(task).args(args);
         Run::closing(command, closed)
+    }
+
+    /// Runs the shell task consumers run, `tasks/secrets/commit-scan.sh`, in the directory
+    /// `dir` of the repository, finding gitleaks on the PATH the tests run with.
+    pub(crate) fn secrets_commit_scan_in(&self, dir: &str) -> Run {
+        let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks/secrets/commit-scan.sh");
+        let mut command = isolated("bash", self.dir.path());
+        command.arg(script).current_dir(self.dir.path().join(dir));
+        Run::of(command)
     }
 
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
