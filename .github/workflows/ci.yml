@@ -92,9 +92,8 @@ jobs:
       # per call. The integration tests of skills_update read its lockfile with the
       # real yq, and their fake gh applies the --jq filter with the real jq; those
       # of mise_multi_upgrade drive the mise this action installs, after clearing
-      # every MISE_ variable, this one included. qa:tasks builds the dotfiles-tasks
-      # binary, which some shared tasks wrap, with Rust.
-      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq,rust
+      # every MISE_ variable, this one included.
+      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # mise picks builds.hex.pm's precompiled Erlang on its own only on the Ubuntu

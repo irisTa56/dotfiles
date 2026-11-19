@@ -171,3 +171,4 @@ It is the task's own namespace directory rather than the root of the library: `t
 
 What a task must do can be checked here without the consuming repositories ever running the check: `qa:tasks` runs a task's script on cases, each a repository it sets up, the arguments it passes and the exit status and output it expects.
 The Mix project under `elixir/` provides that check, and a task's cases are a module of their own under `elixir/lib/dotfiles/task_cases/`, listed in `Dotfiles.TaskCases`; `skills:size-check` has them, and the tasks older than the check do not yet.
+A task that wraps the `dotfiles-tasks` binary is checked instead by that package's tests, which `qa:rust` runs: `upstream:pin-check`'s are under `rust/tests/pin_check/`, and run the wrapper itself with a stand-in for mise.

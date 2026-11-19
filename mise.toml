@@ -172,21 +172,15 @@ run = [
   "cargo test --locked",
 ]
 
-[tasks."rust:build"]
-description = "Build the dotfiles-tasks binary that the shared tasks' cases run"
-dir = "{{config_root}}/rust"
-run = "cargo build --locked"
-
 [tasks."qa:skills"]
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = [{ task = "skills:size-check" }]
 
-# What each shared task must do is checked from outside it: the Mix project runs its
-# script on cases (elixir/lib/dotfiles/task_cases/), and a task that wraps the
-# dotfiles-tasks binary on the build of this working tree, which rust:build leaves.
+# What each shared shell task must do is checked from outside it: the Mix project
+# runs its script on cases (elixir/lib/dotfiles/task_cases/). A task that wraps the
+# dotfiles-tasks binary is checked by that package's tests, which qa:rust runs.
 [tasks."qa:tasks"]
 description = "Check that each shared task under tasks/ does what its cases expect"
-depends = ["rust:build"]
 dir = "{{config_root}}/elixir"
 env = { MIX_QUIET = "1" }
 run = "mix dotfiles.task_cases"
