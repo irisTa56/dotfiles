@@ -4,6 +4,7 @@
 //! The tests are one crate, so that a helper no test uses any longer is reported as
 //! dead code.
 
+mod dispatch;
 mod pin_check;
 mod size_check;
 mod support;
