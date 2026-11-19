@@ -25,9 +25,9 @@ fn fails_when_no_tracked_file_holds_a_pin() {
 #[test]
 fn fails_when_no_tracked_file_spells_a_marker_at_all() {
     let run = Checkout::new(&[("Cargo.toml", "[package]\n")]).run(&[]);
-    assert_eq!(run.code, 2, "{}", run.output);
+    assert_eq!(run.code(), 2, "{}", run.output());
     assert_eq!(
-        run.output,
+        run.output(),
         "[fail] found no upstream pin in the tracked files\n"
     );
 }
@@ -73,8 +73,8 @@ fn fails_on_a_pin_whose_path_changed_naming_both_commits_and_the_file() {
         1,
         &[
             &format!("{}//lints differs", up.url()),
-            &format!("pinned: {}", up.commits[0]),
-            &format!("tip:    {}", up.commits[1]),
+            &format!("pinned: {}", up.commit(0)),
+            &format!("tip:    {}", up.commit(1)),
             "Cargo.toml",
         ],
     );

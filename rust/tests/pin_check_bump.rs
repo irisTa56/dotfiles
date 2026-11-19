@@ -42,13 +42,6 @@ fn changed_lints() -> Upstream {
     ])
 }
 
-/// The commit `rev` names in `origin`, which the test expects there is.
-fn commit(origin: &Origin, rev: &str) -> String {
-    origin
-        .commit(rev)
-        .unwrap_or_else(|| panic!("origin has no {rev}"))
-}
-
 #[test]
 fn moves_a_differing_pin_to_the_tip_in_every_file_that_spells_it() {
     let up = changed_lints();
@@ -62,7 +55,7 @@ fn moves_a_differing_pin_to_the_tip_in_every_file_that_spells_it() {
         &[&format!(
             "moved the pin of {}//lints to {}",
             up.url(),
-            up.commits[1]
+            up.commit(1)
         )],
     );
     let tip = up.marker("lints", 1);
@@ -89,7 +82,7 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
         1,
         &[
             "pushed the move to upstream-pin-bump",
-            &format!("{}//lints to {}", up.url(), up.commits[1]),
+            &format!("{}//lints to {}", up.url(), up.commit(1)),
             "/compare/upstream-pin-bump?expand=1",
         ],
     );
@@ -102,10 +95,7 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
         origin.show(&format!("{BUMP}:README.md")),
         Some(b"r".to_vec())
     );
-    assert_eq!(
-        commit(&origin, &format!("{BUMP}~1")),
-        commit(&origin, "main")
-    );
+    assert_eq!(origin.commit(&format!("{BUMP}~1")), origin.commit("main"));
 }
 
 // The link a person follows from the bump is GitHub's comparison of the two commits,
@@ -123,7 +113,7 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
     )
     .expect("the config can be written");
     let origin = Origin::new();
-    let cargo = format!("# {}\n", marker(url, "lints", &up.commits[0]));
+    let cargo = format!("# {}\n", marker(url, "lints", up.commit(0)));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout.publish(&origin);
     Runner::GitHubActions
@@ -141,7 +131,7 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
             &[
                 &format!(
                     "what it brings: https://github.com/o/up/compare/{}...{}",
-                    up.commits[0], up.commits[1]
+                    up.commit(0), up.commit(1)
                 ),
                 "open its pull request: https://github.com/o/consumer/compare/upstream-pin-bump?expand=1",
             ],
@@ -235,7 +225,7 @@ fn moves_a_differing_pin_and_still_fails_as_unable_to_tell_beside_an_unreadable_
         &[&format!(
             "moved the pin of {}//lints to {}",
             up.url(),
-            up.commits[1]
+            up.commit(1)
         )],
     );
     assert_eq!(
@@ -270,7 +260,7 @@ fn under_github_actions_leaves_an_existing_bump_branch_alone() {
     Runner::GitHubActions
         .bump(&checkout, &[])
         .expect(1, &["upstream-pin-bump already exists on origin"]);
-    assert_eq!(commit(&origin, BUMP), commit(&origin, "main"));
+    assert_eq!(origin.commit(BUMP), origin.commit("main"));
 }
 
 // A pin added on a pull request's branch is not on the default branch yet.
@@ -309,13 +299,6 @@ fn thrice_changed_lints() -> Upstream {
     ])
 }
 
-/// The message of the commit origin's bump branch holds.
-fn bump_message(origin: &Origin) -> String {
-    origin
-        .log(BUMP, "%B")
-        .unwrap_or_else(|| panic!("origin has no {BUMP}"))
-}
-
 // The checkout is often a pull request's merge commit, so its pin can be one that
 // origin's default branch no longer holds; the move starts where the default branch's
 // file is.
@@ -326,9 +309,9 @@ fn under_github_actions_names_the_commit_origins_default_branch_pins_as_where_th
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.stage_over(&origin);
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
-    let message = bump_message(&origin);
-    assert!(message.contains(&up.commits[1]), "{message}");
-    assert!(!message.contains(&up.commits[0]), "{message}");
+    let message = origin.log(BUMP, "%B").expect("origin has the bump branch");
+    assert!(message.contains(up.commit(1)), "{message}");
+    assert!(!message.contains(up.commit(0)), "{message}");
 }
 
 #[test]
@@ -340,7 +323,7 @@ fn under_github_actions_claims_no_move_of_a_pin_origins_default_branch_does_not_
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout.stage_over(&origin);
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
-    let message = bump_message(&origin);
+    let message = origin.log(BUMP, "%B").expect("origin has the bump branch");
     assert!(message.contains(&a.url()), "{message}");
     assert!(!message.contains(&b.url()), "{message}");
 }

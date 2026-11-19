@@ -9,7 +9,7 @@ use super::git::{IDENTITY, git};
 /// An upstream repository on `main`, reached by a `file://` URL.
 pub(crate) struct Upstream {
     dir: TempDir,
-    pub(crate) commits: Vec<String>,
+    commits: Vec<String>,
 }
 
 /// One upstream commit: each path with its content, `None` deleting the path.
@@ -47,6 +47,11 @@ impl Upstream {
 
     pub(crate) fn url(&self) -> String {
         format!("file://{}", self.dir.path().display())
+    }
+
+    /// The `index`th commit, counting from the first.
+    pub(crate) fn commit(&self, index: usize) -> &str {
+        &self.commits[index]
     }
 
     /// The marker that pins `path` at the `index`th commit.

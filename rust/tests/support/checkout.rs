@@ -3,11 +3,11 @@
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{self, Read};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use tempfile::TempDir;
 
-use super::git::{IDENTITY, git, isolate};
+use super::git::{IDENTITY, git, isolated};
 use super::origin::Origin;
 
 /// The repository a run checks: a fresh git repository with the files a test stages.
@@ -17,8 +17,8 @@ pub(crate) struct Checkout {
 
 /// How a run of the binary ended: its exit code, and stdout and stderr as one stream.
 pub(crate) struct Run {
-    pub(crate) code: i32,
-    pub(crate) output: String,
+    code: i32,
+    output: String,
 }
 
 impl Checkout {
@@ -79,15 +79,13 @@ impl Checkout {
     /// over the isolated environment, or removed from it where its value is `None`.
     pub(crate) fn run_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
         let (mut reader, writer) = io::pipe().expect("a pipe can be made");
-        let mut command = Command::new(env!("CARGO_BIN_EXE_dotfiles-tasks"));
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
         command
             .arg("pin-check")
             .args(args)
-            .current_dir(self.dir.path())
             .stdin(Stdio::null())
             .stdout(writer.try_clone().expect("the pipe can be shared"))
             .stderr(writer);
-        isolate(&mut command, self.dir.path());
         for (name, value) in env {
             match value {
                 Some(value) => command.env(name, value),
@@ -113,6 +111,16 @@ impl Checkout {
 }
 
 impl Run {
+    /// The code the binary exited with.
+    pub(crate) fn code(&self) -> i32 {
+        self.code
+    }
+
+    /// What the binary printed, stdout and stderr as one stream.
+    pub(crate) fn output(&self) -> &str {
+        &self.output
+    }
+
     /// Asserts that the run exited with `code` and printed each of `parts`.
     pub(crate) fn expect(&self, code: i32, parts: &[&str]) {
         assert_eq!(self.code, code, "exit code; output:\n{}", self.output);
