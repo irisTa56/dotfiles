@@ -1,6 +1,8 @@
 //! `dotfiles-tasks secrets-push-scan`: whether the commits a push sends hold a secret,
 //! checked by the real trufflehog, as a pre-push hook runs it.
 
+mod wrapper;
+
 use std::ffi::OsString;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;

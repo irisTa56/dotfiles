@@ -195,6 +195,14 @@ run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- skills-size
 description = "Check the links of staged files"
 run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-staged"
 
+# The shared task, run by the subcommand built from the working tree for the reason
+# `qa:rust:skills` gives; the pre-push hook runs it as `secrets:push-scan`, which
+# resolves to this name, and the remote and the pushed refs reach the subcommand as the
+# hook gives them.
+[tasks."secrets:push-scan.sh"]
+description = "Scan the commits a push is about to send for secrets"
+run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- secrets-push-scan"
+
 # Offline, so a pull request never waits on a third-party host and a host being down
 # never fails one; `link-check:staged` requests the links of the files a commit
 # touches, and `link-check` below requests every link, which CI runs weekly without

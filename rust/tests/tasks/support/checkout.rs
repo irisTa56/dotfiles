@@ -310,15 +310,27 @@ impl Checkout {
         self.wrapper("link-check/staged.sh", &[], mise)
     }
 
+    /// Runs the wrapper consumers run, `tasks/secrets/push-scan.sh`, with `args` in the
+    /// repository, fed `refs` on stdin as `secrets_push_scan` is, finding `mise` in place
+    /// of mise.
+    pub(crate) fn secrets_push_scan_wrapper(&self, args: &[&str], refs: &str, mise: &Mise) -> Run {
+        self.wrapper_fed("secrets/push-scan.sh", args, refs.as_bytes(), mise)
+    }
+
     /// Runs the wrapper at `path` under `tasks/` with `args` in the repository, finding
     /// `mise` in place of mise.
     fn wrapper(&self, path: &str, args: &[&str], mise: &Mise) -> Run {
+        self.wrapper_fed(path, args, &[], mise)
+    }
+
+    /// Runs the wrapper at `path` as `wrapper` does, fed `input` on stdin.
+    fn wrapper_fed(&self, path: &str, args: &[&str], input: &[u8], mise: &Mise) -> Run {
         let wrapper = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../tasks")
             .join(path);
         let mut command = isolated("bash", self.dir.path());
         command.arg(wrapper).args(args).env("PATH", mise.path());
-        Run::of(command)
+        Run::fed(command, input)
     }
 }
 
