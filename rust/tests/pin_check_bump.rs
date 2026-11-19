@@ -136,9 +136,16 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
                 "open its pull request: https://github.com/o/consumer/compare/upstream-pin-bump?expand=1",
             ],
         );
+    let bot = "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>";
     assert_eq!(
         origin.log(BUMP, "%an <%ae>").as_deref(),
-        Some("github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>")
+        Some(bot),
+        "author"
+    );
+    assert_eq!(
+        origin.log(BUMP, "%cn <%ce>").as_deref(),
+        Some(bot),
+        "committer"
     );
 }
 
@@ -205,6 +212,37 @@ fn under_github_actions_leaves_a_full_checkouts_history_as_it_was() {
         "false"
     );
     assert_eq!(checkout.git(&["rev-list", "--count", "HEAD"]), "3");
+}
+
+// A shallow checkout, as actions/checkout leaves by default, may be behind origin's
+// default branch; the bump takes that branch's tip alone rather than the history
+// between, which the checkout was made without.
+#[test]
+fn under_github_actions_leaves_a_shallow_checkout_holding_the_default_branch_tip_alone() {
+    let up = changed_lints();
+    let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::shallow_clone(&origin);
+    origin.advance_main(3);
+    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    let tip = origin.commit("main").expect("origin has main");
+    assert_eq!(
+        checkout.git(&["rev-parse", "--is-shallow-repository"]),
+        "true"
+    );
+    assert_eq!(checkout.git(&["rev-list", "--count", &tip]), "1");
+}
+
+// A pin may sit in a script, whose executable bit the pushed move must keep.
+#[test]
+fn under_github_actions_pushes_a_moved_file_at_the_mode_it_has_on_the_default_branch() {
+    let up = changed_lints();
+    let origin = Origin::new();
+    let script = format!("#!/bin/sh\n# {}\n", up.marker("lints", 0));
+    let checkout = Checkout::new(&[("run.sh", &script)]);
+    checkout.git(&["update-index", "--chmod=+x", "run.sh"]);
+    checkout.publish(&origin);
+    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    assert_eq!(origin.mode(BUMP, "run.sh").as_deref(), Some("100755"));
 }
 
 /// A commit spelled as a pin can spell one, which no upstream in these tests has.
@@ -344,6 +382,10 @@ fn under_github_actions_moves_a_pin_in_a_large_file_beside_one_in_a_small_file()
         origin.show(&format!("{BUMP}:big.toml"))
             == Some(format!("{padding}# {}\n", up.marker("lints", 1)).into_bytes()),
         "the pushed big.toml does not hold the moved pin"
+    );
+    assert_eq!(
+        origin.show(&format!("{BUMP}:Cargo.toml")),
+        Some(format!("# {}\n", up.marker("lints", 1)).into_bytes())
     );
 }
 

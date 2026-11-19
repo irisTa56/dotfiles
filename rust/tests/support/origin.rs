@@ -39,6 +39,23 @@ impl Origin {
         origin
     }
 
+    /// Adds `count` empty commits on top of `main`, as other changes landing there.
+    pub(crate) fn advance_main(&self, count: usize) {
+        let work = TempDir::new().expect("a temporary directory can be made");
+        git(work.path(), &["clone", "-q", self.location(), "."]);
+        for _ in 0..count {
+            git(
+                work.path(),
+                &[
+                    &IDENTITY[..],
+                    &["commit", "-q", "--allow-empty", "-m", "later"],
+                ]
+                .concat(),
+            );
+        }
+        git(work.path(), &["push", "-q", "origin", "main"]);
+    }
+
     /// Where a remote names the repository.
     pub(super) fn location(&self) -> &str {
         self.dir
@@ -65,6 +82,14 @@ impl Origin {
     /// The bytes of `object`, as `git show` names one, or `None` where there is none.
     pub(crate) fn show(&self, object: &str) -> Option<Vec<u8>> {
         query(self.path(), &["show", object])
+    }
+
+    /// The mode `path` has at `rev`, as `git ls-tree` prints it, or `None` where it
+    /// has no such path.
+    pub(crate) fn mode(&self, rev: &str, path: &str) -> Option<String> {
+        let listed = query(self.path(), &["ls-tree", rev, "--", path])?;
+        let listed = String::from_utf8(listed).expect("git's listing is UTF-8");
+        listed.split_whitespace().next().map(str::to_owned)
     }
 
     /// The commit `rev` names, or `None` where it names none.

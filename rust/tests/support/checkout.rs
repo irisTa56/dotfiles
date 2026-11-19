@@ -34,6 +34,17 @@ impl Checkout {
         checkout
     }
 
+    /// A clone of `origin`'s `main` holding its tip alone, as `actions/checkout` leaves
+    /// one by default.
+    pub(crate) fn shallow_clone(origin: &Origin) -> Self {
+        let dir = TempDir::new().expect("a temporary directory can be made");
+        let checkout = Checkout { dir };
+        // Only a URL, not a local path, makes git honour the depth.
+        let url = format!("file://{}", origin.location());
+        checkout.git(&["clone", "-q", "--depth=1", &url, "."]);
+        checkout
+    }
+
     /// Writes `contents` to `path` in the working tree, staging nothing.
     pub(crate) fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
         let file = self.dir.path().join(path);
