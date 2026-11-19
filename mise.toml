@@ -1,6 +1,7 @@
 [tools]
 biome = "latest"
 gitleaks = "latest"
+jq = "latest"
 lychee = "latest"
 rumdl = "latest"
 rust = { version = "latest", components = "clippy,rustfmt" }
@@ -339,11 +340,11 @@ dir = "{{config_root}}/elixir"
 env = { MIX_QUIET = "1" }
 run = "mix dotfiles.mise_multi_upgrade"
 
+# dotfiles-local updates the apm.yml and apm.lock.yaml of the directory it runs in, which
+# a task with no `dir` leaves as this checkout's root, wherever `mise run` was called from.
 [tasks."skills:update"]
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
-dir = "{{config_root}}/elixir"
-env = { MIX_QUIET = "1" }
-run = "mix dotfiles.skills_update"
+run = "~/.local/bin/dotfiles-local skills-update"
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"

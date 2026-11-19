@@ -76,27 +76,26 @@ jobs:
       - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
         with:
           # The real tools the tests run, offline: lychee for link-check-staged's,
-          # gitleaks for secrets:commit-scan's, which run the task's script, and
-          # trufflehog for secrets-push-scan's.
-          install_args: rust lychee gitleaks trufflehog
+          # gitleaks for secrets:commit-scan's, which run the task's script,
+          # trufflehog for secrets-push-scan's, and yq and jq for skills-update's,
+          # which read the lockfile and apply the fake gh's --jq filter.
+          install_args: rust lychee gitleaks trufflehog yq jq
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
 
   elixir-qa:
     runs-on: ubuntu-latest
     env:
-      # Erlang, Elixir and jq are named in the global config alone, so this job reads
-      # it where the others leave it out.
+      # Erlang and Elixir are named in the global config alone, so this job reads it
+      # where the others leave it out.
       MISE_IGNORED_CONFIG_PATHS: ""
       # In place of the baseline's `install_args`, which limits the action's
       # `mise install` alone: the global config tracks some thirty tools at `latest`,
       # and every other mise command, the action's own `mise ls` and `mise env`
       # among them, would resolve each one's version, which cost this job seconds
-      # per call. The integration tests of skills_update read its lockfile with the
-      # real yq, and their fake gh applies the --jq filter with the real jq; those
-      # of mise_multi_upgrade drive the mise this action installs, after clearing
-      # every MISE_ variable, this one included.
-      MISE_ENABLE_TOOLS: erlang,elixir,yq,jq
+      # per call. The integration tests of mise_multi_upgrade drive the mise this
+      # action installs, after clearing every MISE_ variable, this one included.
+      MISE_ENABLE_TOOLS: erlang,elixir
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # mise picks builds.hex.pm's precompiled Erlang on its own only on the Ubuntu
