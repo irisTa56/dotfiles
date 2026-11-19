@@ -389,7 +389,7 @@ fn fails_as_unable_to_tell_where_it_cannot_make_its_scratch_repository() {
     let cargo = format!("# {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
         .run_with(&[], &[("TMPDIR", missing.as_os_str())])
-        .expect(2, &[]);
+        .expect(2, &["[fail] stopped on"]);
 }
 
 #[test]
