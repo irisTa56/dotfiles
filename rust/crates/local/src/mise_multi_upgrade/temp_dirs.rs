@@ -21,8 +21,7 @@ impl TempDirs {
         for dir in picked.iter().chain([&PathBuf::from("/tmp")]) {
             let names = [expand(dir, cwd.as_deref()), fs::canonicalize(dir).ok()];
             for name in names.into_iter().flatten() {
-                let name = name.to_string_lossy();
-                let name = name.trim_end_matches('/').to_owned();
+                let name = name.to_string_lossy().into_owned();
                 if !dirs.contains(&name) {
                     dirs.push(name);
                 }

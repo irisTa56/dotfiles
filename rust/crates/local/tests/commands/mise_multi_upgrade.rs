@@ -595,10 +595,14 @@ fn leaves_out_a_config_under_tmpdir_by_the_name_it_resolves_to_too() {
     std::os::unix::fs::symlink(&real, &link).expect("the link is created");
     let named = format!("{link}/named");
     let resolved = format!("{real}/resolved");
-    let dir = with_scratch(&sandbox, &[&named, &resolved]);
+    let dir = with_scratch(&sandbox, &[&link, &named, &resolved]);
 
     // As a shell variable may name it, with a trailing slash and a step back.
-    let run = sandbox.run_with(&[], "y\ny\ny\n", &[("TMPDIR", &format!("{link}/../link/"))]);
+    let run = sandbox.run_with(
+        &[],
+        "y\ny\ny\ny\n",
+        &[("TMPDIR", &format!("{link}/../link/"))],
+    );
 
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert!(
@@ -650,12 +654,12 @@ fn leaves_out_a_config_under_tmp_whatever_tmpdir_says_by_the_name_it_resolves_to
     let sandbox = Sandbox::new("tmp");
     let resolved = fs::canonicalize("/tmp").expect("/tmp resolves");
     let resolved = format!("{}/resolved", resolved.display());
-    let dir = with_scratch(&sandbox, &["/tmp/named", &resolved]);
+    let dir = with_scratch(&sandbox, &["/tmp", "/tmp/named", &resolved]);
     // A directory whose name only starts with the temporary one's is not under it.
     let sibling = sandbox.project("/tmp-other/project");
     sandbox.outdated_in(Place::Dir(sibling), &[("jq", "1.6", "1.7")]);
 
-    let run = sandbox.run(&[], "y\ny\ny\ny\n");
+    let run = sandbox.run(&[], "y\ny\ny\ny\ny\n");
 
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert!(

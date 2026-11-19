@@ -19,7 +19,10 @@ impl Tracked {
     /// The project directories of the configs mise tracks, less those `options` leave
     /// out.
     pub(super) fn list(options: &Options) -> Result<Self, Failure> {
-        let mut dirs: Vec<String> = configs()?.iter().map(|path| project_dir(path)).collect();
+        let mut dirs: Vec<String> = Self::configs()?
+            .iter()
+            .map(|path| project_dir(path))
+            .collect();
         dirs.sort();
         dirs.dedup();
         let temp = (!options.include_tmpdirs()).then(TempDirs::find);
@@ -32,29 +35,29 @@ impl Tracked {
         Ok(Tracked { dirs: kept })
     }
 
+    /// The paths of the configs mise tracks.
+    fn configs() -> Result<Vec<String>, Failure> {
+        let mise = Mise::new(
+            ["config", "ls", "--tracked-configs"]
+                .map(str::to_owned)
+                .to_vec(),
+        );
+        match mise.output() {
+            Ok(Some(out)) => Ok(String::from_utf8_lossy(&out)
+                .lines()
+                .filter(|line| !line.is_empty())
+                .map(str::to_owned)
+                .collect()),
+            Ok(None) => Err(Failure::new(format_args!("{mise} failed"), 1)),
+            Err(error) => Err(Failure::new(format_args!("cannot run mise: {error}"), 1)),
+        }
+    }
+
     /// The places a run asks: the global config, then each directory.
     pub(super) fn places(self) -> Vec<Place> {
         std::iter::once(Place::Global)
             .chain(self.dirs.into_iter().map(Place::Dir))
             .collect()
-    }
-}
-
-/// The paths of the configs mise tracks.
-fn configs() -> Result<Vec<String>, Failure> {
-    let mise = Mise::new(
-        ["config", "ls", "--tracked-configs"]
-            .map(str::to_owned)
-            .to_vec(),
-    );
-    match mise.output() {
-        Ok(Some(out)) => Ok(String::from_utf8_lossy(&out)
-            .lines()
-            .filter(|line| !line.is_empty())
-            .map(str::to_owned)
-            .collect()),
-        Ok(None) => Err(Failure::new(format_args!("{mise} failed"), 1)),
-        Err(error) => Err(Failure::new(format_args!("cannot run mise: {error}"), 1)),
     }
 }
 

@@ -28,7 +28,7 @@ impl Group {
     /// What `mise outdated` reports in `place`, in the runs `report` names.
     pub(super) fn find(place: Place, report: Report) -> Result<Found, Failure> {
         let base = place.outdated_args();
-        let Some(pinned) = outdated(base.clone())? else {
+        let Some(pinned) = Self::outdated(base.clone())? else {
             return Ok(Found::Unlisted(place));
         };
         let bumped = match report {
@@ -36,7 +36,7 @@ impl Group {
             Report::Bump => {
                 let mut args = base;
                 args.push("--bump".to_owned());
-                match outdated(args)? {
+                match Self::outdated(args)? {
                     Some(bumped) => bumped,
                     None => return Ok(Found::Unlisted(place)),
                 }
@@ -57,6 +57,21 @@ impl Group {
         Ok(Found::Group(Group { place, rows }))
     }
 
+    /// What `mise outdated` with `args` reports, or `None` where it fails.
+    fn outdated(mut args: Vec<String>) -> Result<Option<Entries>, Failure> {
+        args.push("--json".to_owned());
+        let mise = Mise::new(args);
+        let Some(out) = mise
+            .output()
+            .map_err(|error| Failure::new(format_args!("cannot run mise: {error}"), 1))?
+        else {
+            return Ok(None);
+        };
+        serde_json::from_slice(&out)
+            .map(Some)
+            .map_err(|error| Failure::new(format_args!("{mise} gave no JSON object: {error}"), 1))
+    }
+
     pub(super) fn place(&self) -> &Place {
         &self.place
     }
@@ -64,19 +79,4 @@ impl Group {
     pub(super) fn rows(&self) -> &[Row] {
         &self.rows
     }
-}
-
-/// What `mise outdated` with `args` reports, or `None` where it fails.
-fn outdated(mut args: Vec<String>) -> Result<Option<Entries>, Failure> {
-    args.push("--json".to_owned());
-    let mise = Mise::new(args);
-    let Some(out) = mise
-        .output()
-        .map_err(|error| Failure::new(format_args!("cannot run mise: {error}"), 1))?
-    else {
-        return Ok(None);
-    };
-    serde_json::from_slice(&out)
-        .map(Some)
-        .map_err(|error| Failure::new(format_args!("{mise} gave no JSON object: {error}"), 1))
 }
