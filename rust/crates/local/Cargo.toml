@@ -1,6 +1,6 @@
 [package]
 name = "dotfiles-local"
-version = "0.5.0"
+version = "0.6.0"
 description = "The commands for this machine alone, installed from the main checkout"
 edition = "2024"
 repository = "https://github.com/irisTa56/dotfiles"
