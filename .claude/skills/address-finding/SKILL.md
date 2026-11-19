@@ -99,6 +99,7 @@ Where the fix's product is prose carrying a rule, name what in the toolchain cou
 
 A removal you do not fully understand is riskier than an addition you do, and so is a fix bought with cleverness — avoiding an addition by being indirect, implicit, or surprising costs the developer more than the addition would have.
 Adding another branch, guard, flag, or special case onto an existing pile is a signal you may be treating a symptom; you MUST step back for the root cause, or for a consolidation that dissolves the pile.
+Name what the pile takes as given — a mechanism or a choice, made in this change, before it, or by the user — and ask whether a simpler one, or a feature the tools already have, would leave the pile unneeded; a consolidation that keeps it is yours to apply, but put a replacement of it to the user beside the fix rather than applying it yourself.
 
 Where several findings are in play, you MUST ask the three questions of them together: one structural fix that dissolves a cluster beats N independent local patches.
 
