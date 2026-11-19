@@ -12,6 +12,10 @@
         },
         {
           "type": "generic",
+          "path": "/tasks/secrets/push-scan.sh"
+        },
+        {
+          "type": "generic",
           "path": "/tasks/skills/size-check.sh"
         },
         {

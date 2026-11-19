@@ -1,15 +1,15 @@
 # Shared tasks
 
 `tasks/` holds the repository-agnostic mise tasks this repository lends to others: `secrets:commit-scan`, `secrets:push-scan` and `link-check:staged`, which gate a commit or a push here too, and `skills:size-check` and `upstream:pin-check` below.
-This repository checks its own skills and staged links with the subcommands `skills:size-check` and `link-check:staged` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
+This repository checks its own skills, staged links and pushes with the subcommands `skills:size-check`, `link-check:staged` and `secrets:push-scan` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee.
+A job that sets `MISE_TASK_RUN_AUTO_INSTALL=false` turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
 Beyond that the library assumes git, bash and the utilities POSIX specifies, such as `sed` and `tr`.
-A task that runs the `dotfiles-tasks` binary, as `link-check:staged`, `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
+A task that runs the `dotfiles-tasks` binary, as `secrets:push-scan`, `link-check:staged`, `skills:size-check` and `upstream:pin-check` do, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -73,6 +73,8 @@ git runs it before the file under the hooks directory, with the same arguments a
 Running it again changes nothing, and it lands in the config every worktree shares.
 It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
 A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
+
+It exits 1 on a hit, and on a scan that could not answer, such as trufflehog failing or a report it cannot read, and 2 where the release it runs cannot be installed; either refuses the push.
 
 ### `link-check:staged`
 
