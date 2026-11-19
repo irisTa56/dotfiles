@@ -29,10 +29,10 @@ sh_paths = "scripts tasks zsh_fragments .claude/skills/sync-base/scripts .claude
 # The push scan is registered in git's config instead, which runs beside any
 # pre-push hook file and is safe to set on every install (see tasks/README.md).
 # Two more keep dotfiles-local current with main: `local:install` after a merge into
-# main, such as sync-base's fast-forward, and after a switch to main. They are set in
-# the repository's config, so they run in every worktree, those cut before this file
-# defined `local:install` too, which is why each tests the branch itself before running
-# mise. post-checkout also runs on a checkout of files, whose third argument is 0
+# main, such as sync-base's fast-forward, and after a switch to main. Set in the
+# repository's config, they run in every worktree, whatever branch it is on, and
+# `local:install` fails off main, so each tests the branch before running mise.
+# post-checkout also runs on a checkout of files, whose third argument is 0
 # where a switch's is 1. A failed hook would fail `git switch`, which stops sync-base
 # before main moves, so a failed install only warns. git passes the hook's arguments
 # after the command too, and the trailing `:` takes them.
