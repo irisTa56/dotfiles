@@ -1,0 +1,204 @@
+//! `with-new-terminal`: a shell script run in a new Terminal window, through an
+//! osascript that stands in for macOS's, since the tests run on Linux too.
+
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Output};
+
+/// A directory of the tests' own, holding the script to run and a fake osascript.
+struct Sandbox {
+    root: PathBuf,
+}
+
+/// What a run left: its output, and the script osascript was handed to run, if it ran.
+struct Run {
+    output: Output,
+    applescript: Option<String>,
+}
+
+impl Sandbox {
+    /// A fresh sandbox named after `test`, whose osascript ends with `status`.
+    fn new(test: &str, status: u8) -> Self {
+        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
+            .join("with-new-terminal")
+            .join(test);
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("bin")).expect("the sandbox is created");
+        fs::write(
+            root.join("job.sh"),
+            "#!/bin/zsh\n# a comment\n\n  # an indented comment\necho \"a\\b\" && ls\n",
+        )
+        .expect("the script is written");
+        let osascript = root.join("bin/osascript");
+        // It records its arguments one per NUL, and prints what macOS's prints for a
+        // new window, which no caller of with-new-terminal reads.
+        fs::write(
+            &osascript,
+            format!(
+                "#!/bin/sh\nprintf '%s\\0' \"$@\" > \"$(dirname \"$0\")/args\"\necho 'tab 1 of window id 1'\nexit {status}\n"
+            ),
+        )
+        .expect("the fake osascript is written");
+        fs::set_permissions(&osascript, fs::Permissions::from_mode(0o755))
+            .expect("the fake osascript is made executable");
+        Sandbox { root }
+    }
+
+    fn script(&self) -> String {
+        self.root.join("job.sh").display().to_string()
+    }
+
+    /// Runs `with-new-terminal` from the sandbox, finding the fake osascript first on PATH.
+    fn run(&self, args: &[&str]) -> Run {
+        let path = std::env::var_os("PATH").unwrap_or_default();
+        let mut dirs = vec![self.root.join("bin")];
+        dirs.extend(std::env::split_paths(&path));
+        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+            .arg("with-new-terminal")
+            .args(args)
+            .current_dir(&self.root)
+            .env(
+                "PATH",
+                std::env::join_paths(dirs).expect("no directory on PATH holds a colon"),
+            )
+            .output()
+            .expect("dotfiles-local starts");
+        let applescript = fs::read(self.root.join("bin/args")).ok().map(|args| {
+            let args = String::from_utf8(args).expect("the arguments are UTF-8");
+            let args: Vec<&str> = args.trim_end_matches('\0').split('\0').collect();
+            match args.as_slice() {
+                ["-e", applescript] => (*applescript).to_owned(),
+                other => panic!("osascript was handed {other:?}"),
+            }
+        });
+        Run {
+            output,
+            applescript,
+        }
+    }
+}
+
+impl Run {
+    fn code(&self) -> Option<i32> {
+        self.output.status.code()
+    }
+
+    fn stderr(&self) -> String {
+        String::from_utf8_lossy(&self.output.stderr).into_owned()
+    }
+}
+
+#[test]
+fn runs_the_script_in_a_new_window_without_its_comment_and_blank_lines() {
+    let sandbox = Sandbox::new("runs", 0);
+    let run = sandbox.run(&[&sandbox.script()]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    assert_eq!(
+        run.applescript.as_deref(),
+        Some(concat!(
+            "tell application \"Terminal\"\n",
+            "  do script \"setopt no_bang_hist && clear\\necho \\\"a\\\\b\\\" && ls\"\n",
+            "  set custom title of front window to \"job.sh\"\n",
+            "end tell\n",
+        ))
+    );
+    // What osascript prints of the new window is not passed on.
+    assert_eq!(run.output.stdout, b"");
+}
+
+#[test]
+fn changes_to_cwd_first_and_takes_the_title_from_title() {
+    let sandbox = Sandbox::new("cwd-title", 0);
+    let run = sandbox.run(&[&sandbox.script(), "--cwd", "/srv/app", "--title", "a \"b\""]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    let applescript = run.applescript.expect("osascript ran");
+    assert!(
+        applescript.contains("do script \"setopt no_bang_hist && clear\\ncd /srv/app\\necho"),
+        "{applescript}"
+    );
+    assert!(
+        applescript.contains("set custom title of front window to \"a \\\"b\\\"\""),
+        "{applescript}"
+    );
+}
+
+// The shell function leaves the directory it was called from as the command's own.
+#[test]
+fn reads_a_relative_script_path_from_the_directory_it_runs_in() {
+    let sandbox = Sandbox::new("relative", 0);
+    let run = sandbox.run(&["job.sh"]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    assert!(run.applescript.expect("osascript ran").contains("&& ls"));
+}
+
+#[test]
+fn fails_with_osascripts_status_when_it_fails() {
+    let sandbox = Sandbox::new("osascript-fails", 3);
+    let run = sandbox.run(&[&sandbox.script()]);
+    assert_eq!(
+        (run.code(), run.stderr().as_str()),
+        (Some(3), "osascript failed (exit 3)\n")
+    );
+}
+
+// `--from` went with the Mix task, which ran from its own project.
+#[test]
+fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
+    let sandbox = Sandbox::new("usage", 0);
+    for args in [
+        &[][..],
+        &["a.sh", "b.sh"],
+        &["a.sh", "--bogus"],
+        &["a.sh", "--cwd"],
+        &["a.sh", "--title", "--cwd", "x"],
+        &["job.sh", "--from", "."],
+    ] {
+        let run = sandbox.run(args);
+        assert_eq!(run.code(), Some(1), "args {args:?}");
+        assert!(
+            run.stderr().starts_with(
+                "Usage: with-new-terminal <script.sh> [--cwd <dir>] [--title <title>]\n"
+            ),
+            "args {args:?}: {}",
+            run.stderr()
+        );
+        assert_eq!(run.applescript, None, "args {args:?}");
+    }
+}
+
+// Options are read as the Mix task read them: anywhere, with `=` or not, the last one
+// standing, and none after `--`.
+#[test]
+fn reads_options_anywhere_and_with_an_equals_sign() {
+    let sandbox = Sandbox::new("options", 0);
+    let run = sandbox.run(&[
+        "--title=first",
+        "--cwd",
+        "/srv/app",
+        "--title",
+        "-1",
+        "--",
+        "job.sh",
+    ]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    let applescript = run.applescript.expect("osascript ran");
+    assert!(
+        applescript.contains("clear\\ncd /srv/app\\n"),
+        "{applescript}"
+    );
+    assert!(applescript.contains("window to \"-1\""), "{applescript}");
+}
+
+#[test]
+fn fails_with_exit_1_on_a_script_it_cannot_read() {
+    let sandbox = Sandbox::new("missing", 0);
+    let run = sandbox.run(&["missing.sh"]);
+    assert_eq!(run.code(), Some(1));
+    assert!(
+        run.stderr().starts_with("cannot read missing.sh: "),
+        "{}",
+        run.stderr()
+    );
+    assert_eq!(run.applescript, None);
+}
