@@ -6,6 +6,7 @@
 //! modules provide what each does.
 
 mod bump;
+mod github;
 mod moves;
 mod pins;
 mod report;
@@ -86,6 +87,11 @@ struct Moved {
     tip: String,
 }
 
+/// The commit message of a move under GitHub Actions: its subject, then a line per
+/// distinct move.
+#[derive(Debug)]
+struct Message(Vec<String>);
+
 /// What a bump moved, over however many files and markers.
 #[derive(Debug, Default)]
 struct Moves(Vec<Moved>);
@@ -107,4 +113,22 @@ enum Checked {
 struct Scratch {
     git: Git,
     dir: TempDir,
+}
+
+/// GitHub's REST API as a run under GitHub Actions reaches it: where the API is, the
+/// repository the run is for, and the token the job hands the step.
+#[derive(Debug)]
+struct GitHub {
+    api: String,
+    repository: String,
+    token: String,
+}
+
+/// A pull request to open, from `head` into `base`.
+#[derive(Debug)]
+struct PullRequest<'a> {
+    head: &'a str,
+    base: &'a str,
+    title: &'a str,
+    body: &'a str,
 }

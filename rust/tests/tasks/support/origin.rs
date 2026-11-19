@@ -47,6 +47,29 @@ impl Origin {
         git(work.path(), &["push", "-q", "origin", "main"]);
     }
 
+    /// Pushes to `branch` a commit over `main` that writes `content` to `path`, as a
+    /// person adding to a branch, and returns the commit.
+    pub(crate) fn commit_onto_main_as(&self, branch: &str, path: &str, content: &str) -> String {
+        let work = TempDir::new().expect("a temporary directory can be made");
+        git(work.path(), &["clone", "-q", self.location(), "."]);
+        fs::write(work.path().join(path), content).expect("the file can be written");
+        git(work.path(), &["add", path]);
+        git(
+            work.path(),
+            &[&IDENTITY[..], &["commit", "-q", "-m", "added"]].concat(),
+        );
+        git(
+            work.path(),
+            &["push", "-q", "origin", &format!("HEAD:refs/heads/{branch}")],
+        );
+        git(work.path(), &["rev-parse", "HEAD"])
+    }
+
+    /// Renames `main` to `name`, which stays the branch the repository's HEAD names.
+    pub(crate) fn rename_main(&self, name: &str) {
+        git(self.path(), &["branch", "-m", "main", name]);
+    }
+
     /// Where a remote names the repository.
     pub(super) fn location(&self) -> &str {
         self.dir
@@ -63,6 +86,20 @@ impl Origin {
             &hook,
             format!(
                 "#!/bin/sh\nwhile read -r _ _ ref; do [ \"$ref\" = refs/heads/{branch} ] && exit 1; done\nexit 0\n"
+            ),
+        )
+        .expect("the hook can be written");
+        fs::set_permissions(&hook, fs::Permissions::from_mode(0o755))
+            .expect("the hook can be made executable");
+    }
+
+    /// Makes the repository refuse to delete `branch`, while it still takes pushes to it.
+    pub(crate) fn refuse_deleting(&self, branch: &str) {
+        let hook = self.dir.path().join("hooks/pre-receive");
+        fs::write(
+            &hook,
+            format!(
+                "#!/bin/sh\nwhile read -r _ new ref; do [ \"$ref\" = refs/heads/{branch} ] && [ \"$new\" = 0000000000000000000000000000000000000000 ] && exit 1; done\nexit 0\n"
             ),
         )
         .expect("the hook can be written");
