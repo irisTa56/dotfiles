@@ -202,3 +202,33 @@ fn fails_with_exit_1_on_a_script_it_cannot_read() {
     );
     assert_eq!(run.applescript, None);
 }
+
+// A value may open with `-` where a digit, a space or nothing follows it.
+#[test]
+fn takes_a_value_that_opens_with_a_dash_where_the_mix_task_took_it() {
+    let sandbox = Sandbox::new("dash-values", 0);
+    for value in ["-", "- x", "-1abc"] {
+        let run = sandbox.run(&["job.sh", "--title", value]);
+        assert_eq!(run.code(), Some(0), "value {value:?}: {}", run.stderr());
+        let applescript = run.applescript.expect("osascript ran");
+        assert!(
+            applescript.contains(&format!("window to \"{value}\"")),
+            "value {value:?}: {applescript}"
+        );
+    }
+}
+
+// A byte that is not UTF-8 in a comment line goes with the line.
+#[test]
+fn runs_a_script_that_is_not_utf8() {
+    let sandbox = Sandbox::new("not-utf8", 0);
+    fs::write(sandbox.root.join("latin.sh"), b"echo hi\n# caf\xe9\n")
+        .expect("the script is written");
+    let run = sandbox.run(&["latin.sh"]);
+    assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
+    assert!(
+        run.applescript
+            .expect("osascript ran")
+            .contains("do script \"setopt no_bang_hist && clear\\necho hi\""),
+    );
+}

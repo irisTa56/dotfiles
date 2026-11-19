@@ -35,8 +35,10 @@ pub(crate) fn run(args: &[String]) -> ExitCode {
     let Some(request) = Request::parse(args) else {
         return fail(format_args!("{USAGE}"), 1);
     };
-    let contents = match fs::read_to_string(request.script_path) {
-        Ok(contents) => contents,
+    // A byte that is not UTF-8 is replaced rather than refused, so one in a comment
+    // line goes with the line.
+    let contents = match fs::read(request.script_path) {
+        Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
         Err(error) => {
             return fail(
                 format_args!("cannot read {}: {error}", request.script_path),
@@ -147,15 +149,12 @@ impl<'a> Request<'a> {
     }
 }
 
-/// Whether `arg` reads as an option rather than a value: it opens with `-`, and is
-/// neither `-` alone nor a negative number.
+/// Whether `arg` reads as an option rather than a value: it opens with `-`, and
+/// neither ends there nor goes on with a space or a digit.
 fn is_switch(arg: &str) -> bool {
-    match arg.strip_prefix('-') {
-        Some(rest) => {
-            !(rest.starts_with(|c: char| c.is_ascii_digit()) && rest.parse::<f64>().is_ok())
-        }
-        None => false,
-    }
+    arg.strip_prefix('-').is_some_and(|rest| {
+        !(rest.is_empty() || rest.starts_with(|c: char| c == ' ' || c.is_ascii_digit()))
+    })
 }
 
 /// `s` as the inside of a string literal of the script osascript runs.
