@@ -81,7 +81,8 @@ jobs:
       - run: rustup target add "$TARGET"
         env:
           TARGET: ${{ matrix.target }}
-      - run: cargo build --locked --release --target "$TARGET"
+      # The released package alone, leaving out the workspace's dotfiles-local.
+      - run: cargo build --locked --release --package dotfiles-tasks --target "$TARGET"
         working-directory: rust
         env:
           TARGET: ${{ matrix.target }}

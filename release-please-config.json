@@ -4,6 +4,7 @@
     "rust": {
       "release-type": "rust",
       "component": "dotfiles-tasks",
+      "exclude-paths": ["rust/crates/local"],
       "include-component-in-tag": true,
       "extra-files": [
         {
