@@ -116,6 +116,7 @@ Apply the `address-finding` skill (invoke it via the Skill tool) to judge each f
 Look at the change whole before deciding which of the three the round takes, on the last round as much as any other — though a stop-close reports rather than acts on the change:
 
 - whether the fixes so far are one coherent thing rather than a stack of patches, which `address-finding`'s symptom-treating signals decide and not how the result reads;
+  - Where they stack, name what they all take as given — a mechanism or a choice, made in this change, before it, or by the user — and ask whether a simpler one, or a feature the tools already have, would leave the stack unneeded rather than grow it.
 - whether what the rounds have added has taken the change past the title the record holds;
   - What naming it now would need a clause for is past what the change is for: carve that out where it separates cleanly, saying so in the round's message, and where it does not, put it to them and wait.
   - What the rounds have grown past the title is what to re-decide the shape for: what they have established since is what the change did not have when it took its shape, so ask what shape it would take decided now, knowing that. Cutting alone leaves the design the parts sat in untouched.
