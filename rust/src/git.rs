@@ -47,9 +47,9 @@ impl Run {
     }
 }
 
-/// A git whose runs leave out the variables that tie git to one repository.
+/// A git, whose runs may leave out the variables that tie git to one repository.
 ///
-/// A git hook runs with `GIT_DIR` and its kin exported, which would point every run here,
+/// A git hook runs with `GIT_DIR` and its kin exported, which would point every run,
 /// the ones in scratch repositories included, at the repository the hook runs for.
 #[derive(Debug)]
 pub(crate) struct Git {
@@ -57,6 +57,7 @@ pub(crate) struct Git {
 }
 
 impl Git {
+    /// A git whose runs leave out those variables, for runs in repositories of its own.
     pub(crate) fn new() -> Self {
         let mut git = Git {
             cleared: Vec::new(),
@@ -64,6 +65,15 @@ impl Git {
         let names = git.run(&["rev-parse", "--local-env-vars"]);
         git.cleared = names.stdout().lines().map(str::to_owned).collect();
         git
+    }
+
+    /// A git whose runs keep those variables, for a run about the repository the
+    /// environment names: the index a pre-commit hook names is the one a commit is made
+    /// from.
+    pub(crate) fn inheriting() -> Self {
+        Git {
+            cleared: Vec::new(),
+        }
     }
 
     /// Runs git with `args` in the current directory.

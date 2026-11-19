@@ -3,6 +3,7 @@
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{self, Read};
+use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
@@ -64,6 +65,31 @@ impl Checkout {
         fs::write(&file, contents).expect("the file can be written");
     }
 
+    /// Removes `path`, a file or a directory, from the working tree, staging nothing;
+    /// removing `.git` leaves a directory git does not track.
+    pub(crate) fn remove(&self, path: &str) {
+        let target = self.dir.path().join(path);
+        if target.is_dir() {
+            fs::remove_dir_all(target).expect("the directory can be removed");
+        } else {
+            fs::remove_file(target).expect("the file can be removed");
+        }
+    }
+
+    /// Makes the directory `path` in the working tree, staging nothing.
+    pub(crate) fn make_dir(&self, path: &str) {
+        fs::create_dir_all(self.dir.path().join(path)).expect("the directory can be made");
+    }
+
+    /// Takes every permission off `path` in the working tree, so that it cannot be read.
+    pub(crate) fn lock(&self, path: &str) {
+        fs::set_permissions(
+            self.dir.path().join(path),
+            fs::Permissions::from_mode(0o000),
+        )
+        .expect("the file's mode can be set");
+    }
+
     /// The bytes of `path` in the working tree.
     pub(crate) fn read(&self, path: &str) -> Vec<u8> {
         fs::read(self.dir.path().join(path)).expect("the file can be read")
@@ -94,14 +120,30 @@ impl Checkout {
 
     /// Runs `pin-check` with `args` in the repository.
     pub(crate) fn pin_check(&self, args: &[&str]) -> Run {
-        self.pin_check_with(args, &[])
+        self.task("pin-check", args, &[])
     }
 
-    /// Runs `pin-check` with `args` in the repository, with each variable of `env` set
-    /// over the isolated environment, or removed from it where its value is `None`.
+    /// Runs `pin-check` as `pin_check` does, with `env` set as `task` sets it.
     pub(crate) fn pin_check_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
+        self.task("pin-check", args, env)
+    }
+
+    /// Runs `size-check` with `args` in the repository.
+    pub(crate) fn size_check(&self, args: &[&str]) -> Run {
+        self.task("size-check", args, &[])
+    }
+
+    /// Runs `size-check` as `size_check` does, with `env` set as `task` sets it.
+    pub(crate) fn size_check_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
+        self.task("size-check", args, env)
+    }
+
+    /// Runs the subcommand `task` with `args` in the repository, with each variable of
+    /// `env` set over the isolated environment, or removed from it where its value is
+    /// `None`.
+    fn task(&self, task: &str, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg("pin-check").args(args);
+        command.arg(task).args(args);
         for (name, value) in env {
             match value {
                 Some(value) => command.env(name, value),
