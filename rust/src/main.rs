@@ -4,8 +4,11 @@
 mod git;
 mod pin_check;
 mod size_check;
+mod stream;
 
 use std::process::ExitCode;
+
+use stream::Stream;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -15,9 +18,9 @@ fn main() -> ExitCode {
         }
         Some((task, rest)) if task == "size-check" => size_check::Request::new(rest).run(),
         _ => {
-            eprintln!(
+            Stream::Stderr.line(format_args!(
                 "[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check, size-check"
-            );
+            ));
             ExitCode::from(pin_check::Status::Unknown as u8)
         }
     }

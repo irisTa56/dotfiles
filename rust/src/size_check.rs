@@ -12,12 +12,13 @@
 use std::ffi::OsStr;
 use std::fmt;
 use std::fs;
-use std::io::{self, Write};
+use std::io;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::process::ExitCode;
 
 use crate::git::Git;
+use crate::stream::Stream;
 
 /// The longest body that passes, in UTF-16 code units.
 const LIMIT: usize = 20_000 - 200;
@@ -110,7 +111,7 @@ impl<'a> Request<'a> {
             [pathspec] if pathspec.is_empty() => Ok(SKILLS),
             [pathspec] => Ok(pathspec),
             [_, unread @ ..] => {
-                say(format_args!(
+                Stream::Stderr.line(format_args!(
                     "size-check does not read {}; its arguments are [--verbose] [pathspec], in that order.",
                     unread.join(" ")
                 ));
@@ -124,7 +125,7 @@ impl<'a> Request<'a> {
     fn list(pathspec: &str) -> Result<Vec<u8>, ExitCode> {
         let listed = Git::inheriting().run(&["ls-files", "-z", "--", pathspec]);
         if !listed.success() {
-            let _ = io::stderr().write_all(listed.stderr().as_bytes());
+            Stream::Stderr.bytes(listed.stderr().as_bytes());
             // git's own status, such as 128 outside a repository; one that never ran, or
             // that a signal stopped, has none, and says no more about the skills.
             return Err(ExitCode::from(
@@ -135,7 +136,7 @@ impl<'a> Request<'a> {
             ));
         }
         if listed.stdout_bytes().is_empty() {
-            say(format_args!("git tracks no skill at {pathspec} to check."));
+            Stream::Stderr.line(format_args!("git tracks no skill at {pathspec} to check."));
             return Err(ExitCode::FAILURE);
         }
         Ok(listed.stdout_bytes().to_vec())
@@ -149,30 +150,27 @@ impl<'a> Request<'a> {
             Ok(Some(skill)) => skill,
             Ok(None) => return true,
             Err(error) => {
-                say(format_args!("{shown}: could not be read: {error}"));
+                Stream::Stderr.line(format_args!("{shown}: could not be read: {error}"));
                 return false;
             }
         };
         match skill.length() {
             Ok(length) if length > LIMIT => {
-                say(format_args!(
+                Stream::Stderr.line(format_args!(
                     "{shown}: {length} UTF-16 code units, past the {LIMIT} a compaction re-attaches; shorten it, or move into references/ only what it reads at one moment, keeping in the body what a step needs before the body points there"
                 ));
                 false
             }
             Ok(length) => {
                 if self.verbosity == Verbosity::Lengths {
-                    // A reader that stopped reading, as `head` does, wants no more
-                    // lengths, and the exit status still reports every skill.
-                    let _ = writeln!(
-                        io::stdout(),
+                    Stream::Stdout.line(format_args!(
                         "{shown}: {length} of {LIMIT} UTF-16 code units"
-                    );
+                    ));
                 }
                 true
             }
             Err(unmeasured) => {
-                say(format_args!("{shown}: {unmeasured}"));
+                Stream::Stderr.line(format_args!("{shown}: {unmeasured}"));
                 false
             }
         }
@@ -239,11 +237,4 @@ impl Line<'_> {
     fn is_fence(self) -> bool {
         matches!(self.0, b"---" | b"---\n" | b"---\r" | b"---\r\n")
     }
-}
-
-/// Writes `line` to stderr, where a run reports what fails. A stderr its reader closed
-/// takes nothing more, and the exit status still reports the run, so the line is dropped
-/// rather than ending the run.
-fn say(line: fmt::Arguments<'_>) {
-    let _ = writeln!(io::stderr(), "{line}");
 }

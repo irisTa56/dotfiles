@@ -1,10 +1,10 @@
 //! Fetching upstream commits into the scratch repository, and checking a pin there.
 
-use std::io::{self, Write};
 use std::path::Path;
 
 use super::{Checked, Failure, Pin, Scratch, Status};
 use crate::git::{Git, Run};
+use crate::stream::Stream;
 
 impl Checked {
     pub(super) fn status(&self) -> Status {
@@ -106,13 +106,10 @@ impl Scratch {
             return Checked::Gone;
         };
         if pinned_tree == tip_tree {
-            // A reader that stopped reading, as `head` does, wants no more lines, and
-            // the exit status still reports every pin.
-            let _ = writeln!(
-                io::stdout(),
+            Stream::Stdout.line(format_args!(
                 "[ok] {place} at the pinned {} matches the default branch ({tip})",
                 pin.commit
-            );
+            ));
             return Checked::Matches;
         }
         // Not which is the older: the pin may be ahead of the default branch as well as behind.
