@@ -16,6 +16,17 @@ pub(crate) struct Upstream {
 pub(crate) type Change<'c> = &'c [(&'c str, Option<&'c str>)];
 
 impl Upstream {
+    /// A repository whose `lints` changes in each of its `commits` commits.
+    pub(crate) fn changing_lints(commits: usize) -> Self {
+        let contents: Vec<String> = (0..commits).map(|commit| commit.to_string()).collect();
+        let files: Vec<[(&str, Option<&str>); 1]> = contents
+            .iter()
+            .map(|content| [("lints/a.toml", Some(content.as_str()))])
+            .collect();
+        let changes: Vec<Change<'_>> = files.iter().map(|file| &file[..]).collect();
+        Upstream::new(&changes)
+    }
+
     /// A repository with one commit per item of `changes`, in order.
     pub(crate) fn new(changes: &[Change<'_>]) -> Self {
         let dir = TempDir::new().expect("a temporary directory can be made");

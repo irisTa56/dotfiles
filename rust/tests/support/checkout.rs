@@ -34,6 +34,15 @@ impl Checkout {
         checkout
     }
 
+    /// A repository holding `contents` in the one file `path`, staged; unlike `new`'s,
+    /// the contents may be any bytes.
+    pub(crate) fn holding(path: &str, contents: &[u8]) -> Self {
+        let checkout = Checkout::new(&[]);
+        checkout.write(path, contents);
+        checkout.git(&["add", "-A"]);
+        checkout
+    }
+
     /// A clone of `origin`'s `main` holding its tip alone, as `actions/checkout` leaves
     /// one by default.
     pub(crate) fn shallow_clone(origin: &Origin) -> Self {

@@ -34,17 +34,9 @@ impl Runner {
     }
 }
 
-/// An upstream whose `lints` changed in its second and last commit.
-fn changed_lints() -> Upstream {
-    Upstream::new(&[
-        &[("lints/a.toml", Some("a"))],
-        &[("lints/a.toml", Some("b"))],
-    ])
-}
-
 #[test]
 fn moves_a_differing_pin_to_the_tip_in_every_file_that_spells_it() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let other = Upstream::new(&[&[("x/a", Some("a"))]]);
     let kept = other.marker("x", 0);
     let cargo = format!("# {}\n# {kept}\n", up.marker("lints", 0));
@@ -73,7 +65,7 @@ fn moves_a_differing_pin_to_the_tip_in_every_file_that_spells_it() {
 // default branch as origin has it, and the working tree is left alone.
 #[test]
 fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_branch() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let pinned = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &pinned), ("README.md", "r")]);
@@ -103,7 +95,7 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
 // upstream is reached at a github.com URL that git's config rewrites to a local one.
 #[test]
 fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let url = "https://github.com/o/up.git";
     let aux = TempDir::new().expect("a temporary directory can be made");
     let config = aux.path().join("gitconfig");
@@ -149,42 +141,38 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
     );
 }
 
-/// A file that is not UTF-8 text around the pin `marker`.
-fn not_utf8_around(marker: &str) -> Vec<u8> {
-    [b"# caf\xe9\n# ", marker.as_bytes(), b"\n# \xff\xfe\n"].concat()
-}
-
-/// A checkout whose one file, `Cargo.toml`, holds `contents`, staged.
-fn checkout_holding(contents: &[u8]) -> Checkout {
-    let checkout = Checkout::new(&[]);
-    checkout.write("Cargo.toml", contents);
-    checkout.git(&["add", "-A"]);
-    checkout
-}
+/// What a file that is not UTF-8 text holds before its pin, and after it.
+const NOT_UTF8: [&[u8]; 2] = [b"# caf\xe9\n# ", b"\n# \xff\xfe\n"];
 
 // A file that is not UTF-8 text may still hold a pin; moving the pin must leave every
 // other byte of it as it was.
 #[test]
 fn keeps_every_byte_of_a_file_outside_the_pin_it_moves() {
-    let up = changed_lints();
-    let checkout = checkout_holding(&not_utf8_around(&up.marker("lints", 0)));
+    let up = Upstream::changing_lints(2);
+    let checkout = Checkout::holding(
+        "Cargo.toml",
+        &[NOT_UTF8[0], up.marker("lints", 0).as_bytes(), NOT_UTF8[1]].concat(),
+    );
     Runner::Local.bump(&checkout, &[]).expect(1, &[]);
     assert_eq!(
         checkout.read("Cargo.toml"),
-        not_utf8_around(&up.marker("lints", 1))
+        [NOT_UTF8[0], up.marker("lints", 1).as_bytes(), NOT_UTF8[1]].concat()
     );
 }
 
 #[test]
 fn under_github_actions_pushes_every_byte_of_a_file_outside_the_pin_it_moves() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = checkout_holding(&not_utf8_around(&up.marker("lints", 0)));
+    let checkout = Checkout::holding(
+        "Cargo.toml",
+        &[NOT_UTF8[0], up.marker("lints", 0).as_bytes(), NOT_UTF8[1]].concat(),
+    );
     checkout.publish(&origin);
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
     assert_eq!(
         origin.show(&format!("{BUMP}:Cargo.toml")),
-        Some(not_utf8_around(&up.marker("lints", 1)))
+        Some([NOT_UTF8[0], up.marker("lints", 1).as_bytes(), NOT_UTF8[1]].concat())
     );
 }
 
@@ -192,7 +180,7 @@ fn under_github_actions_pushes_every_byte_of_a_file_outside_the_pin_it_moves() {
 // much of it the repository holds as it found it.
 #[test]
 fn under_github_actions_leaves_a_full_checkouts_history_as_it_was() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
@@ -219,7 +207,7 @@ fn under_github_actions_leaves_a_full_checkouts_history_as_it_was() {
 // between, which the checkout was made without.
 #[test]
 fn under_github_actions_leaves_a_shallow_checkout_holding_the_default_branch_tip_alone() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     let checkout = Checkout::shallow_clone(&origin);
     origin.advance_main(3);
@@ -235,7 +223,7 @@ fn under_github_actions_leaves_a_shallow_checkout_holding_the_default_branch_tip
 // A pin may sit in a script, whose executable bit the pushed move must keep.
 #[test]
 fn under_github_actions_pushes_a_moved_file_at_the_mode_it_has_on_the_default_branch() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let script = format!("#!/bin/sh\n# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("run.sh", &script)]);
@@ -252,7 +240,7 @@ const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 // moves the pin that differs.
 #[test]
 fn moves_a_differing_pin_and_still_fails_as_unable_to_tell_beside_an_unreadable_one() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let aux = TempDir::new().expect("a temporary directory can be made");
     let missing = format!("file://{}", aux.path().join("missing").display());
     let unreadable = format!("# {}\n", marker(&missing, "x", ABSENT_COMMIT));
@@ -275,7 +263,7 @@ fn moves_a_differing_pin_and_still_fails_as_unable_to_tell_beside_an_unreadable_
 // A token without contents: write, or a fork's pull request, gets the push refused.
 #[test]
 fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     origin.refuse_pushes_to(BUMP);
     let cargo = format!("# {}\n", up.marker("lints", 0));
@@ -289,7 +277,7 @@ fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() 
 
 #[test]
 fn under_github_actions_leaves_an_existing_bump_branch_alone() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
@@ -304,7 +292,7 @@ fn under_github_actions_leaves_an_existing_bump_branch_alone() {
 // A pin added on a pull request's branch is not on the default branch yet.
 #[test]
 fn under_github_actions_fails_as_unable_to_tell_where_the_default_branch_holds_no_pin_to_move() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("README.md", "r"), ("Cargo.toml", &cargo)]);
@@ -328,21 +316,12 @@ fn leaves_a_pin_whose_path_is_gone_from_the_default_branch_where_it_was() {
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
 }
 
-/// An upstream whose `lints` changed in each of its three commits.
-fn thrice_changed_lints() -> Upstream {
-    Upstream::new(&[
-        &[("lints/a.toml", Some("a"))],
-        &[("lints/a.toml", Some("b"))],
-        &[("lints/a.toml", Some("c"))],
-    ])
-}
-
 // The checkout is often a pull request's merge commit, so its pin can be one that
 // origin's default branch no longer holds; the move starts where the default branch's
 // file is.
 #[test]
 fn under_github_actions_names_the_commit_origins_default_branch_pins_as_where_the_move_starts() {
-    let up = thrice_changed_lints();
+    let up = Upstream::changing_lints(3);
     let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 1)))]);
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.stage_over(&origin);
@@ -354,7 +333,7 @@ fn under_github_actions_names_the_commit_origins_default_branch_pins_as_where_th
 
 #[test]
 fn under_github_actions_claims_no_move_of_a_pin_origins_default_branch_does_not_hold() {
-    let a = changed_lints();
+    let a = Upstream::changing_lints(2);
     let b = Upstream::new(&[&[("y/a", Some("a"))], &[("y/a", Some("b"))]]);
     let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", a.marker("lints", 0)))]);
     let cargo = format!("# {}\n# {}\n", a.marker("lints", 0), b.marker("y", 0));
@@ -370,7 +349,7 @@ fn under_github_actions_claims_no_move_of_a_pin_origins_default_branch_does_not_
 // the move must not stall on its size or leave that file's pin behind.
 #[test]
 fn under_github_actions_moves_a_pin_in_a_large_file_beside_one_in_a_small_file() {
-    let up = changed_lints();
+    let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let padding = format!("# {}\n", "x".repeat(1_600_000));
     let big = format!("{padding}# {}\n", up.marker("lints", 0));
