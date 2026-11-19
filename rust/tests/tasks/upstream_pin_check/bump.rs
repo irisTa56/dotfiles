@@ -21,13 +21,14 @@ enum Runner {
 }
 
 impl Runner {
-    /// Runs `pin-check --bump` in `checkout`, with `env` set over what the runner sets.
+    /// Runs `upstream-pin-check --bump` in `checkout`, with `env` set over what the runner sets.
     fn bump(self, checkout: &Checkout, env: &[(&str, Option<&OsStr>)]) -> Run {
         let actions = match self {
             Runner::Local => None,
             Runner::GitHubActions => Some(OsStr::new("true")),
         };
-        checkout.pin_check_with(&["--bump"], &[&[("GITHUB_ACTIONS", actions)], env].concat())
+        checkout
+            .upstream_pin_check_with(&["--bump"], &[&[("GITHUB_ACTIONS", actions)], env].concat())
     }
 }
 

@@ -160,38 +160,48 @@ impl Checkout {
         Run::of(command)
     }
 
-    /// Runs `pin-check` with `args` in the repository.
-    pub(crate) fn pin_check(&self, args: &[&str]) -> Run {
-        self.task("pin-check", args, &[])
+    /// Runs `upstream-pin-check` with `args` in the repository.
+    pub(crate) fn upstream_pin_check(&self, args: &[&str]) -> Run {
+        self.task("upstream-pin-check", args, &[])
     }
 
-    /// Runs `pin-check` as `pin_check` does, with `env` set as `task` sets it.
-    pub(crate) fn pin_check_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
-        self.task("pin-check", args, env)
+    /// Runs `upstream-pin-check` as `upstream_pin_check` does, with `env` set as `task`
+    /// sets it.
+    pub(crate) fn upstream_pin_check_with(
+        &self,
+        args: &[&str],
+        env: &[(&str, Option<&OsStr>)],
+    ) -> Run {
+        self.task("upstream-pin-check", args, env)
     }
 
-    /// Runs `pin-check` with `args` in the repository, with `closed`, stdout or stderr, a
-    /// pipe whose reading end is already closed. The run's output is the other stream
-    /// alone.
-    pub(crate) fn pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
-        self.task_closing("pin-check", closed, args)
+    /// Runs `upstream-pin-check` with `args` in the repository, with `closed`, stdout or
+    /// stderr, a pipe whose reading end is already closed. The run's output is the other
+    /// stream alone.
+    pub(crate) fn upstream_pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
+        self.task_closing("upstream-pin-check", closed, args)
     }
 
-    /// Runs `size-check` with `args` in the repository.
-    pub(crate) fn size_check(&self, args: &[&str]) -> Run {
-        self.task("size-check", args, &[])
+    /// Runs `skills-size-check` with `args` in the repository.
+    pub(crate) fn skills_size_check(&self, args: &[&str]) -> Run {
+        self.task("skills-size-check", args, &[])
     }
 
-    /// Runs `size-check` with `args` in the repository, with `closed`, stdout or stderr,
-    /// a pipe whose reading end is already closed. The run's output is the other stream
-    /// alone.
-    pub(crate) fn size_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
-        self.task_closing("size-check", closed, args)
+    /// Runs `skills-size-check` with `args` in the repository, with `closed`, stdout or
+    /// stderr, a pipe whose reading end is already closed. The run's output is the other
+    /// stream alone.
+    pub(crate) fn skills_size_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
+        self.task_closing("skills-size-check", closed, args)
     }
 
-    /// Runs `size-check` as `size_check` does, with `env` set as `task` sets it.
-    pub(crate) fn size_check_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
-        self.task("size-check", args, env)
+    /// Runs `skills-size-check` as `skills_size_check` does, with `env` set as `task` sets
+    /// it.
+    pub(crate) fn skills_size_check_with(
+        &self,
+        args: &[&str],
+        env: &[(&str, Option<&OsStr>)],
+    ) -> Run {
+        self.task("skills-size-check", args, env)
     }
 
     /// Runs the subcommand `task` with `args` in the repository, with each variable of
@@ -219,13 +229,13 @@ impl Checkout {
 
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
     /// repository, finding `mise` in place of mise.
-    pub(crate) fn pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
+    pub(crate) fn upstream_pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
         self.wrapper("upstream/pin-check.sh", args, mise)
     }
 
     /// Runs the wrapper consumers run, `tasks/skills/size-check.sh`, with `args` in the
     /// repository, finding `mise` in place of mise.
-    pub(crate) fn size_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
+    pub(crate) fn skills_size_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
         self.wrapper("skills/size-check.sh", args, mise)
     }
 

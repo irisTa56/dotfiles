@@ -184,7 +184,7 @@ run = [
 # is not out yet, and this check gates both.
 [tasks."qa:rust:skills"]
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
-run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- size-check"
+run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- skills-size-check"
 
 # The shared task, run by the subcommand built from the working tree for the reason
 # `qa:rust:skills` gives; a commit here, on a release pull request's branch included,

@@ -93,7 +93,7 @@ The bypass otherwise at hand is `--no-verify`, which drops every other pre-commi
 
 It fails where the body of a skill git tracks, its frontmatter left out, is longer than what Claude Code re-attaches of an invoked skill after a compaction, and names each such `SKILL.md` with its length.
 A rule past that point is missing from the session once a compaction has run, so a skill over the limit moves what it reads only at one moment into files it reads by path.
-How the limit is set and counted is in `rust/src/size_check.rs`, the `dotfiles-tasks` subcommand the task runs.
+How the limit is set and counted is in `rust/src/skills_size_check.rs`, the `dotfiles-tasks` subcommand the task runs.
 
 It reads the skills under `.claude/skills/`, and a repository that keeps them elsewhere names them by a git pathspec as its argument, such as `mise run skills:size-check -- ':(glob)skills/*/SKILL.md'`; without `glob`, `*` also matches across directories.
 A skill that passes prints nothing, so a commit's output stays quiet; `--verbose` before the pathspec prints each passing skill's length against the limit too, such as `mise run skills:size-check -- --verbose ':(glob)skills/*/SKILL.md'`, for sizing a skill rather than measuring it by hand.
@@ -162,6 +162,7 @@ Keep such a file out of here.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
+The subcommand takes the task's name with its colon as a hyphen, as `link-check-staged` does for `link-check:staged`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
 It installs the release it pins with `mise install`, rather than declaring it in a `#MISE tools=` header, which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since `mise x` would leave the tools the header declares off `PATH`; the line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.
 A change under `rust/` reaches a consumer only once that pull request merges and the release is published, which `.github/workflows/release.yml` describes.
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.

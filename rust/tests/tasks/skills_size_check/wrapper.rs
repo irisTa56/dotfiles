@@ -14,7 +14,7 @@ fn skill(body: &str) -> String {
 #[test]
 fn fails_as_unable_to_check_where_the_release_it_pins_cannot_be_installed() {
     let run = Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
-        .size_check_wrapper(&[], &Mise::installing_with(1));
+        .skills_size_check_wrapper(&[], &Mise::installing_with(1));
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
@@ -23,15 +23,15 @@ fn fails_as_unable_to_check_where_the_release_it_pins_cannot_be_installed() {
 #[test]
 fn fails_as_unable_to_check_where_mise_cannot_locate_the_release_it_installed() {
     let run = Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
-        .size_check_wrapper(&[], &Mise::installing_but_not_locating());
+        .skills_size_check_wrapper(&[], &Mise::installing_but_not_locating());
     assert_eq!(run.code(), 2, "output: {}", run.output());
 }
 
 // A consumer names its skills with a pathspec, which reaches the binary only as written:
 // one holding a space, split in two, would be read as a pathspec and an argument past it.
 #[test]
-fn passes_its_arguments_to_size_check_as_given() {
-    let run = Checkout::new(&[("my skills/a/SKILL.md", &skill("a"))]).size_check_wrapper(
+fn passes_its_arguments_to_skills_size_check_as_given() {
+    let run = Checkout::new(&[("my skills/a/SKILL.md", &skill("a"))]).skills_size_check_wrapper(
         &["--verbose", ":(glob)my skills/*/SKILL.md"],
         &Mise::installing_with(0),
     );
@@ -43,8 +43,8 @@ fn passes_its_arguments_to_size_check_as_given() {
 
 // The binary's exit code is the consumer's answer, so the wrapper must end with it.
 #[test]
-fn exits_as_size_check_does_on_a_skill_past_the_limit() {
+fn exits_as_skills_size_check_does_on_a_skill_past_the_limit() {
     Checkout::new(&[(".claude/skills/big/SKILL.md", &skill(&"a".repeat(19_801)))])
-        .size_check_wrapper(&[], &Mise::installing_with(0))
+        .skills_size_check_wrapper(&[], &Mise::installing_with(0))
         .expect(1, &[".claude/skills/big/SKILL.md: 19801 UTF-16 code units"]);
 }
