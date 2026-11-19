@@ -93,13 +93,13 @@ impl Checkout {
     }
 
     /// Runs `pin-check` with `args` in the repository.
-    pub(crate) fn run(&self, args: &[&str]) -> Run {
-        self.run_with(args, &[])
+    pub(crate) fn pin_check(&self, args: &[&str]) -> Run {
+        self.pin_check_with(args, &[])
     }
 
     /// Runs `pin-check` with `args` in the repository, with each variable of `env` set
     /// over the isolated environment, or removed from it where its value is `None`.
-    pub(crate) fn run_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
+    pub(crate) fn pin_check_with(&self, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
         command.arg("pin-check").args(args);
         for (name, value) in env {
