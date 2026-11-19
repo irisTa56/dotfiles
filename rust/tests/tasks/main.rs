@@ -8,6 +8,7 @@
 mod dispatch;
 mod link_check_staged;
 mod secrets_commit_scan;
+mod secrets_push_scan;
 mod skills_size_check;
 mod support;
 mod upstream_pin_check;

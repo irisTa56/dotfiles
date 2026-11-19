@@ -3,7 +3,7 @@
 
 use std::ffi::OsStr;
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -132,6 +132,11 @@ impl Checkout {
         self.git(&["push", "-q", "origin", "main"]);
     }
 
+    /// Names `origin` as the repository's remote `name`, fetching nothing.
+    pub(crate) fn add_remote(&self, name: &str, origin: &Origin) {
+        self.git(&["remote", "add", name, origin.location()]);
+    }
+
     /// Puts the repository on `origin`'s `main` with its own files staged over it, so
     /// that the checkout differs from origin.
     pub(crate) fn stage_over(&self, origin: &Origin) {
@@ -237,6 +242,56 @@ impl Checkout {
         Run::of(command)
     }
 
+    /// Runs `secrets-push-scan` with `args` in the repository, fed `refs` on stdin, as git
+    /// feeds a pre-push hook the refs a push sends.
+    pub(crate) fn secrets_push_scan(&self, args: &[&str], refs: &str) -> Run {
+        self.push_scan(".", args, refs.as_bytes(), &[])
+    }
+
+    /// Runs `secrets-push-scan` as `secrets_push_scan` does, fed `refs` as bytes, which
+    /// need not be UTF-8, as a ref name git allows need not be.
+    pub(crate) fn secrets_push_scan_bytes(&self, args: &[&str], refs: &[u8]) -> Run {
+        self.push_scan(".", args, refs, &[])
+    }
+
+    /// Runs `secrets-push-scan` as `secrets_push_scan` does, in the directory `dir` of the
+    /// repository.
+    pub(crate) fn secrets_push_scan_in(&self, dir: &str, args: &[&str], refs: &str) -> Run {
+        self.push_scan(dir, args, refs.as_bytes(), &[])
+    }
+
+    /// Runs `secrets-push-scan` as `secrets_push_scan` does, with `env` set as `task` sets
+    /// it.
+    pub(crate) fn secrets_push_scan_with(
+        &self,
+        args: &[&str],
+        refs: &str,
+        env: &[(&str, Option<&OsStr>)],
+    ) -> Run {
+        self.push_scan(".", args, refs.as_bytes(), env)
+    }
+
+    fn push_scan(
+        &self,
+        dir: &str,
+        args: &[&str],
+        refs: &[u8],
+        env: &[(&str, Option<&OsStr>)],
+    ) -> Run {
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
+        command
+            .arg("secrets-push-scan")
+            .args(args)
+            .current_dir(self.dir.path().join(dir));
+        for (name, value) in env {
+            match value {
+                Some(value) => command.env(name, value),
+                None => command.env_remove(name),
+            };
+        }
+        Run::fed(command, refs)
+    }
+
     /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
     /// repository, finding `mise` in place of mise.
     pub(crate) fn upstream_pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
@@ -274,7 +329,16 @@ impl Run {
         command
             .stdout(writer.try_clone().expect("the pipe can be shared"))
             .stderr(writer);
-        Run::reading(command, reader)
+        Run::reading(command, reader, &[])
+    }
+
+    /// Runs `command` to its end as `of` does, fed `input` on stdin.
+    fn fed(mut command: Command, input: &[u8]) -> Self {
+        let (reader, writer) = io::pipe().expect("a pipe can be made");
+        command
+            .stdout(writer.try_clone().expect("the pipe can be shared"))
+            .stderr(writer);
+        Run::reading(command, reader, input)
     }
 
     /// Runs `command` to its end with `closed` a pipe whose reading end is already
@@ -287,15 +351,21 @@ impl Run {
             Stream::Stdout => command.stdout(closed_writer).stderr(writer),
             Stream::Stderr => command.stdout(writer).stderr(closed_writer),
         };
-        Run::reading(command, reader)
+        Run::reading(command, reader, &[])
     }
 
-    /// Runs `command`, its stdout and stderr already set, to its end, reading `reader`.
-    fn reading(mut command: Command, mut reader: io::PipeReader) -> Self {
+    /// Runs `command`, its stdout and stderr already set, to its end, feeding it `input`
+    /// on stdin and reading `reader`.
+    fn reading(mut command: Command, mut reader: io::PipeReader, input: &[u8]) -> Self {
         let mut child = command
-            .stdin(Stdio::null())
+            .stdin(Stdio::piped())
             .spawn()
             .expect("the command runs");
+        // A command that exits without reading its input fails the write, which says
+        // nothing about the run.
+        let mut stdin = child.stdin.take().expect("stdin is piped");
+        let _ = stdin.write_all(input);
+        drop(stdin);
         // The command holds the pipes' writing ends until it is dropped, and reading
         // waits for every one to close.
         drop(command);
