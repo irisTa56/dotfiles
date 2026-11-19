@@ -38,7 +38,7 @@ Where the code around an edit already follows a convention one of them differs f
 - A function that is not private takes no `&mut` parameter other than `&mut self`, whether the value is of a type the crate defines, of another crate's type, or a buffer the caller reuses, unless a trait it implements fixes the signature.
   - What has to change a value is a method of that value's type where the crate defines the type, and otherwise returns the new value.
   - Only a private function has all its callers in the module, where which of them owns the value can be read.
-- Give each stage of a function that runs several in turn a method of its own, placed by the rules above, so that the function reads as its stages called in order.
+- Where a function runs several stages one after another, give each stage a function of its own, so that the function reads as its stages called in order.
   - This holds only where the detail of the stages hides their order from the function's reader.
   - Stages are, for example, checking the input, reading what the function acts on and writing the result.
 
