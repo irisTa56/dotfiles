@@ -23,7 +23,7 @@ fn fails_as_unable_to_tell_on_an_unknown_task_naming_the_tasks() {
     );
 }
 
-// tasks/upstream/pin-check.sh calls the pin check as pin-check.
+// tasks/upstream/pin-check.sh called the pin check as pin-check while pinning 0.4.0.
 #[test]
 fn runs_upstream_pin_check_under_its_old_name_pin_check() {
     let run = Checkout::new(&[("Cargo.toml", "[package]\n")]).task("pin-check", &[], &[]);
@@ -33,7 +33,7 @@ fn runs_upstream_pin_check_under_its_old_name_pin_check() {
     );
 }
 
-// tasks/skills/size-check.sh calls the size check as size-check.
+// tasks/skills/size-check.sh called the size check as size-check while pinning 0.4.0.
 #[test]
 fn runs_skills_size_check_under_its_old_name_size_check() {
     Checkout::new(&[])

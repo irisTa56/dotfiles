@@ -12,4 +12,4 @@
 tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.4.0' # x-release-please-version
 mise install --quiet "$tool" || exit 2
 dir=$(mise where "$tool") || exit 2
-exec "$dir/dotfiles-tasks" pin-check "$@"
+exec "$dir/dotfiles-tasks" upstream-pin-check "$@"
