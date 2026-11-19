@@ -27,7 +27,7 @@ impl Runner {
             Runner::Local => None,
             Runner::GitHubActions => Some(OsStr::new("true")),
         };
-        checkout.run_with(&["--bump"], &[&[("GITHUB_ACTIONS", actions)], env].concat())
+        checkout.pin_check_with(&["--bump"], &[&[("GITHUB_ACTIONS", actions)], env].concat())
     }
 }
 
