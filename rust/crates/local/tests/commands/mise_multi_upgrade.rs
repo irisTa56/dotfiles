@@ -649,8 +649,11 @@ fn leaves_out_a_config_under_tmp_whatever_tmpdir_says_by_the_name_it_resolves_to
     let resolved = fs::canonicalize("/tmp").expect("/tmp resolves");
     let resolved = format!("{}/resolved", resolved.display());
     let dir = with_scratch(&sandbox, &["/tmp/named", &resolved]);
+    // A directory whose name only starts with the temporary one's is not under it.
+    let sibling = sandbox.project("/tmp-other/project");
+    sandbox.outdated_in(Place::Dir(sibling), &[("jq", "1.6", "1.7")]);
 
-    let run = sandbox.run(&[], "y\ny\ny\n");
+    let run = sandbox.run(&[], "y\ny\ny\ny\n");
 
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert!(
@@ -660,7 +663,10 @@ fn leaves_out_a_config_under_tmp_whatever_tmpdir_says_by_the_name_it_resolves_to
     );
     assert_eq!(
         sandbox.upgrades(),
-        [format!("-C {dir} upgrade --no-global")]
+        [
+            "-C /tmp-other/project upgrade --no-global".to_owned(),
+            format!("-C {dir} upgrade --no-global")
+        ]
     );
 }
 
@@ -721,6 +727,7 @@ fn shows_how_long_ago_each_version_was_released() {
     sandbox.outdated_in(
         Place::Dir(dir),
         &[
+            ("gh", "2.1", "2.2"),
             ("jq", "1.6", "1.7"),
             ("yq", "4.1", "4.2"),
             ("uv", "0.1", "0.2"),
@@ -740,6 +747,13 @@ fn shows_how_long_ago_each_version_was_released() {
         );
     };
     remote(
+        "gh",
+        json!([
+            {"version": "2.1", "created_at": days_ago(1)},
+            {"version": "2.2", "created_at": ""},
+        ]),
+    );
+    remote(
         "jq",
         json!([
             {"version": "1.6", "created_at": days_ago(30)},
@@ -758,7 +772,6 @@ fn shows_how_long_ago_each_version_was_released() {
         json!([
             {"version": "0.1", "created_at": "last week"},
             {"version": "0.2"},
-            {"version": "0.3", "created_at": days_ago(1)},
         ]),
     );
 
@@ -771,6 +784,7 @@ fn shows_how_long_ago_each_version_was_released() {
          /work/project\n\
          Tool  Requested  Current  Released  Latest  Released\n\
          ----  ---------  -------  --------  ------  --------\n\
+         gh    2          2.1      1d ago    2.2     -\n\
          jq    1          1.6      30d ago   1.7     today\n\
          uv    0          0.1      ?         0.2     -\n\
          yq    4          4.1      5d ago    4.2     2d ago\n"
