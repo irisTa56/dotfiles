@@ -354,10 +354,15 @@ fn under_github_actions_moves_a_pin_in_a_large_file_beside_one_in_a_small_file()
     let checkout = Checkout::new(&[("big.toml", &big), ("Cargo.toml", &cargo)]);
     checkout.publish(&origin);
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    let pushed = origin
+        .show(&format!("{BUMP}:big.toml"))
+        .expect("origin's bump branch holds big.toml");
+    // The file is too large to print whole, so a mismatch shows its size and its end.
     assert!(
-        origin.show(&format!("{BUMP}:big.toml"))
-            == Some(format!("{padding}# {}\n", up.marker("lints", 1)).into_bytes()),
-        "the pushed big.toml does not hold the moved pin"
+        pushed == format!("{padding}# {}\n", up.marker("lints", 1)).into_bytes(),
+        "the pushed big.toml, {} bytes, ends {:?}",
+        pushed.len(),
+        String::from_utf8_lossy(&pushed[pushed.len().saturating_sub(120)..])
     );
     assert_eq!(
         origin.show(&format!("{BUMP}:Cargo.toml")),
