@@ -359,6 +359,8 @@ fn reads_its_switches_as_it_did_in_elixir() {
             "-h",
         ],
         &["-h", "--"],
+        &["-h=true"],
+        &["-hn=false"],
     ] {
         let run = sandbox.run(args, "");
         assert_eq!(run.code, Some(0), "{args:?}: {}", run.err);
@@ -377,6 +379,9 @@ fn reads_its_switches_as_it_did_in_elixir() {
         &["-h", "--", "--dry-run"],
         &["-h", "--", "--"],
         &["-h", "-"],
+        &["-h=1"],
+        &["-n=junk", "-h"],
+        &["--no-dry-run=true", "-h"],
     ] {
         let run = sandbox.run(args, "");
         assert_eq!(
@@ -402,6 +407,8 @@ fn refuses_bump_without_dry_run_with_its_usage_and_exit_2() {
         &["--bump"][..],
         &["-n", "--bump", "--dry-run=false"],
         &["--bump", "--no-dry-run"],
+        &["-n=false", "--bump"],
+        &["-nh=false", "--bump", "-n=false"],
     ] {
         let run = sandbox.run(args, "y\n");
         assert_eq!((run.code, run.out.as_str()), (Some(2), ""), "{args:?}");
@@ -1061,14 +1068,16 @@ fn says_all_tools_are_up_to_date_when_dry_run_has_no_table_to_show() {
 #[test]
 fn answers_no_to_an_empty_line_and_the_rest_at_end_of_input_and_asks_again_otherwise() {
     let sandbox = Sandbox::new("answers");
-    let dirs = ["/work/a", "/work/b", "/work/c", "/work/d", "/work/e"];
+    let dirs = [
+        "/work/a", "/work/b", "/work/c", "/work/d", "/work/e", "/work/f", "/work/g",
+    ];
     for dir in dirs {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
     }
 
     // The last answer has no line end, and still counts.
-    let run = sandbox.run(&[], "\nmaybe\nY\n  YES \nn");
+    let run = sandbox.run(&[], "\nmaybe\nY\n  YES \nno\nNO\nn");
 
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert_eq!(
@@ -1078,7 +1087,13 @@ fn answers_no_to_an_empty_line_and_the_rest_at_end_of_input_and_asks_again_other
             "-C /work/c upgrade --no-global"
         ]
     );
-    assert_eq!(run.out.matches("Upgrade /work/a? [y/N] ").count(), 1);
+    for dir in ["/work/a", "/work/d", "/work/e", "/work/f"] {
+        assert_eq!(
+            run.out.matches(&format!("Upgrade {dir}? [y/N] ")).count(),
+            1,
+            "{dir}"
+        );
+    }
     assert!(
         run.out
             .contains("Upgrade /work/b? [y/N] Upgrade /work/b? [y/N] \n/work/c\n"),
@@ -1087,7 +1102,7 @@ fn answers_no_to_an_empty_line_and_the_rest_at_end_of_input_and_asks_again_other
     );
     assert!(
         run.out
-            .contains("Upgrade /work/e? [y/N] \n\n==> mise -C /work/b"),
+            .contains("Upgrade /work/g? [y/N] \n\n==> mise -C /work/b"),
         "{}",
         run.out
     );
