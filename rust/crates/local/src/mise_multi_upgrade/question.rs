@@ -2,6 +2,8 @@
 
 use std::io::{self, BufRead, Write};
 
+use crate::failure::Failure;
+
 /// What a question was answered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum Answer {
@@ -22,14 +24,18 @@ impl Question {
     }
 
     /// Asks until an answer reads as yes or no, an empty one as no, or input ends.
-    pub(super) fn ask(&self) -> io::Result<Answer> {
+    pub(super) fn ask(&self) -> Result<Answer, Failure> {
         let mut stdout = io::stdout();
         let mut stdin = io::stdin().lock();
         loop {
-            write!(stdout, "{}", self.prompt)?;
-            stdout.flush()?;
+            write!(stdout, "{}", self.prompt)
+                .and_then(|()| stdout.flush())
+                .map_err(|error| Failure::writing(&error))?;
             let mut line = Vec::new();
-            if stdin.read_until(b'\n', &mut line)? == 0 {
+            let read = stdin.read_until(b'\n', &mut line).map_err(|error| {
+                Failure::new(format_args!("cannot read the answer: {error}"), 1)
+            })?;
+            if read == 0 {
                 return Ok(Answer::End);
             }
             match String::from_utf8_lossy(&line)

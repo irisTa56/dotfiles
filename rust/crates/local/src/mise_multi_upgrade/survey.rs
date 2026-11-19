@@ -74,7 +74,7 @@ impl Survey {
             )
             .map_err(|error| Failure::writing(&error))?;
             let question = Question::new(format!("Upgrade {}? [y/N] ", group.place().label()));
-            match question.ask().map_err(|error| Failure::writing(&error))? {
+            match question.ask()? {
                 Answer::Yes => accepted.push(group.place().clone()),
                 Answer::No => {}
                 Answer::End => {

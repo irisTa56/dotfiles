@@ -216,6 +216,26 @@ impl Sandbox {
         )
     }
 
+    /// Runs as `run` does with a directory as stdin, so that reading an answer fails
+    /// with an I/O error: the exit status and stderr.
+    fn run_unreadable_input(&self, args: &[&str]) -> (Option<i32>, String) {
+        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+            .arg("mise-multi-upgrade")
+            .args(args)
+            .current_dir(&self.root)
+            .env("PATH", self.path())
+            .env("TMPDIR", self.dir("tmp"))
+            .stdin(Stdio::from(
+                fs::File::open(&self.root).expect("the directory opens"),
+            ))
+            .output()
+            .expect("dotfiles-local runs");
+        (
+            output.status.code(),
+            String::from_utf8_lossy(&output.stderr).into_owned(),
+        )
+    }
+
     /// A file holding `input`.
     fn input(&self, input: &str) -> PathBuf {
         let path = self.root.join("input");
@@ -1196,6 +1216,21 @@ fn ends_a_dry_run_quietly_when_its_reader_stops_early_and_fails_a_run_that_asks(
 
     assert_eq!(code, Some(1));
     assert!(err.starts_with("cannot write the output: "), "{err}");
+    assert_eq!(sandbox.upgrades(), Vec::<String>::new());
+}
+
+// An answer that cannot be read fails the run as a failure to read, not to write.
+#[test]
+fn fails_a_run_whose_answer_cannot_be_read_naming_the_read_and_upgrades_nothing() {
+    let sandbox = Sandbox::new("unreadable");
+    let dir = sandbox.project("/work/project");
+    sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
+
+    let (code, err) = sandbox.run_unreadable_input(&[]);
+
+    assert_eq!(code, Some(1), "{err}");
+    assert!(!err.contains("cannot write"), "{err}");
+    assert!(err.contains("read"), "{err}");
     assert_eq!(sandbox.upgrades(), Vec::<String>::new());
 }
 
