@@ -1,6 +1,7 @@
 //! `ccusage-popup`: Claude Code usage over a period, as tables in a Quick Look popup.
 
 use std::collections::BTreeMap;
+use std::ffi::OsStr;
 use std::fmt;
 use std::fs;
 use std::io::{self, BufRead, BufReader};
@@ -67,33 +68,38 @@ impl Period {
     }
 
     fn show(self) -> Result<(), Failure> {
+        let projects = Projects::parse(&self.usage()?)?;
+        let entries = projects.entries(&SessionLogs::from_env()?, self)?;
+        ReportFile::create(&Report::new(self, entries).render())?.show()
+    }
+
+    /// What ccusage prints of each project's usage over the period, a day at a time, its
+    /// errors left on stderr.
+    fn usage(self) -> Result<Vec<u8>, Failure> {
         // The local date, which is also the date ccusage groups usage by.
         let today = ZonedDateTime::now().date();
         let since = self.since(today).strftime("%Y%m%d").to_string();
-        let usage = ccusage(&[
+        let args = [
             "claude",
             "daily",
             "--instances",
             "--json",
             "--since",
             &since,
-        ])?;
-        let projects = projects(&usage)?;
-        let logs = SessionLogs::from_env()?;
-        let mut entries = Vec::new();
-        for (project, days) in &projects {
-            let repo = logs.repo_label(logs.cwd(project)?.as_deref())?;
-            let Value::Array(days) = days else {
-                return Err(Failure::new(
-                    format_args!("ccusage reported no list of days for {project}: {days}"),
-                    1,
-                ));
-            };
-            for day in days {
-                entries.push(Entry::from_day(day, &repo, self)?);
-            }
+        ];
+        let output = Command::new("ccusage")
+            .args(args)
+            .stderr(Stdio::inherit())
+            .output()
+            .map_err(|error| Failure::new(format_args!("cannot run ccusage: {error}"), 1))?;
+        if output.status.success() {
+            return Ok(output.stdout);
         }
-        popup(&Report::new(self, entries).render())
+        let code = exit_code(output.status);
+        Err(Failure::new(
+            format_args!("ccusage {} failed (exit {code})", args.join(" ")),
+            code,
+        ))
     }
 
     /// The word the report's titles name the period by.
@@ -132,37 +138,56 @@ fn week_start(date: Date) -> Date {
     date - i64::from(date.weekday().to_sunday_zero_offset()).days()
 }
 
-/// What ccusage prints when run with `args`, its errors left on stderr.
-fn ccusage(args: &[&str]) -> Result<Vec<u8>, Failure> {
-    let output = Command::new("ccusage")
-        .args(args)
-        .stderr(Stdio::inherit())
-        .output()
-        .map_err(|error| Failure::new(format_args!("cannot run ccusage: {error}"), 1))?;
-    if output.status.success() {
-        return Ok(output.stdout);
-    }
-    let code = exit_code(output.status);
-    Err(Failure::new(
-        format_args!("ccusage {} failed (exit {code})", args.join(" ")),
-        code,
-    ))
-}
+/// The usage ccusage reports, by project.
+struct Projects(serde_json::Map<String, Value>);
 
-/// The usage ccusage reports, by project, from its output.
-fn projects(usage: &[u8]) -> Result<serde_json::Map<String, Value>, Failure> {
-    let usage: Value = serde_json::from_slice(usage)
-        .map_err(|error| Failure::new(format_args!("ccusage printed no JSON: {error}"), 1))?;
-    match usage.get("projects") {
-        Some(Value::Object(projects)) => Ok(projects.clone()),
-        // ccusage omits "projects" when the range holds no usage at all.
-        None if usage.pointer("/totals/totalTokens").and_then(Value::as_u64) == Some(0) => {
-            Ok(serde_json::Map::new())
+impl Projects {
+    /// The projects in what ccusage printed.
+    fn parse(usage: &[u8]) -> Result<Self, Failure> {
+        let usage: Value = serde_json::from_slice(usage)
+            .map_err(|error| Failure::new(format_args!("ccusage printed no JSON: {error}"), 1))?;
+        match usage {
+            Value::Object(mut usage) => match usage.remove("projects") {
+                Some(Value::Object(projects)) => Ok(Projects(projects)),
+                // ccusage omits "projects" when the range holds no usage at all.
+                None if usage
+                    .get("totals")
+                    .and_then(|totals| totals.get("totalTokens"))
+                    .and_then(Value::as_u64)
+                    == Some(0) =>
+                {
+                    Ok(Projects(serde_json::Map::new()))
+                }
+                _ => Err(Self::no_breakdown()),
+            },
+            _ => Err(Self::no_breakdown()),
         }
-        _ => Err(Failure::new(
+    }
+
+    fn no_breakdown() -> Failure {
+        Failure::new(
             format_args!("ccusage output has no per-project breakdown (\"projects\" key)"),
             1,
-        )),
+        )
+    }
+
+    /// Each day of each project, counted toward the repository `logs` resolve the
+    /// project to, and in the row of `period` it falls in.
+    fn entries(&self, logs: &SessionLogs, period: Period) -> Result<Vec<Entry>, Failure> {
+        let mut entries = Vec::new();
+        for (project, days) in &self.0 {
+            let repo = logs.repo_label(logs.cwd(project)?.as_deref())?;
+            let Value::Array(days) = days else {
+                return Err(Failure::new(
+                    format_args!("ccusage reported no list of days for {project}: {days}"),
+                    1,
+                ));
+            };
+            for day in days {
+                entries.push(Entry::from_day(day, &repo, period)?);
+            }
+        }
+        Ok(entries)
     }
 }
 
@@ -370,11 +395,11 @@ impl Report {
 /// `claude-opus-4-20250514` is shown as `opus-4`.
 fn model_name(name: &str) -> &str {
     let name = name.strip_prefix("claude-").unwrap_or(name);
-    match name.len().checked_sub(9).map(|at| name.split_at(at)) {
-        Some((stem, date))
-            if date.starts_with('-') && date[1..].bytes().all(|byte| byte.is_ascii_digit()) =>
-        {
-            stem
+    let bytes = name.as_bytes();
+    match bytes.len().checked_sub(9) {
+        // An ASCII `-` starts a character, so the name splits there.
+        Some(at) if bytes[at] == b'-' && bytes[at + 1..].iter().all(u8::is_ascii_digit) => {
+            &name[..at]
         }
         _ => name,
     }
@@ -595,7 +620,7 @@ impl SessionLogs {
                     let projects = Path::new(dir).join("projects");
                     if projects.is_dir() {
                         Some(projects)
-                    } else if basename(dir) == "projects" {
+                    } else if Path::new(dir).file_name() == Some(OsStr::new("projects")) {
                         Some(PathBuf::from(dir))
                     } else {
                         None
@@ -693,6 +718,12 @@ fn scratchpad_parent(cwd: &str) -> Option<&str> {
 /// The label of the checkout at `dir`: its repository's name, "other" where it is no
 /// repository.
 fn checkout_label(dir: &str) -> Result<String, Failure> {
+    let name = |path: &Path| {
+        path.file_name()
+            .and_then(OsStr::to_str)
+            .unwrap_or_default()
+            .to_owned()
+    };
     if !Path::new(dir).is_dir() {
         // A deleted temporary directory is not a repository; any other missing
         // directory is most likely a repository that has since been moved.
@@ -703,7 +734,7 @@ fn checkout_label(dir: &str) -> Result<String, Failure> {
             {
                 "other".to_owned()
             } else {
-                basename(dir).to_owned()
+                name(Path::new(dir))
             },
         );
     }
@@ -726,49 +757,16 @@ fn checkout_label(dir: &str) -> Result<String, Failure> {
     // worktrees: <repo>/.git normally, <repo>.git for a bare repository, and
     // .git/modules/<repo> for a submodule.
     let common = String::from_utf8_lossy(&output.stdout);
-    let common = common.trim();
-    let name = basename(common);
-    Ok(if name == ".git" {
-        basename(dirname(common)).to_owned()
+    let common = Path::new(common.trim());
+    let common_name = name(common);
+    Ok(if common_name == ".git" {
+        common.parent().map_or_else(String::new, name)
     } else {
-        name.strip_suffix(".git").unwrap_or(name).to_owned()
+        common_name
+            .strip_suffix(".git")
+            .unwrap_or(&common_name)
+            .to_owned()
     })
-}
-
-/// The last component of `path`, ignoring a trailing slash.
-fn basename(path: &str) -> &str {
-    let path = path.trim_end_matches('/');
-    path.rsplit_once('/').map_or(path, |(_, name)| name)
-}
-
-/// `path` without its last component.
-fn dirname(path: &str) -> &str {
-    let path = path.trim_end_matches('/');
-    path.rsplit_once('/').map_or(".", |(dir, _)| dir)
-}
-
-/// Shows `report` in a Quick Look panel, until it is dismissed.
-fn popup(report: &str) -> Result<(), Failure> {
-    // Quick Look renders HTML via WebKit, guaranteeing a monospace font and exact column
-    // alignment that a proportional AppleScript dialog would mangle.
-    let report_file = ReportFile::create(report)
-        .map_err(|error| Failure::new(format_args!("cannot write the report: {error}"), 1))?;
-    // qlmanage -p blocks until the preview panel is dismissed. It is noisy on stderr
-    // even on success, so its output is dropped, but an outright render failure still
-    // surfaces instead of doing nothing.
-    let status = Command::new("qlmanage")
-        .arg("-p")
-        .arg(report_file.html())
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .map_err(|error| Failure::new(format_args!("cannot run qlmanage: {error}"), 1))?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(Failure::new(format_args!("Quick Look preview failed"), 1))
-    }
 }
 
 /// A report written as HTML in a directory of its own under the temporary one, both
@@ -778,7 +776,12 @@ struct ReportFile {
 }
 
 impl ReportFile {
-    fn create(report: &str) -> io::Result<Self> {
+    fn create(report: &str) -> Result<Self, Failure> {
+        Self::write(report)
+            .map_err(|error| Failure::new(format_args!("cannot write the report: {error}"), 1))
+    }
+
+    fn write(report: &str) -> io::Result<Self> {
         let dir = Self::new_dir()?;
         let report_file = ReportFile { dir };
         let body = report
@@ -811,6 +814,28 @@ impl ReportFile {
                 Err(error) if error.kind() == io::ErrorKind::AlreadyExists => attempt += 1,
                 result => return result.map(|()| dir),
             }
+        }
+    }
+
+    /// Shows the report in a Quick Look panel, until it is dismissed.
+    fn show(&self) -> Result<(), Failure> {
+        // Quick Look renders HTML via WebKit, guaranteeing a monospace font and exact
+        // column alignment that a proportional AppleScript dialog would mangle.
+        // qlmanage -p blocks until the preview panel is dismissed. It is noisy on stderr
+        // even on success, so its output is dropped, but an outright render failure still
+        // surfaces instead of doing nothing.
+        let status = Command::new("qlmanage")
+            .arg("-p")
+            .arg(self.html())
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map_err(|error| Failure::new(format_args!("cannot run qlmanage: {error}"), 1))?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(Failure::new(format_args!("Quick Look preview failed"), 1))
         }
     }
 

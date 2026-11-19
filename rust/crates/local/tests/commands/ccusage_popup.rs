@@ -482,6 +482,35 @@ fn escapes_the_report_for_html() {
 }
 
 #[test]
+fn shows_a_model_name_with_multibyte_characters_near_its_end_without_the_prefix() {
+    let sandbox = Sandbox::new("multibyte-model", NO_USAGE);
+    let dir = sandbox.dir("repo");
+    Sandbox::session(&sandbox.config(), "-repo", text(&dir));
+    let git = dir.join(".git");
+    sandbox.repositories(&[(&dir, text(&git))]);
+    sandbox.ccusage(
+        &usage(&[(
+            "-repo",
+            &[Day {
+                model: "claude-モモモx",
+                ..Day::new("2026-11-01", 1.0)
+            }],
+        )]),
+        0,
+    );
+
+    let run = sandbox.run(&["daily"]);
+
+    assert_eq!(run.code, Some(0), "{}", run.err);
+    let html = run.html.expect("Quick Look is reached");
+    let (_, by_model) = html
+        .split_once("Cost (USD) by model")
+        .expect("the report has a table by model");
+    assert!(by_model.contains("モモモx"), "{html}");
+    assert!(!by_model.contains("claude-"), "{html}");
+}
+
+#[test]
 fn reads_session_logs_from_each_claude_config_dir_entry_that_holds_or_is_projects() {
     let sandbox = Sandbox::new("config-dirs", NO_USAGE);
     let holds = sandbox.root.join("holds");
@@ -629,4 +658,124 @@ fn fails_with_ccusages_status_when_ccusage_fails() {
     );
     assert!(run.err.ends_with(" failed (exit 3)\n"), "{}", run.err);
     assert_eq!(run.html, None);
+}
+
+#[test]
+fn shows_costs_to_the_nearest_cent_grouped_by_thousands_and_shares_to_a_tenth() {
+    let days = [
+        Day {
+            input: 2000,
+            read: 1000,
+            ..Day::new("2026-11-01", 1234.567)
+        },
+        Day::new("2026-11-02", 0.129),
+        // Half a cent rounds away from zero.
+        Day::new("2026-11-03", 0.125),
+    ];
+    let sandbox = Sandbox::new("number-formats", &usage(&[("-p", &days)]));
+
+    let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
+
+    assert_line(&html, "2026-11-01 2,000 10 0 1,000 1,010 33.3% $1,234.57");
+    assert_line(&html, "2026-11-02 1,000 10 0 0 1,010 0.0% $0.13");
+    assert_line(&html, "2026-11-03 1,000 10 0 0 1,010 0.0% $0.13");
+    assert_line(&html, "Total 4,000 30 0 1,000 3,030 20.0% $1,234.82");
+}
+
+impl Sandbox {
+    /// Runs `args` and asserts that the run failed with exit 1 and `message` as its one
+    /// line on stderr, before reaching Quick Look.
+    fn assert_fails(&self, args: &[&str], message: &str) {
+        let run = self.run(args);
+        assert_eq!(
+            (run.code, run.err.as_str(), run.html),
+            (Some(1), format!("{message}\n").as_str(), None)
+        );
+    }
+}
+
+#[test]
+fn fails_on_ccusage_output_that_is_not_json() {
+    let sandbox = Sandbox::new("not-json", "not json");
+
+    let run = sandbox.run(&["daily"]);
+
+    assert_eq!(run.code, Some(1), "{}", run.err);
+    assert!(
+        run.err.starts_with("ccusage printed no JSON: "),
+        "{}",
+        run.err
+    );
+    assert_eq!(run.err.lines().count(), 1, "{}", run.err);
+}
+
+#[test]
+fn fails_on_projects_that_are_not_an_object() {
+    let sandbox = Sandbox::new("projects-list", r#"{"projects": []}"#);
+
+    sandbox.assert_fails(
+        &["daily"],
+        "ccusage output has no per-project breakdown (\"projects\" key)",
+    );
+}
+
+#[test]
+fn fails_on_a_project_whose_days_are_not_a_list() {
+    let sandbox = Sandbox::new("days-object", r#"{"projects": {"-p": {"a": 1}}}"#);
+
+    sandbox.assert_fails(
+        &["daily"],
+        r#"ccusage reported no list of days for -p: {"a":1}"#,
+    );
+}
+
+#[test]
+fn fails_on_a_date_a_week_cannot_be_found_for() {
+    let day = Day::new("x", 1.0);
+    let sandbox = Sandbox::new("bad-date", &usage(&[("-p", &[day])]));
+
+    sandbox.assert_fails(
+        &["weekly"],
+        &format!(
+            "ccusage reported usage whose \"date\" is no date: {}",
+            Day::new("x", 1.0).json()
+        ),
+    );
+}
+
+#[test]
+fn fails_when_there_is_no_ccusage() {
+    let sandbox = Sandbox::new("no-ccusage", NO_USAGE);
+    fs::remove_file(sandbox.root.join("bin/ccusage")).expect("the fake is removed");
+
+    let run = sandbox.run_with(
+        &["daily"],
+        &[
+            ("CLAUDE_CONFIG_DIR", sandbox.config().as_os_str()),
+            ("PATH", sandbox.root.join("bin").as_os_str()),
+        ],
+    );
+
+    assert_eq!(run.code, Some(1), "{}", run.err);
+    assert!(run.err.starts_with("cannot run ccusage: "), "{}", run.err);
+}
+
+#[test]
+fn fails_on_a_session_log_it_cannot_read() {
+    let sandbox = Sandbox::new("unreadable-log", NO_USAGE);
+    Sandbox::session(&sandbox.config(), "-p", "/nowhere");
+    let log = sandbox.config().join("projects/-p/s.jsonl");
+    fs::set_permissions(&log, fs::Permissions::from_mode(0o000))
+        .expect("the log is made unreadable");
+    sandbox.ccusage(&usage(&[("-p", &[Day::new("2026-11-01", 1.0)])]), 0);
+
+    let run = sandbox.run(&["daily"]);
+
+    assert_eq!(run.code, Some(1), "{}", run.err);
+    assert!(
+        run.err
+            .starts_with(&format!("cannot read {}: ", log.display())),
+        "{}",
+        run.err
+    );
 }
