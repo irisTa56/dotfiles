@@ -229,6 +229,9 @@ fn under_github_actions_pushes_a_moved_file_at_the_mode_it_has_on_the_default_br
     let checkout = Checkout::new(&[("run.sh", &script)]);
     checkout.git(&["update-index", "--chmod=+x", "run.sh"]);
     checkout.publish(&origin);
+    // The checkout, such as a pull request's merge commit, may stage the file at
+    // another mode; the move takes the default branch's.
+    checkout.git(&["update-index", "--chmod=-x", "run.sh"]);
     Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
     assert_eq!(origin.mode(BUMP, "run.sh").as_deref(), Some("100755"));
 }
