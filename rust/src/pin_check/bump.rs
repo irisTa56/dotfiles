@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::env;
 
 use super::{Differing, Failure, Marker, Move, Moves, Scratch, Status, Text};
+use crate::git::Run;
 
 /// Once this branch exists it is the person's who opens its pull request, who may add
 /// commits to it, so a later run leaves it alone; merging that pull request deletes it where
@@ -14,6 +15,9 @@ const BUMP_BRANCH: &str = "upstream-pin-bump";
 const LS_REMOTE_NO_REF: i32 = 2;
 const BOT_NAME: &str = "github-actions[bot]";
 const BOT_EMAIL: &str = "41898282+github-actions[bot]@users.noreply.github.com";
+
+/// The default branch's tip of each differing pin's url and path.
+type Tips<'d> = HashMap<(&'d str, &'d str), &'d str>;
 
 impl Scratch {
     /// In GitHub Actions the checkout is whatever the run was for, often a pull request's
@@ -68,85 +72,97 @@ impl Scratch {
     }
 
     /// Builds the tree of the move without touching the working tree or its index: a
-    /// scratch index over the default branch's tree, with each moved file swapped in at the
-    /// mode it had there. The default branch may pin another commit than the checkout, or
-    /// lack a pin the checkout has, so what moves, and from where, is read from its own
-    /// text, and a pin there moves only where its own path differs from the tip's.
+    /// scratch index over the default branch's tree, with each moved file swapped in.
     fn stage_moves(&self, base: &str, differing: &Differing) -> Result<(String, Moves), Status> {
-        let git = &self.git;
-        let tips: HashMap<(&str, &str), &str> = differing
+        let tips: Tips = differing
             .0
             .iter()
             .map(|Move { pin, tip }| ((pin.url.as_str(), pin.path.as_str()), tip.as_str()))
             .collect();
-        let tip_for = |found: &Marker| {
-            let tip = *tips.get(&(found.url, found.path))?;
-            if tip == found.commit {
-                return None;
-            }
-            let Ok(pinned) = self.fetch(found.url, found.commit) else {
-                return Some(tip.to_owned());
-            };
-            (self.tree_at(&pinned, found.path) != self.tree_at(tip, found.path))
-                .then(|| tip.to_owned())
-        };
-        let index_file = self.dir().join("bump-index");
-        let index_file = index_file.to_string_lossy();
-        let indexed = |args: &[&str]| git.call(args).env("GIT_INDEX_FILE", &index_file).run();
-        let read = indexed(&["read-tree", base]);
+        let read = self.indexed(&["read-tree", base]);
         if !read.success() {
             return Err(Failure("could not read origin's default branch").report_git(&read));
         }
         let mut moved = Moves::default();
         for file in differing.files() {
-            let listed = git.run(&["ls-tree", base, "--", file]);
-            if !listed.success() {
-                return Err(
-                    Failure(&format!("could not read {file} on origin's default branch"))
-                        .report_git(&listed),
-                );
-            }
-            let entry = listed.stdout();
-            let fields: Vec<&str> = entry.split_whitespace().collect();
-            let [mode, _, _, ..] = fields[..] else {
-                continue;
-            };
-            let before = git.run(&["cat-file", "blob", &format!("{base}:{file}")]);
-            if !before.success() {
-                return Err(
-                    Failure(&format!("could not read {file} on origin's default branch"))
-                        .report_git(&before),
-                );
-            }
-            let (after, file_moved) = Text(before.stdout_bytes()).rewrite(tip_for);
-            if file_moved.0.is_empty() {
-                continue;
-            }
-            let blob = git
-                .call(&["hash-object", "-w", "--stdin"])
-                .input(&after)
-                .run()
-                .stdout()
-                .trim()
-                .to_owned();
-            let update = indexed(&[
-                "update-index",
-                "--cacheinfo",
-                &format!("{mode},{blob},{file}"),
-            ]);
-            if !update.success() {
-                return Err(
-                    Failure(&format!("could not stage the move of {file}")).report_git(&update)
-                );
-            }
-            moved.0.extend(file_moved.0);
+            moved.0.extend(self.stage_file(base, file, &tips)?.0);
         }
         if moved.0.is_empty() {
             Failure("origin's default branch holds none of these pins to move, or holds them where the path matches the tip's already").report();
             return Err(Status::Unknown);
         }
-        let tree = indexed(&["write-tree"]).stdout().trim().to_owned();
+        let tree = self.indexed(&["write-tree"]).stdout().trim().to_owned();
         Ok((tree, moved))
+    }
+
+    /// Moves the pins in `file` as the default branch spells them, and stages the result at
+    /// the mode the file has there; a file the default branch lacks, or whose pins none
+    /// move, is left out.
+    fn stage_file(&self, base: &str, file: &str, tips: &Tips) -> Result<Moves, Status> {
+        let git = &self.git;
+        let listed = git.run(&["ls-tree", base, "--", file]);
+        if !listed.success() {
+            return Err(
+                Failure(&format!("could not read {file} on origin's default branch"))
+                    .report_git(&listed),
+            );
+        }
+        let entry = listed.stdout();
+        let fields: Vec<&str> = entry.split_whitespace().collect();
+        let [mode, _, _, ..] = fields[..] else {
+            return Ok(Moves::default());
+        };
+        let before = git.run(&["cat-file", "blob", &format!("{base}:{file}")]);
+        if !before.success() {
+            return Err(
+                Failure(&format!("could not read {file} on origin's default branch"))
+                    .report_git(&before),
+            );
+        }
+        let (after, moved) =
+            Text(before.stdout_bytes()).rewrite(|found| self.base_tip(tips, found));
+        if moved.0.is_empty() {
+            return Ok(moved);
+        }
+        let blob = git
+            .call(&["hash-object", "-w", "--stdin"])
+            .input(&after)
+            .run()
+            .stdout()
+            .trim()
+            .to_owned();
+        let update = self.indexed(&[
+            "update-index",
+            "--cacheinfo",
+            &format!("{mode},{blob},{file}"),
+        ]);
+        if !update.success() {
+            return Err(Failure(&format!("could not stage the move of {file}")).report_git(&update));
+        }
+        Ok(moved)
+    }
+
+    /// The tip a pin the default branch spells moves to. The default branch may pin
+    /// another commit than the checkout, or lack a pin the checkout has, so a pin there
+    /// moves only where its own path differs from the tip's.
+    fn base_tip(&self, tips: &Tips, found: &Marker) -> Option<String> {
+        let tip = *tips.get(&(found.url, found.path))?;
+        if tip == found.commit {
+            return None;
+        }
+        let Ok(pinned) = self.fetch(found.url, found.commit) else {
+            return Some(tip.to_owned());
+        };
+        (self.tree_at(&pinned, found.path) != self.tree_at(tip, found.path)).then(|| tip.to_owned())
+    }
+
+    /// Runs git on the scratch index the move is staged in.
+    fn indexed(&self, args: &[&str]) -> Run {
+        let index_file = self.dir().join("bump-index");
+        self.git
+            .call(args)
+            .env("GIT_INDEX_FILE", &index_file.to_string_lossy())
+            .run()
     }
 
     /// Commits `tree` over `base` as the bot and pushes it to [`BUMP_BRANCH`].

@@ -1,6 +1,5 @@
 //! Fetching upstream commits into the scratch repository, and checking a pin there.
 
-use std::io;
 use std::path::Path;
 
 use super::{Checked, Failure, Pin, Scratch, Status};
@@ -17,11 +16,22 @@ impl Checked {
 }
 
 impl Scratch {
-    pub(super) fn new(git: Git) -> io::Result<Self> {
+    /// An empty repository in a directory of its own, removed when the value is dropped.
+    pub(super) fn new(git: Git) -> Result<Self, Status> {
         let dir = tempfile::Builder::new()
             .prefix("upstream-pin-check-")
-            .tempdir()?;
-        Ok(Scratch { git, dir })
+            .tempdir()
+            .map_err(|error| Status::stopped_on(&error))?;
+        let scratch = Scratch { git, dir };
+        let init = scratch.git(&["init", "-q"]);
+        if !init.success() {
+            return Err(Failure(&format!(
+                "could not create a scratch repository at {}",
+                scratch.dir().display()
+            ))
+            .report_git(&init));
+        }
+        Ok(scratch)
     }
 
     pub(super) fn dir(&self) -> &Path {

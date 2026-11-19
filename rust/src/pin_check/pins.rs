@@ -1,10 +1,9 @@
-//! Reading the pins from the tracked files, and moving the differing ones in the working
-//! tree.
+//! Reading the pins from the tracked files, checking each, and moving the differing ones.
 
 use std::collections::HashMap;
-use std::{fs, io};
+use std::{env, fs, io};
 
-use super::{Differing, Failure, Marker, Move, Moves, Pin, Pins, Status, Text};
+use super::{Checked, Differing, Failure, Marker, Move, Moves, Pin, Pins, Scratch, Status, Text};
 
 impl Pin {
     fn marker(&self) -> Marker<'_> {
@@ -46,6 +45,21 @@ impl Pins {
         }
         Ok(Pins(pins))
     }
+
+    /// Checks every pin in `scratch`, and returns the worst outcome with the pins that
+    /// differ, each with the tip it would move to.
+    pub(super) fn check<'p>(&'p self, scratch: &Scratch) -> (Status, Differing<'p>) {
+        let mut status = Status::Ok;
+        let mut differing = Differing(Vec::new());
+        for pin in &self.0 {
+            let checked = scratch.check(pin);
+            status = status.max(checked.status());
+            if let Checked::Differs(tip) = checked {
+                differing.0.push(Move { pin, tip });
+            }
+        }
+        (status, differing)
+    }
 }
 
 impl Differing<'_> {
@@ -60,9 +74,20 @@ impl Differing<'_> {
         files
     }
 
+    /// Moves the pins: under GitHub Actions on origin's default branch, and otherwise in
+    /// the working tree.
+    pub(super) fn move_pins(&self, scratch: &Scratch) -> Result<Status, Status> {
+        if env::var("GITHUB_ACTIONS").is_ok_and(|v| v == "true") {
+            Ok(scratch.move_on_default_branch(self))
+        } else {
+            self.move_in_working_tree()
+                .map_err(|error| Status::stopped_on(&error))
+        }
+    }
+
     /// Outside GitHub Actions the move lands in the working tree, for whoever ran it to
     /// commit.
-    pub(super) fn move_in_working_tree(&self) -> io::Result<Status> {
+    fn move_in_working_tree(&self) -> io::Result<Status> {
         let tips: HashMap<String, &str> = self
             .0
             .iter()
