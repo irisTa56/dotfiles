@@ -18,7 +18,8 @@ Where the code around an edit already follows a convention one of them differs f
   - The parent keeps the definition of the struct or trait, not only the declarations of its children, and the children provide the processing, as `impl` blocks and trait implementations.
   - A child then depends on its parent only for the abstraction, and the parent names nothing a child defines.
   - A child module does not call a private function of its parent: such a function is processing the child needs, kept beside the data rather than apart from it, so the parent has to know what the child does.
-- A field is private, in a struct that only carries data as well. A child module reads its parent's private fields, which Rust lets a descendant module do; any other module builds and reads the value through the type's methods.
+- A field is private, in a struct that only carries data as well.
+  - A child module reads its parent's private fields, which Rust lets a descendant module do; any other module builds and reads the value through the type's methods.
 - An item is private unless something outside its module uses it, and `pub` only where something outside the crate does.
   - The [`unreachable_pub`](https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#unreachable-pub) lint checks the second where it is on, and it is off by default: a crate you create sets it to `warn`. Nothing checks the first, and the lint's own fix is `pub(crate)`.
 
