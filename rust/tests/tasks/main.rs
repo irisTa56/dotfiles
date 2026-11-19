@@ -5,4 +5,5 @@
 //! dead code.
 
 mod pin_check;
+mod size_check;
 mod support;

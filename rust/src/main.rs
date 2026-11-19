@@ -3,17 +3,22 @@
 
 mod git;
 mod pin_check;
+mod size_check;
 
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let status = match args.split_first() {
-        Some((task, rest)) if task == "pin-check" => pin_check::Request::new(rest).run(),
-        _ => {
-            eprintln!("[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check");
-            pin_check::Status::Unknown
+    match args.split_first() {
+        Some((task, rest)) if task == "pin-check" => {
+            ExitCode::from(pin_check::Request::new(rest).run() as u8)
         }
-    };
-    ExitCode::from(status as u8)
+        Some((task, rest)) if task == "size-check" => size_check::Request::new(rest).run(),
+        _ => {
+            eprintln!(
+                "[fail] usage: dotfiles-tasks <task> [args...]; tasks: pin-check, size-check"
+            );
+            ExitCode::from(pin_check::Status::Unknown as u8)
+        }
+    }
 }
