@@ -17,13 +17,10 @@ fn main() -> ExitCode {
     match args.split_first() {
         Some((task, _)) if task == "link-check-staged" => link_check_staged::Lychee::check_staged(),
         Some((task, rest)) if task == "secrets-push-scan" => secrets_push_scan::Push::scan(rest),
-        // A wrapper runs the release it pins, and the wrappers pinning 0.4.0 called these
-        // checks as pin-check and size-check until they moved to the new names; no wrapper
-        // calls those names now, so a later release can drop them.
-        Some((task, rest)) if task == "upstream-pin-check" || task == "pin-check" => {
+        Some((task, rest)) if task == "upstream-pin-check" => {
             ExitCode::from(upstream_pin_check::Request::new(rest).run() as u8)
         }
-        Some((task, rest)) if task == "skills-size-check" || task == "size-check" => {
+        Some((task, rest)) if task == "skills-size-check" => {
             skills_size_check::Request::new(rest).run()
         }
         _ => {
