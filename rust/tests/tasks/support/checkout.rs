@@ -90,6 +90,16 @@ impl Checkout {
         .expect("the file's mode can be set");
     }
 
+    /// Gives `path` in the working tree the mode a directory is made with, undoing `lock`
+    /// so that the temporary directory can be removed.
+    pub(crate) fn unlock(&self, path: &str) {
+        fs::set_permissions(
+            self.dir.path().join(path),
+            fs::Permissions::from_mode(0o755),
+        )
+        .expect("the directory's mode can be set");
+    }
+
     /// The bytes of `path` in the working tree.
     pub(crate) fn read(&self, path: &str) -> Vec<u8> {
         fs::read(self.dir.path().join(path)).expect("the file can be read")
@@ -131,6 +141,31 @@ impl Checkout {
     /// Runs `size-check` with `args` in the repository.
     pub(crate) fn size_check(&self, args: &[&str]) -> Run {
         self.task("size-check", args, &[])
+    }
+
+    /// Runs `size-check` with `args` in the repository, its stdout a pipe whose reading
+    /// end is already closed. The run's output is its stderr alone.
+    pub(crate) fn size_check_to_closed_stdout(&self, args: &[&str]) -> Run {
+        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
+        command.arg("size-check").args(args);
+        let (closed_reader, stdout) = io::pipe().expect("a pipe can be made");
+        drop(closed_reader);
+        let (mut reader, stderr) = io::pipe().expect("a pipe can be made");
+        command.stdin(Stdio::null()).stdout(stdout).stderr(stderr);
+        let mut child = command.spawn().expect("the command runs");
+        // The command holds the pipes' writing ends until it is dropped.
+        drop(command);
+        let mut output = String::new();
+        reader
+            .read_to_string(&mut output)
+            .expect("the output is UTF-8");
+        let status = child.wait().expect("the command's run ends");
+        Run {
+            code: status
+                .code()
+                .expect("the command exits rather than being killed"),
+            output,
+        }
     }
 
     /// Runs `size-check` as `size_check` does, with `env` set as `task` sets it.

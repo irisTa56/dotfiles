@@ -12,7 +12,7 @@
 use std::ffi::OsStr;
 use std::fmt;
 use std::fs;
-use std::io;
+use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::process::ExitCode;
@@ -51,6 +51,10 @@ enum Verbosity {
 struct Skill {
     contents: Vec<u8>,
 }
+
+/// One line of a skill, its line end included.
+#[derive(Debug, Clone, Copy)]
+struct Line<'t>(&'t [u8]);
 
 /// Why a skill's body could not be measured.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,10 +110,10 @@ impl<'a> Request<'a> {
             [pathspec] if pathspec.is_empty() => Ok(SKILLS),
             [pathspec] => Ok(pathspec),
             [_, unread @ ..] => {
-                eprintln!(
+                say(format_args!(
                     "size-check does not read {}; its arguments are [--verbose] [pathspec], in that order.",
                     unread.join(" ")
-                );
+                ));
                 Err(ExitCode::from(UNCHECKED))
             }
         }
@@ -120,7 +124,7 @@ impl<'a> Request<'a> {
     fn list(pathspec: &str) -> Result<Vec<u8>, ExitCode> {
         let listed = Git::inheriting().run(&["ls-files", "-z", "--", pathspec]);
         if !listed.success() {
-            eprint!("{}", listed.stderr());
+            let _ = io::stderr().write_all(listed.stderr().as_bytes());
             // git's own status, such as 128 outside a repository; one that never ran, or
             // that a signal stopped, has none, and says no more about the skills.
             return Err(ExitCode::from(
@@ -131,7 +135,7 @@ impl<'a> Request<'a> {
             ));
         }
         if listed.stdout_bytes().is_empty() {
-            eprintln!("git tracks no skill at {pathspec} to check.");
+            say(format_args!("git tracks no skill at {pathspec} to check."));
             return Err(ExitCode::FAILURE);
         }
         Ok(listed.stdout_bytes().to_vec())
@@ -145,25 +149,30 @@ impl<'a> Request<'a> {
             Ok(Some(skill)) => skill,
             Ok(None) => return true,
             Err(error) => {
-                eprintln!("{shown}: could not be read: {error}");
+                say(format_args!("{shown}: could not be read: {error}"));
                 return false;
             }
         };
         match skill.length() {
             Ok(length) if length > LIMIT => {
-                eprintln!(
+                say(format_args!(
                     "{shown}: {length} UTF-16 code units, past the {LIMIT} a compaction re-attaches; shorten it, or move into references/ only what it reads at one moment, keeping in the body what a step needs before the body points there"
-                );
+                ));
                 false
             }
             Ok(length) => {
                 if self.verbosity == Verbosity::Lengths {
-                    println!("{shown}: {length} of {LIMIT} UTF-16 code units");
+                    // A reader that stopped reading, as `head` does, wants no more
+                    // lengths, and the exit status still reports every skill.
+                    let _ = writeln!(
+                        io::stdout(),
+                        "{shown}: {length} of {LIMIT} UTF-16 code units"
+                    );
                 }
                 true
             }
             Err(unmeasured) => {
-                eprintln!("{shown}: {unmeasured}");
+                say(format_args!("{shown}: {unmeasured}"));
                 false
             }
         }
@@ -171,11 +180,23 @@ impl<'a> Request<'a> {
 }
 
 impl Skill {
-    /// The skill at `path`, or `None` where the working tree no longer holds a file
-    /// there, as where it was deleted and the deletion is not yet staged.
+    /// The skill at `path`, or `None` where the working tree holds no file there, as
+    /// where it was deleted and the deletion is not yet staged. A path it cannot reach,
+    /// as in a directory it may not search, is an error rather than `None`, since a skill
+    /// passed unread could be of any length.
     fn read(path: &Path) -> io::Result<Option<Self>> {
-        if !path.is_file() {
-            return Ok(None);
+        match fs::metadata(path) {
+            Ok(metadata) if !metadata.is_file() => return Ok(None),
+            Ok(_) => {}
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::NotFound | io::ErrorKind::NotADirectory
+                ) =>
+            {
+                return Ok(None);
+            }
+            Err(error) => return Err(error),
         }
         fs::read(path).map(|contents| Some(Skill { contents }))
     }
@@ -190,13 +211,13 @@ impl Skill {
     /// opened by `---` on line 1, or the whole file where line 1 opens none.
     fn body(&self) -> Result<&[u8], Unmeasured> {
         let mut lines = self.contents.split_inclusive(|&byte| byte == b'\n');
-        let Some(first) = lines.next().filter(|line| is_fence(line)) else {
+        let Some(first) = lines.next().filter(|&line| Line(line).is_fence()) else {
             return Ok(&self.contents);
         };
         let mut end = first.len();
         for line in lines {
             end += line.len();
-            if is_fence(line) {
+            if Line(line).is_fence() {
                 return Ok(&self.contents[end..]);
             }
         }
@@ -213,7 +234,16 @@ impl fmt::Display for Unmeasured {
     }
 }
 
-/// Whether `line`, its line end included, is a frontmatter's `---`, a CRLF one included.
-fn is_fence(line: &[u8]) -> bool {
-    matches!(line, b"---" | b"---\n" | b"---\r" | b"---\r\n")
+impl Line<'_> {
+    /// Whether the line is a frontmatter's `---`, a CRLF one included.
+    fn is_fence(self) -> bool {
+        matches!(self.0, b"---" | b"---\n" | b"---\r" | b"---\r\n")
+    }
+}
+
+/// Writes `line` to stderr, where a run reports what fails. A stderr its reader closed
+/// takes nothing more, and the exit status still reports the run, so the line is dropped
+/// rather than ending the run.
+fn say(line: fmt::Arguments<'_>) {
+    let _ = writeln!(io::stderr(), "{line}");
 }

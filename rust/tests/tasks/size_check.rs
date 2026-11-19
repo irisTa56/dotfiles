@@ -282,6 +282,37 @@ fn fails_on_a_skill_it_cannot_read() {
         .expect(1, &[".claude/skills/locked/SKILL.md: could not be read"]);
 }
 
+// A skill in a directory that cannot be searched is not deleted from disk, and passing it
+// silently would pass a skill of any length.
+#[test]
+fn fails_on_a_skill_in_a_directory_it_cannot_search() {
+    let checkout = Checkout::new(&[(".claude/skills/locked/SKILL.md", &skill(&over()))]);
+    checkout.lock(".claude/skills/locked");
+    let run = checkout.size_check(&[]);
+    checkout.unlock(".claude/skills/locked");
+    run.expect(1, &[".claude/skills/locked/SKILL.md"]);
+}
+
+// A caller that stops reading the output closes the pipe, and a panic there would hide
+// the check's own result behind a backtrace and exit 101.
+#[test]
+fn does_not_panic_when_stdout_is_closed_while_it_reports_with_verbose() {
+    let files: Vec<(String, String)> = (0..8)
+        .map(|i| (format!(".claude/skills/s{i}/SKILL.md"), skill("a")))
+        .collect();
+    let files: Vec<(&str, &str)> = files
+        .iter()
+        .map(|(path, contents)| (path.as_str(), contents.as_str()))
+        .collect();
+    let run = Checkout::new(&files).size_check_to_closed_stdout(&["--verbose"]);
+    assert!(
+        !run.output().contains("panicked"),
+        "stderr:\n{}",
+        run.output()
+    );
+    assert_ne!(run.code(), 101, "stderr:\n{}", run.output());
+}
+
 // An empty pathspec would match every tracked file, so it is read as none given.
 #[test]
 fn reads_an_empty_pathspec_as_the_default_one() {
