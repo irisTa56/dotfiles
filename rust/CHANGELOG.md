@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.3.0...dotfiles-tasks-v0.4.0) (2026-11-19)
+
+
+### Features
+
+* **tasks:** name each subcommand and its modules after its mise task ([#445](https://github.com/irisTa56/dotfiles/issues/445)) ([dad4c32](https://github.com/irisTa56/dotfiles/commit/dad4c32f3f0630cb40d65f2b59005fc5ed0eb052))
+
 ## [0.3.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.2.1...dotfiles-tasks-v0.3.0) (2026-11-19)
 
 
