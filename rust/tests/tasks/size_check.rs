@@ -3,7 +3,7 @@
 
 use tempfile::TempDir;
 
-use crate::support::checkout::Checkout;
+use crate::support::checkout::{Checkout, Stream};
 
 /// The longest body that passes, in UTF-16 code units.
 const LIMIT: usize = 19_800;
@@ -304,13 +304,32 @@ fn does_not_panic_when_stdout_is_closed_while_it_reports_with_verbose() {
         .iter()
         .map(|(path, contents)| (path.as_str(), contents.as_str()))
         .collect();
-    let run = Checkout::new(&files).size_check_to_closed_stdout(&["--verbose"]);
-    assert!(
-        !run.output().contains("panicked"),
-        "stderr:\n{}",
-        run.output()
-    );
-    assert_ne!(run.code(), 101, "stderr:\n{}", run.output());
+    let run = Checkout::new(&files).size_check_closing(Stream::Stdout, &["--verbose"]);
+    assert_eq!((run.code(), run.output()), (0, ""));
+}
+
+// A caller that reads only stdout may close stderr, and the run still has to end with
+// the status that says a skill failed.
+#[test]
+fn fails_on_a_skill_past_the_limit_when_stderr_is_closed() {
+    let run = Checkout::new(&[(".claude/skills/big/SKILL.md", &skill(&over()))])
+        .size_check_closing(Stream::Stderr, &[]);
+    assert_eq!((run.code(), run.output()), (1, ""));
+}
+
+// A skill directory replaced by a file leaves no skill at the tracked path, as a
+// deleted one does, and the skills after it are still read.
+#[test]
+fn passes_over_a_tracked_skill_whose_directory_is_now_a_file() {
+    let checkout = Checkout::new(&[
+        (".claude/skills/aa/SKILL.md", &skill("a")),
+        (".claude/skills/zz/SKILL.md", &skill(&over())),
+    ]);
+    checkout.remove(".claude/skills/aa");
+    checkout.write(".claude/skills/aa", "a file");
+    let run = checkout.size_check(&[]);
+    run.expect(1, &[&format!(".claude/skills/zz/SKILL.md: {}", LIMIT + 1)]);
+    assert!(!run.output().contains("skills/aa"), "{}", run.output());
 }
 
 // An empty pathspec would match every tracked file, so it is read as none given.

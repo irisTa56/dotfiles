@@ -18,6 +18,13 @@ pub(crate) struct Checkout {
     dir: TempDir,
 }
 
+/// One of a run's output streams.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Stream {
+    Stdout,
+    Stderr,
+}
+
 /// How a run ended: its exit code, and stdout and stderr as one stream.
 pub(crate) struct Run {
     code: i32,
@@ -58,7 +65,7 @@ impl Checkout {
     }
 
     /// Writes `contents` to `path` in the working tree, staging nothing.
-    fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
+    pub(crate) fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
         let file = self.dir.path().join(path);
         fs::create_dir_all(file.parent().expect("a file has a parent"))
             .expect("the file's directory can be made");
@@ -143,15 +150,19 @@ impl Checkout {
         self.task("size-check", args, &[])
     }
 
-    /// Runs `size-check` with `args` in the repository, its stdout a pipe whose reading
-    /// end is already closed. The run's output is its stderr alone.
-    pub(crate) fn size_check_to_closed_stdout(&self, args: &[&str]) -> Run {
+    /// Runs `size-check` with `args` in the repository, with `closed`, stdout or stderr,
+    /// a pipe whose reading end is already closed. The run's output is the other stream
+    /// alone.
+    pub(crate) fn size_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
         let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg("size-check").args(args);
-        let (closed_reader, stdout) = io::pipe().expect("a pipe can be made");
+        command.arg("size-check").args(args).stdin(Stdio::null());
+        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
         drop(closed_reader);
-        let (mut reader, stderr) = io::pipe().expect("a pipe can be made");
-        command.stdin(Stdio::null()).stdout(stdout).stderr(stderr);
+        let (mut reader, writer) = io::pipe().expect("a pipe can be made");
+        match closed {
+            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
+            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
+        };
         let mut child = command.spawn().expect("the command runs");
         // The command holds the pipes' writing ends until it is dropped.
         drop(command);
