@@ -19,7 +19,7 @@
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/ask-email-in-request.sh\""
+            "command": "\"$HOME/.local/bin/dotfiles-local\" ask-email-in-request"
           }
         ]
       }
