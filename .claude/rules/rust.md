@@ -35,6 +35,7 @@ Where the code around an edit already follows a convention one of them differs f
 - Where no type of the crate fits, the processing is a free function in these two cases and in no other:
   - what it reads is spread over types that are peers, none of them holding another
   - the type that fits belongs to another crate
+    - the standard library is such a crate, so a function that reads only its types is a free function
 - In every other case, including a computation that has no receiver, define a type for it, holding no more than the processing reads.
 - A function that is not private takes no `&mut` parameter other than `&mut self`, whether the value is of a type the crate defines, of another crate's type, or a buffer the caller reuses, unless a trait it implements fixes the signature.
   - What has to change a value is a method of that value's type where the crate defines the type, and otherwise returns the new value.
