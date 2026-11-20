@@ -19,6 +19,11 @@ impl Failure {
         }
     }
 
+    /// What ends a run whose output cannot be written.
+    pub(crate) fn writing(error: &io::Error) -> Self {
+        Failure::new(format_args!("cannot write the output: {error}"), 1)
+    }
+
     pub(crate) fn report(self) -> ExitCode {
         let _ = writeln!(io::stderr(), "{}", self.message);
         ExitCode::from(self.code)

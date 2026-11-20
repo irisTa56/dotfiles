@@ -79,6 +79,8 @@ jobs:
           # gitleaks for secrets:commit-scan's, which run the task's script,
           # trufflehog for secrets-push-scan's, and yq and jq for skills-update's,
           # which read the lockfile and apply the fake gh's --jq filter.
+          # mise-multi-upgrade's drive the mise this action puts on PATH, after
+          # clearing every MISE_ variable.
           install_args: rust lychee gitleaks trufflehog yq jq
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
@@ -93,8 +95,7 @@ jobs:
       # `mise install` alone: the global config tracks some thirty tools at `latest`,
       # and every other mise command, the action's own `mise ls` and `mise env`
       # among them, would resolve each one's version, which cost this job seconds
-      # per call. The integration tests of mise_multi_upgrade drive the mise this
-      # action installs, after clearing every MISE_ variable, this one included.
+      # per call.
       MISE_ENABLE_TOOLS: erlang,elixir
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

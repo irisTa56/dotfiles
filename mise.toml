@@ -171,7 +171,9 @@ run = [
 ]
 
 # The release pull request moves the version in rust/Cargo.toml and in each wrapper
-# under tasks/ together; this fails where a wrapper was left behind.
+# under tasks/ together; this fails where a wrapper was left behind. MIX_QUIET keeps
+# out the compile progress Mix prints to stdout after an edit, ahead of the task's
+# own output, where a pipe would read it as that output.
 [tasks."qa:release-pins"]
 description = "Check that each shared task pins the dotfiles-tasks release rust/Cargo.toml is at"
 dir = "{{config_root}}/elixir"
@@ -325,14 +327,9 @@ find .claude/skills -mindepth 1 -maxdepth 1 | sort | while IFS= read -r p; do
 done
 '''
 
-# The tasks that start an Elixir command run it with MIX_QUIET: after an edit Mix
-# prints its compile progress to stdout, ahead of the command's own output, where a
-# pipe would read it as that output.
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
-dir = "{{config_root}}/elixir"
-env = { MIX_QUIET = "1" }
-run = "mix dotfiles.mise_multi_upgrade"
+run = "~/.local/bin/dotfiles-local mise-multi-upgrade"
 
 # dotfiles-local updates the apm.yml and apm.lock.yaml of the directory it runs in, which
 # a task with no `dir` leaves as this checkout's root, wherever `mise run` was called from.
