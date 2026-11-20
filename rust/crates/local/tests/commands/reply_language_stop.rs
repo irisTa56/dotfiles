@@ -394,9 +394,8 @@ fn leaves_short_english_listing_long_urls_alone() {
     }
 }
 
-// A URL ends at what JavaScript's `\s` takes for a space, as in the TypeScript hook
-// this one replaced: U+FEFF ends it and U+0085 does not, where Unicode's White_Space
-// has them the other way round.
+// A URL ends at what JavaScript's `\s` takes for a space: U+FEFF ends it and U+0085
+// does not, where Unicode's White_Space has them the other way round.
 #[test]
 fn ends_a_url_where_javascript_sees_a_space() {
     for (separator, outcome) in [
@@ -422,9 +421,8 @@ fn ends_a_url_where_javascript_sees_a_space() {
     }
 }
 
-// A line starts after any line terminator JavaScript knows, as in the TypeScript hook
-// this one replaced, so a fence opens and closes after each; the backtick in it keeps
-// inline code from hiding the line instead.
+// A line starts after any line terminator JavaScript knows, so a fence opens and closes
+// after each; the backtick in it keeps inline code from hiding the line instead.
 #[test]
 fn starts_a_line_after_every_javascript_line_terminator() {
     for (name, newline) in [
@@ -584,11 +582,10 @@ fn leaves_japanese_around_english_names_alone() {
 }
 
 // The state is "1" after the hook's own block and "0" after any other stop, in a file per
-// session under `$TMPDIR/claude-reply-language`, where the TypeScript hook kept it, so a
-// session open across the switch between the two keeps its state. Anything else in the
-// file counts as no block.
+// session under `$TMPDIR/claude-reply-language`. Anything else in the file counts as no
+// block.
 #[test]
-fn keeps_the_state_where_the_typescript_hook_kept_it() {
+fn keeps_the_state_in_a_file_per_session_under_the_temporary_directory() {
     let sandbox = Sandbox::new("state-file");
     english_stop(&sandbox, false);
     assert_eq!(
@@ -609,9 +606,9 @@ fn keeps_the_state_where_the_typescript_hook_kept_it() {
 }
 
 // A session id is made one file name by replacing each UTF-16 code unit other than an
-// ASCII letter, digit, `_` or `-` with `_`, as the TypeScript hook's `/[^\w-]/g` did.
+// ASCII letter, digit, `_` or `-` with `_`.
 #[test]
-fn names_the_state_file_after_the_session_as_the_typescript_hook_did() {
+fn names_the_state_file_after_the_session() {
     for (session, name) in [
         ("../a/b.c", "___a_b_c"),
         ("x-y_Z9", "x-y_Z9"),
@@ -628,9 +625,9 @@ fn names_the_state_file_after_the_session_as_the_typescript_hook_did() {
 }
 
 // The temporary directory is the first of TMPDIR, TMP and TEMP that is set and not empty,
-// or /tmp, as Node's `os.tmpdir()` has it for the TypeScript hook.
+// or /tmp.
 #[test]
-fn finds_the_temporary_directory_as_node_does() {
+fn finds_the_temporary_directory_in_tmpdir_tmp_or_temp() {
     let input = json!({
         "session_id": format!("dotfiles-local-test-{}", std::process::id()),
         "stop_hook_active": false,
@@ -680,16 +677,15 @@ fn finds_the_temporary_directory_as_node_does() {
     assert_eq!((run, written), (Run::blocked(), Some("1".to_owned())));
 }
 
-/// What the hook leaves where it fails: exit 1, as node left when the TypeScript hook
-/// threw, no verdict, and a message on stderr.
+/// What the hook leaves where it fails: exit 1, no verdict, and a message on stderr.
 fn assert_failed(run: &Run) {
     assert_eq!((run.code, run.out.as_str()), (Some(1), ""), "{run:?}");
     assert!(!run.err.is_empty(), "{run:?}");
 }
 
 // A failure of the hook's own ends with exit 1 and no verdict: exit 2 would keep every
-// session from stopping, and 1 puts a hook error in front of the user, as the
-// TypeScript hook's thrown error did.
+// session from stopping, and 1 puts a hook error in front of the user and lets the stop
+// go ahead.
 #[test]
 fn fails_with_exit_1_on_input_it_cannot_read() {
     let sandbox = Sandbox::new("bad-input");
@@ -699,6 +695,7 @@ fn fails_with_exit_1_on_input_it_cannot_read() {
         "[]",
         r#"{"stop_hook_active": false}"#,
         r#"{"session_id": 5, "stop_hook_active": false}"#,
+        r#"{"session_id": "a\UD83Db", "stop_hook_active": false}"#,
     ] {
         let run = sandbox.run_with_input(input.as_bytes());
         assert_failed(&run);
@@ -743,8 +740,8 @@ fn fails_with_exit_1_where_the_verdict_cannot_be_written() {
     assert_eq!(output.status.code(), Some(1), "{output:?}");
 }
 
-// Bytes that are no UTF-8 are read with each invalid sequence replaced, as node read
-// them, rather than failing the hook.
+// Bytes that are no UTF-8 are read with each invalid sequence replaced, rather than
+// failing the hook.
 #[test]
 fn reads_input_that_is_no_utf_8() {
     let sandbox = Sandbox::new("no-utf-8");
@@ -759,11 +756,11 @@ fn reads_input_that_is_no_utf_8() {
     assert_eq!(sandbox.run_with_input(&bytes), Run::blocked());
 }
 
-// Fields of a type Claude Code never sends are read as the TypeScript hook read them: a
-// reply that is no string fails the hook where it comes to be judged, and
-// `stop_hook_active` is true as JavaScript takes a value for true.
+// Fields of a type Claude Code never sends: a reply that is no string fails the hook
+// where it comes to be judged, and `stop_hook_active` is true as JavaScript takes a value
+// for true.
 #[test]
-fn reads_fields_of_other_types_as_the_typescript_hook_did() {
+fn reads_fields_of_other_types() {
     let sandbox = Sandbox::new("other-types");
     for message in [json!(null), json!(5)] {
         let run = sandbox.stop(
@@ -788,6 +785,70 @@ fn reads_fields_of_other_types_as_the_typescript_hook_did() {
         assert_eq!(
             (&continued, sandbox.stop("truthy", &fields)),
             (&continued, outcome)
+        );
+    }
+}
+
+// A lone UTF-16 surrogate escape in a string, which `JSON.parse` accepted, leaves the
+// input readable: the reply is judged like any other, so English holding one is sent back
+// and Japanese holding one is left alone. A paired escape and an escaped backslash before
+// `ud83d` (a backslash and letters, no escape) read as they always did.
+#[test]
+fn judges_a_reply_holding_a_lone_surrogate_escape() {
+    let japanese =
+        "実装を更新して、テストをすべて実行した。結果はすべて成功で、型の検査にも問題はない。"
+            .repeat(4);
+    let judge = |reply: &str| {
+        let input = format!(
+            r#"{{"session_id":"s","stop_hook_active":false,"last_assistant_message":"{reply}"}}"#
+        );
+        Sandbox::new("lone-surrogate-reply").run_with_input(input.as_bytes())
+    };
+    for (name, escape) in [
+        ("high", r"\ud83d"),
+        ("low", r"\ude00"),
+        ("high before a letter", r"\ud83dx"),
+        ("high before another high", r"\ud83d\ud83d"),
+        ("low before a high", r"\ude00\ud83d"),
+        ("pair", r"😀"),
+        ("escaped backslash", r"\\ud83d"),
+    ] {
+        let english = format!("{} {escape}", english());
+        let japanese = format!("{japanese}{escape}");
+        assert_eq!((name, judge(&english)), (name, Run::blocked()));
+        assert_eq!((name, judge(&japanese)), (name, Run::passed()));
+    }
+    // A pair of escapes spells the character itself, here U+1F200, whose script is
+    // Hiragana.
+    let hiragana = format!("{} \\ud83c\\ude00", english());
+    assert_eq!(judge(&hiragana), Run::passed());
+}
+
+// A lone surrogate escape in the session id is one UTF-16 code unit, so it is one `_` in
+// the state file's name.
+#[test]
+fn names_the_state_file_with_one_underscore_for_a_lone_surrogate_escape() {
+    for (escape, name) in [
+        (r"a\ud83db", "a_b"),
+        (r"a\ude00b", "a_b"),
+        (r"a\ud83d", "a_"),
+        (r"a\ud83d\ud83db", "a__b"),
+        (r"a😀b", "a__b"),
+        (r"a\\ud83db", "a_ud83db"),
+    ] {
+        let sandbox = Sandbox::new("lone-surrogate-session");
+        let input = format!(
+            r#"{{"session_id":"{escape}","stop_hook_active":false,"last_assistant_message":"{}"}}"#,
+            english()
+        );
+        let run = sandbox.run_with_input(input.as_bytes());
+        assert_eq!(
+            (
+                escape,
+                run,
+                fs::read_to_string(sandbox.state_file(name)).ok()
+            ),
+            (escape, Run::blocked(), Some("1".to_owned()))
         );
     }
 }

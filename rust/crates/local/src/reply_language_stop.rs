@@ -2,10 +2,9 @@
 //! in English back once to be rewritten in Japanese.
 //!
 //! Replies in the middle of a turn may drift into English, and the final reply has too,
-//! after the turn filled with English tool output. The `global-hooks` plugin registers
-//! this as a command hook in `hooks.json` rather than a module's `classic.Stop` hook,
-//! since a managed plugin may continue that event past the user tier, where the module's
-//! hook never runs.
+//! after the turn filled with English tool output. It is a command hook rather than a
+//! `classic.Stop` hook in the `global-hooks` plugin's module, since a managed plugin may
+//! continue that event past the user tier, where the module's hook never runs.
 //!
 //! Each stop is a process of its own, so what one stop leaves for the next is kept in a
 //! file per session.
@@ -16,7 +15,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::LazyLock;
 
-use regex::Regex;
+use regex::{Captures, Regex};
 use serde_json::{Value, json};
 
 use crate::failure::Failure;
@@ -27,13 +26,12 @@ const REWRITE: &str = "直前の返答は英語で書かれている。同じ内
 /// Code is English by rule, so it says nothing about the reply's own language: a fence
 /// of backticks or tildes, inline code, or a URL.
 ///
-/// The judgment keeps the TypeScript hook's, whose JavaScript pattern this restates. A
-/// fence opens and closes at a line start, so a backtick run named in prose is not one,
-/// and a line starts after `\r`, U+2028 and U+2029 as well as `\n`, which `(?m)` does
+/// A fence opens and closes at a line start, so a backtick run named in prose is not
+/// one. A line starts after `\r`, U+2028 and U+2029 as well as `\n`, which `(?m)` does
 /// not know, so an alternative takes the terminator in. A fence closes with the
-/// characters it opened with, which the original says with a back-reference and this
-/// with an alternative for each. A URL ends at what JavaScript's `\s` takes for a
-/// space, which differs from Unicode's `White_Space` only in U+0085 and U+FEFF.
+/// characters it opened with, an alternative for each, since the crate has no
+/// back-references. A URL ends at what JavaScript's `\s` takes for a space, which
+/// differs from Unicode's `White_Space` only in U+0085 and U+FEFF.
 static CODE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?mx)
@@ -58,6 +56,13 @@ static QUOTE: LazyLock<Regex> = LazyLock::new(|| {
 static JAPANESE_SENTENCE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[\p{Script=Hiragana}。、]").expect("the pattern compiles"));
 
+/// An escape in JSON text: a surrogate pair, a lone surrogate (captured), or any other
+/// escape, so that an escaped backslash is never taken for the start of one.
+static LONE_SURROGATE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\\u(?i:d[89ab][0-9a-f]{2})\\u(?i:d[c-f][0-9a-f]{2})|(\\u(?i:d[89a-f][0-9a-f]{2}))|\\[\s\S]")
+        .expect("the pattern compiles")
+});
+
 /// A reply of fewer Latin letters than this, about two English sentences, is accepted in
 /// any language.
 const MIN_LATIN: usize = 200;
@@ -68,7 +73,7 @@ struct Stop {
     /// Whether a Stop hook blocked the stop before this one, this hook's or another's.
     continued: bool,
     /// The reply the stop ends in, kept as the input has it until it is judged, where
-    /// one that is no string fails the hook, as it made the TypeScript hook throw.
+    /// one that is no string fails the hook.
     last_message: Option<Value>,
     /// Whether a subagent stops rather than the main conversation, which a Stop hook is
     /// only guarded against: a subagent stops through `SubagentStop`.
@@ -99,14 +104,24 @@ impl Verdict {
 }
 
 impl Stop {
-    /// The stop on stdin, whose bytes are read as UTF-8 with any invalid sequence
-    /// replaced, as node read them for the TypeScript hook.
+    /// The stop on stdin, judged whatever text a string of Claude Code's holds: bytes
+    /// that are no UTF-8 are read with each invalid sequence replaced, and a lone UTF-16
+    /// surrogate escape, which `serde_json` refuses, stands for U+FFFD, which the judgment
+    /// and the state file's name take as they would the surrogate.
     fn read() -> Result<Self, Failure> {
         let mut raw = Vec::new();
         io::stdin()
             .read_to_end(&mut raw)
             .map_err(|error| Failure::new(format_args!("cannot read stdin: {error}"), 1))?;
-        let input: Value = serde_json::from_str(&String::from_utf8_lossy(&raw))
+        let text = String::from_utf8_lossy(&raw);
+        let text = LONE_SURROGATE.replace_all(&text, |escape: &Captures<'_>| {
+            if escape.get(1).is_some() {
+                r"\ufffd".to_owned()
+            } else {
+                escape[0].to_owned()
+            }
+        });
+        let input: Value = serde_json::from_str(&text)
             .map_err(|error| Failure::new(format_args!("stdin is no JSON: {error}"), 1))?;
         let Some(session) = input.get("session_id").and_then(Value::as_str) else {
             return Err(Failure::new(format_args!("the input has no session_id"), 1));
@@ -152,8 +167,7 @@ impl Stop {
     }
 }
 
-/// Whether JavaScript takes `value` for true, as the TypeScript hook read
-/// `stop_hook_active`.
+/// Whether JavaScript takes `value` for true, which is how `stop_hook_active` is read.
 fn truthy(value: &Value) -> bool {
     match value {
         Value::Null => false,
@@ -181,8 +195,7 @@ struct SessionFile {
 
 impl SessionFile {
     /// The file of `session`, named by replacing each UTF-16 code unit of the id other
-    /// than an ASCII letter, digit, `_` or `-` with `_`, as the TypeScript hook's
-    /// `/[^\w-]/g` did, so that a session open across the switch keeps its state.
+    /// than an ASCII letter, digit, `_` or `-` with `_`.
     fn of(session: &str) -> Self {
         let name: String = session
             .chars()
@@ -209,10 +222,9 @@ impl SessionFile {
     }
 }
 
-/// The temporary directory as Node's `os.tmpdir()` finds it, which kept the TypeScript
-/// hook's state: the first of TMPDIR, TMP and TEMP that is set and not empty, or /tmp.
-/// `std::env::temp_dir` reads TMPDIR alone, takes an empty one for the working
-/// directory, and on macOS asks the system where none is set.
+/// The temporary directory: the first of TMPDIR, TMP and TEMP that is set and not empty,
+/// or /tmp. `std::env::temp_dir` reads TMPDIR alone, and takes an empty one for the
+/// working directory.
 fn temp_dir() -> PathBuf {
     ["TMPDIR", "TMP", "TEMP"]
         .into_iter()
@@ -222,8 +234,8 @@ fn temp_dir() -> PathBuf {
 }
 
 /// Judges the stop on stdin. A failure of the hook's own ends with exit 1 and no verdict,
-/// as the TypeScript hook's thrown error did: exit 2 would keep the session from
-/// stopping at all.
+/// which Claude Code shows as a hook error and lets the stop go ahead: exit 2 would keep
+/// the session from stopping at all.
 pub(crate) fn run() -> ExitCode {
     match handle() {
         Ok(()) => ExitCode::SUCCESS,
