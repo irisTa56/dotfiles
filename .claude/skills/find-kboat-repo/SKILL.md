@@ -3,8 +3,8 @@ name: find-kboat-repo
 description: "Find software for a need the user states in words — \"I want to do X\" — among the GitHub repositories they catalogued in K-Boat, and say plainly when the catalogue holds nothing that fits. Searches the catalogue only, never the web. Read-only; never writes to the vault."
 disable-model-invocation: true
 allowed-tools:
-  - Bash(${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh)
-  - Bash(${CLAUDE_SKILL_DIR}/scripts/lookup.sh *)
+  - Bash(~/.local/bin/dotfiles-local find-kboat-repo-export-catalog *)
+  - Bash(~/.local/bin/dotfiles-local find-kboat-repo-lookup *)
 ---
 
 # Find a repository in the K-Boat catalogue
@@ -17,10 +17,10 @@ Never write, edit or move a note; catalogue maintenance belongs to K-Boat's own 
 
 ## 1. Export the catalogue
 
-Run `${CLAUDE_SKILL_DIR}/scripts/export_catalog.sh`.
+Run `~/.local/bin/dotfiles-local find-kboat-repo-export-catalog`.
 It reads every repo note through K-Boat's `kboat-note list` and splits a compact copy into chunk files of 100 notes each, printing `{dir, notes, anomalies, chunks}`.
 
-- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the script printed, stderr included, and stop.
+- A non-zero exit means the catalogue was not read, and nothing about its contents follows. Report the exit and what the command printed, stderr included, and stop.
 - A non-empty `anomalies` on a zero exit names notes `kboat-note` could not read, or read with a field missing or misstated. Carry on; step 4 reports them.
 
 Do not read `catalog.json` or `compact.jsonl` into this conversation; that is what the chunks are for.
@@ -57,7 +57,7 @@ A judge that returns neither JSON lines nor `NONE` has not judged its chunk, so 
 
 ## 3. Look up what fit
 
-Run `${CLAUDE_SKILL_DIR}/scripts/lookup.sh <dir> '<title>'...` with every returned title of the `owner/repo` shape GitHub allows — letters, digits, `.`, `_` and `-`, not starting with `-` — each single-quoted.
+Run `~/.local/bin/dotfiles-local find-kboat-repo-lookup <dir> '<title>'...` with every returned title of the `owner/repo` shape GitHub allows — letters, digits, `.`, `_` and `-`, not starting with `-` — each single-quoted.
 A title of any other shape is unresolved without being passed: judges read text taken from GitHub, so what they return is not safe to hand the shell, and no catalogued title has another shape.
 It prints the record of each title the export holds — `title`, `url`, `summary`, `status`, `last_commit`, `archived` — one per line.
 A title with no record was misquoted by its judge: list it as unresolved rather than guess which repository it meant.
