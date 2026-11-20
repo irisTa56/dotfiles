@@ -329,7 +329,7 @@ description = "Push local edits to a gist-sourced SKILL.md back to its gist and 
 usage = 'arg "<name>" help="Alias of a gist dependency in apm.yml to push back to its gist"'
 # $usage_name is a single required arg (usage errors if omitted); quote it since a skill
 # name is one token.
-run = 'scripts/push_gist_skill.sh "$usage_name"'
+run = '~/.local/bin/dotfiles-local push-gist-skill "$usage_name"'
 
 [tasks."skills:unmanaged"]
 description = "List entries under .claude/skills/ that neither git tracks nor apm.lock.yaml deploys"
