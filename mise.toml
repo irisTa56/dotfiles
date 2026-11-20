@@ -333,16 +333,7 @@ run = 'scripts/push_gist_skill.sh "$usage_name"'
 
 [tasks."skills:unmanaged"]
 description = "List entries under .claude/skills/ that neither git tracks nor apm.lock.yaml deploys"
-# An entry git does not track and APM did not deploy exists on this machine alone:
-# no clone carries it and no `apm install` restores it. Hidden entries count too.
-# A tracked or deployed path is cut to its skill directory, so the comparison is per
-# top-level entry, not per file.
-run = '''
-managed="$( { git ls-files .claude/skills; yq '.dependencies[].deployed_files[]' apm.lock.yaml; } | cut -d/ -f1-3 | sort -u)"
-find .claude/skills -mindepth 1 -maxdepth 1 | sort | while IFS= read -r p; do
-  printf '%s\n' "$managed" | grep -qxF "$p" || echo "$p"
-done
-'''
+run = "~/.local/bin/dotfiles-local skills-unmanaged"
 
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
