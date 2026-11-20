@@ -476,20 +476,43 @@ fn export_lists_no_chunks_for_an_empty_catalogue() {
     assert!(!dir.join("chunk-aa").exists());
 }
 
-// A list field that is neither a list nor a string, as compact.jq could not read either,
-// fails the run, naming the field, before any summary is printed.
+// A note whose list field is neither a list nor a string, as compact.jq could not read
+// either, fails the run before any summary is printed, and its stderr names that note by
+// its path and the catalog.json that holds the report, so the note can be found among
+// many.
 #[test]
-fn export_fails_on_a_list_field_of_another_type() {
+fn export_names_the_note_and_the_stored_output_when_a_note_cannot_be_read() {
     let sandbox = Sandbox::new("list-type");
-    sandbox.kboat_note(&report(&["\"title\": \"a/one\", \"domain\": 5"], "[]"), 0);
+    sandbox.kboat_note(
+        &report(
+            &[
+                "\"title\": \"a/zero\"",
+                "\"title\": \"a/one\", \"domain\": 5",
+            ],
+            "[]",
+        ),
+        0,
+    );
 
     let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
 
-    assert_eq!(run.status.code(), Some(1));
-    assert_eq!(run.stdout, [] as [u8; 0]);
-    assert_eq!(
-        String::from_utf8_lossy(&run.stderr),
-        "cannot read a note: domain is 5, neither a list nor a string\n"
+    assert_ne!(run.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&run.stdout), "");
+    let dirs: Vec<_> = fs::read_dir(sandbox.root.join("tmp"))
+        .expect("the temporary directory is readable")
+        .map(|entry| entry.expect("an entry is read").path())
+        .collect();
+    assert_eq!(dirs.len(), 1, "the export creates one directory");
+    let catalog = dirs[0].join("catalog.json");
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(
+        stderr.contains("Repos/s1.md"),
+        "stderr does not name the failing note: {stderr}"
+    );
+    assert!(
+        stderr.contains(&catalog.display().to_string()),
+        "stderr does not name {}: {stderr}",
+        catalog.display()
     );
 }
 

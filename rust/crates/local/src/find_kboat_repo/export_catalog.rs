@@ -150,10 +150,14 @@ impl Report<'_> {
     /// Writes the compact copy of the notes into `dir`, and splits it into chunk files,
     /// whose paths it returns.
     fn write_chunks(&self, dir: &Path) -> Result<Vec<PathBuf>, Failure> {
+        let catalog = dir.join(CATALOG);
         let lines = self
             .notes
             .iter()
-            .map(Note::compact_line)
+            .map(|note| {
+                note.compact_line()
+                    .map_err(|error| note.unreadable(&catalog, error))
+            })
             .collect::<Result<Vec<String>, Failure>>()?;
         write(&dir.join("compact.jsonl"), &lines)?;
         lines
@@ -183,12 +187,11 @@ impl Report<'_> {
 
 impl Note<'_> {
     /// The note as one line of JSON holding only what judging reads.
-    fn compact_line(&self) -> Result<String, Failure> {
+    fn compact_line(&self) -> Result<String, String> {
         let members = JUDGED
             .iter()
             .map(|name| Ok(format!("\"{name}\":{}", self.judged(name)?)))
-            .collect::<Result<Vec<String>, String>>()
-            .map_err(|error| Failure::new(format_args!("cannot read a note: {error}"), 1))?;
+            .collect::<Result<Vec<String>, String>>()?;
         Ok(format!("{{{}}}", members.join(",")))
     }
 

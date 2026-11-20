@@ -9,10 +9,14 @@ pub(crate) mod export_catalog;
 pub(crate) mod lookup;
 
 use std::collections::HashMap;
+use std::fmt;
 use std::io;
+use std::path::Path;
 
 use serde::Deserialize;
 use serde_json::value::RawValue;
+
+use crate::failure::Failure;
 
 /// The file in the export's directory holding kboat-note's report whole.
 const CATALOG: &str = "catalog.json";
@@ -30,6 +34,9 @@ struct Report<'a> {
 /// One repo note of the report.
 #[derive(Deserialize)]
 struct Note<'a> {
+    /// Where the note sits in the vault, such as `Repos/0130878e2cb8.md`.
+    #[serde(default)]
+    path: Option<String>,
     #[serde(borrow, default)]
     frontmatter: Option<HashMap<String, &'a RawValue>>,
 }
@@ -38,6 +45,19 @@ impl Note<'_> {
     /// The frontmatter field `name`, if the note has it.
     fn field(&self, name: &str) -> Option<&RawValue> {
         self.frontmatter.as_ref()?.get(name).copied()
+    }
+
+    /// What ends a run on a note of the report in `catalog` that cannot be read for
+    /// `error`, naming both, so the note can be found among many.
+    fn unreadable(&self, catalog: &Path, error: impl fmt::Display) -> Failure {
+        Failure::new(
+            format_args!(
+                "cannot read note {} in {}: {error}",
+                self.path.as_deref().unwrap_or("(no path)"),
+                catalog.display()
+            ),
+            1,
+        )
     }
 }
 

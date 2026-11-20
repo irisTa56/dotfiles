@@ -59,9 +59,8 @@ fn lookup(dir: &Path, titles: &[String]) -> Result<(), Failure> {
         .notes
         .iter()
         .filter(|note| note.titled(titles))
-        .map(Note::record)
-        .collect::<serde_json::Result<Vec<String>>>()
-        .map_err(|error| Failure::new(format_args!("cannot read a note: {error}"), 1))?;
+        .map(|note| note.record().map_err(|error| note.unreadable(&path, error)))
+        .collect::<Result<Vec<String>, Failure>>()?;
     let text: String = lines
         .iter()
         .flat_map(|line| [line.as_str(), "\n"])
