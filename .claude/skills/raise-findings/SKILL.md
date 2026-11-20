@@ -23,14 +23,19 @@ A defect a change introduces often shows at a line the diff leaves untouched, wh
 ## Built-in reviews, where asked
 
 Where the invoking side asks for the built-in reviews, run Claude Code's own review skills through the Skill tool before raising anything, so the angles they carry, which Claude Code keeps current, underlie what follows here.
+Neither takes the baseline you were given; each reads a range of its own.
 
 - `code-review`, with `${CLAUDE_EFFORT}` as its first argument: the effort this review runs at, passed so the skill neither falls back to a level someone last typed nor reaches past this one.
-- `security-review`, where the change reaches anything besides prose, since it reads no documentation.
+  - In your working directory's work tree it reads the branch against its upstream, else `main`, else only the last commit, adding uncommitted changes.
+  - Where the change sits in another work tree, as when it lives in another worktree or repository, pass that work tree's path after the effort, and it reads the branch there instead.
+- `security-review`, where the change reaches anything besides prose, since it reads no documentation, and sits in your working directory's work tree, since it is given no path and reads only the commits ahead of `origin/HEAD` there.
 
 What they return are candidates, not findings: hold each to the bar below and check it as you would your own before raising it, and raise one they share with you once.
-Neither takes the baseline you were given — `code-review` reads the branch against its upstream, else `main`, else only the last commit, adding uncommitted changes; `security-review` only the commits ahead of `origin/HEAD` — so where either range differs from yours, say what that left unread.
-Where the change is not in the work tree your working directory sits in, as when it lives in another worktree or repository, pass `code-review` that work tree's path after the effort, and report an empty result from it as unconfirmed rather than clean, since nothing in it shows which tree it read; do not run `security-review` over such a change, since given no path it reads only your own work tree, and say that it did not run.
-Where a permission prompt refuses either one, say that it did not run, rather than reviewing as if it had.
+Say what they left uncovered, rather than reviewing as if they had covered it:
+
+- the part of your range that one's own range left unread;
+- a run that did not happen, whether its condition above left it out or a permission prompt refused it;
+- an empty `code-review` result over a change in another work tree, as unconfirmed rather than clean, since nothing in it shows which tree it read.
 
 ## What to raise
 
