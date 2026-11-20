@@ -74,8 +74,9 @@ includes = ["tasks"]
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
 # Written out as content rather than linked, so it is no `.sh` file that `qa:sh`
-# checks: run shellcheck on the content by hand after changing it. An edit reaches
-# ~/.local/bin only at the next `mise dot apply` or `mise bootstrap`.
+# checks: after changing it, run
+#   yq -r '.dotfiles."~/.local/bin/notify_desktop".content' mise.toml | shellcheck -
+# An edit reaches ~/.local/bin only at the next `mise dot apply` or `mise bootstrap`.
 "~/.local/bin/notify_desktop" = { permissions = "755", content = '''
 #!/usr/bin/env bash
 set -euo pipefail
