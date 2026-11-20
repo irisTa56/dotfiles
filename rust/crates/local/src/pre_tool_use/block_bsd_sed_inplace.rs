@@ -5,12 +5,12 @@
 //! name; either way the call exits 2, and without -e it edits nothing. Where sed is BSD
 //! sed the form is the right one, so the hook passes everything there.
 
-use std::process::{Command, ExitCode, Stdio};
+use std::process::ExitCode;
 use std::sync::LazyLock;
 
 use regex::Regex;
 
-use super::{BashCall, Verdict};
+use super::{BashCall, Tool, Verdict};
 
 /// A bare `sed` given -i and then an empty suffix, options before -i included, at the
 /// start of any line or after a separator or a space. A path such as /usr/bin/sed names
@@ -31,7 +31,7 @@ tool where the edit is not mechanical.
 
 /// Judges the call on stdin.
 pub(crate) fn run() -> ExitCode {
-    if !gnu_sed_on_path() {
+    if !Tool("sed").is_gnu() {
         return Verdict::Pass.report();
     }
     match BashCall::read() {
@@ -46,15 +46,4 @@ impl BashCall {
     fn edits_with_empty_suffix(&self) -> bool {
         EMPTY_SUFFIX.is_match(&self.command)
     }
-}
-
-/// Whether the sed on PATH is GNU sed, the one of the two that knows `--version`.
-fn gnu_sed_on_path() -> bool {
-    Command::new("sed")
-        .arg("--version")
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .is_ok_and(|status| status.success())
 }

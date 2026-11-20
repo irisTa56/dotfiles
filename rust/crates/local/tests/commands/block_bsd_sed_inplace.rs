@@ -1,114 +1,26 @@
 //! `block-bsd-sed-inplace`: the `PreToolUse` hook that blocks BSD's `sed -i ''` where the
 //! sed on PATH is GNU sed, run with a fake sed standing in for either kind.
 
-use std::fs;
-use std::io::Write as _;
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use crate::pre_tool_use::{Hook, Run, Tool};
 
-/// What Claude is told when the hook blocks a call.
-const BLOCKED: &str = "\
+/// The hook, judging by the sed on PATH.
+const HOOK: Hook = Hook::new(
+    "block-bsd-sed-inplace",
+    "sed",
+    "\
 Blocked: sed on PATH here is GNU sed, whose -i takes no separate suffix
 argument, so the empty string after -i is read as the script or as a file
 name and the call fails. Write `sed -i 's/.../.../' file`, or use the Edit
 tool where the edit is not mechanical.
-";
-
-/// The sed on PATH, told apart as the hook tells it, by whether `--version` succeeds.
-#[derive(Clone, Copy)]
-enum Sed {
-    Gnu,
-    Bsd,
-    Missing,
-}
-
-/// What a run left: its exit status, its stdout and its stderr.
-#[derive(Debug, PartialEq)]
-struct Run {
-    code: Option<i32>,
-    out: String,
-    err: String,
-}
-
-impl Run {
-    fn passed() -> Self {
-        Run {
-            code: Some(0),
-            out: String::new(),
-            err: String::new(),
-        }
-    }
-
-    fn blocked() -> Self {
-        Run {
-            code: Some(2),
-            out: String::new(),
-            err: BLOCKED.to_owned(),
-        }
-    }
-}
-
-/// A directory of the test's own whose `bin`, alone on PATH, holds the fake sed.
-fn bin(test: &str, sed: Sed) -> PathBuf {
-    let bin = Path::new(env!("CARGO_TARGET_TMPDIR"))
-        .join("block-bsd-sed-inplace")
-        .join(test)
-        .join("bin");
-    let _ = fs::remove_dir_all(&bin);
-    fs::create_dir_all(&bin).expect("the sandbox is created");
-    let code = match sed {
-        Sed::Gnu => 0,
-        Sed::Bsd => 1,
-        Sed::Missing => return bin,
-    };
-    let path = bin.join("sed");
-    fs::write(&path, format!("#!/bin/sh\nexit {code}\n")).expect("the fake is written");
-    fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-        .expect("the fake is made executable");
-    bin
-}
-
-/// Runs the hook with `input` as its stdin, under the sed `sed`.
-fn run_with_input(test: &str, sed: Sed, input: &str) -> Run {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-        .arg("block-bsd-sed-inplace")
-        .env("PATH", bin(test, sed))
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("dotfiles-local starts");
-    // The hook need not read its input, as where sed is BSD sed.
-    let _ = child
-        .stdin
-        .take()
-        .expect("stdin is piped")
-        .write_all(input.as_bytes());
-    let output = child.wait_with_output().expect("dotfiles-local ends");
-    Run {
-        code: output.status.code(),
-        out: String::from_utf8_lossy(&output.stdout).into_owned(),
-        err: String::from_utf8_lossy(&output.stderr).into_owned(),
-    }
-}
-
-/// Runs the hook on a Bash call of `command`, under the sed `sed`.
-fn run(test: &str, sed: Sed, command: &str) -> Run {
-    let input = serde_json::json!({
-        "hook_event_name": "PreToolUse",
-        "tool_name": "Bash",
-        "tool_input": { "command": command, "description": "Edits a file" },
-    });
-    run_with_input(test, sed, &input.to_string())
-}
+",
+);
 
 // GNU sed reads the empty suffix as the script or a file name, so the call is blocked.
 #[test]
 fn blocks_an_empty_suffix_under_gnu_sed() {
     assert_eq!(
-        run("gnu", Sed::Gnu, "sed -i '' 's/a/b/' file"),
-        Run::blocked()
+        HOOK.run("gnu", Tool::Gnu, "sed -i '' 's/a/b/' file"),
+        HOOK.blocked()
     );
 }
 
@@ -116,7 +28,7 @@ fn blocks_an_empty_suffix_under_gnu_sed() {
 #[test]
 fn passes_an_empty_suffix_under_bsd_sed() {
     assert_eq!(
-        run("bsd", Sed::Bsd, "sed -i '' 's/a/b/' file"),
+        HOOK.run("bsd", Tool::Bsd, "sed -i '' 's/a/b/' file"),
         Run::passed()
     );
 }
@@ -125,7 +37,7 @@ fn passes_an_empty_suffix_under_bsd_sed() {
 #[test]
 fn passes_gnu_sed_own_form() {
     assert_eq!(
-        run("gnu-form", Sed::Gnu, "sed -i 's/a/b/' file"),
+        HOOK.run("gnu-form", Tool::Gnu, "sed -i 's/a/b/' file"),
         Run::passed()
     );
 }
@@ -142,12 +54,12 @@ fn passes_on_its_own_failure() {
         r#"{"tool_input": {"command": 5}}"#,
     ] {
         assert_eq!(
-            (input, run_with_input("own-failure", Sed::Gnu, input)),
+            (input, HOOK.run_with_input("own-failure", Tool::Gnu, input)),
             (input, Run::passed())
         );
     }
     assert_eq!(
-        run("no-sed", Sed::Missing, "sed -i '' 's/a/b/' file"),
+        HOOK.run("no-sed", Tool::Missing, "sed -i '' 's/a/b/' file"),
         Run::passed()
     );
 }
@@ -169,8 +81,8 @@ fn blocks_every_place_a_bare_sed_runs() {
         "git commit -m 'run sed -i '' here'",
     ] {
         assert_eq!(
-            (command, run("gnu-blocks", Sed::Gnu, command)),
-            (command, Run::blocked())
+            (command, HOOK.run("gnu-blocks", Tool::Gnu, command)),
+            (command, HOOK.blocked())
         );
     }
 }
@@ -191,7 +103,7 @@ fn passes_what_is_no_bare_sed_given_an_empty_suffix() {
         "",
     ] {
         assert_eq!(
-            (command, run("gnu-passes", Sed::Gnu, command)),
+            (command, HOOK.run("gnu-passes", Tool::Gnu, command)),
             (command, Run::passed())
         );
     }
