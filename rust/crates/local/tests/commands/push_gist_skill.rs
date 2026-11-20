@@ -538,7 +538,13 @@ fn fails_where_the_local_copy_matches_the_pin() {
 
     let run = sandbox.run(&sandbox.repo(), &[SKILL]);
 
-    assert_eq!(run.status.code(), Some(1), "{:?}", outcome(&run));
+    let (code, stdout, stderr) = outcome(&run);
+    assert_eq!((code, stderr.as_str()), (Some(1), ""));
+    assert!(
+        stdout.ends_with("nothing to commit, working tree clean\n"),
+        "git says why: {stdout}"
+    );
+    assert!(!stdout.contains("[ok]"), "{stdout}");
     assert_eq!(
         sandbox.read_git(&sandbox.gist(), &["rev-parse", "HEAD"]),
         pinned
