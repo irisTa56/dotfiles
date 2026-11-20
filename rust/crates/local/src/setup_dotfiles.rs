@@ -95,41 +95,57 @@ impl Home {
     /// file's last line lacks one, which would otherwise glue the two.
     fn source_fragments(&self, main: &Path) -> Result<(), Failure> {
         for name in ["zshenv", "zprofile", "zshrc"] {
-            let path = self.path(&format!(".{name}"));
-            let named = format!("zsh_fragments/{name}.sh");
-            // Read before any open for writing, so a file that needs no change is never
-            // opened for it, as a read-only one could not be.
-            let contents = match fs::read(&path) {
-                Ok(contents) => contents,
-                Err(error) if error.kind() == io::ErrorKind::NotFound => Vec::new(),
-                Err(error) => {
-                    return Err(Failure::new(
-                        format_args!("cannot read {}: {error}", path.display()),
-                        1,
-                    ));
-                }
+            let file = StartupFile {
+                path: self.path(&format!(".{name}")),
             };
-            if contents
-                .windows(named.len())
-                .any(|window| window == named.as_bytes())
-            {
+            let named = format!("zsh_fragments/{name}.sh");
+            if file.names(&named)? {
                 continue;
             }
             let fragment = main.join(&named);
             let fragment = fragment.display();
-            // One write, as the line is built whole first: a line cut short would still
-            // name its fragment, so no later run would repair it.
-            let line = format!(
+            file.append(&format!(
                 "\nif [[ -r \"{fragment}\" ]]; then source \"{fragment}\"; else echo \"{fragment}: missing, not sourced\" >&2; fi\n"
-            );
-            OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&path)
-                .and_then(|mut file| file.write_all(line.as_bytes()))
-                .map_err(|error| unwritable(&path, &error))?;
+            ))?;
         }
         Ok(())
+    }
+}
+
+/// A zsh startup file in the home, created where it is missing.
+struct StartupFile {
+    path: PathBuf,
+}
+
+impl StartupFile {
+    /// Whether the file holds `text`, a missing one holding nothing. It is read before
+    /// any open for writing, so a file that needs no change is never opened for it, as
+    /// a read-only one could not be.
+    fn names(&self, text: &str) -> Result<bool, Failure> {
+        let contents = match fs::read(&self.path) {
+            Ok(contents) => contents,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => Vec::new(),
+            Err(error) => {
+                return Err(Failure::new(
+                    format_args!("cannot read {}: {error}", self.path.display()),
+                    1,
+                ));
+            }
+        };
+        Ok(contents
+            .windows(text.len())
+            .any(|window| window == text.as_bytes()))
+    }
+
+    /// Appends `line` in one write: a line cut short would still name its fragment, so
+    /// no later run would repair it.
+    fn append(&self, line: &str) -> Result<(), Failure> {
+        OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.path)
+            .and_then(|mut file| file.write_all(line.as_bytes()))
+            .map_err(|error| unwritable(&self.path, &error))
     }
 }
 
@@ -203,7 +219,8 @@ impl Rclone {
     /// unless it reads one already, so the item can be made here, where that command
     /// reads.
     fn store_password(&self) -> Result<(), Failure> {
-        // Split as a shell splits an unquoted variable, which is how rclone runs it.
+        // Split on whitespace, as the script's unquoted expansion did; rclone also
+        // honours double quotes, which the command `.zshenv` states does not use.
         let mut words = self.password_command.split_whitespace();
         let program = words.next().unwrap_or_default();
         let reads = self
