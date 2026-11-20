@@ -427,17 +427,21 @@ fn stores_a_random_password_and_encrypts_the_config_with_it() {
 }
 
 // A rerun on a machine already set up keeps the stored password and the encrypted
-// config as they are.
+// config as they are, and the password the keychain command prints appears on neither
+// stream.
 #[test]
 fn keeps_a_stored_password_and_an_encrypted_config() {
     let sandbox = Sandbox::new("encrypted");
-    fs::write(sandbox.root.join("keychain"), "kept").expect("the item is stored");
+    let stored = "stored-password-7f3a";
+    fs::write(sandbox.root.join("keychain"), stored).expect("the item is stored");
     fs::write(sandbox.root.join("encrypted"), "").expect("the config is marked");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
     assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
-    assert_eq!(sandbox.password().as_deref(), Some("kept"));
+    assert_eq!(sandbox.password().as_deref(), Some(stored));
+    let output = format!("{}{}", String::from_utf8_lossy(&run.stdout), stderr(&run));
+    assert!(!output.contains(stored), "{output}");
     assert_eq!(
         sandbox.rclone_calls(),
         [KEYCHAIN, "rclone config encryption check"]
@@ -493,8 +497,8 @@ fn stops_where_zsh_states_no_keychain_command() {
     assert_eq!(sandbox.rclone_calls(), Vec::<String>::new());
 }
 
-// Each command that changes something is shown on stderr before it runs, as `set -x`
-// showed it, but the generated password appears on neither stream.
+// Each command that changes something is shown on stderr before it runs, but the
+// generated password appears on neither stream.
 #[test]
 fn shows_each_command_but_never_the_password() {
     let sandbox = Sandbox::new("shown");

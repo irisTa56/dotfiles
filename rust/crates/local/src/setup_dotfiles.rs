@@ -111,11 +111,13 @@ impl Home {
             }
             let fragment = main.join(&named);
             let fragment = fragment.display();
-            writeln!(
-                file,
-                "\nif [[ -r \"{fragment}\" ]]; then source \"{fragment}\"; else echo \"{fragment}: missing, not sourced\" >&2; fi"
-            )
-            .map_err(|error| unwritable(&path, &error))?;
+            // One write, as the line is built whole first: a line cut short would still
+            // name its fragment, so no later run would repair it.
+            let line = format!(
+                "\nif [[ -r \"{fragment}\" ]]; then source \"{fragment}\"; else echo \"{fragment}: missing, not sourced\" >&2; fi\n"
+            );
+            file.write_all(line.as_bytes())
+                .map_err(|error| unwritable(&path, &error))?;
         }
         Ok(())
     }
@@ -294,8 +296,8 @@ impl Rclone {
     }
 }
 
-/// A command that changes the machine, shown on stderr before it runs, as `set -x`
-/// showed the script's.
+/// A command that changes the machine, shown on stderr as `+ <command>` before it runs,
+/// with any variable it drops from the environment as `env -u <name>` in front.
 struct Change {
     command: Command,
     shown: String,
