@@ -80,7 +80,10 @@ fn export() -> Result<(), Failure> {
     let text = list(&kboat_repo, &dir)?;
     let report: Report<'_> = serde_json::from_str(&text).map_err(|error| {
         Failure::new(
-            format_args!("cannot read kboat-note's report in {CATALOG}: {error}"),
+            format_args!(
+                "cannot read kboat-note's report in {}: {error}",
+                dir.join(CATALOG).display()
+            ),
             1,
         )
     })?;
@@ -273,7 +276,7 @@ fn string(path: &Path) -> String {
     serde_json::Value::from(path.to_string_lossy()).to_string()
 }
 
-/// Prints the JSON text `json` as jq prints it.
+/// Prints the JSON text `json`, indented by two spaces.
 fn print(json: &str) -> Result<(), Failure> {
     let text = Json(json)
         .pretty()

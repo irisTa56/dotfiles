@@ -316,6 +316,36 @@ fn export_reports_a_failing_kboat_note() {
     }
 }
 
+// Where kboat-note exits 0 but prints what is not a report, the run fails with nothing on
+// stdout, and its stderr gives the path of the catalog.json that holds the output, so
+// that it can be inspected.
+#[test]
+fn export_names_the_stored_output_when_it_is_not_a_report() {
+    let sandbox = Sandbox::new("unparsable");
+    sandbox.kboat_note("not json", 0);
+
+    let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
+
+    assert_ne!(run.status.code(), Some(0));
+    assert_eq!(String::from_utf8_lossy(&run.stdout), "");
+    let dirs: Vec<_> = fs::read_dir(sandbox.root.join("tmp"))
+        .expect("the temporary directory is readable")
+        .map(|entry| entry.expect("an entry is read").path())
+        .collect();
+    assert_eq!(dirs.len(), 1, "the export creates one directory");
+    let catalog = dirs[0].join("catalog.json");
+    assert_eq!(
+        fs::read_to_string(&catalog).expect("the output is stored"),
+        "not json"
+    );
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(
+        stderr.contains(&catalog.display().to_string()),
+        "stderr does not name {}: {stderr}",
+        catalog.display()
+    );
+}
+
 // `--help` prints how the command is called; any other argument prints that to stderr
 // and exits 2 before kboat-note runs.
 #[test]
@@ -420,4 +450,60 @@ fn lookup_needs_an_export() {
         "{unread_err}"
     );
     assert_eq!(unread.stdout, [] as [u8; 0]);
+}
+
+// An empty catalogue reads as one with no chunks to judge.
+#[test]
+fn export_lists_no_chunks_for_an_empty_catalogue() {
+    let sandbox = Sandbox::new("empty");
+
+    let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
+
+    assert_eq!(
+        run.status.code(),
+        Some(0),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let summary: serde_json::Value = serde_json::from_slice(&run.stdout).expect("stdout is JSON");
+    assert_eq!(summary["notes"], 0);
+    assert_eq!(summary["chunks"], serde_json::json!([]));
+    let dir = exported_dir(&run.stdout);
+    assert_eq!(
+        fs::read_to_string(dir.join("compact.jsonl")).expect("compact.jsonl is written"),
+        ""
+    );
+    assert!(!dir.join("chunk-aa").exists());
+}
+
+// A list field that is neither a list nor a string, as compact.jq could not read either,
+// fails the run, naming the field, before any summary is printed.
+#[test]
+fn export_fails_on_a_list_field_of_another_type() {
+    let sandbox = Sandbox::new("list-type");
+    sandbox.kboat_note(&report(&["\"title\": \"a/one\", \"domain\": 5"], "[]"), 0);
+
+    let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
+
+    assert_eq!(run.status.code(), Some(1));
+    assert_eq!(run.stdout, [] as [u8; 0]);
+    assert_eq!(
+        String::from_utf8_lossy(&run.stderr),
+        "cannot read a note: domain is 5, neither a list nor a string\n"
+    );
+}
+
+// Without mise on PATH there is no way to run kboat-note, so the run says so and exits 1
+// without a summary.
+#[test]
+fn export_fails_without_mise() {
+    let sandbox = Sandbox::new("no-mise");
+    fs::remove_file(sandbox.root.join("bin").join("mise")).expect("the fake mise is removed");
+
+    let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
+
+    assert_eq!(run.status.code(), Some(1));
+    assert_eq!(run.stdout, [] as [u8; 0]);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(stderr.starts_with("cannot run mise: "), "{stderr}");
 }

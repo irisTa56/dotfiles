@@ -2,8 +2,8 @@
 //! K-Boat repo catalogue for judging, and `find-kboat-repo-lookup` reads back the records
 //! of the titles judged to fit.
 //!
-//! Values pass through as kboat-note wrote them, read as raw JSON rather than parsed
-//! into maps, so an object's keys keep their order, as they did through jq.
+//! Values are read as raw JSON rather than parsed into maps, so an object's keys keep
+//! the order kboat-note wrote them in, as they did through jq.
 
 pub(crate) mod export_catalog;
 pub(crate) mod lookup;
@@ -41,18 +41,18 @@ impl Note<'_> {
     }
 }
 
-/// JSON text, laid out again as jq lays it out, keys in the order the text has them.
+/// JSON text, laid out again with its keys in the order the text has them.
 struct Json<'a>(&'a str);
 
 impl Json<'_> {
-    /// The text with no whitespace between tokens, as `jq -c` prints it.
+    /// The text with no whitespace between tokens.
     fn compact(&self) -> serde_json::Result<String> {
         let mut out = Vec::new();
         self.transcode(&mut serde_json::Serializer::new(&mut out))?;
         Ok(String::from_utf8(out).expect("serde_json writes UTF-8"))
     }
 
-    /// The text indented by two spaces and ended by a newline, as jq prints it.
+    /// The text indented by two spaces and ended by a newline.
     fn pretty(&self) -> serde_json::Result<String> {
         let mut out = Vec::new();
         self.transcode(&mut serde_json::Serializer::pretty(&mut out))?;
