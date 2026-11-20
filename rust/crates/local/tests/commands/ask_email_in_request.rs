@@ -215,6 +215,24 @@ fn heads_the_description_with_the_cause() {
     }
 }
 
+// jq's `//` treats `false` as absent, so the script heads a `false` description with the
+// cause alone, as it does a missing one, and the binary has to ask the same.
+#[test]
+fn heads_a_false_description_with_the_cause_alone() {
+    let command = "curl -A first.last https://api.example.com";
+    let input = json!({
+        "tool_name": "Bash",
+        "tool_input": { "command": command, "description": false },
+    });
+    assert_eq!(
+        HOOK.run_with_input("false-description", GIT, &input.to_string()),
+        asked(&json!({
+            "command": command,
+            "description": "Sends the user's email address",
+        }))
+    );
+}
+
 // A failure of the hook's own lets the call through with exit 0 and no verdict: exit 2
 // would block every Bash call, and any other status would put a hook error in front of
 // each.

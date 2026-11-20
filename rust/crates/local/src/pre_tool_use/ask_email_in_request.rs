@@ -85,12 +85,13 @@ impl BashCall {
         self.command.split('\n').any(|line| REQUEST.is_match(line))
     }
 
-    /// Asks the user about the call, its description headed by the cause, or lets it
-    /// through where the description is neither a string nor null, as any failure of the
-    /// hook's own.
+    /// Asks the user about the call, its description headed by the cause, which stands
+    /// alone where the description is missing, null, false or empty, as jq's `//` has it.
+    /// Any other description that is not a string lets the call through, as any failure of
+    /// the hook's own.
     fn ask(self) -> Verdict {
         let description = match self.tool_input.get("description") {
-            None | Some(Value::Null) => CAUSE.to_owned(),
+            None | Some(Value::Null | Value::Bool(false)) => CAUSE.to_owned(),
             Some(Value::String(description)) if description.is_empty() => CAUSE.to_owned(),
             Some(Value::String(description)) => format!("{CAUSE}: {description}"),
             Some(_) => return Verdict::Pass,
