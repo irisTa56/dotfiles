@@ -11,7 +11,7 @@
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/block-bsd-sed-inplace.sh\""
+            "command": "\"$HOME/.local/bin/dotfiles-local\" block-bsd-sed-inplace"
           },
           {
             "type": "command",
