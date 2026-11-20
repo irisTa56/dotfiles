@@ -17,6 +17,9 @@ fn main() -> ExitCode {
         Some((command, _)) if command == "block-bsd-sed-inplace" => {
             pre_tool_use::block_bsd_sed_inplace::run()
         }
+        Some((command, _)) if command == "block-bsd-stat-format" => {
+            pre_tool_use::block_bsd_stat_format::run()
+        }
         Some((command, rest)) if command == "ccusage-popup" => ccusage_popup::run(rest),
         Some((command, rest)) if command == "mise-multi-upgrade" => mise_multi_upgrade::run(rest),
         Some((command, rest)) if command == "skills-update" => skills_update::run(rest),
@@ -25,7 +28,7 @@ fn main() -> ExitCode {
             // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
             let _ = writeln!(
                 io::stderr(),
-                "[fail] usage: dotfiles-local <command> [args...]; commands: block-bsd-sed-inplace, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal"
+                "[fail] usage: dotfiles-local <command> [args...]; commands: block-bsd-sed-inplace, block-bsd-stat-format, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal"
             );
             ExitCode::from(2)
         }

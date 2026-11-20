@@ -2,9 +2,10 @@
 //! Claude is about to make and hands back its verdict.
 
 pub(crate) mod block_bsd_sed_inplace;
+pub(crate) mod block_bsd_stat_format;
 
 use std::io::{self, Write};
-use std::process::ExitCode;
+use std::process::{Command, ExitCode, Stdio};
 
 use serde_json::Value;
 
@@ -22,6 +23,23 @@ impl BashCall {
         Some(BashCall {
             command: command.to_owned(),
         })
+    }
+}
+
+/// A tool that comes as GNU's or BSD's, of which a hook blocks a BSD form only where the
+/// one on PATH is GNU's.
+pub(crate) struct Tool(&'static str);
+
+impl Tool {
+    /// Whether the tool on PATH is GNU's, the one of the two that knows `--version`.
+    pub(crate) fn is_gnu(&self) -> bool {
+        Command::new(self.0)
+            .arg("--version")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .is_ok_and(|status| status.success())
     }
 }
 
