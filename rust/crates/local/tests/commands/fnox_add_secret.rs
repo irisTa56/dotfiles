@@ -31,7 +31,8 @@ impl Sandbox {
         sandbox
     }
 
-    /// Writes a fake fnox into the sandbox's PATH. `provider list -c <file>` prints the
+    /// Writes a fake fnox into the sandbox's PATH, which records each call's arguments
+    /// on a line of `calls`. `provider list -c <file>` prints the
     /// providers `<file>` declares as `[providers."<name>"]` tables, and fails where the
     /// file holds the word `unparseable` or, as TOML forbids, defines `providers` both
     /// inline and as a table; `set` records its working directory, its
@@ -40,6 +41,7 @@ impl Sandbox {
     fn fake_fnox(&self) {
         let path = self.root.join("bin").join("fnox");
         let body = r#"#!/bin/sh
+echo "$*" >> "$SANDBOX/calls"
 case "$1 $2" in
 "provider list")
   if grep -q unparseable "$4" ||
@@ -65,6 +67,12 @@ esac
     /// `None` where it was not called.
     fn set_call(&self) -> Option<String> {
         fs::read_to_string(self.root.join("set-call")).ok()
+    }
+
+    /// The arguments of every call fnox got, one call a line, or `None` where it got
+    /// none.
+    fn fnox_calls(&self) -> Option<String> {
+        fs::read_to_string(self.root.join("calls")).ok()
     }
 
     /// Makes `fnox set` exit with `code`.
@@ -167,19 +175,66 @@ fn stderr(run: &Output) -> String {
     String::from_utf8_lossy(&run.stderr).into_owned()
 }
 
-// The command takes exactly one name, and is told so otherwise.
+// The command takes exactly one name, not one starting with `-`, which would reach fnox
+// as an option, and is told how it is called otherwise, having written nothing and run
+// no fnox.
 #[test]
 fn fails_with_usage_unless_given_one_name() {
     let sandbox = Sandbox::new("usage");
-    for args in [&[][..], &["A", "B"][..]] {
+    for args in [&[][..], &["A", "B"][..], &["--verbose"][..], &["-x"][..]] {
         let run = sandbox.run(&sandbox.repo(), args);
 
         assert_eq!(
-            (run.status.code(), stderr(&run)),
-            (Some(1), "Usage: fnox-add-secret <NAME>\n".to_owned()),
+            (
+                run.status.code(),
+                String::from_utf8_lossy(&run.stdout).as_ref()
+            ),
+            (Some(2), ""),
             "{args:?}"
         );
+        assert!(
+            stderr(&run).starts_with("Usage: fnox-add-secret <NAME>\n"),
+            "{args:?}: {}",
+            stderr(&run)
+        );
     }
+    assert_eq!(
+        (
+            sandbox.file("fnox.local.toml"),
+            sandbox.file("CLAUDE.local.md"),
+            sandbox.fnox_calls()
+        ),
+        (None, None, None)
+    );
+}
+
+// `--help` and `-h` print how the command is called rather than being taken for a key's
+// name: nothing is written into the repository and fnox is not run.
+#[test]
+fn prints_its_usage_on_help_and_touches_nothing() {
+    let sandbox = Sandbox::new("help");
+    for flag in ["--help", "-h"] {
+        let run = sandbox.run(&sandbox.repo(), &[flag]);
+
+        let stdout = String::from_utf8_lossy(&run.stdout);
+        assert_eq!(
+            (run.status.code(), stderr(&run)),
+            (Some(0), String::new()),
+            "{flag}"
+        );
+        assert!(
+            stdout.starts_with("Usage: fnox-add-secret <NAME>\n"),
+            "{flag}: {stdout}"
+        );
+    }
+    assert_eq!(
+        (
+            sandbox.file("fnox.local.toml"),
+            sandbox.file("CLAUDE.local.md"),
+            sandbox.fnox_calls()
+        ),
+        (None, None, None)
+    );
 }
 
 // In a repository with no fnox.local.toml, the command creates one declaring a keychain

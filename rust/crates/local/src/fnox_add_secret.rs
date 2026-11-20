@@ -20,14 +20,29 @@ const DRAFT: &str = "fnox.local.toml.new";
 /// The line telling an agent in the repository how secrets reach a command.
 const NOTE: &str = "- Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.";
 
-/// Stores the key named by the one name `args` holds.
+const USAGE: &str = "\
+Usage: fnox-add-secret <NAME>
+
+Stores the key <NAME> in the macOS keychain for this repository through fnox, which
+prompts for its value. The main checkout's fnox.local.toml gets a keychain provider
+named after the repository where it lacks one. The line on running a command under
+`fnox exec` goes into a new CLAUDE.local.md there, or is printed for you to place in
+an existing one that lacks it.
+
+  --help, -h  print this message
+";
+
+/// Stores the key named by the one name `args` holds, or, given `--help`, prints how
+/// it is called.
 pub(crate) fn run(args: &[String]) -> ExitCode {
     let outcome = match args {
-        [name] => add(name),
-        _ => Err(Failure::new(
-            format_args!("Usage: fnox-add-secret <NAME>"),
-            1,
-        )),
+        [flag] if flag == "--help" || flag == "-h" => {
+            let _ = writeln!(io::stdout(), "{USAGE}");
+            Ok(())
+        }
+        // A name starting with `-` would reach `fnox set` as an option.
+        [name] if !name.starts_with('-') => add(name),
+        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
     };
     match outcome {
         Ok(()) => ExitCode::SUCCESS,
