@@ -76,7 +76,7 @@ fn blocks_every_place_a_bare_stat_runs() {
         "stat -f'%z' file",
         "stat -f 'size=%z' file",
         "stat -L -f %z file",
-        "stat -L  -x  -f  %z file",
+        "stat  -L  -x  -f  %z file",
         "cd dir;stat -f %z file",
         "true&&stat -f %z file",
         "(stat -f %z file)",
