@@ -16,8 +16,9 @@ const context = ($: EngineInterface): Promise<string[]> =>
 const ALL = /(?:)/;
 
 // Adds the reply-language context to each prompt. A final reply in English is
-// sent back by reply-language-stop.ts, a Stop command hook rather than a hook
-// here: a managed plugin may continue classic.Stop past the user tier.
+// sent back by `dotfiles-local reply-language-stop`, a Stop command hook rather
+// than a hook here: a managed plugin may continue classic.Stop past the user
+// tier.
 export const register: Register = (on) => {
   // Every prompt, notifications and hand-backs delivered into a running turn
   // included. Not classic.UserPromptSubmit, for the same reason. The matcher
