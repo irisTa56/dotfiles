@@ -9,6 +9,7 @@ mod block_bsd_stat_format;
 mod block_piped_git_push;
 mod ccusage_popup;
 mod dispatch;
+mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;

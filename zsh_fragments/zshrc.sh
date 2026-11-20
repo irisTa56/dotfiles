@@ -9,7 +9,7 @@ alias show-my-ip='dig +short -t txt o-o.myaddr.l.google.com @8.8.8.8'
 alias fnox-add-secret='"$DOTFILES_DIR/scripts/fnox_add_secret.sh"'
 alias to-snake-case='pbpaste | sed -E "s/([a-z0-9])([A-Z])/\1_\2/g; s/([A-Z]+)([A-Z][a-z])/\1_\2/g; s/[^[:alnum:]]+/_/g; s/^_+//; s/_+$//" | tr "[:upper:]" "[:lower:]" | pbcopy'
 alias git-branch='git branch --sort=committerdate'
-alias git-sweep-branches='"$DOTFILES_DIR/.claude/skills/sweep-branches/scripts/sweep_branches.sh"'
+alias git-sweep-branches='~/.local/bin/dotfiles-local git-sweep-branches'
 alias git-sync-base='~/.local/bin/dotfiles-local git-sync-base'
 
 # functions
