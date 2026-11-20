@@ -30,9 +30,9 @@ fn blocks_a_push_after_a_piped_merge() {
 
 // Each of the four git steps, piped and followed by && and a push, is blocked: with words
 // or none between git and the step, between the step and the pipe, between the pipe and
-// &&, between && and git, and between git and push, with several spaces in each gap, and
-// wherever the chain sits on the line, inside a quoted argument too, where the gap after
-// the pipe can be empty.
+// &&, between && and git, and between git and push, with several spaces in each gap, with
+// more pipes before the &&, and wherever the chain sits on the line, inside a quoted
+// argument too, where the gap after the pipe can be empty.
 #[test]
 fn blocks_a_push_after_each_piped_step() {
     for command in [
@@ -45,6 +45,7 @@ fn blocks_a_push_after_each_piped_step() {
         "git merge x | tail -1 && cd .. && git push",
         "git merge x | tail -1 && git -C repo push origin main",
         "git  merge  x  |  tail -1  &&  git  push",
+        "git pull | tee log | tail -1 && git push",
         "cd repo && git merge x | tail -1 && git push",
         "echo 'git merge x | tail -1 && git push'",
         "echo 'git pull|&&git push'",
@@ -57,8 +58,9 @@ fn blocks_a_push_after_each_piped_step() {
 }
 
 // Where no piped git step is followed by && and a push on the same side of a ;, the call
-// passes. A step or a push counts only after a space, so not inside a word such as
-// fix/merge or git-push, and a single & runs the push whatever the pipe gave.
+// passes. A step counts only before any pipe after its git, so not as an argument to a
+// later stage; a step or a push counts only after a space, so not inside a word such as
+// fix/merge or git-push; and a single & runs the push whatever the pipe gave.
 #[test]
 fn passes_what_is_no_push_after_a_piped_step() {
     for command in [
@@ -71,6 +73,8 @@ fn passes_what_is_no_push_after_a_piped_step() {
         "git merge x | tail -1 && git status",
         "git log | head -1 && git push",
         "git merge x; echo y | tail -1 && git push",
+        "git log | grep merge | tail -1 && git push",
+        "git merge x | tail -1; true && git push",
         "git merge x | tail -1 && git fetch; git push",
         "",
     ] {
