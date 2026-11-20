@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.6.0...dotfiles-tasks-v0.7.0) (2026-11-20)
+
+
+### Features
+
+* **local:** run skills:update through dotfiles-local ([#459](https://github.com/irisTa56/dotfiles/issues/459)) ([0d95026](https://github.com/irisTa56/dotfiles/commit/0d95026b671891bc3cfb6806c4fb5e314531530c))
+
 ## [0.6.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.5.0...dotfiles-tasks-v0.6.0) (2026-11-19)
 
 
