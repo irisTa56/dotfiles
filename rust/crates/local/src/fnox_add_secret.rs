@@ -93,11 +93,12 @@ impl Checkout {
     /// stops the command.
     fn has_provider(&self) -> Result<bool, Failure> {
         let path = self.config();
-        OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&path)
-            .map_err(|error| unwritable(&path, &error))?;
+        match OpenOptions::new().write(true).create_new(true).open(&path) {
+            Err(error) if error.kind() != io::ErrorKind::AlreadyExists => {
+                return Err(unwritable(&path, &error));
+            }
+            _ => {}
+        }
         let output = self
             .fnox(&["provider", "list", "-c", CONFIG])
             .stderr(Stdio::inherit())
@@ -116,23 +117,26 @@ impl Checkout {
     /// line of its own.
     ///
     /// Some TOML shapes cannot take an appended table (an inline `providers = {…}`),
-    /// so the declaration goes into a copy that replaces the config only once fnox
-    /// parses it.
+    /// so the declaration goes into a copy, which keeps the config's mode, that
+    /// replaces the config only once fnox parses it.
     fn declare_provider(&self) -> Result<(), Failure> {
         let provider = self.provider();
         let path = self.config();
-        let mut contents = fs::read(&path).map_err(|error| unreadable(&path, &error))?;
-        if contents.last().is_some_and(|&byte| byte != b'\n') {
-            contents.push(b'\n');
-        }
-        contents.extend_from_slice(
-            format!(
-                "[providers.\"{provider}\"]\ntype = \"keychain\"\nservice = \"{provider}\"\n\n"
-            )
-            .as_bytes(),
-        );
         let draft = Draft(self.root.join(DRAFT));
-        fs::write(&draft.0, contents).map_err(|error| unwritable(&draft.0, &error))?;
+        fs::copy(&path, &draft.0).map_err(|error| unwritable(&draft.0, &error))?;
+        let ends_open = fs::read(&path)
+            .map_err(|error| unreadable(&path, &error))?
+            .last()
+            .is_some_and(|&byte| byte != b'\n');
+        let declaration = format!(
+            "{}[providers.\"{provider}\"]\ntype = \"keychain\"\nservice = \"{provider}\"\n\n",
+            if ends_open { "\n" } else { "" }
+        );
+        OpenOptions::new()
+            .append(true)
+            .open(&draft.0)
+            .and_then(|mut file| file.write_all(declaration.as_bytes()))
+            .map_err(|error| unwritable(&draft.0, &error))?;
         let parsed = self
             .fnox(&["provider", "list", "-c", DRAFT])
             .stdout(Stdio::null())
@@ -169,21 +173,20 @@ impl Checkout {
     /// cannot make.
     fn note(&self) -> Result<(), Failure> {
         let path = self.root.join("CLAUDE.local.md");
-        match OpenOptions::new().write(true).create_new(true).open(&path) {
-            Ok(mut file) => writeln!(file, "{NOTE}").map_err(|error| unwritable(&path, &error)),
-            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
-                let contents = fs::read(&path).map_err(|error| unreadable(&path, &error))?;
-                if !String::from_utf8_lossy(&contents).contains("fnox exec") {
-                    let _ = writeln!(
-                        io::stderr(),
-                        "Add this line where it fits in {}:\n{NOTE}",
-                        path.display()
-                    );
-                }
-                Ok(())
-            }
-            Err(error) => Err(unwritable(&path, &error)),
+        // Following a symlink, so one whose target is not there yet is written through.
+        if !path.exists() {
+            return fs::write(&path, format!("{NOTE}\n"))
+                .map_err(|error| unwritable(&path, &error));
         }
+        let contents = fs::read(&path).map_err(|error| unreadable(&path, &error))?;
+        if !String::from_utf8_lossy(&contents).contains("fnox exec") {
+            let _ = writeln!(
+                io::stderr(),
+                "Add this line where it fits in {}:\n{NOTE}",
+                path.display()
+            );
+        }
+        Ok(())
     }
 }
 

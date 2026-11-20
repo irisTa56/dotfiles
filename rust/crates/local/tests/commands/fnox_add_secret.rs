@@ -418,3 +418,56 @@ fn fails_with_gits_error_outside_a_repository() {
         (0, None)
     );
 }
+
+// Where fnox.local.toml has mode 0600 and the declaration has to be added, the file keeps
+// that mode, as it did when the script copied it with `cp`.
+#[test]
+fn keeps_the_mode_of_a_config_it_declares_the_provider_in() {
+    let sandbox = Sandbox::new("keeps-mode");
+    sandbox.write("fnox.local.toml", "[secrets]\n");
+    let path = sandbox.repo().join("fnox.local.toml");
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).expect("the mode is set");
+
+    let run = sandbox.run(&sandbox.repo(), &["API_KEY"]);
+
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    let mode = fs::metadata(&path)
+        .expect("the config exists")
+        .permissions()
+        .mode();
+    assert_eq!(mode & 0o777, 0o600, "mode is {:o}", mode & 0o777);
+}
+
+// Where CLAUDE.local.md is a symlink whose target does not exist yet, the command writes
+// the line into the target and ends cleanly, as the script's `-e` test, which follows the
+// link, and its redirection did.
+#[test]
+fn writes_the_note_through_a_dangling_claude_local_md_symlink() {
+    let sandbox = Sandbox::new("note-dangling-symlink");
+    std::os::unix::fs::symlink("notes.md", sandbox.repo().join("CLAUDE.local.md"))
+        .expect("the symlink is created");
+
+    let run = sandbox.run(&sandbox.repo(), &["API_KEY"]);
+
+    assert_eq!((run.status.code(), stderr(&run)), (Some(0), String::new()));
+    assert_eq!(sandbox.file("notes.md").as_deref(), Some(NOTE));
+}
+
+// A read-only fnox.local.toml that already declares the provider does not stop the
+// command: it neither needs to write the file nor fails on the attempt, and fnox stores
+// the key.
+#[test]
+fn stores_the_key_with_a_read_only_config_that_declares_the_provider() {
+    let sandbox = Sandbox::new("read-only-config");
+    sandbox.write(
+        "fnox.local.toml",
+        "[providers.\"repo\"]\ntype = \"keychain\"\nservice = \"repo\"\n",
+    );
+    let path = sandbox.repo().join("fnox.local.toml");
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o444)).expect("the mode is set");
+
+    let run = sandbox.run(&sandbox.repo(), &["API_KEY"]);
+
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    assert!(sandbox.set_call().is_some(), "fnox set was not called");
+}
