@@ -29,7 +29,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 
 [`mise bootstrap`](https://mise.jdx.dev/bootstrap.html) applies what the root `mise.toml` declares, and a rerun changes only what has drifted:
 
-- `[dotfiles]` symlinks the global mise config, the commands under `~/.local/bin`, and the agent instructions below, into place.
+- `[dotfiles]` symlinks the global mise config and the agent instructions below into place, and writes `~/.local/bin/notify_desktop` out from its `content`, over whatever is there.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It sets cargo's [release window](#release-window) in `~/.cargo/config.toml` from `.config/cargo/config.toml`, leaving the file's other keys as they are.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
@@ -107,7 +107,8 @@ For a script shared across this machine, wherever it is called from, what decide
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
-2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a script with its source in `scripts/` and its link in `[dotfiles]`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
+2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a shell script written out as `content` in `[dotfiles]`, with `permissions = "755"`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
+   - `qa:sh` checks only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
    - `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
    - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
    - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
