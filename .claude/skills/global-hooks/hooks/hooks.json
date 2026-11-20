@@ -15,7 +15,7 @@
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/block-bsd-stat-format.sh\""
+            "command": "\"$HOME/.local/bin/dotfiles-local\" block-bsd-stat-format"
           },
           {
             "type": "command",
