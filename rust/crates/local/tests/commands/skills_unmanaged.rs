@@ -4,7 +4,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 /// A git repository of the test's own, which no git config of the machine running the
 /// tests reaches.
@@ -147,7 +147,7 @@ dependencies:
     );
 }
 
-// Hidden entries count too, and the list is in byte order, as `sort` orders it.
+// Hidden entries count too, and the list is in byte order.
 #[test]
 fn lists_every_unmanaged_entry_in_byte_order_hidden_ones_included() {
     let sandbox = Sandbox::new("lists-in-order", NO_DEPENDENCIES);
@@ -260,4 +260,26 @@ fn leaves_out_a_tracked_entry_whose_name_is_not_ascii() {
     let run = sandbox.run(&[]);
 
     assert_eq!(outcome(&run), (Some(0), String::new(), String::new()));
+}
+
+// A reader of stdout that has gone is not a failure of the run: it ends quietly, with
+// nothing on stderr and the exit code 0.
+#[test]
+fn ends_quietly_where_the_reader_of_stdout_has_gone() {
+    let sandbox = Sandbox::new("ends-on-closed-stdout", NO_DEPENDENCIES);
+    sandbox.file(".claude/skills/local/SKILL.md");
+    let (reader, writer) = std::io::pipe().expect("the pipe is created");
+    drop(reader);
+
+    let run = sandbox
+        .command(env!("CARGO_BIN_EXE_dotfiles-local"))
+        .arg("skills-unmanaged")
+        .stdout(Stdio::from(writer))
+        .output()
+        .expect("dotfiles-local starts");
+
+    assert_eq!(
+        (run.status.code(), String::from_utf8_lossy(&run.stderr)),
+        (Some(0), "".into())
+    );
 }

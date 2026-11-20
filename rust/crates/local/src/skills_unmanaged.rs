@@ -49,7 +49,11 @@ fn list() -> Result<(), Failure> {
         .into_iter()
         .filter(|path| !managed.contains(path))
         .collect();
-    write(&unmanaged).map_err(|error| Failure::writing(&error))
+    match write(&unmanaged) {
+        // A reader that has gone, as `head` does, wanted no more of the list.
+        Err(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(Failure::writing(&error)),
+        _ => Ok(()),
+    }
 }
 
 /// The paths of the entries under `.claude/skills/`, hidden ones included, in byte
@@ -110,7 +114,7 @@ impl Managed {
 }
 
 /// `path` cut to its first three components, which for a path under `.claude/skills/`
-/// is the top-level entry holding it, as `cut -d/ -f1-3` cuts it.
+/// is the top-level entry holding it.
 fn top_level(path: &[u8]) -> Vec<u8> {
     path.split(|&byte| byte == b'/')
         .take(3)
