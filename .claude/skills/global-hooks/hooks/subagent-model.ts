@@ -34,7 +34,8 @@ export const register: Register = (on) => {
     };
     if (!aboveSonnet(model)) return next(e);
     const prefix = `Runs on ${model}`;
-    if (description?.startsWith(prefix)) return next(e);
+    if (description === prefix || description?.startsWith(`${prefix}:`))
+      return next(e);
     return next({
       ...e,
       description: description ? `${prefix}: ${description}` : prefix,

@@ -119,6 +119,15 @@ describe("an Agent call that names a model above Sonnet", () => {
       );
     });
 
+    test(`does not take a description that leads with a longer model name for one that names ${model}`, async ($, on) => {
+      const description = `Runs on ${model}-4 reviewers: Review the change`;
+      const seen = (await run($, on, model, description)).description;
+      expect(typeof seen).toBe("string");
+      expect(seen as string).toMatch(
+        new RegExp(`^Runs on ${model}(?![\\w.-])`),
+      );
+    });
+
     test(`names ${model} in the ask's reason`, async ($, on) => {
       on("tool.check", { tool: "Agent" }, () => ({ decision: "allow" }));
       const verdict = await $.tool.check({
