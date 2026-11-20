@@ -5,7 +5,9 @@ use std::fs;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::LazyLock;
 
+use regex::Regex;
 use serde_json::Value;
 
 use crate::failure::Failure;
@@ -126,17 +128,12 @@ impl SessionLogs {
     }
 }
 
-/// The parent project of a session started in a Claude scratchpad, which matches
-/// `^(?:/private)?/tmp/claude-\d+/([^/]+)/`.
+/// The parent project of a session started in a Claude scratchpad.
 fn scratchpad_parent(cwd: &str) -> Option<&str> {
-    let rest = cwd.strip_prefix("/private").unwrap_or(cwd);
-    let rest = rest.strip_prefix("/tmp/claude-")?;
-    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
-    if digits == 0 {
-        return None;
-    }
-    let (parent, _) = rest[digits..].strip_prefix('/')?.split_once('/')?;
-    (!parent.is_empty()).then_some(parent)
+    static SCRATCHPAD: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new("^(?:/private)?/tmp/claude-[0-9]+/([^/]+)/").expect("the pattern compiles")
+    });
+    Some(SCRATCHPAD.captures(cwd)?.get(1)?.as_str())
 }
 
 /// The label of the checkout at `dir`: its repository's name, "other" where it is no
