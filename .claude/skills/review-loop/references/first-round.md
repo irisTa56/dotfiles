@@ -31,3 +31,4 @@
 - **Do not wait for a reply.** State the purpose and the title, with the background you composed, and carry on.
 - **Fill the background** before the first round.
   - Enter a user's decision in their own words, quoted — an option they picked counts as the option's text — and anything you composed beyond them as the loop's inference: a paraphrase dressed as a user decision misleads every reviewer and would be shielded from re-judging.
+  - Where the change is to follow a source elsewhere, as a port of another repository's change does, enter how closely it follows that source as a constraint: in the user's own words where they said how closely, and otherwise as the loop's inference that it matches the source except where this repository forces a difference, such as a name, path or reference it lacks, or a convention it holds throughout, and that any other difference is the user's to decide.
