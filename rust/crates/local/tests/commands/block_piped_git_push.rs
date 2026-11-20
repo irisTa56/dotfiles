@@ -57,13 +57,17 @@ fn blocks_a_push_after_each_piped_step() {
 }
 
 // Where no piped git step is followed by && and a push on the same side of a ;, the call
-// passes.
+// passes. A step or a push counts only after a space, so not inside a word such as
+// fix/merge or git-push, and a single & runs the push whatever the pipe gave.
 #[test]
 fn passes_what_is_no_push_after_a_piped_step() {
     for command in [
         "git merge x && git push",
         "git merge x | tail -1; git push",
         "git merge x | tail -1 || git push",
+        "git merge x | tail -1 & git push",
+        "git checkout fix/merge | cat && git push",
+        "git merge x | tail -1 && echo git-push",
         "git merge x | tail -1 && git status",
         "git log | head -1 && git push",
         "git merge x; echo y | tail -1 && git push",
