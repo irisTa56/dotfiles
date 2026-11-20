@@ -28,7 +28,9 @@ pub(crate) fn run(args: &[String]) -> ExitCode {
             Ok(())
         }
         [] => sync(None),
-        [name] => sync(Some(name.as_str()).filter(|name| !name.is_empty())),
+        [name] if !name.starts_with('-') => {
+            sync(Some(name.as_str()).filter(|name| !name.is_empty()))
+        }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
     };
     match outcome {

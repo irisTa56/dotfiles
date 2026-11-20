@@ -434,3 +434,26 @@ fn prints_usage_on_help_and_on_more_than_one_branch() {
         (Some(2), help_out.into_owned())
     );
 }
+
+// An argument starting with `-` is a mistake in how it is called, not an option for
+// git: the usage is printed to stderr with exit 2, before anything is fetched or
+// switched, so the checkout stays on the branch it was on.
+#[test]
+fn takes_a_dash_argument_as_a_usage_mistake() {
+    let sandbox = Sandbox::new("dash-argument");
+    let help = sandbox.run(&sandbox.work(), &["--help"]);
+
+    let run = sandbox.run(&sandbox.work(), &["--detach"]);
+
+    assert_eq!(
+        (
+            run.status.code(),
+            String::from_utf8_lossy(&run.stderr).into_owned()
+        ),
+        (Some(2), String::from_utf8_lossy(&help.stdout).into_owned())
+    );
+    assert_eq!(
+        sandbox.read(&sandbox.work(), &["branch", "--show-current"]),
+        "feature"
+    );
+}
