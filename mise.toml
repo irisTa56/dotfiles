@@ -73,7 +73,23 @@ includes = ["tasks"]
 "~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
-"~/.local/bin/notify_desktop" = { source = "scripts/notify_desktop.sh", mode = "symlink" }
+# Written out as content rather than linked, so it is no `.sh` file that `qa:sh`
+# checks: run shellcheck on the content by hand after changing it. An edit reaches
+# ~/.local/bin only at the next `mise dot apply` or `mise bootstrap`.
+"~/.local/bin/notify_desktop" = { permissions = "755", content = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Usage: notify_desktop <title> <body>
+# Posts a macOS notification, its title stamped with the time it is posted.
+
+# The text reaches AppleScript as arguments, so none of it needs escaping.
+osascript \
+  -e 'on run argv' \
+  -e 'display notification (item 2 of argv) with title (item 1 of argv) sound name "Glass"' \
+  -e 'end run' \
+  "$1 ($(date '+%m/%d %H:%M'))" "$2"
+''' }
 
 [bootstrap.hooks]
 pre-dotfiles = '''

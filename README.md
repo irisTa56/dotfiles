@@ -107,7 +107,7 @@ For a script shared across this machine, wherever it is called from, what decide
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
-2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a script with its source in `scripts/` and its link in `[dotfiles]`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
+2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a shell script written out as `content` in `[dotfiles]`, with `permissions = "755"`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
    - `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
    - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
    - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
