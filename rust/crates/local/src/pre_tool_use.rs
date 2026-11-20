@@ -3,6 +3,7 @@
 
 pub(crate) mod block_bsd_sed_inplace;
 pub(crate) mod block_bsd_stat_format;
+pub(crate) mod block_piped_git_push;
 
 use std::io::{self, Write};
 use std::process::{Command, ExitCode, Stdio};

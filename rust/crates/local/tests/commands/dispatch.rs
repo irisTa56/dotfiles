@@ -20,7 +20,7 @@ fn fails_with_usage_on_an_unknown_command() {
         ),
         (
             Some(2),
-            "[fail] usage: dotfiles-local <command> [args...]; commands: block-bsd-sed-inplace, block-bsd-stat-format, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal\n"
+            "[fail] usage: dotfiles-local <command> [args...]; commands: block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal\n"
         )
     );
 }
