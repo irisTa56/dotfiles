@@ -1,5 +1,5 @@
 //! What the `PreToolUse` hook tests share: running a hook on a Bash call, with a fake
-//! standing in for the tool on PATH whose kind the hook judges by, where it judges by one.
+//! standing in for the tool on PATH the hook asks, where it asks one.
 
 use std::fs;
 use std::io::Write as _;
@@ -7,12 +7,14 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-/// The tool on PATH, told apart as the hooks tell it, by whether `--version` succeeds.
+/// The tool on PATH: GNU's or BSD's, told apart as the hooks tell them, by whether
+/// `--version` succeeds, none, or a fake running the given shell script body.
 #[derive(Clone, Copy)]
 pub(crate) enum Tool {
     Gnu,
     Bsd,
     Missing,
+    Fake(&'static str),
 }
 
 /// What a run left: its exit status, its stdout and its stderr.
@@ -31,16 +33,29 @@ impl Run {
             err: String::new(),
         }
     }
+
+    /// What a hook leaves when it asks the user about a call, sending `output` as its
+    /// verdict.
+    pub(crate) fn asked(output: &serde_json::Value) -> Self {
+        Run {
+            code: Some(0),
+            out: format!(
+                "{}\n",
+                serde_json::to_string_pretty(output).expect("the verdict serializes")
+            ),
+            err: String::new(),
+        }
+    }
 }
 
 /// A hook, run as its `dotfiles-local` subcommand.
 pub(crate) struct Hook {
     /// The subcommand.
     name: &'static str,
-    /// The tool on PATH the hook asks `--version`, if it asks any.
+    /// The tool on PATH the hook asks, if it asks any.
     tool: Option<&'static str>,
-    /// What Claude is told when the hook blocks a call.
-    blocked: &'static str,
+    /// What Claude is told when the hook blocks a call, if it blocks any.
+    blocked: Option<&'static str>,
 }
 
 impl Hook {
@@ -50,7 +65,17 @@ impl Hook {
         Hook {
             name,
             tool: Some(tool),
-            blocked,
+            blocked: Some(blocked),
+        }
+    }
+
+    /// The hook run as the subcommand `name`, asking the user rather than blocking, and
+    /// asking `tool` on PATH what it judges by.
+    pub(crate) const fn asking(name: &'static str, tool: &'static str) -> Self {
+        Hook {
+            name,
+            tool: Some(tool),
+            blocked: None,
         }
     }
 
@@ -61,7 +86,7 @@ impl Hook {
         Hook {
             name,
             tool: None,
-            blocked,
+            blocked: Some(blocked),
         }
     }
 
@@ -70,7 +95,10 @@ impl Hook {
         Run {
             code: Some(2),
             out: String::new(),
-            err: self.blocked.to_owned(),
+            err: self
+                .blocked
+                .expect("the hook blocks calls rather than asking")
+                .to_owned(),
         }
     }
 
@@ -116,16 +144,17 @@ impl Hook {
             .join("bin");
         let _ = fs::remove_dir_all(&bin);
         fs::create_dir_all(&bin).expect("the sandbox is created");
-        let code = match tool {
-            Tool::Gnu => 0,
-            Tool::Bsd => 1,
+        let body = match tool {
+            Tool::Gnu => "exit 0",
+            Tool::Bsd => "exit 1",
+            Tool::Fake(body) => body,
             Tool::Missing => return bin,
         };
         let path = bin.join(
             self.tool
                 .expect("a hook judging by the command alone runs under Tool::Missing"),
         );
-        fs::write(&path, format!("#!/bin/sh\nexit {code}\n")).expect("the fake is written");
+        fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("the fake is written");
         fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
             .expect("the fake is made executable");
         bin

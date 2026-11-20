@@ -14,6 +14,9 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.split_first() {
+        Some((command, _)) if command == "ask-email-in-request" => {
+            pre_tool_use::ask_email_in_request::run()
+        }
         Some((command, _)) if command == "block-bsd-sed-inplace" => {
             pre_tool_use::block_bsd_sed_inplace::run()
         }
@@ -31,7 +34,7 @@ fn main() -> ExitCode {
             // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
             let _ = writeln!(
                 io::stderr(),
-                "[fail] usage: dotfiles-local <command> [args...]; commands: block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal"
+                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal"
             );
             ExitCode::from(2)
         }
