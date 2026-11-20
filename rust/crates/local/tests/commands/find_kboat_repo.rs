@@ -199,6 +199,7 @@ fn export_compacts_each_note_for_judging() {
                  \"topics\": [\"x\", \"y\"], \"description\": \"An arm\", \"role\": \"library\"",
                 "\"title\": \"b/two\", \"domain\": \"\", \"topics\": null",
                 "\"title\": \"c/three\", \"domain\": \"[]\", \"topics\": []",
+                "\"title\": \"d/four\"",
             ],
             "[]",
         ),
@@ -219,7 +220,8 @@ fn export_compacts_each_note_for_judging() {
         compact,
         "{\"title\":\"a/one\",\"role\":\"library\",\"domain\":[\"robotics\",\"ml\"],\"topics\":[\"x\",\"y\"],\"description\":\"An arm\",\"summary\":\"ロボット\"}\n\
          {\"title\":\"b/two\",\"role\":null,\"domain\":[],\"topics\":[],\"description\":null,\"summary\":null}\n\
-         {\"title\":\"c/three\",\"role\":null,\"domain\":[],\"topics\":[],\"description\":null,\"summary\":null}\n"
+         {\"title\":\"c/three\",\"role\":null,\"domain\":[],\"topics\":[],\"description\":null,\"summary\":null}\n\
+         {\"title\":\"d/four\",\"role\":null,\"domain\":[],\"topics\":[],\"description\":null,\"summary\":null}\n"
     );
     assert_eq!(
         fs::read_to_string(dir.join("chunk-aa")).expect("chunk-aa is written"),
