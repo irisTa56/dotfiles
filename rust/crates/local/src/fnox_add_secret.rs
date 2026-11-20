@@ -25,8 +25,9 @@ Usage: fnox-add-secret <NAME>
 
 Stores the key <NAME> in the macOS keychain for this repository through fnox, which
 prompts for its value. The main checkout's fnox.local.toml gets a keychain provider
-named after the repository where it lacks one, and its CLAUDE.local.md the line on
-running a command under `fnox exec`.
+named after the repository where it lacks one. The line on running a command under
+`fnox exec` goes into a new CLAUDE.local.md there, or is printed for you to place in
+an existing one that lacks it.
 
   --help, -h  print this message
 ";
