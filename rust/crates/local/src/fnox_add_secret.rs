@@ -93,11 +93,9 @@ impl Checkout {
     /// stops the command.
     fn has_provider(&self) -> Result<bool, Failure> {
         let path = self.config();
-        match OpenOptions::new().write(true).create_new(true).open(&path) {
-            Err(error) if error.kind() != io::ErrorKind::AlreadyExists => {
-                return Err(unwritable(&path, &error));
-            }
-            _ => {}
+        // Following a symlink, so one whose target is not there yet gets it created.
+        if !path.exists() {
+            fs::File::create(&path).map_err(|error| unwritable(&path, &error))?;
         }
         let output = self
             .fnox(&["provider", "list", "-c", CONFIG])

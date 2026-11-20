@@ -471,3 +471,58 @@ fn stores_the_key_with_a_read_only_config_that_declares_the_provider() {
     assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
     assert!(sandbox.set_call().is_some(), "fnox set was not called");
 }
+
+// Only a provider named exactly after the repository counts as declared: with other
+// providers, one merely containing the repository's name among them, the command still
+// appends the repository's declaration and stores the key with that provider, as the
+// script's `grep -qxF` matched whole lines only.
+#[test]
+fn declares_the_provider_where_only_others_are_listed() {
+    let sandbox = Sandbox::new("others-only");
+    let config = "[providers.\"other\"]\ntype = \"keychain\"\nservice = \"other\"\n\n\
+                  [providers.\"repo-x\"]\ntype = \"keychain\"\nservice = \"repo-x\"\n";
+    sandbox.write("fnox.local.toml", config);
+
+    let run = sandbox.run(&sandbox.repo(), &["API_KEY"]);
+
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    assert_eq!(
+        sandbox.file("fnox.local.toml"),
+        Some(format!(
+            "{config}[providers.\"repo\"]\ntype = \"keychain\"\nservice = \"repo\"\n\n"
+        ))
+    );
+    assert_eq!(
+        sandbox.set_call(),
+        Some(format!(
+            "{}\nset\n-c\nfnox.local.toml\nAPI_KEY\n--provider\nrepo\n",
+            sandbox.repo().display()
+        ))
+    );
+}
+
+// Where fnox.local.toml is a symlink whose target does not exist yet, the command
+// creates the target, as the script's `touch` did, and goes on to declare the provider
+// and store the key; the declared config replaces the link, as the script's `mv` did,
+// leaving the target empty.
+#[test]
+fn creates_the_target_of_a_dangling_config_symlink() {
+    let sandbox = Sandbox::new("config-dangling-symlink");
+    std::os::unix::fs::symlink("shared.toml", sandbox.repo().join("fnox.local.toml"))
+        .expect("the symlink is created");
+
+    let run = sandbox.run(&sandbox.repo(), &["API_KEY"]);
+
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    assert_eq!(
+        (
+            sandbox.file("shared.toml").as_deref(),
+            sandbox.file("fnox.local.toml").as_deref()
+        ),
+        (
+            Some(""),
+            Some("[providers.\"repo\"]\ntype = \"keychain\"\nservice = \"repo\"\n\n")
+        )
+    );
+    assert!(sandbox.set_call().is_some(), "fnox set was not called");
+}
