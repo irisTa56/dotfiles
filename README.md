@@ -296,7 +296,7 @@ That file is machine-local, and `mise bootstrap` merges `.config/claude/settings
 ## Using from Other Repositories
 
 The sections above set this Mac up; the two below are for work inside another repository.
-[Secrets](#secrets) works only on a Mac set up from here, since its command comes with the shell fragments, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
+[Secrets](#secrets) works only on a Mac set up from here, since its command is an alias the shell fragments define for a subcommand of `dotfiles-local`, while the [shared mise tasks](#shared-mise-tasks) come in through an include and run wherever mise does.
 
 ### Secrets
 

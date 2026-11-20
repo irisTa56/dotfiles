@@ -10,6 +10,7 @@ mod block_piped_git_push;
 mod ccusage_popup;
 mod dispatch;
 mod find_kboat_repo;
+mod fnox_add_secret;
 mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
