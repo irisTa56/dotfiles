@@ -104,24 +104,13 @@ impl Verdict {
 }
 
 impl Stop {
-    /// The stop on stdin, judged whatever text a string of Claude Code's holds: bytes
-    /// that are no UTF-8 are read with each invalid sequence replaced, and a lone UTF-16
-    /// surrogate escape, which `serde_json` refuses, stands for U+FFFD, which the judgment
-    /// and the state file's name take as they would the surrogate.
+    /// The stop on stdin.
     fn read() -> Result<Self, Failure> {
         let mut raw = Vec::new();
         io::stdin()
             .read_to_end(&mut raw)
             .map_err(|error| Failure::new(format_args!("cannot read stdin: {error}"), 1))?;
-        let text = String::from_utf8_lossy(&raw);
-        let text = LONE_SURROGATE.replace_all(&text, |escape: &Captures<'_>| {
-            if escape.get(1).is_some() {
-                r"\ufffd".to_owned()
-            } else {
-                escape[0].to_owned()
-            }
-        });
-        let input: Value = serde_json::from_str(&text)
+        let input: Value = serde_json::from_str(&json_text(&raw))
             .map_err(|error| Failure::new(format_args!("stdin is no JSON: {error}"), 1))?;
         let Some(session) = input.get("session_id").and_then(Value::as_str) else {
             return Err(Failure::new(format_args!("the input has no session_id"), 1));
@@ -165,6 +154,23 @@ impl Stop {
             rewrite_asked: block,
         })
     }
+}
+
+/// The JSON text in `raw`, whatever text a string of Claude Code's holds: bytes that are
+/// no UTF-8 are read with each invalid sequence replaced, and a lone UTF-16 surrogate
+/// escape, which `serde_json` refuses, stands for U+FFFD, which the judgment and the
+/// state file's name take as they would the surrogate.
+fn json_text(raw: &[u8]) -> String {
+    let text = String::from_utf8_lossy(raw);
+    LONE_SURROGATE
+        .replace_all(&text, |escape: &Captures<'_>| {
+            if escape.get(1).is_some() {
+                r"\ufffd".to_owned()
+            } else {
+                escape[0].to_owned()
+            }
+        })
+        .into_owned()
 }
 
 /// Whether JavaScript takes `value` for true, which is how `stop_hook_active` is read.

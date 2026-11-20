@@ -757,8 +757,8 @@ fn reads_input_that_is_no_utf_8() {
 }
 
 // Fields of a type Claude Code never sends: a reply that is no string fails the hook
-// where it comes to be judged, and `stop_hook_active` is true as JavaScript takes a value
-// for true.
+// where it comes to be judged, an `agent_id` marks a subagent even when null, and
+// `stop_hook_active` is true as JavaScript takes a value for true.
 #[test]
 fn reads_fields_of_other_types() {
     let sandbox = Sandbox::new("other-types");
@@ -768,13 +768,17 @@ fn reads_fields_of_other_types() {
             &json!({ "stop_hook_active": false, "last_assistant_message": message }),
         );
         assert_failed(&run);
-        let subagent = json!({ "last_assistant_message": message, "agent_id": "sub-1" });
-        assert_eq!(sandbox.stop("subagent", &subagent), Run::passed());
+        for agent in [json!("sub-1"), json!(null)] {
+            let subagent = json!({ "last_assistant_message": message, "agent_id": agent });
+            assert_eq!(sandbox.stop("subagent", &subagent), Run::passed());
+        }
     }
     for (continued, outcome) in [
         (json!("yes"), Run::passed()),
         (json!(1), Run::passed()),
         (json!({}), Run::passed()),
+        (json!([]), Run::passed()),
+        (json!(-1), Run::passed()),
         (json!(0), Run::blocked()),
         (json!(""), Run::blocked()),
         (json!(null), Run::blocked()),
