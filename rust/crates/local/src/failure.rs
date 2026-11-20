@@ -5,17 +5,27 @@ use std::io::{self, Write};
 use std::os::unix::process::ExitStatusExt;
 use std::process::{ExitCode, ExitStatus};
 
-/// What ends a run before it finishes: a message for stderr and the exit status.
+/// What ends a run before it finishes: a message for stderr, where one is due, and the
+/// exit status.
 pub(crate) struct Failure {
-    message: String,
+    message: Option<String>,
     code: u8,
 }
 
 impl Failure {
     pub(crate) fn new(message: fmt::Arguments<'_>, code: u8) -> Self {
         Failure {
-            message: message.to_string(),
+            message: Some(message.to_string()),
             code,
+        }
+    }
+
+    /// What ends a run where a command it ran failed with `status`, having said why on
+    /// stderr itself.
+    pub(crate) fn passed_on(status: ExitStatus) -> Self {
+        Failure {
+            message: None,
+            code: exit_code(status),
         }
     }
 
@@ -25,7 +35,9 @@ impl Failure {
     }
 
     pub(crate) fn report(self) -> ExitCode {
-        let _ = writeln!(io::stderr(), "{}", self.message);
+        if let Some(message) = self.message {
+            let _ = writeln!(io::stderr(), "{message}");
+        }
         ExitCode::from(self.code)
     }
 }
