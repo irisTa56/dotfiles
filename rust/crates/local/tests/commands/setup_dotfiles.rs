@@ -1,8 +1,9 @@
 //! `setup-dotfiles`: sets up this machine's shell startup files, dircolors, release
-//! windows and rclone config encryption, run with the real git, zsh and openssl against
-//! a checkout and a home of the test's own. Fakes stand in for curl, npm, mix, rclone
-//! and security, so nothing reaches the network, the keychain or the machine's own
-//! config; each records how it was called in one log, in order.
+//! windows and rclone config encryption, run with the real git and openssl against a
+//! checkout and a home of the test's own. Fakes stand in for curl, npm, mix, rclone and
+//! security, so nothing reaches the network, the keychain or the machine's own config,
+//! each recording how it was called in one log, in order; and for zsh, which CI's
+//! runner lacks.
 
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
@@ -46,8 +47,8 @@ impl Sandbox {
         sandbox
     }
 
-    /// Writes the fakes into the sandbox's PATH. Each appends its name and arguments to
-    /// `calls`, and exits with the code in `<name>-code`, if any.
+    /// Writes the fakes into the sandbox's PATH. Each but zsh appends its name and
+    /// arguments to `calls`, and exits with the code in `<name>-code`, if any.
     ///
     /// - curl writes `fetched colors` to the path after `-o`.
     /// - mix also records the `MIX_HOME` and `MIX_ARCHIVES` that reached it.
@@ -58,6 +59,12 @@ impl Sandbox {
     ///   `config paths` names `rclone.conf` in the sandbox, and `config encryption set`
     ///   records the password command it was given.
     fn fakes(&self) {
+        // zsh reads ~/.zshenv in every shell before running `-c`'s command, and bash
+        // runs the sourcing line the command writes there as zsh does.
+        self.fake(
+            "zsh",
+            "#!/usr/bin/env bash\n. \"$HOME/.zshenv\"\n[ \"$1\" = -c ] && eval \"$2\"\n",
+        );
         let prologue = r#"#!/bin/sh
 printf '%s\n' "$(basename "$0") $*" >> "$SANDBOX/calls"
 code=$(cat "$SANDBOX/$(basename "$0")-code" 2>/dev/null || echo 0)
@@ -159,8 +166,8 @@ esac
     }
 
     /// `program` run in `dir`, with what a git hook sets in the environment and the
-    /// keychain command taken away, the machine's git config and zsh startup files left
-    /// unread, the sandbox's home, and the fakes first on PATH.
+    /// keychain command taken away, the machine's git config left unread, the sandbox's
+    /// home, and the fakes first on PATH.
     fn command(&self, program: &str, dir: &Path) -> Command {
         let mut command = Command::new(program);
         for (name, _) in std::env::vars_os() {
@@ -176,7 +183,6 @@ esac
         command
             .current_dir(dir)
             .env_remove("RCLONE_PASSWORD_COMMAND")
-            .env_remove("ZDOTDIR")
             .env("PATH", path)
             .env("HOME", self.home())
             .env("SANDBOX", &self.root)
