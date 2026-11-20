@@ -17,7 +17,7 @@ use super::{BashCall, Verdict};
 /// its own sed, and a quote or `|` right before the word marks an argument to another
 /// command. The same text after a space inside a quoted argument is still caught.
 static EMPTY_SUFFIX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?m)(?:^|[[:space:];&(])sed +(?:-[a-zA-Z]+ +)*-i +(?:''|"")"#)
+    Regex::new(r#"(?:^|[[:space:];&(])sed +(?:-[a-zA-Z]+ +)*-i +(?:''|"")"#)
         .expect("the pattern compiles")
 });
 

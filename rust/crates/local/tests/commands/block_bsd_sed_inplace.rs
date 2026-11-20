@@ -161,7 +161,7 @@ fn blocks_every_place_a_bare_sed_runs() {
         r#"sed -i "" 's/a/b/' file"#,
         "sed -E -i '' 's/a/b/' file",
         "sed -n -E  -i  '' 's/a/b/' file",
-        "cd dir; sed -i '' 's/a/b/' file",
+        "cd dir;sed -i '' 's/a/b/' file",
         "true&&sed -i '' 's/a/b/' file",
         "(sed -i '' 's/a/b/' file)",
         "echo start\nsed -i '' 's/a/b/' file",
