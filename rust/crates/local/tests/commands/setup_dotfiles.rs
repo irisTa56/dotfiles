@@ -627,3 +627,19 @@ fn leaves_a_read_only_startup_file_that_names_its_fragment() {
         sandbox.calls()
     );
 }
+
+// A config that exists unencrypted, its remotes already in it, is encrypted in place.
+#[test]
+fn encrypts_an_existing_plain_config() {
+    let sandbox = Sandbox::new("plain");
+    fs::write(sandbox.root.join("rclone.conf"), "[remote]\ntype = drive\n")
+        .expect("the config is written");
+
+    let run = sandbox.run(&sandbox.repo(), &[]);
+
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    assert_eq!(
+        sandbox.rclone_calls().get(4).map(String::as_str),
+        Some("rclone config encryption set")
+    );
+}
