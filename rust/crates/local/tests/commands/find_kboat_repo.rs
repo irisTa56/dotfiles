@@ -374,7 +374,8 @@ fn export_takes_no_arguments() {
 
 // Lookup prints, one compact line each and in the catalogue's order, the record of each
 // note whose title it is given, from the catalog.json an export left; a title the
-// catalogue does not hold prints nothing.
+// catalogue does not hold prints nothing, and a title matches only one equal to it, not
+// one it begins or one differing in case.
 #[test]
 fn lookup_prints_the_record_of_each_title() {
     let sandbox = Sandbox::new("lookup");
@@ -389,6 +390,8 @@ fn lookup_prints_the_record_of_each_title() {
                  \"last_commit\": \"2024-01-02\", \"archived\": true, \"role\": \"library\"",
                 "\"title\": \"b/two\"",
                 "\"title\": \"c/three\", \"archived\": false",
+                "\"title\": \"a/one-extra\"",
+                "\"title\": \"A/One\"",
             ],
             "[]",
         ),
