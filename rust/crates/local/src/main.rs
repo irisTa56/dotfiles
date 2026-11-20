@@ -5,6 +5,7 @@ mod ccusage_popup;
 mod failure;
 mod mise_multi_upgrade;
 mod pre_tool_use;
+mod skills_unmanaged;
 mod skills_update;
 mod with_new_terminal;
 
@@ -28,13 +29,14 @@ fn main() -> ExitCode {
         }
         Some((command, rest)) if command == "ccusage-popup" => ccusage_popup::run(rest),
         Some((command, rest)) if command == "mise-multi-upgrade" => mise_multi_upgrade::run(rest),
+        Some((command, rest)) if command == "skills-unmanaged" => skills_unmanaged::run(rest),
         Some((command, rest)) if command == "skills-update" => skills_update::run(rest),
         Some((command, rest)) if command == "with-new-terminal" => with_new_terminal::run(rest),
         _ => {
             // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
             let _ = writeln!(
                 io::stderr(),
-                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, mise-multi-upgrade, skills-update, with-new-terminal"
+                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, mise-multi-upgrade, skills-unmanaged, skills-update, with-new-terminal"
             );
             ExitCode::from(2)
         }
