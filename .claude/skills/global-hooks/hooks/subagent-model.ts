@@ -24,9 +24,9 @@ export const register: Register = (on) => {
   // permission prompt for an Agent call shows the description and not the
   // ask's reason. Once an Agent call passing a model above Sonnet is prompted
   // with the reason in sight, this rewrite can go.
-  // A description that already leads with the model passes unchanged: in auto
-  // mode any rewrite fails the call, so the model can avoid that by writing
-  // the prefix itself, and a retry of a refused call already carries it.
+  // A description that already leads with the prefix this hook writes passes
+  // unchanged, so a call whose model wrote the prefix itself is not refused in
+  // auto mode for a hook having changed its input, and the prefix never doubles.
   on("tool.call", { tool: "Agent" }, (_, e, next) => {
     const { model, description } = e as typeof e & {
       model?: unknown;
