@@ -55,7 +55,8 @@ impl Sandbox {
     /// - security keeps the keychain item in `keychain`: `find-generic-password` prints
     ///   it or fails where there is none, and `add-generic-password` stores what follows
     ///   `-w`, recording `-w <password>` in `calls` as given.
-    /// - rclone's `config encryption check` succeeds where `encrypted` exists,
+    /// - rclone's `config encryption check` succeeds where `encrypted` exists and it
+    ///   was given a password command, without which it cannot open the config,
     ///   `config paths` names `rclone.conf` in the sandbox, and `config encryption set`
     ///   records the password command it was given.
     fn fakes(&self) {
@@ -102,7 +103,7 @@ esac
             "rclone",
             &format!(
                 r#"{prologue}case "$*" in
-"config encryption check") [ -e "$SANDBOX/encrypted" ] ;;
+"config encryption check") [ -e "$SANDBOX/encrypted" ] && [ -n "$RCLONE_PASSWORD_COMMAND" ] ;;
 "config paths") printf 'Config file: %s\nCache dir: /nowhere\n' "$SANDBOX/rclone.conf" ;;
 "config encryption set") printf 'RCLONE_PASSWORD_COMMAND=%s\n' "$RCLONE_PASSWORD_COMMAND" >> "$SANDBOX/calls" ;;
 esac
