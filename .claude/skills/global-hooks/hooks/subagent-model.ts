@@ -24,17 +24,21 @@ export const register: Register = (on) => {
   // permission prompt for an Agent call shows the description and not the
   // ask's reason. Once an Agent call passing a model above Sonnet is prompted
   // with the reason in sight, this rewrite can go.
+  // A description that already leads with the prefix this hook writes passes
+  // unchanged, so a call whose model wrote the prefix itself is not refused in
+  // auto mode for a hook having changed its input, and the prefix never doubles.
   on("tool.call", { tool: "Agent" }, (_, e, next) => {
     const { model, description } = e as typeof e & {
       model?: unknown;
       description?: string;
     };
     if (!aboveSonnet(model)) return next(e);
+    const prefix = `Runs on ${model}`;
+    if (description === prefix || description?.startsWith(`${prefix}:`))
+      return next(e);
     return next({
       ...e,
-      description: description
-        ? `Runs on ${model}: ${description}`
-        : `Runs on ${model}`,
+      description: description ? `${prefix}: ${description}` : prefix,
     });
   });
 
