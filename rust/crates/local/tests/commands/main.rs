@@ -3,6 +3,7 @@
 //! The tests are one crate, so that a helper no test uses any longer is reported as
 //! dead code.
 
+mod ask_email_in_request;
 mod block_bsd_sed_inplace;
 mod block_bsd_stat_format;
 mod block_piped_git_push;
