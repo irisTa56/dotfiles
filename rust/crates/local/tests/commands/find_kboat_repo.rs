@@ -128,7 +128,8 @@ fn exported_dir(stdout: &[u8]) -> PathBuf {
 // The catalogue is read through `mise -C $KBOAT_REPO x -- kboat-note list` with the
 // fields judging and lookup read, its report kept whole as catalog.json in a fresh
 // directory under TMPDIR, and the run prints that directory, the note count, the
-// anomalies as the report gives them and the chunk files, as jq prints them.
+// anomalies with their keys in the report's order and the chunk files, indented by two
+// spaces.
 #[test]
 fn export_reads_the_catalogue_through_kboat_note() {
     let sandbox = Sandbox::new("export");
@@ -185,7 +186,7 @@ fn export_reads_the_catalogue_through_kboat_note() {
 }
 
 // Each note becomes one line of what judging reads, in a fixed order, with escaped
-// text written out as jq writes it. A list kboat-note gives in flow style as a string,
+// text written out as UTF-8. A list kboat-note gives in flow style as a string,
 // such as `[robotics, ml]`, becomes an array, as an empty or missing one does; an array
 // stays as it is.
 #[test]
@@ -481,10 +482,9 @@ fn export_lists_no_chunks_for_an_empty_catalogue() {
     assert!(!dir.join("chunk-aa").exists());
 }
 
-// A note whose list field is neither a list nor a string, as compact.jq could not read
-// either, fails the run before any summary is printed, and its stderr names that note by
-// its path and the catalog.json that holds the report, so the note can be found among
-// many.
+// A note whose list field is neither a list nor a string fails the run before any
+// summary is printed, and its stderr names that note by its path and the catalog.json
+// that holds the report, so the note can be found among many.
 #[test]
 fn export_names_the_note_and_the_stored_output_when_a_note_cannot_be_read() {
     let sandbox = Sandbox::new("list-type");

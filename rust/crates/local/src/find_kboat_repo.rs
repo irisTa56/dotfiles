@@ -3,7 +3,7 @@
 //! of the titles judged to fit.
 //!
 //! Values are read as raw JSON rather than parsed into maps, so an object's keys keep
-//! the order kboat-note wrote them in, as they did through jq.
+//! the order kboat-note wrote them in.
 
 pub(crate) mod export_catalog;
 mod json;
