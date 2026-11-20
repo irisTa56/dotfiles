@@ -17,6 +17,7 @@ mod mise_multi_upgrade;
 mod pre_tool_use;
 mod push_gist_skill;
 mod reply_language_stop;
+mod setup_dotfiles;
 mod skills_unmanaged;
 mod skills_update;
 mod with_new_terminal;

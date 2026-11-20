@@ -12,11 +12,9 @@ use std::process::{Command, ExitCode, Stdio};
 
 use tempfile::TempDir;
 
+use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
 use crate::git::{git, read};
-
-/// The manifest of dotfiles-local, which marks a dotfiles checkout.
-const MANIFEST: &str = "rust/crates/local/Cargo.toml";
 
 const USAGE: &str = "\
 Usage: mise run skills:push <name>
@@ -102,26 +100,12 @@ struct Checkout {
 }
 
 impl Checkout {
-    /// The checkout holding the directory the command runs in, which has to be a
-    /// dotfiles one: in another repository the command would push that repository's
-    /// gist. A checkout counts as dotfiles where it holds dotfiles-local's own source.
+    /// The dotfiles checkout holding the directory the command runs in: in another
+    /// repository the command would push that repository's gist.
     fn find() -> Result<Self, Failure> {
-        let root = PathBuf::from(read(&["rev-parse", "--show-toplevel"])?);
-        let holds_source = fs::read_to_string(root.join(MANIFEST)).is_ok_and(|manifest| {
-            manifest
-                .lines()
-                .any(|line| line.trim() == "name = \"dotfiles-local\"")
-        });
-        if !holds_source {
-            return Err(Failure::new(
-                format_args!(
-                    "[fail] {} is not a dotfiles checkout: no {MANIFEST} naming dotfiles-local",
-                    root.display()
-                ),
-                1,
-            ));
-        }
-        Ok(Checkout { root })
+        Ok(Checkout {
+            root: DotfilesCheckout::find()?.into_root(),
+        })
     }
 
     /// The local SKILL.md of the skill `name`.

@@ -35,7 +35,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
-- The `bootstrap` task runs last, on every run: `setup:dotfiles`, `apm install`, and the `basic-memory` MCP server, as the sections below describe, and then `local:install`, which installs `dotfiles-local` into `~/.local/bin` from `main` and fails on any other branch.
+- The `bootstrap` task runs last, on every run. It starts with `local:install`, which installs `dotfiles-local` into `~/.local/bin` from `main`, and fails on any other branch, stopping the steps after it. Then come `setup:dotfiles`, which runs that binary, `apm install`, and the `basic-memory` MCP server, as the sections below describe.
 
 The global config, `.config/mise/config.toml`, holds the tools and settings that reach every repository; the root `mise.toml` pins the tools this repository's own tasks use.
 
@@ -54,7 +54,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
 Each of the three files sources the fragment of the same name in `zsh_fragments/` (`zshenv.sh`, `zprofile.sh`, `zshrc.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
-`scripts/setup_dotfiles.sh` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
+`setup:dotfiles` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
 #### `.zprofile`
 
@@ -84,7 +84,7 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 - npm: `setup:dotfiles` sets [`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/) in `~/.npmrc`.
 - Hex: `setup:dotfiles` sets [`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html) in `~/.hex/hex.config`, which any `mix` reads, whatever shell starts it.
   - It covers `elixir/mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
-  - The script updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
+  - `setup:dotfiles` updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
   - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
 - cargo: `[dotfiles]` merges [`global-min-publish-age`](https://doc.rust-lang.org/cargo/reference/config.html#registryglobal-min-publish-age) into `~/.cargo/config.toml`.
   - It [applies when cargo resolves a project's dependencies](https://doc.rust-lang.org/cargo/reference/resolver.html#publish-age), as `cargo update`, `cargo add` and `cargo generate-lockfile` do.
@@ -103,18 +103,27 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 
 ### Where a script goes
 
-For a script shared across this machine, wherever it is called from, what decides is who calls it and what it has to change, not the language it is written in.
+For a script shared across this machine, what it has to change decides whether it is a shell fragment, how much logic it holds decides whether it is written in Rust, and who calls it decides where the rest goes.
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
-2. It runs unattended, or is called by a process that does not start zsh: a command in `~/.local/bin`, either a shell script written out as `content` in `[dotfiles]`, with `permissions = "755"`, or a subcommand of `dotfiles-local`, which the caller runs as `~/.local/bin/dotfiles-local <command>`.
-   - `qa:sh` checks only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
-   - `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
-   - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
-   - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
-   - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-3. Anything else: an alias or function in `zsh_fragments/zshrc.sh`, or a mise task, for a person to run, with anything longer than a line in `scripts/` or in a subcommand of `dotfiles-local`.
-   - An agent's shell does not read `.zshrc`, so an agent runs the script by path, with a skill keeping its own under its `scripts/`.
+2. It holds state or nested branching, more than a one-liner or a list of them: a subcommand of `dotfiles-local`, which its caller runs as `~/.local/bin/dotfiles-local <command>`.
+   - A name a person types is an alias or function in `zsh_fragments/zshrc.sh` that runs the subcommand.
+   - A command a skill has an agent run is a subcommand too, which the skill names by that path, since an agent's shell does not read `.zshrc`.
+3. Anything else stays shell, where its caller finds it:
+   - a mise task's `run` in `mise.toml`, for one run as a mise task;
+   - an alias or function in `zsh_fragments/zshrc.sh`, for one a person types;
+   - a script written out as `content` in `[dotfiles]`, with `permissions = "755"`, for one another caller runs by its path in `~/.local/bin`.
+
+A command that runs unattended, or whose caller does not start zsh, is one in `~/.local/bin`, a subcommand or a script written out as `content`, rather than a mise task.
+
+- `mise run` loads the config of the directory it runs in and installs any missing tool before any task starts, and a task's own definition can turn off neither.
+- So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
+- `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
+- A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
+- `qa:sh` checks only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
+
+The shared tasks under `tasks/`, which other repositories run, follow [their own rules](tasks/README.md#writing-one) instead.
 
 A command for this machine alone that is written in Rust is a subcommand of `dotfiles-local`, the binary of the `rust/crates/local` package, so that it is compiled with warnings as errors and tested in CI, a dependency it takes is pinned in `rust/Cargo.lock`, and every such command shares one name on `PATH`.
 

@@ -20,7 +20,7 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # Where the shell files are, for the two tasks below that lint or format them. Named once
 # because the lists had already drifted apart when each carried its own: format-sh was
 # missing the .zshrc fragment, which pre-commit had always checked.
-sh_paths = "scripts tasks zsh_fragments"
+sh_paths = "tasks zsh_fragments"
 
 # The pre-commit hook is regenerated on every install. It only runs the pre-commit
 # task, so it goes stale only when mise's template or the task name changes, and a
@@ -263,20 +263,21 @@ test "$mise_python" = "$uv_pin" || {
 
 [tasks."setup:dotfiles"]
 description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
-run = "scripts/setup_dotfiles.sh"
+run = "~/.local/bin/dotfiles-local setup-dotfiles"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
 [tasks.bootstrap]
 description = "Finish machine setup after `mise bootstrap` links dotfiles and installs tools"
 run = [
+  # First, since setup:dotfiles runs the binary this installs. Off main it fails, and
+  # the steps after it do not run.
+  { task = "local:install" },
   { task = "setup:dotfiles" },
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
   # starts the server to check it, and `add-json` fails on one already there.
   "jq -e '.mcpServers[\"basic-memory\"]' ~/.claude.json >/dev/null 2>&1 || claude mcp add-json -s user basic-memory '{\"command\":\"uvx\",\"args\":[\"basic-memory\",\"mcp\"]}'",
-  # Last, since off main it fails, and the steps above need no branch.
-  { task = "local:install" },
 ]
 
 # Installs dotfiles-local from this checkout, and only from main: every caller runs the
