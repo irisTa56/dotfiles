@@ -28,6 +28,7 @@ name = "dotfiles-local"
 version = "0.7.0"
 dependencies = [
  "jiff",
+ "regex",
  "serde_json",
 ]
 

@@ -3,6 +3,7 @@
 //! The tests are one crate, so that a helper no test uses any longer is reported as
 //! dead code.
 
+mod block_bsd_sed_inplace;
 mod ccusage_popup;
 mod dispatch;
 mod mise_multi_upgrade;
