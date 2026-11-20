@@ -597,3 +597,32 @@ fn prints_usage_on_help_and_fails_with_it_on_arguments() {
     assert_eq!(sandbox.calls(), "");
     assert_eq!(sandbox.home_entries(), Vec::<String>::new());
 }
+
+// A read-only startup file that already names its fragment needs no change, so the run
+// leaves it as it was and carries on through the steps after it.
+#[test]
+fn leaves_a_read_only_startup_file_that_names_its_fragment() {
+    let sandbox = Sandbox::new("read-only");
+    let own = "source ~/elsewhere/zsh_fragments/zshrc.sh\n";
+    let path = sandbox.home().join(".zshrc");
+    fs::write(&path, own).expect("the file is written");
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o444))
+        .expect("the file is made read-only");
+
+    let run = sandbox.run(&sandbox.repo(), &[]);
+
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o644))
+        .expect("the file is made writable again");
+    assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
+    assert_eq!(sandbox.home_file(".zshrc").as_deref(), Some(own));
+    assert_eq!(
+        sandbox
+            .calls()
+            .lines()
+            .filter(|line| line.starts_with("npm ") || line.starts_with("rclone "))
+            .count(),
+        4,
+        "{}",
+        sandbox.calls()
+    );
+}

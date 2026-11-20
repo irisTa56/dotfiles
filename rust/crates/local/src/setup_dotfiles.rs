@@ -97,12 +97,18 @@ impl Home {
         for name in ["zshenv", "zprofile", "zshrc"] {
             let path = self.path(&format!(".{name}"));
             let named = format!("zsh_fragments/{name}.sh");
-            let mut file = OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&path)
-                .map_err(|error| unwritable(&path, &error))?;
-            let contents = fs::read(&path).map_err(|error| unwritable(&path, &error))?;
+            // Read before any open for writing, so a file that needs no change is never
+            // opened for it, as a read-only one could not be.
+            let contents = match fs::read(&path) {
+                Ok(contents) => contents,
+                Err(error) if error.kind() == io::ErrorKind::NotFound => Vec::new(),
+                Err(error) => {
+                    return Err(Failure::new(
+                        format_args!("cannot read {}: {error}", path.display()),
+                        1,
+                    ));
+                }
+            };
             if contents
                 .windows(named.len())
                 .any(|window| window == named.as_bytes())
@@ -116,7 +122,11 @@ impl Home {
             let line = format!(
                 "\nif [[ -r \"{fragment}\" ]]; then source \"{fragment}\"; else echo \"{fragment}: missing, not sourced\" >&2; fi\n"
             );
-            file.write_all(line.as_bytes())
+            OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&path)
+                .and_then(|mut file| file.write_all(line.as_bytes()))
                 .map_err(|error| unwritable(&path, &error))?;
         }
         Ok(())
