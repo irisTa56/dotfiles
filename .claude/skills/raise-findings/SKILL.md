@@ -29,7 +29,7 @@ Where the invoking side asks for the built-in reviews, run Claude Code's own rev
 
 What they return are candidates, not findings: hold each to the bar below and check it as you would your own before raising it, and raise one they share with you once.
 Neither takes the baseline you were given — `code-review` reads the branch against its upstream, else `main`, else only the last commit, adding uncommitted changes; `security-review` only the commits ahead of `origin/HEAD` — so where either range differs from yours, say what that left unread.
-Where the change is not in the work tree your working directory sits in, as when it lives in another worktree or repository, pass `code-review` that work tree's path after the effort; an empty result from either one is then no evidence that it read the change, so report it as a review not run rather than a clean one.
+Where the change is not in the work tree your working directory sits in, as when it lives in another worktree or repository, pass `code-review` that work tree's path after the effort, and report an empty result from it as unconfirmed rather than clean, since nothing in it shows which tree it read; `security-review`, given no path, reads only your own work tree, so report it as not run over the change.
 Where a permission prompt refuses either one, say that it did not run, rather than reviewing as if it had.
 
 ## What to raise
