@@ -6,7 +6,8 @@ use std::io::{self, Write};
 use std::path::Path;
 use std::process::ExitCode;
 
-use super::{CATALOG, Json, Note, Report};
+use super::json::Json;
+use super::{CATALOG, Note, Report};
 use crate::failure::Failure;
 
 /// The fields of a record, in the order its line gives them.
@@ -84,7 +85,7 @@ impl Note<'_> {
             .iter()
             .map(|name| {
                 let value = match self.field(name) {
-                    Some(value) => Json(value.get()).compact()?,
+                    Some(value) => Json::new(value.get()).compact()?,
                     None => "null".to_owned(),
                 };
                 Ok(format!("\"{name}\":{value}"))

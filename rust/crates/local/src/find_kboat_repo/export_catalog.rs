@@ -11,7 +11,8 @@ use std::process::{Command, ExitCode};
 use serde::Deserialize;
 use serde_json::value::RawValue;
 
-use super::{CATALOG, Json, Note, Report};
+use super::json::Json;
+use super::{CATALOG, Note, Report};
 use crate::failure::{Failure, exit_code};
 
 /// The fields of a note kboat-note is asked for: what judging and lookup read.
@@ -203,7 +204,7 @@ impl Note<'_> {
         if LISTS.contains(&name) {
             return as_list(name, value);
         }
-        Json(value.get())
+        Json::new(value.get())
             .compact()
             .map_err(|error| error.to_string())
     }
@@ -213,7 +214,7 @@ impl Note<'_> {
 /// flow-style list such as `[robotics, ml]` as a string, and an empty one as an array.
 fn as_list(name: &str, value: &RawValue) -> Result<String, String> {
     match serde_json::from_str(value.get()).map_err(|error| error.to_string())? {
-        serde_json::Value::Array(_) => Json(value.get())
+        serde_json::Value::Array(_) => Json::new(value.get())
             .compact()
             .map_err(|error| error.to_string()),
         serde_json::Value::Null => Ok("[]".to_owned()),
@@ -281,7 +282,7 @@ fn string(path: &Path) -> String {
 
 /// Prints the JSON text `json`, indented by two spaces.
 fn print(json: &str) -> Result<(), Failure> {
-    let text = Json(json)
+    let text = Json::new(json)
         .pretty()
         .map_err(|error| Failure::new(format_args!("cannot lay out the output: {error}"), 1))?;
     io::stdout()
