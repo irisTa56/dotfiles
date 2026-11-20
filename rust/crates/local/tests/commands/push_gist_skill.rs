@@ -201,8 +201,8 @@ P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host ==
     }
 }
 
-/// An apm.lock.yaml pinning the skill's gist at `pinned`, beside a GitHub dependency
-/// of the same name, which is not the one pushed.
+/// An apm.lock.yaml pinning the skill's gist at `pinned`, after a GitHub dependency of
+/// the same name and a gist dependency of another, neither of which is the one pushed.
 fn lockfile(pinned: &str) -> String {
     format!(
         "lockfile_version: '1'
@@ -211,6 +211,11 @@ dependencies:
   name: {SKILL}
   host: github.com
   resolved_commit: 1111111111111111111111111111111111111111
+- repo_url: tester/fedcba98
+  alias: other
+  name: other
+  host: gist.github.com
+  resolved_commit: 3333333333333333333333333333333333333333
 - repo_url: {GIST}
   alias: {SKILL}
   name: {SKILL}
