@@ -70,7 +70,7 @@ const run = async (
   $: { tool: { call: (input: never) => Promise<unknown> } },
   on: On,
   model: string | undefined,
-  described = true,
+  description: string | null = "Review the change",
 ): Promise<Observed> => {
   const seen: Observed = { asked: false, description: undefined };
   on("tool.check", { tool: "Agent" }, async (_, e, next) => {
@@ -86,7 +86,7 @@ const run = async (
     .call({
       tool: "Agent",
       prompt: "p",
-      ...(described ? { description: "Review the change" } : {}),
+      ...(description === null ? {} : { description }),
       subagent_type: "general-purpose",
       ...(model === undefined ? {} : { model }),
     } as never)
@@ -107,8 +107,15 @@ describe("an Agent call that names a model above Sonnet", () => {
     });
 
     test(`shows only the model of a ${model} call that has no description`, async ($, on) => {
-      expect((await run($, on, model, false)).description).toBe(
+      expect((await run($, on, model, null)).description).toBe(
         `Runs on ${model}`,
+      );
+    });
+
+    test(`leaves a description that already leads with ${model} as it is`, async ($, on) => {
+      const description = `Runs on ${model}: Review the change`;
+      expect((await run($, on, model, description)).description).toBe(
+        description,
       );
     });
 
