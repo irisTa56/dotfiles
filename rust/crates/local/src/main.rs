@@ -3,6 +3,8 @@
 
 mod ccusage_popup;
 mod failure;
+mod git;
+mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;
@@ -30,6 +32,7 @@ fn main() -> ExitCode {
             pre_tool_use::block_piped_git_push::run()
         }
         Some((command, rest)) if command == "ccusage-popup" => ccusage_popup::run(rest),
+        Some((command, rest)) if command == "git-sweep-branches" => git_sweep_branches::run(rest),
         Some((command, rest)) if command == "git-sync-base" => git_sync_base::run(rest),
         Some((command, rest)) if command == "mise-multi-upgrade" => mise_multi_upgrade::run(rest),
         Some((command, _)) if command == "reply-language-stop" => reply_language_stop::run(),
@@ -40,7 +43,7 @@ fn main() -> ExitCode {
             // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
             let _ = writeln!(
                 io::stderr(),
-                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, git-sync-base, mise-multi-upgrade, reply-language-stop, skills-unmanaged, skills-update, with-new-terminal"
+                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, git-sweep-branches, git-sync-base, mise-multi-upgrade, reply-language-stop, skills-unmanaged, skills-update, with-new-terminal"
             );
             ExitCode::from(2)
         }

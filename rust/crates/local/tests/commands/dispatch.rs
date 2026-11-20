@@ -20,7 +20,7 @@ fn fails_with_usage_on_an_unknown_command() {
         ),
         (
             Some(2),
-            "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, git-sync-base, mise-multi-upgrade, reply-language-stop, skills-unmanaged, skills-update, with-new-terminal\n"
+            "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, git-sweep-branches, git-sync-base, mise-multi-upgrade, reply-language-stop, skills-unmanaged, skills-update, with-new-terminal\n"
         )
     );
 }
