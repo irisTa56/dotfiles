@@ -1,12 +1,10 @@
 # shellcheck shell=bash
 
-DOTFILES_DIR="${0:A:h}/.."
-
 # aliases
 
 alias ls='"$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin/ls" --color=auto --show-control-char'
 alias show-my-ip='dig +short -t txt o-o.myaddr.l.google.com @8.8.8.8'
-alias fnox-add-secret='"$DOTFILES_DIR/scripts/fnox_add_secret.sh"'
+alias fnox-add-secret='~/.local/bin/dotfiles-local fnox-add-secret'
 alias to-snake-case='pbpaste | sed -E "s/([a-z0-9])([A-Z])/\1_\2/g; s/([A-Z]+)([A-Z][a-z])/\1_\2/g; s/[^[:alnum:]]+/_/g; s/^_+//; s/_+$//" | tr "[:upper:]" "[:lower:]" | pbcopy'
 alias git-branch='git branch --sort=committerdate'
 alias git-sweep-branches='~/.local/bin/dotfiles-local git-sweep-branches'
