@@ -1,5 +1,5 @@
 //! What the `PreToolUse` hook tests share: running a hook on a Bash call, with a fake
-//! standing in for the tool on PATH whose kind the hook judges by.
+//! standing in for the tool on PATH whose kind the hook judges by, where it judges by one.
 
 use std::fs;
 use std::io::Write as _;
@@ -37,8 +37,8 @@ impl Run {
 pub(crate) struct Hook {
     /// The subcommand.
     name: &'static str,
-    /// The tool on PATH the hook asks `--version`.
-    tool: &'static str,
+    /// The tool on PATH the hook asks `--version`, if it asks any.
+    tool: Option<&'static str>,
     /// What Claude is told when the hook blocks a call.
     blocked: &'static str,
 }
@@ -49,7 +49,18 @@ impl Hook {
     pub(crate) const fn new(name: &'static str, tool: &'static str, blocked: &'static str) -> Self {
         Hook {
             name,
-            tool,
+            tool: Some(tool),
+            blocked,
+        }
+    }
+
+    /// The hook run as the subcommand `name`, judging by the command alone and telling
+    /// Claude `blocked` when it blocks a call. It is run under `Tool::Missing`, which
+    /// leaves PATH empty.
+    pub(crate) const fn judging_by_the_command(name: &'static str, blocked: &'static str) -> Self {
+        Hook {
+            name,
+            tool: None,
             blocked,
         }
     }
@@ -110,7 +121,10 @@ impl Hook {
             Tool::Bsd => 1,
             Tool::Missing => return bin,
         };
-        let path = bin.join(self.tool);
+        let path = bin.join(
+            self.tool
+                .expect("a hook judging by the command alone runs under Tool::Missing"),
+        );
         fs::write(&path, format!("#!/bin/sh\nexit {code}\n")).expect("the fake is written");
         fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
             .expect("the fake is made executable");

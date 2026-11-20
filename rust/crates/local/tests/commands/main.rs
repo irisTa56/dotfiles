@@ -5,6 +5,7 @@
 
 mod block_bsd_sed_inplace;
 mod block_bsd_stat_format;
+mod block_piped_git_push;
 mod ccusage_popup;
 mod dispatch;
 mod mise_multi_upgrade;
