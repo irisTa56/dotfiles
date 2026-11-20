@@ -72,7 +72,7 @@ fn blocks_every_place_a_bare_sed_runs() {
     for command in [
         r#"sed -i "" 's/a/b/' file"#,
         "sed -E -i '' 's/a/b/' file",
-        "sed -n -E  -i  '' 's/a/b/' file",
+        "sed  -n -E  -i  '' 's/a/b/' file",
         "cd dir;sed -i '' 's/a/b/' file",
         "true&&sed -i '' 's/a/b/' file",
         "(sed -i '' 's/a/b/' file)",
