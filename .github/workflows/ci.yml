@@ -87,69 +87,16 @@ jobs:
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
 
-  elixir-qa:
+  config-qa:
     runs-on: ubuntu-latest
-    env:
-      # Erlang and Elixir are named in the global config alone, so this job reads it
-      # where the others leave it out.
-      MISE_IGNORED_CONFIG_PATHS: ""
-      # In place of the baseline's `install_args`, which limits the action's
-      # `mise install` alone: the global config tracks some thirty tools at `latest`,
-      # and every other mise command, the action's own `mise ls` and `mise env`
-      # among them, would resolve each one's version, which cost this job seconds
-      # per call.
-      MISE_ENABLE_TOOLS: erlang,elixir
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # mise picks builds.hex.pm's precompiled Erlang on its own only on the Ubuntu
-      # releases it lists, and elsewhere builds OTP from source with kerl, which takes
-      # minutes. Naming the runner's own release, in the form mise reads from this
-      # file, opts in to that release's build; a release the setting does not accept
-      # falls back to kerl.
-      - run: . /etc/os-release && echo "MISE_ERLANG_PRECOMPILED_OS=$ID-$VERSION_ID" >> "$GITHUB_ENV"
       - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
-        id: mise
         with:
+          # What the tasks under qa:config: read the config files with.
+          install_args: yq
           cache: false # as in `markdown-lint`
-      # A fresh Elixir install has no Hex, and `mix deps.get` would stop to ask for it.
-      # mix.lock pins every version, so the runner needs none of the release window
-      # this machine sets in Hex's global config. The version goes into the cache key
-      # below; `test` fails the job rather than leave it out of the key.
-      - id: hex
-        run: |
-          mix local.hex --force
-          version=$(mix hex.info | awk '$1 == "Hex:" { print $2 }')
-          test -n "$version"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-      # The dependencies and their builds, most of what qa:ex compiles. The key holds
-      # the Erlang and Elixir the action resolved, so a new release of either starts
-      # a fresh cache, unlike the tool cache `markdown-lint` turns off. This project's
-      # own build stays out, so --warnings-as-errors compiles all of it every run; the
-      # builds are matched one directory each, since actions/cache hands a matched
-      # directory to tar whole, and an exclusion cannot reach inside it.
-      # Hex's registry cache comes along, as written by the run that fetched every
-      # package, since qa:ex fetches offline from it: on one run that restored the
-      # rest, the fetch below left credo's entry out of it. The key holds the Hex
-      # version too, since a Hex release can change that cache's format, and Hex then
-      # discards a restored one.
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            elixir/deps
-            elixir/_build/test/lib/*
-            !elixir/_build/test/lib/dotfiles
-            ~/.hex/cache.bin
-          key: elixir-deps-${{ runner.os }}-erlang-${{ steps.mise.outputs.erlang }}-elixir-${{ steps.mise.outputs.elixir }}-hex-${{ steps.hex.outputs.version }}-${{ hashFiles('elixir/mix.lock') }}
-      # qa:ex fetches offline, from Hex's cache, which this fetch fills where the cache
-      # above restored nothing.
-      - run: mix deps.get
-        working-directory: elixir
-        env:
-          MIX_ENV: test
-      - run: mise run qa:ex
-      # That each shared task wrapping dotfiles-tasks pins the release rust/Cargo.toml is
-      # at, which the Mix project checks.
-      - run: mise run qa:release-pins
+      - run: mise run qa:config
 
   link-check-offline:
     runs-on: ubuntu-latest

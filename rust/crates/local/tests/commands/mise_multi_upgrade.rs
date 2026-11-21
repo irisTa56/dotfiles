@@ -335,10 +335,10 @@ fn prints_its_usage_for_help_and_h_asking_and_upgrading_nothing() {
 
 const USAGE_START: &str = "Usage: mise run mise:multi-upgrade";
 
-// Read as Elixir's `OptionParser` reads switches in strict mode, which the command was
-// first written with.
+// A switch is set by its name, cleared by `--no-` before it, or set either way by `=true`
+// or `=false`; short ones run together; and `--` ends them.
 #[test]
-fn reads_its_switches_as_it_did_in_elixir() {
+fn reads_its_switches_in_every_form_it_takes() {
     let sandbox = Sandbox::new("switches");
     for args in [
         &["-nh"][..],
@@ -623,8 +623,8 @@ fn leaves_out_a_config_under_tmpdir_by_the_name_it_resolves_to_too() {
     );
 }
 
-// TMPDIR is passed over where it names no directory, or one that cannot be written,
-// as Elixir's `System.tmp_dir/0` passes it over, and TEMP, then TMP, are taken in turn.
+// TMPDIR is passed over where it names no directory, or one that cannot be written, and
+// TEMP, then TMP, are taken in turn.
 #[test]
 fn takes_temp_or_tmp_where_tmpdir_names_no_directory_it_can_write() {
     let sandbox = Sandbox::new("temp");

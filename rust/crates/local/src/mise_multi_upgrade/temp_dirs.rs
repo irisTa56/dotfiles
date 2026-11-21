@@ -12,8 +12,8 @@ pub(super) struct TempDirs {
 }
 
 impl TempDirs {
-    /// The system's temporary directory, as Elixir's `System.tmp_dir/0` picks it, which
-    /// the command was first written with, and `/tmp` whatever that is.
+    /// The system's temporary directory, as `system_temp_dir` picks it, and `/tmp`
+    /// whatever that is.
     pub(super) fn find() -> Self {
         let cwd = std::env::current_dir().ok();
         let picked = system_temp_dir(cwd.as_deref());
@@ -55,8 +55,8 @@ fn writable_dir(dir: &Path) -> bool {
     fs::metadata(dir).is_ok_and(|metadata| metadata.is_dir() && !metadata.permissions().readonly())
 }
 
-/// `dir` made absolute from `cwd` and with its `.` and `..` steps taken by name, as
-/// Elixir's `Path.expand/1` does, or `None` where it is relative and there is no `cwd`.
+/// `dir` made absolute from `cwd` and with its `.` and `..` steps taken by name, without
+/// following a symlink, or `None` where it is relative and there is no `cwd`.
 fn expand(dir: &Path, cwd: Option<&Path>) -> Option<PathBuf> {
     let absolute = if dir.is_absolute() {
         dir.to_path_buf()

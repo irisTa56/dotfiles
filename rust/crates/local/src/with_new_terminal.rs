@@ -103,9 +103,8 @@ impl<'a> Request<'a> {
 
     /// The request `args` make, or `None` where they make none.
     ///
-    /// Read as Elixir's `OptionParser` reads them in strict mode, which the command was
-    /// first written with: an option takes its value after `=` or as the next argument,
-    /// a later one replaces an earlier one, and `--` ends the options.
+    /// An option takes its value after `=` or as the next argument, a later one replaces
+    /// an earlier one, and `--` ends the options.
     fn parse(args: &'a [String]) -> Option<Self> {
         let mut cwd = None;
         let mut title = None;
