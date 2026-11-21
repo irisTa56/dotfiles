@@ -47,7 +47,7 @@ That link is pinned to a release for the same reason the `ref` is: on `main` it 
 
 A workflow that runs them sets `MISE_NO_HOOKS: "1"` in its workflow-wide `env`, since mise runs the consuming repository's [`[hooks] postinstall`](https://mise.jdx.dev/hooks.html) on every `mise install` there:
 
-- the one [`jdx/mise-action` runs unless told `install: false`](https://github.com/jdx/mise-action/blob/v5.2.10/action.yml#L43-L46);
+- the one [`jdx/mise-action` runs unless told `install: false`](https://github.com/jdx/mise-action/blob/v5.2.10/action.yml#L37-L40);
 - the one `mise run` runs to install a tool a task declares.
 
 A `postinstall` that sets up a local checkout has nothing to do in CI and can break a job there: a pre-push hook it registers runs on the push `upstream:pin-check -- --bump` makes, and where the hook fails, as one whose tool the job did not install does, the push fails with it.
