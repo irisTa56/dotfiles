@@ -61,10 +61,7 @@ impl Group {
     fn outdated(mut args: Vec<String>) -> Result<Option<Entries>, Failure> {
         args.push("--json".to_owned());
         let mise = Mise::new(args);
-        let Some(out) = mise
-            .output()
-            .map_err(|error| Failure::new(format_args!("cannot run mise: {error}"), 1))?
-        else {
+        let Some(out) = mise.output()? else {
             return Ok(None);
         };
         serde_json::from_slice(&out)

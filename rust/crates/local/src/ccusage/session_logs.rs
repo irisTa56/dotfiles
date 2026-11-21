@@ -4,13 +4,14 @@ use std::ffi::OsStr;
 use std::fs;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::sync::LazyLock;
 
 use regex::Regex;
 use serde_json::Value;
 
 use crate::failure::Failure;
+use crate::git;
 
 /// The session logs ccusage reads, through which each project is resolved to the
 /// repository it counts toward.
@@ -159,18 +160,16 @@ fn checkout_label(dir: &str) -> Result<String, Failure> {
             },
         );
     }
-    let output = Command::new("git")
-        .args([
-            "-C",
-            dir,
-            "rev-parse",
-            "--path-format=absolute",
-            "--git-common-dir",
-        ])
-        .stdin(Stdio::null())
-        .stderr(Stdio::null())
-        .output()
-        .map_err(|error| Failure::new(format_args!("cannot run git: {error}"), 1))?;
+    let output = git::command(&[
+        "-C",
+        dir,
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir",
+    ])
+    .stdin(Stdio::null())
+    .stderr(Stdio::null())
+    .output()?;
     if !output.status.success() {
         return Ok("other".to_owned());
     }

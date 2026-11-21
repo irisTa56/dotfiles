@@ -4,13 +4,14 @@
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::str::FromStr;
 
 use clap::Args;
 
 use crate::failure::Failure;
 use crate::git::read;
+use crate::program::Program;
 
 /// The fnox config the command declares the provider in and stores the key through,
 /// git-ignored, so a worktree has none and fnox finds the main checkout's from one
@@ -98,10 +99,8 @@ impl Checkout {
     }
 
     /// fnox with `args`, run in the checkout.
-    fn fnox(&self, args: &[&str]) -> Command {
-        let mut command = Command::new("fnox");
-        command.current_dir(&self.root).args(args);
-        command
+    fn fnox(&self, args: &[&str]) -> Program {
+        Program::new("fnox").current_dir(&self.root).args(args)
     }
 
     fn config(&self) -> PathBuf {
@@ -122,16 +121,9 @@ impl Checkout {
         if !path.exists() {
             fs::File::create(&path).map_err(|error| unwritable(&path, &error))?;
         }
-        let output = self
-            .fnox(&["provider", "list", "-c", CONFIG])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| unrunnable(&error))?;
-        if !output.status.success() {
-            return Err(Failure::passed_on(output.status));
-        }
+        let providers = self.fnox(&["provider", "list", "-c", CONFIG]).read()?;
         let provider = self.provider();
-        Ok(String::from_utf8_lossy(&output.stdout)
+        Ok(String::from_utf8_lossy(&providers)
             .lines()
             .any(|line| line == provider))
     }
@@ -163,8 +155,7 @@ impl Checkout {
         let parsed = self
             .fnox(&["provider", "list", "-c", DRAFT])
             .stdout(Stdio::null())
-            .status()
-            .map_err(|error| unrunnable(&error))?;
+            .status()?;
         if !parsed.success() {
             return Err(Failure::new(
                 format_args!(
@@ -179,15 +170,8 @@ impl Checkout {
     /// Has fnox store the key `name` with the repository's provider, `-c` since
     /// `fnox set` writes to fnox.toml where the directory has one.
     fn store(&self, name: &str) -> Result<(), Failure> {
-        let status = self
-            .fnox(&["set", "-c", CONFIG, name, "--provider", &self.provider()])
-            .status()
-            .map_err(|error| unrunnable(&error))?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err(Failure::passed_on(status))
-        }
+        self.fnox(&["set", "-c", CONFIG, name, "--provider", &self.provider()])
+            .run()
     }
 
     /// Writes the line on how secrets reach a command into a new CLAUDE.local.md, and
@@ -229,8 +213,4 @@ fn unwritable(path: &Path, error: &io::Error) -> Failure {
 
 fn unreadable(path: &Path, error: &io::Error) -> Failure {
     Failure::new(format_args!("cannot read {}: {error}", path.display()), 1)
-}
-
-fn unrunnable(error: &io::Error) -> Failure {
-    Failure::new(format_args!("cannot run fnox: {error}"), 1)
 }

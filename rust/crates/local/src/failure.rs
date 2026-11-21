@@ -2,8 +2,7 @@
 
 use std::fmt;
 use std::io::{self, Write};
-use std::os::unix::process::ExitStatusExt;
-use std::process::{ExitCode, ExitStatus};
+use std::process::ExitCode;
 
 /// What ends a run before it finishes: a message for stderr, where one is due, and the
 /// exit status.
@@ -20,12 +19,11 @@ impl Failure {
         }
     }
 
-    /// What ends a run where a command it ran failed with `status`, having said why on
-    /// stderr itself.
-    pub(crate) fn passed_on(status: ExitStatus) -> Self {
+    /// What ends a run with `code` where what failed has said why on stderr itself.
+    pub(crate) fn quiet(code: u8) -> Self {
         Failure {
             message: None,
-            code: exit_code(status),
+            code,
         }
     }
 
@@ -40,13 +38,4 @@ impl Failure {
         }
         ExitCode::from(self.code)
     }
-}
-
-/// The status a command ended with, a signal giving the one a shell gives.
-pub(crate) fn exit_code(status: ExitStatus) -> u8 {
-    status
-        .code()
-        .or_else(|| status.signal().map(|signal| 128 + signal))
-        .and_then(|code| u8::try_from(code).ok())
-        .unwrap_or(1)
 }

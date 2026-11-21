@@ -3,10 +3,11 @@
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::failure::Failure;
+use crate::program::Program;
 
 /// A report written as HTML in a directory of its own under the temporary one, both
 /// removed when this is dropped.
@@ -63,14 +64,13 @@ impl ReportFile {
         // qlmanage -p blocks until the preview panel is dismissed. It is noisy on stderr
         // even on success, so its output is dropped, but an outright render failure still
         // surfaces instead of doing nothing.
-        let status = Command::new("qlmanage")
+        let status = Program::new("qlmanage")
             .arg("-p")
             .arg(self.html())
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .status()
-            .map_err(|error| Failure::new(format_args!("cannot run qlmanage: {error}"), 1))?;
+            .status()?;
         if status.success() {
             Ok(())
         } else {

@@ -6,7 +6,6 @@ use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use clap::Args;
 use serde::Deserialize;
@@ -14,7 +13,8 @@ use serde_json::value::RawValue;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
-use crate::failure::{Failure, exit_code};
+use crate::failure::Failure;
+use crate::program::{self, Program};
 
 /// The fields of a note kboat-note is asked for: what judging and lookup read.
 const FIELDS: [&str; 10] = [
@@ -118,25 +118,20 @@ fn list(kboat_repo: &OsStr, dir: &Path) -> Result<String, Failure> {
     let file = File::create(&path).map_err(|error| {
         Failure::new(format_args!("cannot write {}: {error}", path.display()), 1)
     })?;
-    let mut command = Command::new("mise");
-    command
+    let status = Program::new("mise")
         .arg("-C")
         .arg(kboat_repo)
-        .args(["x", "--", "kboat-note", "list", "--type", "repo"]);
-    for field in FIELDS {
-        command.args(["--field", field]);
-    }
-    let status = command
+        .args(["x", "--", "kboat-note", "list", "--type", "repo"])
+        .args(FIELDS.iter().flat_map(|field| ["--field", field]))
         .stdout(file)
-        .status()
-        .map_err(|error| Failure::new(format_args!("cannot run mise: {error}"), 1))?;
+        .status()?;
     let text = fs::read(&path).map_err(|error| {
         Failure::new(format_args!("cannot read {}: {error}", path.display()), 1)
     })?;
     let text = String::from_utf8_lossy(&text).into_owned();
     if !status.success() {
-        print(&failed(dir, exit_code(status), &text))?;
-        return Err(Failure::passed_on(status));
+        print(&failed(dir, program::exit_code(status), &text))?;
+        return Err(program::passed_on(status));
     }
     Ok(text)
 }

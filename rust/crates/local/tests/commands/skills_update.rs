@@ -698,7 +698,7 @@ fn fails_with_exit_1_naming_a_command_it_cannot_run() {
         (
             "apm",
             r#"{"dependencies": [{"name": "own", "host": "gist.github.com"}]}"#,
-            "apm update --yes own failed (",
+            "cannot run apm: ",
         ),
     ] {
         let sandbox = Fixture::new(&format!("missing-{missing}"), lock);

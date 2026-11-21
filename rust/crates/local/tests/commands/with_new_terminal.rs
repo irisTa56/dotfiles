@@ -301,7 +301,7 @@ fn fails_with_exit_1_where_there_is_no_osascript() {
     let run = sandbox.run(&["job.sh"]);
     assert_eq!(run.code(), Some(1));
     assert!(
-        run.stderr().starts_with("osascript failed: "),
+        run.stderr().starts_with("cannot run osascript: "),
         "{}",
         run.stderr()
     );

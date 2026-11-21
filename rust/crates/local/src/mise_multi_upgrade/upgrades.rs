@@ -29,9 +29,7 @@ impl Upgrades {
         for place in self.places {
             let mise = Mise::new(place.upgrade_args());
             writeln!(stdout, "\n==> {mise}").map_err(|error| Failure::writing(&error))?;
-            let status = mise
-                .pass_on()
-                .map_err(|error| Failure::new(format_args!("{mise} failed: {error}"), 1))?;
+            let status = mise.pass_on()?;
             if !status.success() {
                 failed.push(place);
             }

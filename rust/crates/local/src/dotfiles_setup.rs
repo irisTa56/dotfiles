@@ -7,12 +7,13 @@ use std::ffi::OsStr;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::Args;
 
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
+use crate::program::Program;
 
 /// The canonical dircolors, which `~/.dircolors` is overwritten with.
 const COLORS: &str = "https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS";
@@ -72,8 +73,11 @@ impl Home {
     /// error page where the colors were.
     fn fetch_colors(&self) -> Result<(), Failure> {
         let new = self.path(".dircolors.new");
-        let mut curl = Command::new("curl");
-        curl.arg("-fsSL").arg("-o").arg(&new).arg(COLORS);
+        let curl = Program::new("curl")
+            .arg("-fsSL")
+            .arg("-o")
+            .arg(&new)
+            .arg(COLORS);
         Change::new(curl).run()?;
         let colors = self.path(".dircolors");
         fs::rename(&new, &colors).map_err(|error| unwritable(&colors, &error))
@@ -151,25 +155,22 @@ struct ReleaseWindows;
 impl ReleaseWindows {
     fn set() -> Result<(), Failure> {
         // One key set in place: the file may also hold registry auth.
-        let mut npm = Command::new("npm");
-        npm.args(["config", "set", "min-release-age=1", "--location=user"]);
+        let npm =
+            Program::new("npm").args(["config", "set", "min-release-age=1", "--location=user"]);
         Change::new(npm).run()?;
         // Hex is updated first: its archive is built for one Erlang/OTP, so an older
         // one can fail to load after an upgrade. Twice, since there are two archives:
         // mise points MIX_HOME into the Elixir install, and a shell that has mix on
         // PATH without mise's environment, as an agent's can, falls back to ~/.mix.
         // The config, which every mix reads, is one file for both.
-        let mut hex = Command::new("mix");
-        hex.args(["local.hex", "--force"]);
+        let hex = Program::new("mix").args(["local.hex", "--force"]);
         Change::new(hex).run()?;
-        let mut home_hex = Command::new("mix");
-        home_hex
+        let home_hex = Program::new("mix")
             .args(["local.hex", "--force"])
             .env_remove("MIX_HOME")
             .env_remove("MIX_ARCHIVES");
         Change::new(home_hex).run()?;
-        let mut cooldown = Command::new("mix");
-        cooldown.args(["hex.config", "cooldown", "1d"]);
+        let cooldown = Program::new("mix").args(["hex.config", "cooldown", "1d"]);
         Change::new(cooldown).run()
     }
 }
@@ -185,15 +186,10 @@ impl Rclone {
     /// rclone under the password command zsh states: `.zshenv` states it, so it is
     /// written once, and this run's own environment may predate the sourcing line.
     fn from_zsh() -> Result<Self, Failure> {
-        let output = Command::new("zsh")
+        let stated = Program::new("zsh")
             .args(["-c", "printf %s \"$RCLONE_PASSWORD_COMMAND\""])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| unrunnable("zsh", &error))?;
-        if !output.status.success() {
-            return Err(Failure::passed_on(output.status));
-        }
-        let password_command = String::from_utf8_lossy(&output.stdout).into_owned();
+            .read()?;
+        let password_command = String::from_utf8_lossy(&stated).into_owned();
         if password_command.is_empty() {
             return Err(Failure::new(
                 format_args!("[fail] zsh states no RCLONE_PASSWORD_COMMAND"),
@@ -204,10 +200,8 @@ impl Rclone {
     }
 
     /// `program` with the password command in its environment.
-    fn command(&self, program: &str) -> Command {
-        let mut command = Command::new(program);
-        command.env("RCLONE_PASSWORD_COMMAND", &self.password_command);
-        command
+    fn command(&self, program: &str) -> Program {
+        Program::new(program).env("RCLONE_PASSWORD_COMMAND", &self.password_command)
     }
 
     /// Stores a random password nobody types where the password command reads it,
@@ -229,8 +223,7 @@ impl Rclone {
             return Ok(());
         }
         let password = Self::random_password()?;
-        let mut security = Command::new("security");
-        security.args([
+        let security = Program::new("security").args([
             "add-generic-password",
             "-a",
             "rclone",
@@ -248,17 +241,10 @@ impl Rclone {
 
     /// A random password, 40 bytes in base64.
     fn random_password() -> Result<String, Failure> {
-        let output = Command::new("openssl")
+        let password = Program::new("openssl")
             .args(["rand", "-base64", "40"])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| unrunnable("openssl", &error))?;
-        if !output.status.success() {
-            return Err(Failure::passed_on(output.status));
-        }
-        Ok(String::from_utf8_lossy(&output.stdout)
-            .trim_end()
-            .to_owned())
+            .read()?;
+        Ok(String::from_utf8_lossy(&password).trim_end().to_owned())
     }
 
     /// Encrypts the config with the password, unless it is already.
@@ -292,23 +278,14 @@ impl Rclone {
                 1,
             ));
         }
-        let mut set = self.command("rclone");
-        set.args(["config", "encryption", "set"]);
+        let set = self.command("rclone").args(["config", "encryption", "set"]);
         Change::new(set).run()
     }
 
     /// The config file `rclone config paths` names.
     fn config_path(&self) -> Result<PathBuf, Failure> {
-        let output = self
-            .command("rclone")
-            .args(["config", "paths"])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| unrunnable("rclone", &error))?;
-        if !output.status.success() {
-            return Err(Failure::passed_on(output.status));
-        }
-        let paths = String::from_utf8_lossy(&output.stdout);
+        let paths = self.command("rclone").args(["config", "paths"]).read()?;
+        let paths = String::from_utf8_lossy(&paths);
         Ok(PathBuf::from(
             paths
                 .lines()
@@ -321,13 +298,14 @@ impl Rclone {
 /// A command that changes the machine, shown on stderr as `+ <command>` before it runs,
 /// with any variable it drops from the environment as `env -u <name>` in front.
 struct Change {
-    command: Command,
+    program: Program,
     shown: String,
 }
 
 impl Change {
     /// `command`, shown with the variables it drops from the environment.
-    fn new(command: Command) -> Self {
+    fn new(program: Program) -> Self {
+        let command = program.as_command();
         let mut words: Vec<&OsStr> = Vec::new();
         let dropped: Vec<&OsStr> = command
             .get_envs()
@@ -347,36 +325,23 @@ impl Change {
             .map(|word| word.to_string_lossy())
             .collect::<Vec<_>>()
             .join(" ");
-        Change { command, shown }
+        Change { program, shown }
     }
 
     /// `command`, shown as `shown`, for one whose arguments hold a secret.
-    fn hiding(command: Command, shown: &str) -> Self {
+    fn hiding(program: Program, shown: &str) -> Self {
         Change {
-            command,
+            program,
             shown: shown.to_owned(),
         }
     }
 
     /// Shows the command and runs it, its output passed on, failing with its exit
     /// code.
-    fn run(mut self) -> Result<(), Failure> {
+    fn run(self) -> Result<(), Failure> {
         let _ = writeln!(io::stderr(), "+ {}", self.shown);
-        let program = self.command.get_program().to_string_lossy().into_owned();
-        let status = self
-            .command
-            .status()
-            .map_err(|error| unrunnable(&program, &error))?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err(Failure::passed_on(status))
-        }
+        self.program.run()
     }
-}
-
-fn unrunnable(program: &str, error: &io::Error) -> Failure {
-    Failure::new(format_args!("cannot run {program}: {error}"), 1)
 }
 
 fn unwritable(path: &Path, error: &io::Error) -> Failure {

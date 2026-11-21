@@ -1,13 +1,13 @@
 //! The directories holding a config mise tracks.
 
 use std::path::Path;
-use std::process::Command;
 
 use super::mise::Mise;
 use super::options::Options;
 use super::place::Place;
 use super::temp_dirs::TempDirs;
 use crate::failure::Failure;
+use crate::git;
 
 /// The project directories of the configs mise tracks, each once, in order.
 #[derive(Debug)]
@@ -49,7 +49,7 @@ impl Tracked {
                 .map(str::to_owned)
                 .collect()),
             Ok(None) => Err(Failure::new(format_args!("{mise} failed"), 1)),
-            Err(error) => Err(Failure::new(format_args!("cannot run mise: {error}"), 1)),
+            Err(failure) => Err(failure),
         }
     }
 
@@ -114,10 +114,7 @@ fn linked_worktree(dir: &str) -> Result<bool, Failure> {
         "--git-dir",
         "--git-common-dir",
     ];
-    let output = Command::new("git")
-        .args(args)
-        .output()
-        .map_err(|error| Failure::new(format_args!("cannot run git: {error}"), 1))?;
+    let output = git::command(&args).output()?;
     if !output.status.success() {
         return Ok(false);
     }
