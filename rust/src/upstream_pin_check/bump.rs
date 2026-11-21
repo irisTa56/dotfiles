@@ -27,39 +27,14 @@ impl Scratch {
     /// While that branch exists, its pull request is open, so the move is made on the
     /// branch instead, over whatever a person added there.
     pub(super) fn move_on_origin(&self, differing: &Differing, proposal: Proposal) -> Status {
-        match self.move_on_proposal_branch(differing, proposal) {
+        let moved = match self.bump_branch_exists(proposal.branch) {
+            Ok(true) => self.move_on_bump_branch(differing, proposal.branch),
+            Ok(false) => self.propose_move(differing, proposal),
+            Err(status) => Err(status),
+        };
+        match moved {
             Ok(status) | Err(status) => status,
         }
-    }
-
-    fn move_on_proposal_branch(
-        &self,
-        differing: &Differing,
-        proposal: Proposal,
-    ) -> Result<Status, Status> {
-        self.refuse_unless_a_branch_name(proposal.branch)?;
-        if self.bump_branch_exists(proposal.branch)? {
-            self.move_on_bump_branch(differing, proposal.branch)
-        } else {
-            self.propose_move(differing, proposal)
-        }
-    }
-
-    /// Ends the run where `branch`, which `--branch-suffix` may have made, is no name git
-    /// takes for a branch, rather than at the push, where git's refusal reads as one of
-    /// permission.
-    fn refuse_unless_a_branch_name(&self, branch: &str) -> Result<(), Status> {
-        let checked = self
-            .git
-            .run(&["check-ref-format", &format!("refs/heads/{branch}")]);
-        if checked.success() {
-            return Ok(());
-        }
-        Failure(&format!(
-            "--branch-suffix makes {branch:?}, which is no name git takes for a branch"
-        ))
-        .report();
-        Err(Status::Unknown)
     }
 
     /// Whether `branch` exists on origin; a run that cannot tell ends here.

@@ -667,7 +667,8 @@ fn under_github_actions_opens_the_pull_request_as_a_draft_with_draft() {
     assert_eq!(request.body["draft"], true);
 }
 
-// Without --draft the pull request is one a merge finishes.
+// Without --draft the request carries no draft key, as before --draft existed, so a
+// repository whose plan has no drafts gets the request it always did.
 #[test]
 fn under_github_actions_opens_the_pull_request_ready_without_draft() {
     let up = Upstream::changing_lints(2);
@@ -684,7 +685,7 @@ fn under_github_actions_opens_the_pull_request_ready_without_draft() {
     let [request] = &requests[..] else {
         panic!("one request, not {requests:?}");
     };
-    assert_eq!(request.body["draft"], false);
+    assert!(request.body.get("draft").is_none(), "{}", request.body);
 }
 
 // Pins a repository wants proposed apart, such as an include a merge finishes beside a
@@ -723,33 +724,6 @@ fn under_github_actions_proposes_the_move_on_the_branch_branch_suffix_names() {
     assert_eq!(request.body["head"], "upstream-pin-bump-lints");
 }
 
-// A suffix that makes no name git takes for a branch would fail at the push, where the
-// message blames the token, so it is refused by name before anything is pushed.
-#[test]
-fn under_github_actions_refuses_a_branch_suffix_git_cannot_take_naming_the_value() {
-    let up = Upstream::changing_lints(2);
-    let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
-    let run = Runner::GitHubActions
-        .bump(&checkout)
-        .args(["--branch-suffix", "a b"])
-        .run();
-    assert_eq!(run.code(), 2, "exit code; output:\n{}", run.output());
-    assert!(
-        run.output().contains("a b"),
-        "the output does not name the value:\n{}",
-        run.output()
-    );
-    assert!(
-        !run.output().contains("contents: write"),
-        "the output blames the token:\n{}",
-        run.output()
-    );
-    assert_eq!(origin.commit(BUMP), None);
-    assert_eq!(origin.commit("upstream-pin-bump-a b"), None);
-}
-
 // While the pull request of the branch --branch-suffix names is open, a newer tip moves
 // the pins on that branch, over what a person added there, and leaves the default bump
 // branch, another series's, alone.
@@ -775,4 +749,25 @@ fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_suffix_name
     );
     assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
     assert!(api.requests().is_empty(), "{:?}", api.requests());
+}
+
+// A run whose pull request GitHub refused deletes the branch it pushed, which is the
+// suffixed one; deleting the task's default branch instead would close another series's
+// open pull request and leave this one's branch to stop every later run opening its own.
+#[test]
+fn under_github_actions_deletes_the_suffixed_branch_it_could_not_propose() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch-suffix", "lints"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(2, &["deleted upstream-pin-bump-lints again"]);
+    assert_eq!(origin.commit("upstream-pin-bump-lints"), None);
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
 }

@@ -45,7 +45,7 @@ pub(crate) struct Request {
     /// from there, so that pins proposed apart, in runs narrowed by pathspec, each have a
     /// pull request of their own.
     #[arg(long, requires = "bump", value_name = "SUFFIX")]
-    branch_suffix: Option<String>,
+    branch_suffix: Option<BranchSuffix>,
     /// The files to read pins from, as git pathspecs [default: every tracked file].
     #[arg(trailing_var_arg = true)]
     pathspecs: Vec<Pathspec>,
@@ -57,6 +57,12 @@ pub(crate) struct Request {
 /// a later run adds its own over them and never forces; merging the pull request deletes
 /// it where the repository deletes merged branches, and the next run pushes afresh.
 const BUMP_BRANCH: &str = "upstream-pin-bump";
+
+/// What `--branch-suffix` adds to the task's own branch name: letters, digits, hyphens
+/// and underscores, so that the name stays one git takes and one no other suffix's
+/// branch nests in or under.
+#[derive(Debug, Clone)]
+struct BranchSuffix(String);
 
 /// A git pathspec. One that opens with `-` is refused, since past the first pathspec
 /// it is an option written out of place, such as a `--bump` written last.

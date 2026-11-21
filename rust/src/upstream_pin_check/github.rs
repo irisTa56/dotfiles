@@ -56,13 +56,17 @@ impl GitHub {
         let header = dir.join("github-authorization");
         fs::write(&header, format!("Authorization: Bearer {}\n", self.token))
             .map_err(|error| format!("could not write the token's header file: {error}"))?;
-        let body = serde_json::json!({
+        let mut body = serde_json::json!({
             "head": pull.head,
             "base": pull.base,
             "title": pull.title,
             "body": pull.body,
-            "draft": pull.draft,
         });
+        // Only where asked for, so that any other request is the one GitHub always took,
+        // whatever a repository's plan says of drafts.
+        if pull.draft {
+            body["draft"] = serde_json::Value::Bool(true);
+        }
         let output = Command::new("curl")
             .args(["-sS", "-X", "POST"])
             .args(["--connect-timeout", CONNECT_TIMEOUT, "--max-time", MAX_TIME])

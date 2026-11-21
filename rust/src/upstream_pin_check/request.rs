@@ -3,7 +3,9 @@
 use std::env;
 use std::str::FromStr;
 
-use super::{BUMP_BRANCH, Failure, Pathspec, Pins, Proposal, Request, Scratch, Status};
+use super::{
+    BUMP_BRANCH, BranchSuffix, Failure, Pathspec, Pins, Proposal, Request, Scratch, Status,
+};
 use crate::git::Git;
 
 /// The status `git grep` exits with where nothing matches, which only means no tracked
@@ -45,7 +47,7 @@ impl Request {
     /// The branch --bump proposes its move on under GitHub Actions.
     fn branch(&self) -> String {
         match &self.branch_suffix {
-            Some(suffix) => format!("{BUMP_BRANCH}-{suffix}"),
+            Some(BranchSuffix(suffix)) => format!("{BUMP_BRANCH}-{suffix}"),
             None => BUMP_BRANCH.to_owned(),
         }
     }
@@ -86,5 +88,17 @@ impl FromStr for Pathspec {
             );
         }
         Ok(Pathspec(arg.to_owned()))
+    }
+}
+
+impl FromStr for BranchSuffix {
+    type Err = &'static str;
+
+    fn from_str(arg: &str) -> Result<Self, Self::Err> {
+        let allowed = |c: char| c.is_ascii_alphanumeric() || c == '-' || c == '_';
+        if arg.is_empty() || !arg.chars().all(allowed) {
+            return Err("a suffix is one or more letters, digits, hyphens and underscores");
+        }
+        Ok(BranchSuffix(arg.to_owned()))
     }
 }
