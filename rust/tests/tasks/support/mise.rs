@@ -8,6 +8,11 @@ use std::path::PathBuf;
 
 use tempfile::TempDir;
 
+/// What the stand-in prints where its `install` would run the consumer's `[hooks]
+/// postinstall`, as mise runs it on every install in a project that declares one unless
+/// `MISE_NO_HOOKS` is set.
+pub(crate) const POSTINSTALL: &str = "the consumer's postinstall ran";
+
 /// A directory holding a `mise` and a `dotfiles-tasks`, the latter the built binary.
 pub(crate) struct Mise {
     dir: TempDir,
@@ -26,9 +31,10 @@ impl Mise {
         Self::stand_in(0, "exit 1")
     }
 
-    /// A mise whose `install <tool>` exits with `status`, and whose `where <tool>` runs
-    /// `locate` for the tool last installed and exits 65 for any other, so that a wrapper
-    /// running another release than it installed fails.
+    /// A mise whose `install <tool>` prints `POSTINSTALL` unless `MISE_NO_HOOKS=1` and
+    /// exits with `status`, and whose `where <tool>` runs `locate` for the tool last
+    /// installed and exits 65 for any other, so that a wrapper running another release
+    /// than it installed fails.
     fn stand_in(status: i32, locate: &str) -> Self {
         let dir = TempDir::new().expect("a temporary directory can be made");
         let mise = dir.path().join("mise");
@@ -36,7 +42,9 @@ impl Mise {
             "#!/bin/sh\n\
              for arg; do tool=$arg; done\n\
              installed=\"$(dirname \"$0\")/installed\"\n\
-             [ \"$1\" = install ] && {{ printf %s \"$tool\" >\"$installed\"; exit {status}; }}\n\
+             [ \"$1\" = install ] && {{\n\
+                 [ \"$MISE_NO_HOOKS\" = 1 ] || echo \"{POSTINSTALL}\" >&2\n\
+                 printf %s \"$tool\" >\"$installed\"; exit {status}; }}\n\
              [ \"$1\" = where ] && {{ [ \"$tool\" = \"$(cat \"$installed\")\" ] || exit 65; {locate}; }}\n\
              exit 64\n"
         );

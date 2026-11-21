@@ -12,7 +12,9 @@
 # install, or an installation mise then cannot find, scans nothing, so it exits 2 rather
 # than with mise's own status. The binary runs from where mise installed it rather than
 # through `mise x`, which leaves the tools a task's header declares off PATH.
+# mise runs the consuming project's [hooks] postinstall on every install there, and
+# that setup is not this task's to run, so the install skips mise's hooks.
 tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.8.0' # x-release-please-version
-mise install --quiet "$tool" || exit 2
+MISE_NO_HOOKS=1 mise install --quiet "$tool" || exit 2
 dir=$(mise where "$tool") || exit 2
 exec "$dir/dotfiles-tasks" secrets-push-scan "$@"

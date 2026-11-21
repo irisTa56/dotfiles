@@ -329,7 +329,13 @@ impl Checkout {
             .join("../tasks")
             .join(path);
         let mut command = isolated("bash", self.dir.path());
-        command.arg(wrapper).args(args).env("PATH", mise.path());
+        // A run under a caller that skips mise's hooks would pass whether or not the
+        // wrapper skips them itself.
+        command
+            .arg(wrapper)
+            .args(args)
+            .env("PATH", mise.path())
+            .env_remove("MISE_NO_HOOKS");
         Run::fed(command, input)
     }
 }

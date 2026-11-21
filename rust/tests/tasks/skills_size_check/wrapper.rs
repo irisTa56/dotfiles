@@ -2,7 +2,7 @@
 //! the release it pins with mise and runs it.
 
 use crate::support::checkout::Checkout;
-use crate::support::mise::Mise;
+use crate::support::mise::{Mise, POSTINSTALL};
 
 /// A `SKILL.md` with a frontmatter, followed by `body`.
 fn skill(body: &str) -> String {
@@ -47,4 +47,15 @@ fn exits_as_skills_size_check_does_on_a_skill_past_the_limit() {
     Checkout::new(&[(".claude/skills/big/SKILL.md", &skill(&"a".repeat(19_801)))])
         .skills_size_check_wrapper(&[], &Mise::installing_with(0))
         .expect(1, &[".claude/skills/big/SKILL.md: 19801 UTF-16 code units"]);
+}
+
+// mise runs a consumer's `[hooks] postinstall` on every install in its project;
+// installing the release is the wrapper's business, not an occasion for the consumer's
+// setup.
+#[test]
+fn installs_the_release_without_running_the_consumers_postinstall() {
+    let run = Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
+        .skills_size_check_wrapper(&[], &Mise::installing_with(0));
+    assert_eq!(run.code(), 0, "{}", run.output());
+    assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }

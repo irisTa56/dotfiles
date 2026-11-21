@@ -2,7 +2,7 @@
 //! the release it pins with mise and runs it.
 
 use crate::support::checkout::Checkout;
-use crate::support::mise::Mise;
+use crate::support::mise::{Mise, POSTINSTALL};
 use crate::support::upstream::{ABSENT_COMMIT, Upstream};
 
 // Installing the release can fail, for a version not yet published or a host no binary
@@ -45,4 +45,17 @@ fn exits_as_upstream_pin_check_does_on_a_pin_whose_path_changed() {
         .upstream_pin_check_wrapper(&[], &Mise::installing_with(0))
         .expect(1, &[&format!("{}//lints differs", up.url())]);
     assert_eq!(checkout.read("Cargo.toml"), cargo.as_bytes());
+}
+
+// mise runs a consumer's `[hooks] postinstall` on every install in its project, and one
+// that registers git hooks there stops the push `--bump` makes in CI; installing the
+// release is the wrapper's business, not an occasion for the consumer's setup.
+#[test]
+fn installs_the_release_without_running_the_consumers_postinstall() {
+    let up = Upstream::new(&[&[("lints/a.toml", Some("a"))]]);
+    let cargo = format!("# {}\n", up.marker("lints", 0));
+    let run = Checkout::new(&[("Cargo.toml", &cargo)])
+        .upstream_pin_check_wrapper(&[], &Mise::installing_with(0));
+    assert_eq!(run.code(), 0, "{}", run.output());
+    assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }
