@@ -27,15 +27,6 @@ fn main() -> ExitCode {
         Some((command, _)) if command == "ask-email-in-request" => {
             pre_tool_use::ask_email_in_request::run()
         }
-        Some((command, _)) if command == "block-bsd-sed-inplace" => {
-            pre_tool_use::block_bsd_sed_inplace::run()
-        }
-        Some((command, _)) if command == "block-bsd-stat-format" => {
-            pre_tool_use::block_bsd_stat_format::run()
-        }
-        Some((command, _)) if command == "block-piped-git-push" => {
-            pre_tool_use::block_piped_git_push::run()
-        }
         Some((command, rest)) if command == "ccusage-popup" => ccusage_popup::run(rest),
         Some((command, rest)) if command == "find-kboat-repo-export-catalog" => {
             find_kboat_repo::export_catalog::run(rest)
@@ -57,7 +48,7 @@ fn main() -> ExitCode {
             // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
             let _ = writeln!(
                 io::stderr(),
-                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, block-bsd-sed-inplace, block-bsd-stat-format, block-piped-git-push, ccusage-popup, find-kboat-repo-export-catalog, find-kboat-repo-lookup, fnox-add-secret, git-sweep-branches, git-sync-base, mise-multi-upgrade, push-gist-skill, reply-language-stop, setup-dotfiles, skills-unmanaged, skills-update, with-new-terminal"
+                "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, ccusage-popup, find-kboat-repo-export-catalog, find-kboat-repo-lookup, fnox-add-secret, git-sweep-branches, git-sync-base, mise-multi-upgrade, push-gist-skill, reply-language-stop, setup-dotfiles, skills-unmanaged, skills-update, with-new-terminal"
             );
             ExitCode::from(2)
         }

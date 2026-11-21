@@ -4,9 +4,6 @@
 //! dead code.
 
 mod ask_email_in_request;
-mod block_bsd_sed_inplace;
-mod block_bsd_stat_format;
-mod block_piped_git_push;
 mod ccusage_popup;
 mod dispatch;
 mod find_kboat_repo;

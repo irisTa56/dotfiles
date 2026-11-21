@@ -2,12 +2,9 @@
 //! Claude is about to make and hands back its verdict.
 
 pub(crate) mod ask_email_in_request;
-pub(crate) mod block_bsd_sed_inplace;
-pub(crate) mod block_bsd_stat_format;
-pub(crate) mod block_piped_git_push;
 
 use std::io::{self, Write};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::ExitCode;
 
 use serde_json::{Map, Value, json};
 
@@ -34,29 +31,10 @@ impl BashCall {
     }
 }
 
-/// A tool that comes as GNU's or BSD's, of which a hook blocks a BSD form only where the
-/// one on PATH is GNU's.
-pub(crate) struct Tool(&'static str);
-
-impl Tool {
-    /// Whether the tool on PATH is GNU's, the one of the two that knows `--version`.
-    pub(crate) fn is_gnu(&self) -> bool {
-        Command::new(self.0)
-            .arg("--version")
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .is_ok_and(|status| status.success())
-    }
-}
-
 /// What a hook decides about a call.
 pub(crate) enum Verdict {
     /// The call goes ahead, as far as this hook is concerned.
     Pass,
-    /// The call is blocked, and Claude is told why.
-    Block(&'static str),
     /// The user is asked whether the call, as `updated_input` gives it, goes ahead, and
     /// Claude is told why.
     Ask {
@@ -66,16 +44,11 @@ pub(crate) enum Verdict {
 }
 
 impl Verdict {
-    /// Ends the hook as Claude Code reads it: exit 2 blocks the call and hands stderr
-    /// back to Claude, and exit 0 lets it through, or with a decision on stdout puts it
-    /// to the user.
+    /// Ends the hook as Claude Code reads it: exit 0 lets the call through, or with a
+    /// decision on stdout puts it to the user.
     pub(crate) fn report(self) -> ExitCode {
         match self {
             Verdict::Pass => ExitCode::SUCCESS,
-            Verdict::Block(reason) => {
-                let _ = io::stderr().write_all(reason.as_bytes());
-                ExitCode::from(2)
-            }
             Verdict::Ask {
                 reason,
                 updated_input,
