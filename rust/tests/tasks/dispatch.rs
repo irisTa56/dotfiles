@@ -1,7 +1,8 @@
 //! How `dotfiles-tasks` picks a subcommand, what it does with a name it has none for, and
 //! how each subcommand answers `--help` and arguments it does not take.
 
-use crate::support::checkout::{Checkout, Stream};
+use crate::support::checkout::Checkout;
+use crate::support::invocation::Stream;
 
 /// Every subcommand, by its name.
 const TASKS: [&str; 4] = [
@@ -11,18 +12,41 @@ const TASKS: [&str; 4] = [
     "upstream-pin-check",
 ];
 
+// A run naming no task has nothing to do, and says so as a usage error on stderr.
+#[test]
+fn fails_as_a_usage_error_on_stderr_without_a_task() {
+    let run = Checkout::new(&[])
+        .dotfiles_tasks()
+        .closing(Stream::Stdout)
+        .run();
+    assert_eq!(run.code(), 2, "output: {}", run.output());
+    assert!(
+        run.output().contains("Usage: dotfiles-tasks"),
+        "no usage in:\n{}",
+        run.output()
+    );
+}
+
 // A caller that reads only stdout may close stderr, and a name with no subcommand still
 // has to end as a usage error.
 #[test]
 fn fails_as_a_usage_error_on_an_unknown_task_when_stderr_is_closed() {
-    let run = Checkout::new(&[]).task_closing("frobnicate", Stream::Stderr, &[]);
+    let run = Checkout::new(&[])
+        .dotfiles_tasks()
+        .arg("frobnicate")
+        .closing(Stream::Stderr)
+        .run();
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
 // A name with no subcommand, such as a misspelt one, is a usage error, said on stderr.
 #[test]
 fn fails_as_a_usage_error_on_an_unknown_task_naming_it_on_stderr() {
-    let run = Checkout::new(&[]).task_closing("frobnicate", Stream::Stdout, &[]);
+    let run = Checkout::new(&[])
+        .dotfiles_tasks()
+        .arg("frobnicate")
+        .closing(Stream::Stdout)
+        .run();
     assert_eq!(run.code(), 2, "output: {}", run.output());
     assert!(
         run.output().contains("'frobnicate'"),
@@ -34,7 +58,11 @@ fn fails_as_a_usage_error_on_an_unknown_task_naming_it_on_stderr() {
 // `--help` is asked for, so it is the run's output, on stdout, and the run succeeds.
 #[test]
 fn help_lists_every_task_on_stdout() {
-    let run = Checkout::new(&[]).task_closing("--help", Stream::Stderr, &[]);
+    let run = Checkout::new(&[])
+        .dotfiles_tasks()
+        .arg("--help")
+        .closing(Stream::Stderr)
+        .run();
     assert_eq!(run.code(), 0, "output: {}", run.output());
     for task in TASKS {
         assert!(
@@ -49,7 +77,12 @@ fn help_lists_every_task_on_stdout() {
 fn help_of_each_task_gives_its_usage_on_stdout() {
     let checkout = Checkout::new(&[]);
     for task in TASKS {
-        let run = checkout.task_closing(task, Stream::Stderr, &["--help"]);
+        let run = checkout
+            .dotfiles_tasks()
+            .arg(task)
+            .arg("--help")
+            .closing(Stream::Stderr)
+            .run();
         assert_eq!(run.code(), 0, "{task} --help; output: {}", run.output());
         assert!(
             run.output()
@@ -66,7 +99,12 @@ fn help_of_each_task_gives_its_usage_on_stdout() {
 fn each_task_fails_as_a_usage_error_on_stderr_on_an_option_it_does_not_take() {
     let checkout = Checkout::new(&[]);
     for task in TASKS {
-        let run = checkout.task_closing(task, Stream::Stdout, &["--frobnicate"]);
+        let run = checkout
+            .dotfiles_tasks()
+            .arg(task)
+            .arg("--frobnicate")
+            .closing(Stream::Stdout)
+            .run();
         assert_eq!(run.code(), 2, "{task}; output: {}", run.output());
         assert!(
             run.output().contains("'--frobnicate'"),
@@ -80,6 +118,9 @@ fn each_task_fails_as_a_usage_error_on_stderr_on_an_option_it_does_not_take() {
 #[test]
 fn link_check_staged_fails_as_a_usage_error_on_an_argument() {
     Checkout::new(&[])
-        .task("link-check-staged", &["README.md"], &[])
+        .dotfiles_tasks()
+        .arg("link-check-staged")
+        .arg("README.md")
+        .run()
         .expect(2, &["'README.md'"]);
 }

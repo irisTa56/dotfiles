@@ -10,7 +10,8 @@ use super::staged;
 #[test]
 fn fails_as_unable_to_check_where_the_release_it_pins_cannot_be_installed() {
     let run = staged(&[("a.md", "[gone](missing.md)\n")])
-        .link_check_staged_wrapper(&Mise::installing_with(1));
+        .wrapper("link-check/staged.sh", &Mise::installing_with(1))
+        .run();
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
@@ -19,7 +20,8 @@ fn fails_as_unable_to_check_where_the_release_it_pins_cannot_be_installed() {
 #[test]
 fn fails_as_unable_to_check_where_mise_cannot_locate_the_release_it_installed() {
     let run = staged(&[("a.md", "[gone](missing.md)\n")])
-        .link_check_staged_wrapper(&Mise::installing_but_not_locating());
+        .wrapper("link-check/staged.sh", &Mise::installing_but_not_locating())
+        .run();
     assert_eq!(run.code(), 2, "output: {}", run.output());
 }
 
@@ -27,7 +29,8 @@ fn fails_as_unable_to_check_where_mise_cannot_locate_the_release_it_installed() 
 #[test]
 fn exits_as_link_check_staged_does_on_a_broken_link() {
     staged(&[("a.md", "[gone](missing.md)\n")])
-        .link_check_staged_wrapper(&Mise::installing_with(0))
+        .wrapper("link-check/staged.sh", &Mise::installing_with(0))
+        .run()
         .expect(
             1,
             &[
@@ -42,7 +45,9 @@ fn exits_as_link_check_staged_does_on_a_broken_link() {
 // setup.
 #[test]
 fn installs_the_release_without_running_the_consumers_postinstall() {
-    let run = staged(&[("a.md", "no link\n")]).link_check_staged_wrapper(&Mise::installing_with(0));
+    let run = staged(&[("a.md", "no link\n")])
+        .wrapper("link-check/staged.sh", &Mise::installing_with(0))
+        .run();
     assert_eq!(run.code(), 0, "{}", run.output());
     assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }

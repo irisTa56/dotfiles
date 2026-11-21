@@ -11,7 +11,8 @@ use crate::support::upstream::{ABSENT_COMMIT, Upstream};
 fn fails_as_unable_to_tell_where_the_release_it_pins_cannot_be_installed() {
     let cargo = format!("# git::https://example.com/u.git//p?ref={ABSENT_COMMIT}\n");
     let run = Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check_wrapper(&[], &Mise::installing_with(1));
+        .wrapper("upstream/pin-check.sh", &Mise::installing_with(1))
+        .run();
     assert_eq!(run.code(), 2, "{}", run.output());
     assert_eq!(run.output(), "");
 }
@@ -27,7 +28,9 @@ fn passes_its_arguments_to_upstream_pin_check_as_given() {
     let behind = format!("# {}\n", up.marker("lints", 0));
     let current = format!("# {}\n", up.marker("lints", 1));
     Checkout::new(&[("Cargo.toml", &behind), ("lints b.toml", &current)])
-        .upstream_pin_check_wrapper(&["lints b.toml"], &Mise::installing_with(0))
+        .wrapper("upstream/pin-check.sh", &Mise::installing_with(0))
+        .arg("lints b.toml")
+        .run()
         .expect(0, &["[ok]"]);
 }
 
@@ -42,7 +45,8 @@ fn exits_as_upstream_pin_check_does_on_a_pin_whose_path_changed() {
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout
-        .upstream_pin_check_wrapper(&[], &Mise::installing_with(0))
+        .wrapper("upstream/pin-check.sh", &Mise::installing_with(0))
+        .run()
         .expect(1, &[&format!("{}//lints differs", up.url())]);
     assert_eq!(checkout.read("Cargo.toml"), cargo.as_bytes());
 }
@@ -55,7 +59,8 @@ fn installs_the_release_without_running_the_consumers_postinstall() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))]]);
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let run = Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check_wrapper(&[], &Mise::installing_with(0));
+        .wrapper("upstream/pin-check.sh", &Mise::installing_with(0))
+        .run();
     assert_eq!(run.code(), 0, "{}", run.output());
     assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }

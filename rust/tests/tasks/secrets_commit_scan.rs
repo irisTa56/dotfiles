@@ -13,7 +13,8 @@ fn leaking() -> String {
 #[test]
 fn fails_on_a_secret_the_commit_stages() {
     Checkout::new(&[("a.txt", &leaking())])
-        .secrets_commit_scan_in(".")
+        .shell_task("secrets/commit-scan.sh")
+        .run()
         .expect(1, &["github-pat", "a.txt"]);
 }
 
@@ -21,7 +22,8 @@ fn fails_on_a_secret_the_commit_stages() {
 #[test]
 fn passes_a_commit_that_stages_no_secret() {
     Checkout::new(&[("a.txt", "fine\n")])
-        .secrets_commit_scan_in(".")
+        .shell_task("secrets/commit-scan.sh")
+        .run()
         .expect(0, &[]);
 }
 
@@ -30,7 +32,10 @@ fn passes_a_commit_that_stages_no_secret() {
 fn leaves_out_a_secret_the_commit_does_not_stage() {
     let checkout = Checkout::new(&[("a.txt", "fine\n")]);
     checkout.write("b.txt", leaking());
-    checkout.secrets_commit_scan_in(".").expect(0, &[]);
+    checkout
+        .shell_task("secrets/commit-scan.sh")
+        .run()
+        .expect(0, &[]);
 }
 
 // mise runs a task at the project root, which a config below the git root puts in a
@@ -40,7 +45,9 @@ fn fails_on_a_secret_staged_outside_the_directory_it_runs_in() {
     let checkout = Checkout::new(&[("a.txt", &leaking())]);
     checkout.make_dir("sub");
     checkout
-        .secrets_commit_scan_in("sub")
+        .shell_task("secrets/commit-scan.sh")
+        .in_dir("sub")
+        .run()
         .expect(1, &["github-pat", "a.txt"]);
 }
 
@@ -50,6 +57,7 @@ fn fails_with_gits_status_outside_a_repository() {
     let checkout = Checkout::new(&[("a.txt", &leaking())]);
     checkout.remove(".git");
     checkout
-        .secrets_commit_scan_in(".")
+        .shell_task("secrets/commit-scan.sh")
+        .run()
         .expect(128, &["not a git repository"]);
 }
