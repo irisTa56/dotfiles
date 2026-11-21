@@ -81,6 +81,14 @@ jobs:
           # this action puts on PATH, after clearing every MISE_ variable.
           install_args: rust lychee gitleaks trufflehog
           cache: false # as in `markdown-lint`
+      # Caches the built dependencies, not mise's tools, which `cache: false` above
+      # leaves uncached. Measured on one commit over 10 paired runs, it cut the job
+      # from 47-68 s to 42-49 s (mean difference 14 s, 95% interval 8-20 s) when the
+      # cache matched; a changed Cargo.lock restores only part of it, and the run that
+      # saves a new cache took 7 s longer than one without.
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: rust
       - run: mise run qa:rust
 
   config-qa:
