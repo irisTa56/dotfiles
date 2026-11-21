@@ -1,4 +1,4 @@
-//! The `PreToolUse` hooks for Bash, one subcommand each, sharing how a hook reads the call
+//! The `PreToolUse` hook for Bash that runs as a subcommand, and how it reads the call
 //! Claude is about to make and hands back its verdict.
 
 pub(crate) mod ask_email_in_request;

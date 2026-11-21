@@ -52,11 +52,11 @@ pub(crate) struct Hook {
 }
 
 impl Hook {
-    /// The hook run as the subcommand `name`, asking the user rather than blocking, and
-    /// asking `tool` on PATH what it judges by.
+    /// The hook run as the subcommand `name`, asking `tool` on PATH what it judges by.
     pub(crate) const fn asking(name: &'static str, tool: &'static str) -> Self {
         Hook { name, tool }
     }
+
     /// Runs the hook on a Bash call of `command`, under the tool `tool`.
     pub(crate) fn run(&self, test: &str, tool: Tool, command: &str) -> Run {
         let input = serde_json::json!({
