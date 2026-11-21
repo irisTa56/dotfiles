@@ -137,6 +137,56 @@ dependencies:
     );
 }
 
+// A key with a null value is a dependency deploying nothing, not a lockfile to refuse.
+#[test]
+fn reads_a_lockfile_whose_dependency_has_a_null_deployed_files_list() {
+    let sandbox = Fixture::new(
+        "reads-null-deployed-files",
+        "\
+dependencies:
+- name: null-list
+  deployed_files:
+- name: skill
+  deployed_files:
+  - .claude/skills/deployed/SKILL.md
+",
+    );
+    sandbox.file(".claude/skills/deployed/SKILL.md");
+    sandbox.file(".claude/skills/local/SKILL.md");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(
+        outcome(&run),
+        (Some(0), ".claude/skills/local\n".to_owned(), String::new())
+    );
+}
+
+// An unquoted commit hash such as 1234e567 is a string to the lockfile's reader whatever
+// number YAML 1.2 could read it as.
+#[test]
+fn reads_a_lockfile_whose_resolved_commit_reads_as_a_float() {
+    let sandbox = Fixture::new(
+        "reads-float-like-commit",
+        "\
+dependencies:
+- name: skill
+  resolved_commit: 1234e567
+  deployed_files:
+  - .claude/skills/deployed/SKILL.md
+",
+    );
+    sandbox.file(".claude/skills/deployed/SKILL.md");
+    sandbox.file(".claude/skills/local/SKILL.md");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(
+        outcome(&run),
+        (Some(0), ".claude/skills/local\n".to_owned(), String::new())
+    );
+}
+
 // Hidden entries count too, and the list is in byte order.
 #[test]
 fn lists_every_unmanaged_entry_in_byte_order_hidden_ones_included() {

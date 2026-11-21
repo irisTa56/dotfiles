@@ -14,17 +14,17 @@ const FILE: &str = "apm.lock.yaml";
 
 /// What apm.lock.yaml holds.
 pub(crate) struct ApmLock {
-    /// The whole document, for a message to show what was read.
-    document: Value,
+    /// The file as read, for a message to show.
+    text: String,
     /// The fields the commands read, each as the text the lockfile writes it in.
     fields: Fields,
 }
 
 /// The part of the lockfile the commands read.
 ///
-/// It is read into text fields rather than through the untyped `document`, which takes
-/// a plain scalar for a number where YAML 1.2 says it is one: a commit such as
-/// `1234e567…`, which APM leaves unquoted, would come back as a float.
+/// It is read into text fields rather than as untyped values, which take a plain scalar
+/// for a number where YAML 1.2 says it is one: a commit such as `1234e567…`, which APM
+/// leaves unquoted, would come back as a float, or fail to parse as one.
 #[derive(Deserialize)]
 struct Fields {
     dependencies: Option<Vec<LockedDependency>>,
@@ -43,8 +43,8 @@ pub(crate) struct LockedDependency {
     virtual_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     resolved_commit: Option<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    deployed_files: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    deployed_files: Option<Vec<String>>,
 }
 
 impl ApmLock {
@@ -52,12 +52,9 @@ impl ApmLock {
     pub(crate) fn read(dir: &Path) -> Result<Self, Failure> {
         let text = fs::read_to_string(dir.join(FILE))
             .map_err(|error| Failure::new(format_args!("cannot read {FILE}: {error}"), 1))?;
-        let parsing = |error: serde_saphyr::Error| {
-            Failure::new(format_args!("cannot parse {FILE}: {error}"), 1)
-        };
-        let document = serde_saphyr::from_str(&text).map_err(parsing)?;
-        let fields = serde_saphyr::from_str(&text).map_err(parsing)?;
-        Ok(ApmLock { document, fields })
+        let fields = serde_saphyr::from_str(&text)
+            .map_err(|error| Failure::new(format_args!("cannot parse {FILE}: {error}"), 1))?;
+        Ok(ApmLock { text, fields })
     }
 
     /// The dependencies the lockfile lists, or `None` where it has no such list.
@@ -71,7 +68,8 @@ impl ApmLock {
         self.dependencies()
             .unwrap_or_default()
             .iter()
-            .flat_map(|dependency| &dependency.deployed_files)
+            .filter_map(|dependency| dependency.deployed_files.as_deref())
+            .flatten()
             .map(String::as_str)
     }
 
@@ -83,10 +81,14 @@ impl ApmLock {
     }
 }
 
-/// The lockfile as compact JSON, as a message naming what was read shows it.
+/// The lockfile as compact JSON, as a message naming what was read shows it, or as its
+/// text where it reads as no JSON value.
 impl fmt::Display for ApmLock {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.document.fmt(formatter)
+        match serde_saphyr::from_str::<Value>(&self.text) {
+            Ok(document) => document.fmt(formatter),
+            Err(_) => formatter.write_str(&self.text),
+        }
     }
 }
 

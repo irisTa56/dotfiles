@@ -193,9 +193,17 @@ impl Fixture {
     }
 }
 
+/// A list of one pull request, merged at `date` into `base` of a repository whose
+/// default branch is `main`.
 fn pulls(date: &str, base: &str) -> String {
+    format!("[{}]", pull(date, base))
+}
+
+/// A pull request merged at `date` into `base` of a repository whose default branch is
+/// `main`.
+fn pull(date: &str, base: &str) -> String {
     format!(
-        r#"[{{"merged_at": "{date}", "base": {{"ref": "{base}", "repo": {{"default_branch": "main"}}}}}}]"#
+        r#"{{"merged_at": "{date}", "base": {{"ref": "{base}", "repo": {{"default_branch": "main"}}}}}}"#
     )
 }
 
@@ -356,6 +364,37 @@ fn asks_about_a_whole_repository_by_its_commits_and_updates_it_by_name() {
         ]
     );
     assert_eq!(sandbox.apm_calls()[0], "update --yes whole");
+}
+
+// The hold counts from the latest merge into the default branch, wherever GitHub lists
+// it, and a later merge into another branch does not count.
+#[test]
+fn holds_by_the_latest_of_several_merges_into_the_default_branch() {
+    let sandbox = Fixture::new("several-merges", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.skill("recent", &Answer::NoPull);
+    let recent = hours_ago(2);
+    sandbox.answer(
+        "repos/o/r/commits/sha-skills-recent/pulls",
+        &format!(
+            "[{}, {}, {}, {}]",
+            pull(OLD, "main"),
+            pull(&recent, "main"),
+            pull("2026-02-01T00:00:00Z", "main"),
+            pull(&hours_ago(1), "dev")
+        ),
+    );
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(run.code, Some(0), "{}", run.out);
+    assert!(
+        run.lines()
+            .contains(&format!("recent: held, last change merged {recent}").as_str()),
+        "{}",
+        run.out
+    );
+    assert_eq!(sandbox.apm_calls()[0], "update --yes o/r/skills/old own");
 }
 
 #[test]
