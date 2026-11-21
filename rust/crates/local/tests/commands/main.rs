@@ -4,17 +4,17 @@
 //! dead code.
 
 mod ask_email_in_request;
-mod ccusage_popup;
+mod ccusage;
 mod dispatch;
+mod dotfiles_setup;
 mod find_kboat_repo;
 mod fnox_add_secret;
 mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;
-mod push_gist_skill;
 mod reply_language_stop;
-mod setup_dotfiles;
+mod skills_push;
 mod skills_unmanaged;
 mod skills_update;
 mod support;

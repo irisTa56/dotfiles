@@ -1,4 +1,5 @@
-//! `ccusage-popup`: Claude Code usage over a period, as tables in a Quick Look popup.
+//! The `ccusage` subcommand: Claude Code usage over a period, as tables in a Quick Look
+//! popup.
 
 mod command;
 mod entry;

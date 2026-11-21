@@ -1,4 +1,4 @@
-//! `push-gist-skill`: pushes local edits to a gist-sourced skill back to its gist, then
+//! `skills-push`: pushes local edits to a gist-sourced skill back to its gist, then
 //! moves the pin to them.
 //!
 //! APM deploys the skill from apm.yml's gist dependency (aliased to the skill's name)

@@ -1,8 +1,9 @@
 //! The commands for this machine alone, one subcommand each, which `mise run
 //! local:install` installs into `~/.local/bin` from the main checkout.
 
-mod ccusage_popup;
+mod ccusage;
 mod dotfiles_checkout;
+mod dotfiles_setup;
 mod failure;
 mod find_kboat_repo;
 mod fnox_add_secret;
@@ -11,9 +12,8 @@ mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;
-mod push_gist_skill;
 mod reply_language_stop;
-mod setup_dotfiles;
+mod skills_push;
 mod skills_unmanaged;
 mod skills_update;
 mod with_new_terminal;
@@ -34,16 +34,16 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Command {
     AskEmailInRequest(pre_tool_use::ask_email_in_request::Request),
-    CcusagePopup(ccusage_popup::Request),
+    Ccusage(ccusage::Request),
+    DotfilesSetup(dotfiles_setup::Request),
     FindKboatRepoExportCatalog(find_kboat_repo::export_catalog::Request),
     FindKboatRepoLookup(find_kboat_repo::lookup::Request),
     FnoxAddSecret(fnox_add_secret::Request),
     GitSweepBranches(git_sweep_branches::Request),
     GitSyncBase(git_sync_base::Request),
     MiseMultiUpgrade(mise_multi_upgrade::Request),
-    PushGistSkill(push_gist_skill::Request),
     ReplyLanguageStop(reply_language_stop::Request),
-    SetupDotfiles(setup_dotfiles::Request),
+    SkillsPush(skills_push::Request),
     SkillsUnmanaged(skills_unmanaged::Request),
     SkillsUpdate(skills_update::Request),
     WithNewTerminal(with_new_terminal::Request),
@@ -54,16 +54,16 @@ fn main() -> ExitCode {
     // does; a write it cannot make there, as to a closed pipe, is dropped.
     let outcome = match Cli::parse().command {
         Command::AskEmailInRequest(request) => request.run(),
-        Command::CcusagePopup(request) => request.run(),
+        Command::Ccusage(request) => request.run(),
+        Command::DotfilesSetup(request) => request.run(),
         Command::FindKboatRepoExportCatalog(request) => request.run(),
         Command::FindKboatRepoLookup(request) => request.run(),
         Command::FnoxAddSecret(request) => request.run(),
         Command::GitSweepBranches(request) => request.run(),
         Command::GitSyncBase(request) => request.run(),
         Command::MiseMultiUpgrade(request) => request.run(),
-        Command::PushGistSkill(request) => request.run(),
         Command::ReplyLanguageStop(request) => request.run(),
-        Command::SetupDotfiles(request) => request.run(),
+        Command::SkillsPush(request) => request.run(),
         Command::SkillsUnmanaged(request) => request.run(),
         Command::SkillsUpdate(request) => request.run(),
         Command::WithNewTerminal(request) => request.run(),

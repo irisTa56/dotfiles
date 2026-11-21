@@ -1,4 +1,4 @@
-//! `setup-dotfiles`: sets this machine up around a dotfiles checkout: dircolors, the
+//! `dotfiles-setup`: sets this machine up around a dotfiles checkout: dircolors, the
 //! zsh startup files, npm's and Hex's release windows (README.md, "Release window"),
 //! and rclone's config encryption. Each step is safe to repeat, since `mise bootstrap`
 //! runs it on every run.
@@ -22,7 +22,7 @@ const COLORS: &str = "https://raw.githubusercontent.com/trapd00r/LS_COLORS/maste
 /// Downloads ~/.dircolors, has ~/.zshenv, ~/.zprofile and ~/.zshrc source the main
 /// checkout's zsh fragments, sets npm's and Hex's release windows, and encrypts rclone's
 /// config with a password it keeps in the login keychain. Every step is safe to repeat.
-/// Run it as `mise run setup:dotfiles`.
+/// Run it as `mise run dotfiles:setup`.
 #[derive(Debug, Args)]
 pub(crate) struct Request {}
 

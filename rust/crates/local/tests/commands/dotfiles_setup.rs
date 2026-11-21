@@ -1,4 +1,4 @@
-//! `setup-dotfiles`: sets up this machine's shell startup files, dircolors, release
+//! `dotfiles-setup`: sets up this machine's shell startup files, dircolors, release
 //! windows and rclone config encryption, run with the real git and openssl against a
 //! checkout and a home of the test's own. Fakes stand in for curl, npm, mix, rclone and
 //! security, so nothing reaches the network, the keychain or the machine's own config,
@@ -24,7 +24,7 @@ impl Fixture {
     /// empty home.
     fn new(test: &str) -> Self {
         let fixture = Fixture {
-            sandbox: Sandbox::new("setup-dotfiles", test, &["home", "repo"]),
+            sandbox: Sandbox::new("dotfiles-setup", test, &["home", "repo"]),
         };
         fixture.write(
             "rust/crates/local/Cargo.toml",
@@ -176,10 +176,10 @@ esac
         command
     }
 
-    /// Runs `setup-dotfiles` with `args` in `dir`.
+    /// Runs `dotfiles-setup` with `args` in `dir`.
     fn run(&self, dir: &Path, args: &[&str]) -> Output {
         self.command(DOTFILES_LOCAL, dir)
-            .arg("setup-dotfiles")
+            .arg("dotfiles-setup")
             .args(args)
             .output()
             .expect("dotfiles-local starts")
@@ -566,10 +566,10 @@ fn prints_usage_on_help_and_fails_as_a_usage_error_on_arguments() {
     let extra = sandbox.run(&sandbox.repo(), &["now"]);
 
     assert_eq!(help.status.code(), Some(0), "{}", stderr(&help));
-    let usage = "Usage: dotfiles-local setup-dotfiles\n";
+    let usage = "Usage: dotfiles-local dotfiles-setup\n";
     let help_out = String::from_utf8_lossy(&help.stdout);
     assert!(
-        help_out.contains("`mise run setup:dotfiles`") && help_out.contains(usage),
+        help_out.contains("`mise run dotfiles:setup`") && help_out.contains(usage),
         "{help_out}"
     );
     let extra_err = stderr(&extra);

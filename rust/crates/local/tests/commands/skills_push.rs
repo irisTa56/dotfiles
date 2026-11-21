@@ -1,4 +1,4 @@
-//! `push-gist-skill`: pushes a gist-sourced skill's local SKILL.md back to its gist and
+//! `skills-push`: pushes a gist-sourced skill's local SKILL.md back to its gist and
 //! moves the pin to it, run with the real git and yq against a checkout of the test's
 //! own. git's config sends every gist URL to a bare repository in the sandbox, and a
 //! fake apm and gh stand in for theirs, so nothing reaches gist.github.com.
@@ -28,7 +28,7 @@ impl Fixture {
     /// holds an edited SKILL.md.
     fn new(test: &str) -> Self {
         let fixture = Fixture {
-            sandbox: Sandbox::new("push-gist-skill", test, &["repo", "seed"]),
+            sandbox: Sandbox::new("skills-push", test, &["repo", "seed"]),
         };
         fixture.write_config();
         fixture.fake_apm();
@@ -169,10 +169,10 @@ P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host ==
         command
     }
 
-    /// Runs `push-gist-skill` with `args` in `dir`.
+    /// Runs `skills-push` with `args` in `dir`.
     fn run(&self, dir: &Path, args: &[&str]) -> Output {
         self.command(DOTFILES_LOCAL, dir)
-            .arg("push-gist-skill")
+            .arg("skills-push")
             .args(args)
             .output()
             .expect("dotfiles-local starts")
@@ -490,7 +490,7 @@ fn prints_its_usage_on_help() {
 
         assert_eq!((code, stderr.as_str()), (Some(0), ""), "{flag}");
         assert!(
-            stdout.contains("Usage: dotfiles-local push-gist-skill <NAME>\n"),
+            stdout.contains("Usage: dotfiles-local skills-push <NAME>\n"),
             "{flag}: {stdout}"
         );
     }
@@ -506,7 +506,7 @@ fn fails_as_a_usage_error_on_other_than_one_name() {
         assert_eq!((code, stdout.as_str()), (Some(2), ""), "{args:?}");
         assert!(
             stderr.starts_with("error: ")
-                && stderr.contains("Usage: dotfiles-local push-gist-skill <NAME>\n"),
+                && stderr.contains("Usage: dotfiles-local skills-push <NAME>\n"),
             "{args:?}: {stderr}"
         );
     }
