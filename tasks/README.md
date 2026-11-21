@@ -17,6 +17,7 @@ A consuming repository picks them up with a [`task_config.includes`](https://mis
 A job that sets [`MISE_TASK_RUN_AUTO_INSTALL=false`](https://mise.jdx.dev/configuration/settings.html#task.run_auto_install) turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
 Beyond that the library assumes git and bash.
 A task that runs the `dotfiles-tasks` binary, which every one of them but `secrets:commit-scan` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
+Such a task prints its usage on `--help` and exits 0 having done nothing else, and exits 2 on an argument it does not take, saying which.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -89,7 +90,7 @@ Running it again changes nothing, and it lands in the config every worktree shar
 It needs git 2.54, [the release that added hooks defined in config](https://github.com/git/git/blob/v2.54.0/Documentation/RelNotes/2.54.0.adoc); an older git ignores the keys and scans nothing, and `git hook list pre-push` naming `secrets-push-scan` is what shows it will run.
 A push from an environment with no mise on PATH, an editor's Git UI say, fails on either hook rather than going out unscanned.
 
-It exits 1 on a hit, and 2 where the release it runs cannot be installed; a scan that could not answer exits non-zero as well, with git's own status where a git command failed, and any of these refuses the push.
+It exits 1 on a hit, and 2 where the release it runs cannot be installed or no remote's name reaches it; a scan that could not answer exits non-zero as well, with git's own status where a git command failed, and any of these refuses the push.
 
 ### `link-check:staged`
 
@@ -101,7 +102,8 @@ A file whose name contains a newline, or is not UTF-8, is not matched, and goes 
 It runs at the repository root, so lychee runs under that repository's `lychee.toml`, whose [settings](https://lychee.cli.rs/guides/config/) decide how links are checked — whether over the network, how long a result is cached, which fragments are looked for — with `--cache` added.
 lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lycheecache`, there, so the repository has to ignore it; it lives in each checkout, so a new worktree starts with it empty.
 
-It exits 1 on a broken link, and 2 where the release it runs cannot be installed; either blocks the commit.
+It takes no argument.
+It exits 1 on a broken link, and 2 on an argument or where the release it runs cannot be installed; either blocks the commit.
 A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
 The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
