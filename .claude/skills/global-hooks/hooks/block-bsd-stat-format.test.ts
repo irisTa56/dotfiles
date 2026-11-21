@@ -91,7 +91,7 @@ describe("block-bsd-stat-format", () => {
     on("process.run", () => ({ value: null as never }));
     const verdict = await check($, "stat -f %z file");
     expect(verdict.decision).toBe("deny");
-    expect(verdict.reason).toContain("block-bsd-stat-format");
+    expect(verdict.reason).toContain("block-bsd-stat-format: TypeError");
   });
 
   // Where the shell would run a bare stat with -f and a format, the call is

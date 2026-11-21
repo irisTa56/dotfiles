@@ -89,7 +89,7 @@ describe("block-bsd-sed-inplace", () => {
     on("process.run", () => ({ value: null as never }));
     const verdict = await check($, "sed -i '' 's/a/b/' file");
     expect(verdict.decision).toBe("deny");
-    expect(verdict.reason).toContain("block-bsd-sed-inplace");
+    expect(verdict.reason).toContain("block-bsd-sed-inplace: TypeError");
   });
 
   // Where the shell would run a bare sed with -i and an empty suffix, the call

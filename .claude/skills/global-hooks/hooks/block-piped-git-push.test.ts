@@ -94,6 +94,20 @@ describe("block-piped-git-push", () => {
     });
   }
 
+  // A long chain with no push anywhere passes, and is judged promptly: the
+  // judging must not backtrack over the many && segments until the hook's
+  // budget runs out and its failure handler blocks the call.
+  test("passes a long chain with no push, promptly", async ($, on) => {
+    allowed(on);
+    const command =
+      "git merge b | tail -1 && git status && ".repeat(200) + "true";
+    const start = performance.now();
+    const verdict = await check($, command);
+    const elapsed = performance.now() - start;
+    expect(verdict).toEqual(ALLOWED);
+    expect(elapsed).toBeLessThan(1000);
+  });
+
   // A line that mentions pipefail is taken to set it, under which && tests
   // every stage, so it passes. Another line of the same command is still judged.
   test("skips a line that mentions pipefail", async ($, on) => {
