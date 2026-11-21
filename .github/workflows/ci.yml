@@ -84,8 +84,9 @@ jobs:
       # Caches the built dependencies, not mise's tools, which `cache: false` above
       # leaves uncached. Measured in #508 (2026-11-21, 10 paired runs of one commit),
       # a matching cache cut the job from 47-68 s to 42-49 s (mean difference 14 s,
-      # 95% interval 8-20 s); a changed Cargo.lock restores only part of it, and the
-      # run that saves a new cache spends about 6 s saving it.
+      # 95% interval 8-20 s), and the run that saved it spent about 6 s doing so.
+      # After a Cargo.lock change, rust-cache restores the previous lockfile's cache
+      # and rebuilds what changed, a case #508 did not time.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: rust
