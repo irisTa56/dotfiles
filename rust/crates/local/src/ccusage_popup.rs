@@ -9,4 +9,4 @@ mod report_file;
 mod session_logs;
 mod table;
 
-pub(crate) use command::run;
+pub(crate) use command::Request;

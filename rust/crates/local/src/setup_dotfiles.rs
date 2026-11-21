@@ -9,32 +9,31 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use clap::Args;
+
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
 
 /// The canonical dircolors, which `~/.dircolors` is overwritten with.
 const COLORS: &str = "https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS";
 
-const USAGE: &str = "\
-Usage: mise run setup:dotfiles
+/// Set this machine up around the dotfiles checkout it runs in.
+///
+/// Downloads ~/.dircolors, has ~/.zshenv, ~/.zprofile and ~/.zshrc source the main
+/// checkout's zsh fragments, sets npm's and Hex's release windows, and encrypts rclone's
+/// config with a password it keeps in the login keychain. Every step is safe to repeat.
+/// Run it as `mise run setup:dotfiles`.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
 
-Sets this machine up around the dotfiles checkout it runs in: downloads ~/.dircolors,
-has ~/.zshenv, ~/.zprofile and ~/.zshrc source the main checkout's zsh fragments,
-sets npm's and Hex's release windows, and encrypts rclone's config with a password it
-keeps in the login keychain. Every step is safe to repeat.
-
-  --help, -h  print this message
-";
-
-/// Sets the machine up, taking no arguments.
-pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
-    match args {
-        [] => set_up(),
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
+impl Request {
+    /// Sets the machine up.
+    #[expect(
+        clippy::unused_self,
+        reason = "the command takes no arguments, and every command's entry has one shape"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        set_up()
     }
 }
 

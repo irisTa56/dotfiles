@@ -395,10 +395,10 @@ fn takes_an_empty_name_as_none() {
     );
 }
 
-// `--help` prints how it is called and touches nothing; more than one branch is a
-// mistake told the same way, before anything is fetched.
+// `--help` prints how it is called and touches nothing; more than one branch is a usage
+// error, before anything is fetched.
 #[test]
-fn prints_usage_on_help_and_on_more_than_one_branch() {
+fn prints_usage_on_help_and_fails_as_a_usage_error_on_more_than_one_branch() {
     let sandbox = Fixture::new("usage");
     fs::rename(
         sandbox.root().join("origin.git"),
@@ -412,35 +412,32 @@ fn prints_usage_on_help_and_on_more_than_one_branch() {
     let help_out = String::from_utf8_lossy(&help.stdout);
     assert_eq!(help.status.code(), Some(0));
     assert!(
-        help_out.starts_with("Usage: git-sync-base [branch]\n"),
+        help_out.contains("Usage: dotfiles-local git-sync-base [BRANCH]\n"),
         "{help_out}"
     );
-    assert_eq!(
-        (
-            two.status.code(),
-            String::from_utf8_lossy(&two.stderr).into_owned()
-        ),
-        (Some(2), help_out.into_owned())
+    let two_err = String::from_utf8_lossy(&two.stderr);
+    assert_eq!(two.status.code(), Some(2), "{two_err}");
+    assert!(
+        two_err.starts_with("error: unexpected argument 'feature'")
+            && two_err.contains("Usage: dotfiles-local git-sync-base [BRANCH]\n"),
+        "{two_err}"
     );
 }
 
 // An argument starting with `-` is a mistake in how it is called, not an option for
-// git: the usage is printed to stderr with exit 2, before anything is fetched or
-// switched, so the checkout stays on the branch it was on.
+// git, even after `--`: it is a usage error on stderr with exit 2, before anything is
+// fetched or switched, so the checkout stays on the branch it was on.
 #[test]
 fn takes_a_dash_argument_as_a_usage_mistake() {
     let sandbox = Fixture::new("dash-argument");
-    let help = sandbox.run(&sandbox.work(), &["--help"]);
 
-    let run = sandbox.run(&sandbox.work(), &["--detach"]);
+    for args in [&["--detach"][..], &["--", "--detach"]] {
+        let run = sandbox.run(&sandbox.work(), args);
 
-    assert_eq!(
-        (
-            run.status.code(),
-            String::from_utf8_lossy(&run.stderr).into_owned()
-        ),
-        (Some(2), String::from_utf8_lossy(&help.stdout).into_owned())
-    );
+        let stderr = String::from_utf8_lossy(&run.stderr);
+        assert_eq!(run.status.code(), Some(2), "{args:?}: {stderr}");
+        assert!(stderr.starts_with("error: "), "{args:?}: {stderr}");
+    }
     assert_eq!(
         sandbox.read(&sandbox.work(), &["branch", "--show-current"]),
         "feature"

@@ -556,22 +556,28 @@ fn stops_at_a_failed_step_with_its_exit_code() {
     );
 }
 
-// The command takes no arguments: `--help` prints how it is run, and anything else is
-// told so.
+// The command takes no arguments: `--help` prints how it is run, and anything else is a
+// usage error.
 #[test]
-fn prints_usage_on_help_and_fails_with_it_on_arguments() {
+fn prints_usage_on_help_and_fails_as_a_usage_error_on_arguments() {
     let sandbox = Fixture::new("usage");
 
     let help = sandbox.run(&sandbox.repo(), &["--help"]);
     let extra = sandbox.run(&sandbox.repo(), &["now"]);
 
     assert_eq!(help.status.code(), Some(0), "{}", stderr(&help));
-    let usage = String::from_utf8_lossy(&help.stdout).into_owned();
+    let usage = "Usage: dotfiles-local setup-dotfiles\n";
+    let help_out = String::from_utf8_lossy(&help.stdout);
     assert!(
-        usage.starts_with("Usage: mise run setup:dotfiles\n"),
-        "{usage}"
+        help_out.contains("`mise run setup:dotfiles`") && help_out.contains(usage),
+        "{help_out}"
     );
-    assert_eq!((extra.status.code(), stderr(&extra)), (Some(2), usage));
+    let extra_err = stderr(&extra);
+    assert_eq!(extra.status.code(), Some(2), "{extra_err}");
+    assert!(
+        extra_err.starts_with("error: unexpected argument 'now'") && extra_err.contains(usage),
+        "{extra_err}"
+    );
     assert_eq!(sandbox.calls(), "");
     assert_eq!(sandbox.home_entries(), Vec::<String>::new());
 }

@@ -164,7 +164,7 @@ fn fails_with_osascripts_status_when_it_fails() {
 }
 
 #[test]
-fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
+fn refuses_anything_but_one_script_path_as_a_usage_error() {
     let sandbox = Fixture::new("usage", "exit 0");
     for args in [
         &[][..],
@@ -175,11 +175,9 @@ fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
         &["job.sh", "--from", "."],
     ] {
         let run = sandbox.run(args);
-        assert_eq!(run.code(), Some(1), "args {args:?}");
+        assert_eq!(run.code(), Some(2), "args {args:?}");
         assert!(
-            run.stderr().starts_with(
-                "Usage: with-new-terminal <script.sh> [--cwd <dir>] [--title <title>]\n"
-            ),
+            run.stderr().starts_with("error: "),
             "args {args:?}: {}",
             run.stderr()
         );

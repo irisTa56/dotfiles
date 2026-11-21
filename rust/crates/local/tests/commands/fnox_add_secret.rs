@@ -141,12 +141,18 @@ fn stderr(run: &Output) -> String {
 }
 
 // The command takes exactly one name, not one starting with `-`, which would reach fnox
-// as an option, and is told how it is called otherwise, having written nothing and run
-// no fnox.
+// as an option, even after `--`, and is a usage error otherwise, having written nothing
+// and run no fnox.
 #[test]
-fn fails_with_usage_unless_given_one_name() {
+fn fails_as_a_usage_error_unless_given_one_name() {
     let sandbox = Fixture::new("usage");
-    for args in [&[][..], &["A", "B"][..], &["--verbose"][..], &["-x"][..]] {
+    for args in [
+        &[][..],
+        &["A", "B"][..],
+        &["--verbose"][..],
+        &["-x"][..],
+        &["--", "-x"][..],
+    ] {
         let run = sandbox.run(&sandbox.repo(), args);
 
         assert_eq!(
@@ -158,7 +164,7 @@ fn fails_with_usage_unless_given_one_name() {
             "{args:?}"
         );
         assert!(
-            stderr(&run).starts_with("Usage: fnox-add-secret <NAME>\n"),
+            stderr(&run).starts_with("error: "),
             "{args:?}: {}",
             stderr(&run)
         );
@@ -188,7 +194,7 @@ fn prints_its_usage_on_help_and_touches_nothing() {
             "{flag}"
         );
         assert!(
-            stdout.starts_with("Usage: fnox-add-secret <NAME>\n"),
+            stdout.contains("Usage: dotfiles-local fnox-add-secret <NAME>"),
             "{flag}: {stdout}"
         );
     }

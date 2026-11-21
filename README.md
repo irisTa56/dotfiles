@@ -137,7 +137,9 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
 - `local:install` installs the binary into `~/.local/bin` from a checkout on `main`, and fails on any other branch, since every caller runs the installed copy.
   - `mise bootstrap` runs it, and so do the post-merge and post-checkout hooks that `mise install` registers, once `main` moves or is switched to.
   - A feature branch tries its change in its own worktree with `cargo run --manifest-path rust/Cargo.toml -p dotfiles-local -- <command>`; the installed binary runs main's code until the branch merges.
-- Each command is a module, `src/<name>.rs` with a `run` that takes the arguments after the command's name and returns the exit code, and an arm in `src/main.rs` that picks it by that name and lists it in the binary's usage.
+- Each command is a module, `src/<name>.rs`, with a `Request` that clap reads the command's arguments into, and a variant of `src/main.rs`'s `Command` holding it.
+  - The request's doc comments are the command's help, and clap lists the command under that variant's name, so the help and the list of commands both come from the definition.
+  - Its `run` returns `Result<(), Failure>`, and `main` alone reports a failure, with its message where it has one, as the exit status.
 - The binary runs in its caller's working directory, so a mise task that runs it sets no `dir` and the command acts on the root of the checkout the task ran in, and a command a shell function runs reads a relative path from where the function was called.
 - Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust` runs them with the rest of the workspace.
   - A test that needs a real tool, such as yq or jq, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.

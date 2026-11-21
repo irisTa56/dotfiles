@@ -8,26 +8,30 @@ use std::fmt;
 use std::io::{self, Read, Write};
 use std::process::{Command, Stdio};
 
+use clap::Args;
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
 
 use crate::failure::{Failure, exit_code};
 
-const USAGE: &str = "\
-Usage: mise run skills:update [package...]
-
-Updates APM skills, every one or those named as `apm update` names them, holding
-back any whose last change upstream merged less than a day ago, as the release
-windows set for npm, uv and Hex do. APM has no such window of its own.
-
-The time comes from the pull request that merged the skill's last commit into the
-default branch, which GitHub records, since a commit's own date is whatever its
-author set. A commit GitHub lists no such pull request for is held too, though the
-list can miss one, so that hold is for checking by hand. `apm update <package>`
-followed by `apm install` is the way past a hold.
-
-  --help, -h  print this message
-";
+/// Update APM skills, holding back any whose last change upstream merged under a day ago.
+///
+/// Updates APM skills, every one or those named, holding back any whose last change
+/// upstream merged less than a day ago, as the release windows set for npm, uv and Hex
+/// do. APM has no such window of its own. Run it as `mise run skills:update`.
+///
+/// The time comes from the pull request that merged the skill's last commit into the
+/// default branch, which GitHub records, since a commit's own date is whatever its
+/// author set. A commit GitHub lists no such pull request for is held too, though the
+/// list can miss one, so that hold is for checking by hand. `apm update <package>`
+/// followed by `apm install` is the way past a hold.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The skills to update, as `apm update` names them [default: every one]. Every
+    /// argument after the first is one, even one that opens with `-`
+    #[arg(trailing_var_arg = true)]
+    packages: Vec<String>,
+}
 
 /// How long after its last change merged upstream a skill is held back.
 const WINDOW: SignedDuration = SignedDuration::from_hours(24);
@@ -38,15 +42,10 @@ const WINDOW: SignedDuration = SignedDuration::from_hours(24);
 /// commit reached the default one.
 const MERGED_INTO_DEFAULT: &str = "[.[] | select(.base.ref == .base.repo.default_branch) | .merged_at | select(.)] | max // empty";
 
-/// Updates the skills `args` name, every one where they name none.
-pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
-    match args {
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        [first, ..] if first.starts_with('-') => Err(Failure::new(format_args!("{USAGE}"), 2)),
-        packages => update(packages),
+impl Request {
+    /// Updates the skills the request names, every one where it names none.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        update(&self.packages)
     }
 }
 

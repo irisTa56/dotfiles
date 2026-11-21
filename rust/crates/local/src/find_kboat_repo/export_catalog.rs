@@ -8,6 +8,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use clap::Args;
 use serde::Deserialize;
 use serde_json::value::RawValue;
 
@@ -45,29 +46,26 @@ const LISTS: [&str; 2] = ["domain", "topics"];
 /// The notes in one chunk, which one judging subagent reads.
 const CHUNK: usize = 100;
 
-const USAGE: &str = "\
-Usage: dotfiles-local find-kboat-repo-export-catalog
+/// Export the K-Boat repo catalogue into a fresh temporary directory, split into chunks
+/// for judging.
+///
+/// Exports the catalogue through `kboat-note list`, run in the k-boat checkout
+/// `KBOAT_REPO` names, into a fresh temporary directory, and splits a compact copy of it into chunk
+/// files of 100 notes, one for each judging subagent of the find-kboat-repo skill. Prints
+/// the directory, the note count, the anomalies kboat-note reported and the chunk files
+/// as JSON. Where kboat-note fails, prints the directory, its exit code and its anomalies
+/// instead, and exits with that code.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
 
-Exports the K-Boat repo catalogue through `kboat-note list`, run in the k-boat checkout
-KBOAT_REPO names, into a fresh temporary directory, and splits a compact copy of it into
-chunk files of 100 notes, one for each judging subagent of the find-kboat-repo skill.
-Prints the directory, the note count, the anomalies kboat-note reported and the chunk
-files as JSON. Where kboat-note fails, prints the directory, its exit code and its
-anomalies instead, and exits with that code.
-
-  --help, -h  print this message
-";
-
-/// Exports the catalogue and prints where it went, or, given `--help`, prints how it is
-/// called.
-pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
-    match args {
-        [] => export(),
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
+impl Request {
+    /// Exports the catalogue and prints where it went.
+    #[expect(
+        clippy::unused_self,
+        reason = "the command takes no arguments, and every command's entry has one shape"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        export()
     }
 }
 

@@ -10,34 +10,31 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use clap::Args;
 use tempfile::TempDir;
 
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
 use crate::git::{git, read};
 
-const USAGE: &str = "\
-Usage: mise run skills:push <name>
+/// Push a gist-sourced skill's local edit back to its gist, and pin the pushed commit.
+///
+/// Pushes the local .claude/skills/<NAME>/SKILL.md of a gist-sourced skill back to its
+/// gist, then has `apm update` pin the pushed commit in apm.lock.yaml, so the next `apm
+/// install` restores the edit rather than reverting it. The commit goes on top of the
+/// pinned revision, so a gist that has moved past it rejects the push. Run it in a
+/// dotfiles checkout, whose skill and lockfile it acts on, as `mise run skills:push
+/// <NAME>`; gh supplies the credential for the push.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The alias of the skill's gist dependency in apm.yml
+    name: String,
+}
 
-Pushes the local .claude/skills/<name>/SKILL.md of a gist-sourced skill back to its
-gist, then has `apm update` pin the pushed commit in apm.lock.yaml, so the next
-`apm install` restores the edit rather than reverting it. <name> is the alias of the
-skill's gist dependency in apm.yml. The commit goes on top of the pinned revision,
-so a gist that has moved past it rejects the push. Run it in a dotfiles checkout,
-whose skill and lockfile it acts on; gh supplies the credential for the push.
-
-  --help, -h  print this message
-";
-
-/// Pushes the skill `args` names.
-pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
-    match args {
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        [name] => push(name),
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
+impl Request {
+    /// Pushes the skill the request names.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        push(&self.name)
     }
 }
 

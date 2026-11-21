@@ -14,6 +14,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
+use clap::Args;
 use regex::{Captures, Regex};
 use serde_json::{Value, json};
 
@@ -238,22 +239,33 @@ fn temp_dir() -> PathBuf {
         .map_or_else(|| PathBuf::from("/tmp"), PathBuf::from)
 }
 
-/// Judges the stop on stdin. A failure of the hook's own ends with exit 1 and no verdict,
-/// which Claude Code shows as a hook error and lets the stop go ahead: exit 2 would keep
-/// the session from stopping at all.
-///
-/// It records what the stop leaves for the next before printing the verdict, so that a
-/// state that cannot be written fails open rather than asking for the rewrite again and
-/// again.
-pub(crate) fn run() -> Result<(), Failure> {
-    let stop = Stop::read()?;
-    let file = SessionFile::of(&stop.session);
-    let verdict = stop.judge(file.rewrite_asked())?;
-    file.record(verdict.rewrite_asked).map_err(|error| {
-        Failure::new(
-            format_args!("cannot write {}: {error}", file.path.display()),
-            1,
-        )
-    })?;
-    verdict.report().map_err(|error| Failure::writing(&error))
+/// Send a final reply in English back once to be rewritten in Japanese, as a Stop hook
+/// reading the stop on stdin.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
+
+impl Request {
+    /// Judges the stop on stdin. A failure of the hook's own ends with exit 1 and no
+    /// verdict, which Claude Code shows as a hook error and lets the stop go ahead: exit
+    /// 2 would keep the session from stopping at all.
+    ///
+    /// It records what the stop leaves for the next before printing the verdict, so that
+    /// a state that cannot be written fails open rather than asking for the rewrite again
+    /// and again.
+    #[expect(
+        clippy::unused_self,
+        reason = "the command takes no arguments, and every command's entry has one shape"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        let stop = Stop::read()?;
+        let file = SessionFile::of(&stop.session);
+        let verdict = stop.judge(file.rewrite_asked())?;
+        file.record(verdict.rewrite_asked).map_err(|error| {
+            Failure::new(
+                format_args!("cannot write {}: {error}", file.path.display()),
+                1,
+            )
+        })?;
+        verdict.report().map_err(|error| Failure::writing(&error))
+    }
 }

@@ -17,4 +17,4 @@ mod temp_dirs;
 mod tracked;
 mod upgrades;
 
-pub(crate) use command::run;
+pub(crate) use command::Request;

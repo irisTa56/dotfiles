@@ -595,7 +595,7 @@ fn fails_at_a_dependency_with_no_repository_before_asking_github_anything() {
 }
 
 #[test]
-fn prints_its_usage_for_help_and_h_and_refuses_another_flag_with_exit_2() {
+fn prints_its_usage_for_help_and_h_and_refuses_another_flag_as_a_usage_error() {
     let sandbox = Fixture::new("usage", LOCK);
 
     for flag in ["--help", "-h"] {
@@ -603,27 +603,30 @@ fn prints_its_usage_for_help_and_h_and_refuses_another_flag_with_exit_2() {
         assert_eq!(run.code, Some(0), "{flag}");
         assert!(
             run.out
-                .starts_with("Usage: mise run skills:update [package...]\n"),
+                .contains("Usage: dotfiles-local skills-update [PACKAGES]...\n"),
             "{}",
             run.out
         );
     }
     let run = sandbox.run(&["--yes"]);
     assert_eq!(run.code, Some(2));
-    assert!(run.out.starts_with("Usage: mise run skills:update"));
+    assert!(
+        run.out.starts_with("error: unexpected argument '--yes'"),
+        "{}",
+        run.out
+    );
     assert_eq!(sandbox.gh_calls(), Vec::<String>::new());
     assert_eq!(sandbox.apm_calls(), Vec::<String>::new());
 }
 
-// Only a first argument is read as a flag: --help with more after it is refused, and a
-// flag after a name is taken as a name.
+// Only a first argument is read as a flag: a flag after a name is taken as a name.
 #[test]
 fn reads_only_the_first_argument_as_a_flag() {
     let sandbox = Fixture::new("flag-position", LOCK);
 
     let run = sandbox.run(&["--help", "o/r/skills/old"]);
-    assert_eq!(run.code, Some(2), "{}", run.out);
-    assert!(run.out.starts_with("Usage: mise run skills:update"));
+    assert_eq!(run.code, Some(0), "{}", run.out);
+    assert!(run.out.contains("Usage: dotfiles-local skills-update"));
 
     let run = sandbox.run(&["o/r/skills/old", "--yes"]);
     assert_eq!(

@@ -490,7 +490,7 @@ fn prints_its_usage_on_help() {
 
         assert_eq!((code, stderr.as_str()), (Some(0), ""), "{flag}");
         assert!(
-            stdout.starts_with("Usage: mise run skills:push <name>\n"),
+            stdout.contains("Usage: dotfiles-local push-gist-skill <NAME>\n"),
             "{flag}: {stdout}"
         );
     }
@@ -498,14 +498,15 @@ fn prints_its_usage_on_help() {
 }
 
 #[test]
-fn fails_with_its_usage_on_other_than_one_name() {
+fn fails_as_a_usage_error_on_other_than_one_name() {
     let sandbox = Fixture::new("usage");
     for args in [&[][..], &[SKILL, "other"][..]] {
         let (code, stdout, stderr) = outcome(&sandbox.run(&sandbox.repo(), args));
 
         assert_eq!((code, stdout.as_str()), (Some(2), ""), "{args:?}");
         assert!(
-            stderr.starts_with("Usage: mise run skills:push <name>\n"),
+            stderr.starts_with("error: ")
+                && stderr.contains("Usage: dotfiles-local push-gist-skill <NAME>\n"),
             "{args:?}: {stderr}"
         );
     }

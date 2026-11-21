@@ -218,14 +218,14 @@ fn prints_its_usage_on_help() {
 
     assert_eq!((code, stderr.as_str()), (Some(0), ""));
     assert!(
-        stdout.starts_with("Usage: mise run skills:unmanaged\n"),
+        stdout.contains("Usage: dotfiles-local skills-unmanaged\n"),
         "{stdout}"
     );
 }
 
 // It takes no arguments, so one is a mistake rather than something to ignore.
 #[test]
-fn fails_with_its_usage_on_an_argument() {
+fn fails_as_a_usage_error_on_an_argument() {
     let sandbox = Fixture::new("fails-on-argument", NO_DEPENDENCIES);
     sandbox.file(".claude/skills/local/SKILL.md");
 
@@ -233,7 +233,8 @@ fn fails_with_its_usage_on_an_argument() {
 
     assert_eq!((code, stdout.as_str()), (Some(2), ""));
     assert!(
-        stderr.starts_with("Usage: mise run skills:unmanaged\n"),
+        stderr.starts_with("error: unexpected argument 'local'")
+            && stderr.contains("Usage: dotfiles-local skills-unmanaged\n"),
         "{stderr}"
     );
 }

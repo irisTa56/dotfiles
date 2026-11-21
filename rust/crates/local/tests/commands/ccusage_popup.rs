@@ -160,7 +160,7 @@ impl Fixture {
 const NO_USAGE: &str = r#"{"totals": {"totalTokens": 0}}"#;
 
 #[test]
-fn refuses_another_period_with_its_usage_and_exit_2() {
+fn refuses_another_period_as_a_usage_error() {
     let sandbox = Fixture::new("another-period", NO_USAGE);
 
     let run = sandbox.run(&["yearly"]);
@@ -168,7 +168,10 @@ fn refuses_another_period_with_its_usage_and_exit_2() {
     assert_eq!(run.code, Some(2), "{}", run.err);
     assert!(
         run.err
-            .starts_with("Usage: mise run ccusage:<daily|weekly|monthly>\n"),
+            .starts_with("error: invalid value 'yearly' for '<PERIOD>'")
+            && run
+                .err
+                .contains("[possible values: daily, weekly, monthly]"),
         "{}",
         run.err
     );
