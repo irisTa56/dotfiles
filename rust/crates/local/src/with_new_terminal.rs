@@ -87,13 +87,13 @@ impl Request {
 
 /// An option's value, which may open with `-` only where neither the end nor a space nor
 /// a digit follows, since one that reads as an option is likelier an option written
-/// where its value was left out.
+/// where its value was left out. clap checks a value given after `=` the same way.
 fn value(arg: &str) -> Result<String, &'static str> {
     let reads_as_an_option = arg.strip_prefix('-').is_some_and(|rest| {
         !(rest.is_empty() || rest.starts_with(|c: char| c == ' ' || c.is_ascii_digit()))
     });
     if reads_as_an_option {
-        return Err("it reads as an option, and the value is missing");
+        return Err("it reads as an option rather than a value");
     }
     Ok(arg.to_owned())
 }

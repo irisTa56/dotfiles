@@ -185,6 +185,26 @@ fn refuses_anything_but_one_script_path_as_a_usage_error() {
     }
 }
 
+// A value that reads as an option is refused whether it follows its option after a
+// space or after `=`, and the error says so of either.
+#[test]
+fn refuses_a_value_that_reads_as_an_option_either_way() {
+    let sandbox = Fixture::new("option-values", "exit 0");
+    for args in [&["job.sh", "--cwd=-x"][..], &["job.sh", "--title", "--foo"]] {
+        let run = sandbox.run(args);
+        assert_eq!(run.code(), Some(2), "args {args:?}");
+        assert!(
+            run.stderr()
+                .lines()
+                .next()
+                .is_some_and(|line| line.ends_with(": it reads as an option rather than a value")),
+            "args {args:?}: {}",
+            run.stderr()
+        );
+        assert_eq!(run.applescript, None, "args {args:?}");
+    }
+}
+
 // Options are read anywhere, with `=` or not, the last one standing, and none after
 // `--`.
 #[test]
