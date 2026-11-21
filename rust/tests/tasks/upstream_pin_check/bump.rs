@@ -721,3 +721,79 @@ fn under_github_actions_proposes_the_move_on_the_branch_branch_names() {
     };
     assert_eq!(request.body["head"], "lints-bump");
 }
+
+// The pull request is opened from the branch into origin's default branch, so naming the
+// default branch itself would push the move straight onto it with nothing to review.
+#[test]
+fn under_github_actions_refuses_a_branch_that_is_origins_default_branch() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let before = origin.commit("main");
+    let run = Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch", "main"])
+        .run();
+    assert_eq!(run.code(), 2, "exit code; output:\n{}", run.output());
+    assert!(
+        run.output().contains("--branch"),
+        "the output does not name the option:\n{}",
+        run.output()
+    );
+    assert_eq!(origin.commit("main"), before);
+}
+
+// A value git cannot take for a branch name would fail at the push, where the message
+// blames the token, so it is refused by name before anything is pushed.
+#[test]
+fn under_github_actions_refuses_a_branch_name_git_cannot_take_naming_the_value() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let run = Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch", "a b"])
+        .run();
+    assert_eq!(run.code(), 2, "exit code; output:\n{}", run.output());
+    assert!(
+        run.output().contains("a b"),
+        "the output does not name the value:\n{}",
+        run.output()
+    );
+    assert!(
+        !run.output().contains("contents: write"),
+        "the output blames the token:\n{}",
+        run.output()
+    );
+    assert_eq!(origin.commit(BUMP), None);
+    assert_eq!(origin.commit("a b"), None);
+}
+
+// While the pull request of the branch --branch names is open, a newer tip moves the pins
+// on that branch, over what a person added there, and leaves the default bump branch,
+// another series's, alone.
+#[test]
+fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_names() {
+    let up = Upstream::changing_lints(3);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let added = origin.commit_onto_main_as("lints-bump", "NOTE.md", "kept");
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(500, "{}");
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch", "lints-bump"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &["pushed the move onto lints-bump"]);
+    assert_eq!(origin.commit("lints-bump~1"), Some(added));
+    assert_eq!(
+        origin.show("lints-bump:Cargo.toml"),
+        Some(format!("# {}\n", up.marker("lints", 2)).into_bytes())
+    );
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
+    assert!(api.requests().is_empty(), "{:?}", api.requests());
+}
