@@ -12,7 +12,6 @@
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
-use std::process::ExitCode;
 use std::sync::LazyLock;
 
 use regex::{Captures, Regex};
@@ -242,17 +241,11 @@ fn temp_dir() -> PathBuf {
 /// Judges the stop on stdin. A failure of the hook's own ends with exit 1 and no verdict,
 /// which Claude Code shows as a hook error and lets the stop go ahead: exit 2 would keep
 /// the session from stopping at all.
-pub(crate) fn run() -> ExitCode {
-    match handle() {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
-    }
-}
-
-/// Judges the stop and records what it leaves for the next before printing the verdict,
-/// so that a state that cannot be written fails open rather than asking for the rewrite
-/// again and again.
-fn handle() -> Result<(), Failure> {
+///
+/// It records what the stop leaves for the next before printing the verdict, so that a
+/// state that cannot be written fails open rather than asking for the rewrite again and
+/// again.
+pub(crate) fn run() -> Result<(), Failure> {
     let stop = Stop::read()?;
     let file = SessionFile::of(&stop.session);
     let verdict = stop.judge(file.rewrite_asked())?;

@@ -7,7 +7,7 @@ use std::ffi::OsStr;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
@@ -27,18 +27,14 @@ keeps in the login keychain. Every step is safe to repeat.
 ";
 
 /// Sets the machine up, taking no arguments.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [] => set_up(),
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

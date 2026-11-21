@@ -18,12 +18,13 @@ mod skills_unmanaged;
 mod skills_update;
 mod with_new_terminal;
 
-use std::io::{self, Write};
 use std::process::ExitCode;
+
+use crate::failure::Failure;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    match args.split_first() {
+    let outcome = match args.split_first() {
         Some((command, _)) if command == "ask-email-in-request" => {
             pre_tool_use::ask_email_in_request::run()
         }
@@ -44,13 +45,17 @@ fn main() -> ExitCode {
         Some((command, rest)) if command == "skills-unmanaged" => skills_unmanaged::run(rest),
         Some((command, rest)) if command == "skills-update" => skills_update::run(rest),
         Some((command, rest)) if command == "with-new-terminal" => with_new_terminal::run(rest),
-        _ => {
-            // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
-            let _ = writeln!(
-                io::stderr(),
+        // A name with no command ends as dotfiles-tasks ends on one, unable to tell.
+        _ => Err(Failure::new(
+            format_args!(
                 "[fail] usage: dotfiles-local <command> [args...]; commands: ask-email-in-request, ccusage-popup, find-kboat-repo-export-catalog, find-kboat-repo-lookup, fnox-add-secret, git-sweep-branches, git-sync-base, mise-multi-upgrade, push-gist-skill, reply-language-stop, setup-dotfiles, skills-unmanaged, skills-update, with-new-terminal"
-            );
-            ExitCode::from(2)
-        }
+            ),
+            2,
+        )),
+    };
+    // Each command's failure is reported here, once, whatever stage it came from.
+    match outcome {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(failure) => failure.report(),
     }
 }

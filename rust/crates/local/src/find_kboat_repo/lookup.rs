@@ -4,7 +4,6 @@
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
-use std::process::ExitCode;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
@@ -33,18 +32,14 @@ catalogue does not hold prints nothing.
 
 /// Prints the record of each title in `args` after the export's directory, or, given
 /// `--help`, prints how it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         [dir, titles @ ..] => lookup(Path::new(dir), titles),
         [] => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

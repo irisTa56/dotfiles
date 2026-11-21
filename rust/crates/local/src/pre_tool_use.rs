@@ -3,10 +3,8 @@
 
 pub(crate) mod ask_email_in_request;
 
-use std::io::{self, Write};
-use std::process::ExitCode;
-
 use serde_json::{Map, Value, json};
+use std::io::{self, Write};
 
 /// A Bash call Claude is about to make, as the hook's input on stdin gives it.
 pub(crate) struct BashCall {
@@ -45,10 +43,11 @@ pub(crate) enum Verdict {
 
 impl Verdict {
     /// Ends the hook as Claude Code reads it: exit 0 lets the call through, or with a
-    /// decision on stdout puts it to the user.
-    pub(crate) fn report(self) -> ExitCode {
+    /// decision on stdout puts it to the user. A decision that cannot be written lets the
+    /// call through, as any failure of the hook's own.
+    pub(crate) fn report(self) {
         match self {
-            Verdict::Pass => ExitCode::SUCCESS,
+            Verdict::Pass => {}
             Verdict::Ask {
                 reason,
                 updated_input,
@@ -64,7 +63,6 @@ impl Verdict {
                     }
                 });
                 let _ = writeln!(io::stdout(), "{output:#}");
-                ExitCode::SUCCESS
             }
         }
     }

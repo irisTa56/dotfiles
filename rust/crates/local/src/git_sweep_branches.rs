@@ -2,7 +2,7 @@
 //! carry no commits of their own.
 
 use std::io::{self, Write};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use crate::failure::Failure;
 use crate::git::{git, read};
@@ -21,18 +21,14 @@ by both, as is one checked out in a worktree.
 
 /// Fetches origin, runs gh-poi, and deletes the branches origin's default branch holds,
 /// or, given `--help`, prints how it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [] => sweep(),
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

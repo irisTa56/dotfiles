@@ -4,12 +4,11 @@
 //! A relative script path is read from the directory the command runs in, which the
 //! shell function calling it leaves as the one it was called from.
 
-use std::fmt;
 use std::fs;
-use std::io::{self, Write};
-use std::os::unix::process::ExitStatusExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
+
+use crate::failure::{Failure, exit_code};
 
 /// What a run is told on arguments it cannot read.
 const USAGE: &str = "\
@@ -31,47 +30,37 @@ struct Request<'a> {
 }
 
 /// Runs the script `args` names.
-pub(crate) fn run(args: &[String]) -> ExitCode {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
     let Some(request) = Request::parse(args) else {
-        return fail(format_args!("{USAGE}"), 1);
+        return Err(Failure::new(format_args!("{USAGE}"), 1));
     };
     // A byte that is not UTF-8 is replaced rather than refused, so one in a comment
     // line goes with the line.
-    let contents = match fs::read(expand_home(request.script_path)) {
-        Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
-        Err(error) => {
-            return fail(
+    let contents = fs::read(expand_home(request.script_path))
+        .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+        .map_err(|error| {
+            Failure::new(
                 format_args!("cannot read {}: {error}", request.script_path),
                 1,
-            );
-        }
-    };
+            )
+        })?;
     let applescript = request.applescript(&contents);
     // osascript prints the window it opened, which no caller reads.
-    match Command::new("osascript")
+    let status = Command::new("osascript")
         .arg("-e")
         .arg(applescript)
         .stdout(Stdio::null())
         .status()
-    {
-        Ok(status) if status.success() => ExitCode::SUCCESS,
-        Ok(status) => {
-            // A signal ends it with the status a shell gives such a command.
-            let code = status
-                .code()
-                .or_else(|| status.signal().map(|signal| 128 + signal))
-                .and_then(|code| u8::try_from(code).ok())
-                .unwrap_or(1);
-            fail(format_args!("osascript failed (exit {code})"), code)
-        }
-        Err(error) => fail(format_args!("osascript failed: {error}"), 1),
+        .map_err(|error| Failure::new(format_args!("osascript failed: {error}"), 1))?;
+    if status.success() {
+        return Ok(());
     }
-}
-
-/// Reports `message` and ends the run with `code`.
-fn fail(message: fmt::Arguments<'_>, code: u8) -> ExitCode {
-    let _ = writeln!(io::stderr(), "{message}");
-    ExitCode::from(code)
+    // A signal ends it with the status a shell gives such a command.
+    let code = exit_code(status);
+    Err(Failure::new(
+        format_args!("osascript failed (exit {code})"),
+        code,
+    ))
 }
 
 impl<'a> Request<'a> {

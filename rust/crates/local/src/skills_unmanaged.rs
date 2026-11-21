@@ -9,7 +9,7 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use crate::failure::{Failure, exit_code};
 
@@ -28,18 +28,14 @@ counts as tracked or deployed when any file under it is.
 ";
 
 /// Prints each unmanaged entry under `.claude/skills/`, one path per line.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [] => list(),
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

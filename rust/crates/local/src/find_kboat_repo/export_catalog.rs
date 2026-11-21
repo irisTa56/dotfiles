@@ -6,7 +6,7 @@ use std::ffi::{OsStr, OsString};
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode};
+use std::process::Command;
 
 use serde::Deserialize;
 use serde_json::value::RawValue;
@@ -60,18 +60,14 @@ anomalies instead, and exits with that code.
 
 /// Exports the catalogue and prints where it went, or, given `--help`, prints how it is
 /// called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [] => export(),
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

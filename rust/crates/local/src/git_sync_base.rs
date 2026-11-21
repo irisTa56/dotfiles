@@ -2,7 +2,6 @@
 //! pull request into it merges.
 
 use std::io::{self, Write};
-use std::process::ExitCode;
 
 use crate::failure::Failure;
 use crate::git::{git, read};
@@ -22,8 +21,8 @@ worktree is fast-forwarded in place and this checkout stays on its current branc
 
 /// Brings the base branch `args` names, or origin's default one, up to date with
 /// origin.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
@@ -33,10 +32,6 @@ pub(crate) fn run(args: &[String]) -> ExitCode {
             sync(Some(name.as_str()).filter(|name| !name.is_empty()))
         }
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

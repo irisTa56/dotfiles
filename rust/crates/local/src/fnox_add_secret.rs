@@ -4,7 +4,7 @@
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use crate::failure::Failure;
 use crate::git::read;
@@ -34,8 +34,8 @@ an existing one that lacks it.
 
 /// Stores the key named by the one name `args` holds, or, given `--help`, prints how
 /// it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
@@ -43,10 +43,6 @@ pub(crate) fn run(args: &[String]) -> ExitCode {
         // A name starting with `-` would reach `fnox set` as an option.
         [name] if !name.starts_with('-') => add(name),
         _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 

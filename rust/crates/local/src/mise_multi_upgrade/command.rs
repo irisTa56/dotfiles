@@ -1,7 +1,6 @@
 //! The command: its usage, and the stages a run goes through.
 
 use std::io::{self, Write};
-use std::process::ExitCode;
 
 use super::options::Options;
 use super::place::Place;
@@ -36,23 +35,23 @@ report; a `?` marks a Released cell whose age could not be determined.
 ";
 
 /// Upgrades, or with `--dry-run` reports, what the options `args` give ask for.
-pub(crate) fn run(args: &[String]) -> ExitCode {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
     let Some(options) = Options::parse(args) else {
-        return Failure::new(format_args!("{USAGE}"), 2).report();
+        return Err(Failure::new(format_args!("{USAGE}"), 2));
     };
     if options.help() {
         let _ = writeln!(io::stdout(), "{USAGE}");
-        return ExitCode::SUCCESS;
+        return Ok(());
     }
     // The upgrade stays within each request, so a bump is only ever a report, and one
     // shown beside the question would read as an offer.
     if options.bump() && !options.dry_run() {
-        return Failure::new(format_args!("--bump needs --dry-run\n\n{USAGE}"), 2).report();
+        return Err(Failure::new(
+            format_args!("--bump needs --dry-run\n\n{USAGE}"),
+            2,
+        ));
     }
-    match upgrade(&options) {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
-    }
+    upgrade(&options)
 }
 
 /// Reports what every place would upgrade, and unless it is a dry run, asks and

@@ -1,6 +1,6 @@
 //! The command: the period it is run for, and the stages it runs through.
 
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use jiff::civil::Date;
 use jiff::{ToSpan, ZonedDateTime};
@@ -21,16 +21,13 @@ Periods cover the last 2 weeks, the last 9 weeks starting on a Sunday (as
 ";
 
 /// Shows the usage over the period `args` names.
-pub(crate) fn run(args: &[String]) -> ExitCode {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
     let Some(period) = Period::from_args(args) else {
         // The usage's own last line end and the one the report adds leave a blank line
         // after it.
-        return Failure::new(format_args!("{USAGE}"), 2).report();
+        return Err(Failure::new(format_args!("{USAGE}"), 2));
     };
-    match period.show() {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
-    }
+    period.show()
 }
 
 /// The span the usage is shown over, and the unit its rows are.

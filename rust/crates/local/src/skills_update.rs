@@ -6,7 +6,7 @@
 
 use std::fmt;
 use std::io::{self, Read, Write};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
@@ -39,18 +39,14 @@ const WINDOW: SignedDuration = SignedDuration::from_hours(24);
 const MERGED_INTO_DEFAULT: &str = "[.[] | select(.base.ref == .base.repo.default_branch) | .merged_at | select(.)] | max // empty";
 
 /// Updates the skills `args` name, every one where they name none.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
+pub(crate) fn run(args: &[String]) -> Result<(), Failure> {
+    match args {
         [flag] if flag == "--help" || flag == "-h" => {
             let _ = writeln!(io::stdout(), "{USAGE}");
             Ok(())
         }
         [first, ..] if first.starts_with('-') => Err(Failure::new(format_args!("{USAGE}"), 2)),
         packages => update(packages),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
     }
 }
 
