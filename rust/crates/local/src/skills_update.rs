@@ -6,12 +6,14 @@
 
 use std::fmt;
 use std::io::{self, Read, Write};
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 use clap::Args;
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
 
+use crate::apm_lock::{ApmLock, LockedDependency};
 use crate::failure::{Failure, exit_code};
 
 /// Update APM skills, holding back any whose last change upstream merged under a day ago.
@@ -35,12 +37,6 @@ pub(crate) struct Request {
 
 /// How long after its last change merged upstream a skill is held back.
 const WINDOW: SignedDuration = SignedDuration::from_hours(24);
-
-/// The filter that picks, from the pull requests GitHub lists for a commit, the latest
-/// time one merged it into the default branch. GitHub can list only the pull request
-/// that took a commit into another branch, whose merge time says nothing of when the
-/// commit reached the default one.
-const MERGED_INTO_DEFAULT: &str = "[.[] | select(.base.ref == .base.repo.default_branch) | .merged_at | select(.)] | max // empty";
 
 impl Request {
     /// Updates the skills the request names, every one where it names none.
@@ -133,29 +129,12 @@ struct Lockfile {
 }
 
 impl Lockfile {
-    /// Reads apm.lock.yaml in the directory the run is in, through yq.
+    /// Reads apm.lock.yaml in the directory the run is in.
     fn read() -> Result<Self, Failure> {
-        let output = Command::new("yq")
-            .args(["-o=json", "apm.lock.yaml"])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| Failure::new(format_args!("cannot run yq: {error}"), 1))?;
-        if !output.status.success() {
-            let code = exit_code(output.status);
+        let lock = ApmLock::read(Path::new("."))?;
+        let Some(entries) = lock.dependencies() else {
             return Err(Failure::new(
-                format_args!("yq could not read apm.lock.yaml (exit {code})"),
-                code,
-            ));
-        }
-        let document: Value = serde_json::from_slice(&output.stdout).map_err(|error| {
-            Failure::new(
-                format_args!("yq gave no JSON for apm.lock.yaml: {error}"),
-                1,
-            )
-        })?;
-        let Some(Value::Array(entries)) = document.get("dependencies") else {
-            return Err(Failure::new(
-                format_args!("apm.lock.yaml has no dependencies list: {document}"),
+                format_args!("apm.lock.yaml has no dependencies list: {lock}"),
                 1,
             ));
         };
@@ -219,17 +198,16 @@ impl Dependency {
     ///
     /// One that is not a gist names its repository, so one without it fails here rather
     /// than as a request for no repository.
-    fn from_entry(entry: &Value) -> Result<Self, Failure> {
-        let field = |name: &str| entry.get(name).and_then(Value::as_str).map(str::to_owned);
+    fn from_entry(entry: &LockedDependency) -> Result<Self, Failure> {
         let malformed = |what: &str| {
             Failure::new(
                 format_args!("a dependency in apm.lock.yaml has no {what}: {entry}"),
                 1,
             )
         };
-        let name = field("name").ok_or_else(|| malformed("name"))?;
-        let repo_url = field("repo_url");
-        let source = if field("host").as_deref() == Some("gist.github.com") {
+        let name = entry.name().ok_or_else(|| malformed("name"))?.to_owned();
+        let repo_url = entry.repo_url().map(str::to_owned);
+        let source = if entry.host() == Some("gist.github.com") {
             Source::Gist { repo_url }
         } else {
             Source::Repository {
@@ -239,7 +217,7 @@ impl Dependency {
         Ok(Dependency {
             name,
             source,
-            virtual_path: field("virtual_path"),
+            virtual_path: entry.virtual_path().map(str::to_owned),
         })
     }
 
@@ -266,7 +244,7 @@ impl Dependency {
             .map_or_else(String::new, |path| format!("path={path}&"));
         let sha = match (GithubQuery {
             path: format!("repos/{repo_url}/commits?{query}per_page=1"),
-            jq: ".[0].sha // empty",
+            pick: last_commit,
             when_empty: "no commit on this path",
         })
         .answer()?
@@ -276,7 +254,7 @@ impl Dependency {
         };
         let merged = match (GithubQuery {
             path: format!("repos/{repo_url}/commits/{sha}/pulls"),
-            jq: MERGED_INTO_DEFAULT,
+            pick: merged_into_default,
             when_empty: "GitHub lists no merge into the default branch for its last commit; check by hand",
         })
         .answer()?
@@ -294,10 +272,11 @@ impl Dependency {
     }
 }
 
-/// A request to GitHub's API through gh, and what its answer being empty means.
+/// A request to GitHub's API through gh, what to take from its answer, and what there
+/// being nothing to take means.
 struct GithubQuery {
     path: String,
-    jq: &'static str,
+    pick: fn(&Value) -> Option<String>,
     when_empty: &'static str,
 }
 
@@ -305,7 +284,7 @@ impl GithubQuery {
     /// The answer, or the reason to hold where there is none; fails where gh cannot run.
     fn answer(&self) -> Result<Result<String, String>, Failure> {
         let output = Command::new("gh")
-            .args(["api", &self.path, "--jq", self.jq])
+            .args(["api", &self.path])
             .stderr(Stdio::inherit())
             .output()
             .map_err(|error| Failure::new(format_args!("cannot run gh: {error}"), 1))?;
@@ -315,10 +294,29 @@ impl GithubQuery {
                 exit_code(output.status)
             )));
         }
-        let answer = String::from_utf8_lossy(&output.stdout);
-        Ok(match answer.trim() {
-            "" => Err(self.when_empty.to_owned()),
-            value => Ok(value.to_owned()),
-        })
+        let answer: Value = match serde_json::from_slice(&output.stdout) {
+            Ok(answer) => answer,
+            Err(error) => return Ok(Err(format!("GitHub's answer is not JSON: {error}"))),
+        };
+        Ok((self.pick)(&answer).ok_or_else(|| self.when_empty.to_owned()))
     }
+}
+
+/// The commit GitHub lists first, its latest, from an answer listing commits.
+fn last_commit(commits: &Value) -> Option<String> {
+    commits.get(0)?.get("sha")?.as_str().map(str::to_owned)
+}
+
+/// The latest time one of the pull requests GitHub lists for a commit merged it into the
+/// default branch. GitHub can list only the pull request that took a commit into
+/// another branch, whose merge time says nothing of when the commit reached the default
+/// one.
+fn merged_into_default(pulls: &Value) -> Option<String> {
+    pulls
+        .as_array()?
+        .iter()
+        .filter(|pull| pull.pointer("/base/ref") == pull.pointer("/base/repo/default_branch"))
+        .filter_map(|pull| pull.get("merged_at")?.as_str())
+        .max()
+        .map(str::to_owned)
 }

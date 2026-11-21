@@ -1,7 +1,8 @@
 //! `skills-push`: pushes a gist-sourced skill's local SKILL.md back to its gist and
-//! moves the pin to it, run with the real git and yq against a checkout of the test's
-//! own. git's config sends every gist URL to a bare repository in the sandbox, and a
-//! fake apm and gh stand in for theirs, so nothing reaches gist.github.com.
+//! moves the pin to it, run with the real git against a checkout of the test's own, and
+//! with yq and jq failing wherever they are run. git's config sends every gist URL to a
+//! bare repository in the sandbox, and a fake apm and gh stand in for theirs, so nothing
+//! reaches gist.github.com.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,6 +15,9 @@ const GIST: &str = "tester/0123abcd";
 
 /// The skill the tests push.
 const SKILL: &str = "writing";
+
+/// What stands for the pinned commit in the lockfile the fake apm writes.
+const PIN: &str = "@PIN@";
 
 /// A dotfiles checkout of the test's own, a bare repository standing in for the gist,
 /// a directory holding the fakes and the records they leave, none of which the
@@ -30,6 +34,7 @@ impl Fixture {
         let fixture = Fixture {
             sandbox: Sandbox::new("skills-push", test, &["repo", "seed"]),
         };
+        fixture.sandbox.forbid(&["yq", "jq"]);
         fixture.write_config();
         fixture.fake_apm();
         fixture.fake_gh();
@@ -79,16 +84,21 @@ impl Fixture {
     }
 
     /// Writes a fake apm into the sandbox's PATH, which records its working directory
-    /// and arguments, then pins the gist's head in the lockfile, or the commit in
-    /// `apm-pin` where there is one, and exits with the code in `apm-code`, if any.
+    /// and arguments, then writes the test's lockfile pinning the gist's head, or the
+    /// commit in `apm-pin` where there is one, and exits with the code in `apm-code`, if
+    /// any.
     fn fake_apm(&self) {
+        fs::write(self.root().join("apm-lockfile"), lockfile(PIN))
+            .expect("the lockfile apm writes is written");
         self.sandbox.fake(
             "apm",
-            r#"{ pwd; printf '%s\n' "$@"; } > "$SANDBOX/apm-call"
+            &format!(
+                r#"{{ pwd; printf '%s\n' "$@"; }} > "$SANDBOX/apm-call"
 code=$(cat "$SANDBOX/apm-code" 2>/dev/null || echo 0)
 [ "$code" = 0 ] || exit "$code"
 pin=$(cat "$SANDBOX/apm-pin" 2>/dev/null || git -C "$SANDBOX/gists/tester/0123abcd.git" rev-parse HEAD)
-P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit) = strenv(P)' apm.lock.yaml"#,
+sed "s/{PIN}/$pin/" "$SANDBOX/apm-lockfile" > apm.lock.yaml"#
+            ),
         );
     }
 
@@ -157,8 +167,7 @@ P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host ==
 
     /// `program` run in `dir`, with what a git hook sets in the environment taken away,
     /// the sandbox's git config read in place of the machine's, and the fakes first on
-    /// PATH. HOME stays, since yq may be a mise shim, which reads the trust mise keeps
-    /// under it.
+    /// PATH.
     fn command(&self, program: &str, dir: &Path) -> Command {
         let mut command = isolated(program, dir, self.root());
         command
@@ -357,6 +366,32 @@ fn fails_where_no_gist_dependency_has_the_name() {
         )
     );
     assert_eq!(sandbox.apm_call(), None);
+}
+
+// A gist's repo_url is `<owner>/<gist_id>`, so one of another form, which would reach
+// `git clone` as part of a URL, is not taken for the gist.
+#[test]
+fn fails_where_the_gist_dependency_names_no_gist() {
+    for repo in ["tester/not-hex", "../x"] {
+        let sandbox = Fixture::new(&format!("not-a-gist-{}", repo.replace('/', "-")));
+        let lock = sandbox
+            .read("apm.lock.yaml")
+            .replace(&format!("repo_url: {GIST}"), &format!("repo_url: {repo}"));
+        sandbox.write("apm.lock.yaml", &lock);
+
+        let run = sandbox.run(&sandbox.repo(), &[SKILL]);
+
+        assert_eq!(
+            outcome(&run),
+            (
+                Some(1),
+                String::new(),
+                format!("[fail] {SKILL}: no gist dependency by that alias in apm.lock.yaml\n")
+            ),
+            "{repo}"
+        );
+        assert_eq!(sandbox.apm_call(), None, "{repo}");
+    }
 }
 
 #[test]

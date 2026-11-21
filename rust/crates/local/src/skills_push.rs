@@ -8,11 +8,12 @@
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use clap::Args;
 use tempfile::TempDir;
 
+use crate::apm_lock::{ApmLock, LockedDependency};
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
 use crate::git::{git, read};
@@ -50,13 +51,17 @@ fn push(name: &str) -> Result<(), Failure> {
         ));
     }
     let checkout = Checkout::find()?;
-    let repo = checkout.locked(name, "repo_url")?;
-    if !is_gist_repo(&repo) {
+    let lock = checkout.lock()?;
+    let Some(repo) = lock
+        .gist(name)
+        .and_then(LockedDependency::repo_url)
+        .filter(|repo| is_gist_repo(repo))
+    else {
         return Err(Failure::new(
             format_args!("[fail] {name}: no gist dependency by that alias in apm.lock.yaml"),
             1,
         ));
-    }
+    };
     let file = checkout.skill(name);
     if !file.is_file() {
         return Err(Failure::new(
@@ -66,12 +71,20 @@ fn push(name: &str) -> Result<(), Failure> {
             1,
         ));
     }
-    let gist = Gist::clone(&repo)?;
-    gist.reset(&checkout.locked(name, "resolved_commit")?)?;
+    let gist = Gist::clone(repo)?;
+    gist.reset(
+        lock.gist(name)
+            .and_then(LockedDependency::resolved_commit)
+            .unwrap_or_default(),
+    )?;
     let pushed = gist.commit_and_push(&file, name)?;
     let _ = writeln!(io::stdout(), "[ok] {name} -> gist {repo} at {pushed}");
     checkout.update(name)?;
-    let pinned = checkout.locked(name, "resolved_commit")?;
+    let lock = checkout.lock()?;
+    let pinned = lock
+        .gist(name)
+        .and_then(LockedDependency::resolved_commit)
+        .unwrap_or_default();
     if pinned != pushed {
         return Err(Failure::new(
             format_args!(
@@ -106,27 +119,9 @@ impl Checkout {
         self.root.join(".claude/skills").join(name).join("SKILL.md")
     }
 
-    /// The `field` of the skill `name`'s gist dependency in apm.lock.yaml.
-    fn locked(&self, name: &str, field: &str) -> Result<String, Failure> {
-        let output = Command::new("yq")
-            .current_dir(&self.root)
-            .env("N", name)
-            .args([
-                "-r",
-                &format!(
-                    ".dependencies[] | select(.name == strenv(N) and .host == \"gist.github.com\") | .{field}"
-                ),
-                "apm.lock.yaml",
-            ])
-            .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| Failure::new(format_args!("cannot run yq: {error}"), 1))?;
-        if !output.status.success() {
-            return Err(Failure::passed_on(output.status));
-        }
-        Ok(String::from_utf8_lossy(&output.stdout)
-            .trim_end_matches('\n')
-            .to_owned())
+    /// The checkout's apm.lock.yaml as it stands.
+    fn lock(&self) -> Result<ApmLock, Failure> {
+        ApmLock::read(&self.root)
     }
 
     /// Has apm pin the gist's head for the skill `name`.

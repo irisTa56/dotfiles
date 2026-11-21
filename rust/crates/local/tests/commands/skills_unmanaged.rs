@@ -1,6 +1,6 @@
 //! `skills-unmanaged`: the entries under `.claude/skills/` that neither git tracks nor
-//! apm.lock.yaml deploys, run in a repository of the test's own with the real git and
-//! yq, which act on nothing outside it.
+//! apm.lock.yaml deploys, run in a repository of the test's own with the real git, which
+//! acts on nothing outside it, and with yq and jq failing wherever they are run.
 
 use std::fs;
 use std::path::PathBuf;
@@ -20,6 +20,7 @@ impl Fixture {
         let sandbox = Sandbox::new("skills-unmanaged", test, &["repo/.claude/skills"]);
         fs::write(sandbox.root().join("repo/apm.lock.yaml"), lock)
             .expect("the lockfile is written");
+        sandbox.forbid(&["yq", "jq"]);
         let fixture = Fixture { sandbox };
         fixture.git(&["init", "--quiet"]);
         fixture
@@ -49,10 +50,11 @@ impl Fixture {
     }
 
     /// `program` run in the repository, with what a git hook sets in the environment
-    /// taken away and the machine's git config left unread. HOME stays, since yq may be
-    /// a mise shim, which reads the trust mise keeps under it.
+    /// taken away, the machine's git config left unread, and the fakes first on PATH.
     fn command(&self, program: impl AsRef<std::ffi::OsStr>) -> Command {
-        isolated(program, &self.repo(), self.sandbox.root())
+        let mut command = isolated(program, &self.repo(), self.sandbox.root());
+        command.env("PATH", self.sandbox.path_before_inherited());
+        command
     }
 
     /// Runs `skills-unmanaged` with `args` from the repository's root.
@@ -135,6 +137,56 @@ dependencies:
     );
 }
 
+// A key with a null value is a dependency deploying nothing, not a lockfile to refuse.
+#[test]
+fn reads_a_lockfile_whose_dependency_has_a_null_deployed_files_list() {
+    let sandbox = Fixture::new(
+        "reads-null-deployed-files",
+        "\
+dependencies:
+- name: null-list
+  deployed_files:
+- name: skill
+  deployed_files:
+  - .claude/skills/deployed/SKILL.md
+",
+    );
+    sandbox.file(".claude/skills/deployed/SKILL.md");
+    sandbox.file(".claude/skills/local/SKILL.md");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(
+        outcome(&run),
+        (Some(0), ".claude/skills/local\n".to_owned(), String::new())
+    );
+}
+
+// An unquoted commit hash such as 1234e567 is a string to the lockfile's reader whatever
+// number YAML 1.2 could read it as.
+#[test]
+fn reads_a_lockfile_whose_resolved_commit_reads_as_a_float() {
+    let sandbox = Fixture::new(
+        "reads-float-like-commit",
+        "\
+dependencies:
+- name: skill
+  resolved_commit: 1234e567
+  deployed_files:
+  - .claude/skills/deployed/SKILL.md
+",
+    );
+    sandbox.file(".claude/skills/deployed/SKILL.md");
+    sandbox.file(".claude/skills/local/SKILL.md");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(
+        outcome(&run),
+        (Some(0), ".claude/skills/local\n".to_owned(), String::new())
+    );
+}
+
 // Hidden entries count too, and the list is in byte order.
 #[test]
 fn lists_every_unmanaged_entry_in_byte_order_hidden_ones_included() {
@@ -164,9 +216,9 @@ fn lists_every_unmanaged_entry_in_byte_order_hidden_ones_included() {
 }
 
 // Without the lockfile every deployed skill would read as unmanaged, so the run lists
-// nothing and fails instead, with yq's own message passed on.
+// nothing and fails instead, saying why.
 #[test]
-fn fails_listing_nothing_where_yq_cannot_read_the_lockfile() {
+fn fails_listing_nothing_where_it_cannot_read_the_lockfile() {
     let sandbox = Fixture::new("fails-without-lockfile", NO_DEPENDENCIES);
     fs::remove_file(sandbox.repo().join("apm.lock.yaml")).expect("the lockfile is removed");
     sandbox.file(".claude/skills/local/SKILL.md");
@@ -175,8 +227,7 @@ fn fails_listing_nothing_where_yq_cannot_read_the_lockfile() {
 
     assert_eq!((code, stdout.as_str()), (Some(1), ""), "{stderr}");
     assert!(
-        stderr.contains("apm.lock.yaml: no such file or directory")
-            && stderr.ends_with("yq could not read apm.lock.yaml (exit 1)\n"),
+        stderr.starts_with("cannot read apm.lock.yaml: No such file or directory"),
         "{stderr}"
     );
 }

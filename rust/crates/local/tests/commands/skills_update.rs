@@ -1,7 +1,7 @@
 //! `skills-update`: APM skills updated unless their last change upstream merged under a
-//! day ago, run with the real yq reading the lockfile and a fake gh that applies the
-//! `--jq` filter it is given with the real jq, as gh does, so the filters are checked
-//! here too. apm is a fake that records how it was called.
+//! day ago, run with a fake gh that answers `gh api <path>` with a file of GitHub's JSON
+//! and refuses any other arguments, a fake apm that records how it was called, and yq
+//! and jq failing wherever they are run.
 
 use std::fs::{self, File};
 use std::path::Path;
@@ -69,18 +69,20 @@ impl Fixture {
     /// fails with `exit` when called with the subcommand `failing`, if any.
     fn new(test: &str, lock: &str) -> Self {
         let sandbox = Sandbox::new("skills-update", test, &["gh"]);
+        sandbox.forbid(&["yq", "jq"]);
         fs::write(sandbox.root().join("apm.lock.yaml"), lock).expect("the lockfile is written");
         let fixture = Fixture { sandbox };
         fixture.apm_failing("", 0);
-        // It answers a path with the file named after it, through jq as gh applies
-        // --jq, and fails where there is none. It records each path it is asked.
+        // It answers a path with the file named after it, and fails where there is
+        // none. It records each path it is asked.
         fixture.sandbox.fake(
             "gh",
             "dir=$(dirname \"$0\")/..\n\
+             [ \"$#\" = 2 ] && [ \"$1\" = api ] || { echo \"gh got $*\" >&2; exit 2; }\n\
              echo \"$2\" >> \"$dir/gh.log\"\n\
              answer=\"$dir/gh/$(printf '%s' \"$2\" | tr '/?&=' '____')\"\n\
              [ -f \"$answer\" ] || exit 1\n\
-             exec jq -r \"$4\" \"$answer\"\n",
+             exec cat \"$answer\"\n",
         );
         fixture
     }
@@ -156,17 +158,6 @@ impl Fixture {
         }
     }
 
-    /// Makes yq print `json` for any lockfile, through an absolute path to cat, so that it
-    /// runs where PATH holds the sandbox's `bin` alone.
-    fn yq_printing(&self, json: &str) {
-        let lock = self.root().join("lock.json");
-        fs::write(&lock, json).expect("the JSON yq prints is written");
-        self.sandbox.fake(
-            "yq",
-            &format!("echo 'yq warns' >&2\nexec /bin/cat '{}'\n", lock.display()),
-        );
-    }
-
     /// Runs `skills-update` with `args` from the sandbox, with its `bin` alone on PATH,
     /// and returns its stdout and stderr apart.
     fn run_isolated(&self, args: &[&str]) -> Output {
@@ -202,9 +193,17 @@ impl Fixture {
     }
 }
 
+/// A list of one pull request, merged at `date` into `base` of a repository whose
+/// default branch is `main`.
 fn pulls(date: &str, base: &str) -> String {
+    format!("[{}]", pull(date, base))
+}
+
+/// A pull request merged at `date` into `base` of a repository whose default branch is
+/// `main`.
+fn pull(date: &str, base: &str) -> String {
     format!(
-        r#"[{{"merged_at": "{date}", "base": {{"ref": "{base}", "repo": {{"default_branch": "main"}}}}}}]"#
+        r#"{{"merged_at": "{date}", "base": {{"ref": "{base}", "repo": {{"default_branch": "main"}}}}}}"#
     )
 }
 
@@ -367,6 +366,37 @@ fn asks_about_a_whole_repository_by_its_commits_and_updates_it_by_name() {
     assert_eq!(sandbox.apm_calls()[0], "update --yes whole");
 }
 
+// The hold counts from the latest merge into the default branch, wherever GitHub lists
+// it, and a later merge into another branch does not count.
+#[test]
+fn holds_by_the_latest_of_several_merges_into_the_default_branch() {
+    let sandbox = Fixture::new("several-merges", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.skill("recent", &Answer::NoPull);
+    let recent = hours_ago(2);
+    sandbox.answer(
+        "repos/o/r/commits/sha-skills-recent/pulls",
+        &format!(
+            "[{}, {}, {}, {}]",
+            pull(OLD, "main"),
+            pull(&recent, "main"),
+            pull("2026-02-01T00:00:00Z", "main"),
+            pull(&hours_ago(1), "dev")
+        ),
+    );
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(run.code, Some(0), "{}", run.out);
+    assert!(
+        run.lines()
+            .contains(&format!("recent: held, last change merged {recent}").as_str()),
+        "{}",
+        run.out
+    );
+    assert_eq!(sandbox.apm_calls()[0], "update --yes o/r/skills/old own");
+}
+
 #[test]
 fn holds_a_path_with_no_commit_and_the_reason_says_so() {
     let sandbox = Fixture::new("no-commit", LOCK);
@@ -433,6 +463,26 @@ fn holds_a_skill_whose_request_fails_rather_than_updating_it() {
     assert!(
         run.lines()
             .contains(&"recent: held, GitHub request failed (exit 1)"),
+        "{}",
+        run.out
+    );
+    assert_eq!(sandbox.apm_calls()[0], "update --yes o/r/skills/old own");
+}
+
+// gh prints what GitHub answered, which an error page can make other than JSON.
+#[test]
+fn holds_a_skill_whose_answer_from_github_is_not_json_saying_so() {
+    let sandbox = Fixture::new("not-json", LOCK);
+    sandbox.skill("old", &Answer::Merged(OLD));
+    sandbox.answer("repos/o/r/commits?path=skills/recent&per_page=1", "<html>");
+
+    let run = sandbox.run(&[]);
+
+    assert_eq!(run.code, Some(0), "{}", run.out);
+    assert!(
+        run.lines()
+            .iter()
+            .any(|line| line.starts_with("recent: held, GitHub's answer is not JSON: ")),
         "{}",
         run.out
     );
@@ -545,18 +595,18 @@ fn fails_with_apms_status_when_a_step_fails_running_none_after_it() {
 }
 
 #[test]
-fn fails_with_yqs_status_when_it_cannot_read_the_lockfile() {
-    let sandbox = Fixture::new("unreadable-lockfile", "dependencies: [\n");
+fn fails_with_exit_1_at_a_lockfile_that_is_not_yaml() {
+    let sandbox = Fixture::new("unparsable-lockfile", "dependencies: [\n");
 
     let run = sandbox.run(&[]);
 
     assert_eq!(run.code, Some(1), "{}", run.out);
     assert!(
-        run.out
-            .ends_with("yq could not read apm.lock.yaml (exit 1)\n"),
+        run.out.starts_with("cannot parse apm.lock.yaml: "),
         "{}",
         run.out
     );
+    assert_eq!(sandbox.gh_calls(), Vec::<String>::new());
 }
 
 #[test]
@@ -644,7 +694,6 @@ const WHOLE: &str =
 #[test]
 fn fails_with_exit_1_naming_a_command_it_cannot_run() {
     for (missing, lock, message) in [
-        ("yq", WHOLE, "cannot run yq: "),
         ("gh", WHOLE, "cannot run gh: "),
         (
             "apm",
@@ -652,8 +701,7 @@ fn fails_with_exit_1_naming_a_command_it_cannot_run() {
             "apm update --yes own failed (",
         ),
     ] {
-        let sandbox = Fixture::new(&format!("missing-{missing}"), LOCK);
-        sandbox.yq_printing(lock);
+        let sandbox = Fixture::new(&format!("missing-{missing}"), lock);
         fs::remove_file(sandbox.root().join("bin").join(missing)).expect("the fake is removed");
 
         let output = sandbox.run_isolated(&[]);
@@ -672,26 +720,27 @@ fn fails_with_exit_1_naming_a_command_it_cannot_run() {
 }
 
 #[test]
-fn fails_with_yqs_own_status() {
-    let fixture = Fixture::new("yq-status", LOCK);
-    fixture.sandbox.fake("yq", "exit 3\n");
+fn fails_with_exit_1_where_there_is_no_lockfile() {
+    let fixture = Fixture::new("no-lockfile", LOCK);
+    fs::remove_file(fixture.root().join("apm.lock.yaml")).expect("the lockfile is removed");
 
     let output = fixture.run_isolated(&[]);
 
-    assert_eq!(
-        (
-            output.status.code(),
-            String::from_utf8_lossy(&output.stderr).as_ref()
-        ),
-        (Some(3), "yq could not read apm.lock.yaml (exit 3)\n")
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(output.status.code(), Some(1), "{stderr}");
+    assert!(
+        stderr.starts_with("cannot read apm.lock.yaml: No such file or directory"),
+        "{stderr}"
     );
+    assert_eq!(fixture.gh_calls(), Vec::<String>::new());
 }
 
 #[test]
-fn passes_on_what_yq_and_gh_print_to_stderr() {
-    let fixture = Fixture::new("tool-stderr", LOCK);
-    fixture.yq_printing(WHOLE);
-    fixture.sandbox.fake("gh", "echo 'gh warns' >&2\n");
+fn passes_on_what_gh_prints_to_stderr() {
+    let fixture = Fixture::new("tool-stderr", WHOLE);
+    fixture
+        .sandbox
+        .fake("gh", "echo 'gh warns' >&2\necho '[]'\n");
 
     let output = fixture.run_isolated(&[]);
 
@@ -704,7 +753,7 @@ fn passes_on_what_yq_and_gh_print_to_stderr() {
         (
             Some(0),
             "whole: held, no commit on this path\nNothing to update.\n",
-            "yq warns\ngh warns\n"
+            "gh warns\n"
         )
     );
 }

@@ -77,13 +77,9 @@ jobs:
         with:
           # The real tools the tests run, offline: lychee for link-check-staged's,
           # gitleaks for secrets:commit-scan's, which run the task's script,
-          # trufflehog for secrets-push-scan's, yq and jq for skills-update's, which
-          # read the lockfile and apply the fake gh's --jq filter, yq for
-          # skills-unmanaged's, which read the lockfile's deployed files, and yq for
-          # skills-push's, which read the lockfile's pin and let the fake apm move it.
-          # mise-multi-upgrade's drive the mise this action puts on PATH, after
-          # clearing every MISE_ variable.
-          install_args: rust lychee gitleaks trufflehog yq jq
+          # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
+          # this action puts on PATH, after clearing every MISE_ variable.
+          install_args: rust lychee gitleaks trufflehog
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
 
