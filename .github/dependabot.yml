@@ -17,25 +17,6 @@ updates:
         patterns:
           - "*"
 
-  # Hex packages of the Mix project. Dependabot's own three-day cooldown already
-  # outlasts the one-day Hex window this machine sets, so none is configured here.
-  - package-ecosystem: "mix"
-    directory: "/elixir"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "build(elixir)"
-    # Version updates move only what the manifest names unless told otherwise;
-    # the CI baseline sets this on every lockfile entry.
-    allow:
-      - dependency-type: "all"
-    # One pull request for all of a week's version updates, which auto-merge as
-    # the actions ones do once `elixir-qa` passes.
-    groups:
-      hex:
-        patterns:
-          - "*"
-
   # Crates of the Rust workspace: the dotfiles-tasks binary's, and those of dotfiles-local,
   # which Dependabot reaches through the workspace's members. The `fix` prefix makes
   # release-please cut a release for an update, so the binaries the shared tasks download

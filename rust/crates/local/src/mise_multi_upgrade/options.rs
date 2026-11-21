@@ -29,11 +29,10 @@ enum Switch {
 impl Options {
     /// The options `args` give, or `None` where they cannot be read.
     ///
-    /// Read as Elixir's `OptionParser` reads boolean switches in strict mode, which the
-    /// command was first written with: `--name` sets a switch and `--no-name` clears it,
-    /// `--name=true` and `--name=false` set it either way, `-n` and `-h` may run
-    /// together with a value after `=` going to the last, a later switch replaces an
-    /// earlier one, `--` ends the switches, and any argument that is not one is refused.
+    /// `--name` sets a switch and `--no-name` clears it, `--name=true` and `--name=false`
+    /// set it either way, `-n` and `-h` may run together with a value after `=` going to
+    /// the last, a later switch replaces an earlier one, `--` ends the switches, and any
+    /// argument that is not one is refused.
     pub(super) fn parse(args: &[String]) -> Option<Self> {
         let mut options = Options::default();
         for (index, arg) in args.iter().enumerate() {

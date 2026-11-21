@@ -167,7 +167,6 @@ fn fails_with_osascripts_status_when_it_fails() {
     );
 }
 
-// `--from` went with the Mix task, which ran from its own project.
 #[test]
 fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
     let sandbox = Sandbox::new("usage", "exit 0");
@@ -192,8 +191,8 @@ fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
     }
 }
 
-// Options are read as the Mix task read them: anywhere, with `=` or not, the last one
-// standing, and none after `--`.
+// Options are read anywhere, with `=` or not, the last one standing, and none after
+// `--`.
 #[test]
 fn reads_options_anywhere_and_with_an_equals_sign() {
     let sandbox = Sandbox::new("options", "exit 0");

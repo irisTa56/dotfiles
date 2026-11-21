@@ -115,11 +115,9 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
-# `py:check-uv-pin` sits outside `qa:` because only a commit made here changes the two
-# values it compares.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "secrets:commit-scan", "link-check:staged", "py:check-uv-pin"]
+depends = ["qa:**", "secrets:commit-scan", "link-check:staged"]
 run = [
   "claude plugin validate .claude/skills",
   "claude plugin validate --strict .claude/skills/global-hooks",
@@ -165,38 +163,6 @@ run = [
   "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
 ]
 
-# One build, the test one, serves the warnings check, credo and the suite. The
-# compiler's warnings include those of Elixir's type checker, which infers types
-# without annotations, so a type check needs no tool of its own here.
-# `--check-locked` fails where mix.exs changed a dependency and mix.lock did not
-# follow. HEX_OFFLINE keeps the fetch, and so every commit, off the network: a new
-# worktree gets the locked packages from Hex's cache in ~/.hex, and a package the
-# cache lacks, as after a version bump, fails by name until `mix deps.get` in
-# elixir/ fetches it. CI fetches before running this task.
-# credo lists only five issues per category without `--all`, which a CI log would
-# then hide; the exit status counts every issue either way.
-[tasks."qa:ex"]
-description = "Check formatting of, compile, lint and test the Elixir project"
-dir = "{{config_root}}/elixir"
-env = { MIX_ENV = "test", HEX_OFFLINE = "1" }
-run = [
-  "mix deps.get --check-locked",
-  "mix format --check-formatted",
-  "mix compile --warnings-as-errors",
-  "mix credo --strict --all",
-  "mix test --warnings-as-errors",
-]
-
-# The release pull request moves the version in rust/Cargo.toml and in each wrapper
-# under tasks/ together; this fails where a wrapper was left behind. MIX_QUIET keeps
-# out the compile progress Mix prints to stdout after an edit, ahead of the task's
-# own output, where a pipe would read it as that output.
-[tasks."qa:release-pins"]
-description = "Check that each shared task pins the dotfiles-tasks release rust/Cargo.toml is at"
-dir = "{{config_root}}/elixir"
-env = { MIX_QUIET = "1" }
-run = "mix dotfiles.release_pins"
-
 # The checks written in Rust, and the checks of the Rust package itself, sit under
 # `qa:rust:`, which `qa:rust` gathers for CI's rust-qa job to run.
 [tasks."qa:rust"]
@@ -205,7 +171,7 @@ depends = ["qa:rust:*"]
 
 # Each command names the whole workspace: run in rust/, cargo would otherwise take only
 # the dotfiles-tasks package at its root.
-[tasks."qa:rust:crate"]
+[tasks."qa:rust:crates"]
 description = "Check formatting of, lint and test every package of the Rust workspace"
 dir = "{{config_root}}/rust"
 run = [
@@ -250,7 +216,13 @@ run = [
   "! find -L .claude/evals -type l | grep .",
 ]
 
-[tasks."py:check-uv-pin"]
+# The checks that config files agree with each other sit under `qa:config:`, which
+# `qa:config` gathers for CI's config-qa job to run.
+[tasks."qa:config"]
+description = "Run every check under qa:config:"
+depends = ["qa:config:*"]
+
+[tasks."qa:config:uv-pin"]
 description = "Check that uv's global Python pin matches the python in the global mise config"
 run = '''
 mise_python="$(yq '.tools.python' .config/mise/config.toml)"

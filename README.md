@@ -83,7 +83,7 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 - npm, Hex and cargo take it from their user or global config rather than an environment variable, which would outrank a project's own config, so a project can still set its own.
 - npm: `setup:dotfiles` sets [`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/) in `~/.npmrc`.
 - Hex: `setup:dotfiles` sets [`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html) in `~/.hex/hex.config`, which any `mix` reads, whatever shell starts it.
-  - It covers `elixir/mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
+  - It covers a project's `mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
   - `setup:dotfiles` updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
   - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
 - cargo: `[dotfiles]` merges [`global-min-publish-age`](https://doc.rust-lang.org/cargo/reference/config.html#registryglobal-min-publish-age) into `~/.cargo/config.toml`.
@@ -103,14 +103,20 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 
 ### Where a script goes
 
-For a script shared across this machine, what it has to change decides whether it is a shell fragment, how much logic it holds decides whether it is written in Rust, and who calls it decides where the rest goes.
+For a script shared across this machine, what it is for decides whether it has to be shell, whether its branches rejoin decides whether it is written in Rust, and who calls it decides where the rest goes.
 Take the first of these that fits:
 
-1. It changes the calling shell's state, such as its environment, `PATH` or working directory: a function in a shell fragment, since a separate process cannot.
-2. It holds state or nested branching, more than a one-liner or a list of them: a subcommand of `dotfiles-local`, which its caller runs as `~/.local/bin/dotfiles-local <command>`.
+1. It changes the calling shell's state, such as its environment, `PATH`, working directory, or the settings of the shell or the terminal: shell, as a function or a line in a shell fragment, since a separate process cannot.
+2. It runs before `dotfiles-local` can, as `local:install`, the `postinstall` hook in `[hooks]` with the `hook.*` commands it registers, and `[bootstrap.hooks]` do: shell, since the binary may not be there yet.
+3. It holds a conditional whose paths rejoin, where a path that ran something only on some condition flows on into code written after the conditional: a subcommand of `dotfiles-local`, which its caller runs as `~/.local/bin/dotfiles-local <command>`.
+   - A loop counts, since every pass returns to the same code.
+   - A conditional whose every path ends with nothing after it does not count.
+     - That holds however a path ends: succeeding, failing, printing a message or doing nothing.
+     - It holds however the conditional is spelled: with `if`, `&&`, `||` or `case`, leaving by `return`, `exit` or the last line.
+   - Variables and pipes do not count, since they split no path.
    - A name a person types is an alias or function in `zsh_fragments/zshrc.sh` that runs the subcommand.
    - A command a skill has an agent run is a subcommand too, which the skill names by that path, since an agent's shell does not read `.zshrc`.
-3. Anything else stays shell, where its caller finds it:
+4. Anything else stays shell, where its caller finds it:
    - a mise task's `run` in `mise.toml`, for one run as a mise task;
    - an alias or function in `zsh_fragments/zshrc.sh`, for one a person types;
    - a script written out as `content` in `[dotfiles]`, with `permissions = "755"`, for one another caller runs by its path in `~/.local/bin`.
@@ -136,12 +142,7 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
   - A test that needs a real tool, such as yq or jq, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
 - A dependency it adds or updates changes `rust/Cargo.lock`, which `dotfiles-tasks`'s releases cover, so a `feat` or `fix` commit with that change opens a release pull request.
 
-The Mix project under `elixir/` holds the `qa:release-pins` check alone, which a new command does not join.
-
-- The check is a Mix task in the `dotfiles` namespace, `mix dotfiles.release_pins`, which its mise task runs from `elixir/` by setting `dir` to it.
-  - The mise task sets `MIX_QUIET=1`, since after an edit Mix prints its compile progress to stdout, ahead of the task's own output.
-  - Files follow Elixir's layout: the task in `lib/mix/tasks/dotfiles.<name>.ex`, the module doing the work in `lib/dotfiles/<name>.ex`, and a unit test at the same path under `test/`.
-- A test that needs a directory takes it from `Dotfiles.TestEnv.tmp_dir!/1` rather than ExUnit's `:tmp_dir`, whose path two suites running at once in one checkout would share.
+A property of the shared tasks under `tasks/`, such as each wrapper pinning the `dotfiles-tasks` release `rust/Cargo.toml` is at, is tested in `rust/tests/tasks/` beside the tests of the tasks themselves, rather than checked by a `qa:` task of its own.
 
 ## Agent Instructions
 
