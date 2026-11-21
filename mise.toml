@@ -18,7 +18,7 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
 [vars]
 # Where the shell files are, for the two tasks below that lint or format them. Named once
-# because the lists had already drifted apart when each carried its own: format-sh was
+# because the lists had already drifted apart when each carried its own: `fmt:sh` was
 # missing the .zshrc fragment, which pre-commit had always checked.
 sh_paths = "tasks zsh_fragments"
 
@@ -100,6 +100,23 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 }
 '''
 
+# The tasks are grouped by role, in this order: checks, formatting, machine setup, and
+# everyday operations. Each group is in name order, except machine setup, which is in
+# the order it runs: `bootstrap`, then the tasks it runs, in turn. How a task is named
+# is in README.md, under "Naming tasks and subcommands".
+
+# The shared task, run by the subcommand built from the working tree for the reason
+# `qa:rust:skills` below gives; a commit here, on a release pull request's branch included,
+# waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
+# subcommand's failure tells a commit to skip.
+[tasks."link-check:staged.sh"]
+description = "Check the links of staged files"
+run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-staged"
+
+[tasks."links:check"]
+description = "Check if links are valid, showing redirects"
+run = "lychee -v ."
+
 # CI runs each `qa:` task by name in one of its jobs (.github/workflows/ci.yml), or
 # through an aggregate one runs, as `qa:rust` gathers `qa:rust:*`, so a check that
 # belongs in CI goes under `qa:`, and a new `qa:` task needs a job or such an aggregate
@@ -124,44 +141,39 @@ run = [
   "claude plugin test .claude/skills/global-hooks",
 ]
 
+# The checks that config files agree with each other sit under `qa:config:`, which
+# `qa:config` gathers for CI's config-qa job to run.
+[tasks."qa:config"]
+description = "Run every check under qa:config:"
+depends = ["qa:config:*"]
+
+[tasks."qa:config:uv-pin"]
+description = "Check that uv's global Python pin matches the python in the global mise config"
+run = '''
+mise_python="$(yq '.tools.python' .config/mise/config.toml)"
+uv_pin="$(yq '.dotfiles["~/.config/uv/.python-version"].content' mise.toml)"
+test "$mise_python" = "$uv_pin" || {
+  echo "uv pins Python $uv_pin (mise.toml), but mise uses $mise_python (.config/mise/config.toml)" >&2
+  exit 1
+}
+'''
+
+# Offline, so a pull request never waits on a third-party host and a host being down
+# never fails one; `link-check:staged` requests the links of the files a commit
+# touches, and `links:check` requests every link, which CI runs weekly without
+# gating anything (.github/workflows/link-check-weekly.yml).
+[tasks."qa:links:offline"]
+description = "Check local links and anchors, and eval symlinks, without the network"
+run = [
+  "lychee --offline --no-progress .",
+  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
+  # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
+  "! find -L .claude/evals -type l | grep .",
+]
+
 [tasks."qa:md"]
 description = "Lint markdown files"
 run = "rumdl check"
-
-# biome.json names the files: the function-hooks module under global-hooks.
-[tasks."qa:ts"]
-description = "Lint and check formatting of TypeScript"
-run = "biome ci --error-on-warnings"
-
-# Writes the installed CLI's type declarations, which global-hooks/tsconfig.json extends,
-# for an editor to type-check the function-hooks module; pre-commit does not need them,
-# since `claude plugin validate` type-checks the module itself. The engine writes them,
-# git-ignored, beside a plugin in a `--plugin-dir` folder the session watches for saves,
-# and not beside one it loads from the skills directory, so the task loads the module
-# that way. A `-p` run watches the folder only under `CLAUDE_CODE_PLUGIN_DIR_WATCH`, and
-# writes nothing without it. `/cost` is a command that runs without a model call, and
-# the rest keeps the run from connecting MCP servers and making startup requests, which
-# is most of its time, and from waiting on a stdin that is open and silent.
-# The run exits 0 whether or not it wrote anything, so the old declarations go first and
-# the last step fails on a run that wrote none instead of leaving stale ones in place.
-[tasks."ts:types"]
-description = "Write the installed Claude Code CLI's type declarations for editing the function-hooks module"
-env = { CLAUDE_CODE_PLUGIN_DIR_WATCH = "1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1" }
-run = [
-  "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
-  "claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
-  "test -f .claude/skills/global-hooks/.claude-plugin/types/tsconfig.json",
-]
-
-[tasks."qa:sh"]
-description = "Lint and check formatting of shell scripts"
-# Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
-# rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
-# and `sh` — which is what runs this — has no recursive glob to match that.
-run = [
-  "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
-  "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
-]
 
 # The checks written in Rust, and the checks of the Rust package itself, sit under
 # `qa:rust:`, which `qa:rust` gathers for CI's rust-qa job to run.
@@ -187,13 +199,20 @@ run = [
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- skills-size-check"
 
-# The shared task, run by the subcommand built from the working tree for the reason
-# `qa:rust:skills` gives; a commit here, on a release pull request's branch included,
-# waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
-# subcommand's failure tells a commit to skip.
-[tasks."link-check:staged.sh"]
-description = "Check the links of staged files"
-run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-staged"
+[tasks."qa:sh"]
+description = "Lint and check formatting of shell scripts"
+# Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
+# rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
+# and `sh` — which is what runs this — has no recursive glob to match that.
+run = [
+  "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
+  "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
+]
+
+# biome.json names the files: the function-hooks module under global-hooks.
+[tasks."qa:ts"]
+description = "Lint and check formatting of TypeScript"
+run = "biome ci --error-on-warnings"
 
 # The shared task, run by the subcommand built from the working tree for the reason
 # `qa:rust:skills` gives; the pre-push hook runs it as `secrets:push-scan`, which
@@ -203,39 +222,18 @@ run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-
 description = "Scan the commits a push is about to send for secrets"
 run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- secrets-push-scan"
 
-# Offline, so a pull request never waits on a third-party host and a host being down
-# never fails one; `link-check:staged` requests the links of the files a commit
-# touches, and `link-check` below requests every link, which CI runs weekly without
-# gating anything (.github/workflows/link-check-weekly.yml).
-[tasks."qa:links:offline"]
-description = "Check local links and anchors, and eval symlinks, without the network"
-run = [
-  "lychee --offline --no-progress .",
-  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
-  # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
-  "! find -L .claude/evals -type l | grep .",
-]
+[tasks."fmt:md"]
+description = "Format markdown files"
+run = "rumdl check --fix"
 
-# The checks that config files agree with each other sit under `qa:config:`, which
-# `qa:config` gathers for CI's config-qa job to run.
-[tasks."qa:config"]
-description = "Run every check under qa:config:"
-depends = ["qa:config:*"]
+[tasks."fmt:sh"]
+description = "Format shell scripts"
+# The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
+run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
 
-[tasks."qa:config:uv-pin"]
-description = "Check that uv's global Python pin matches the python in the global mise config"
-run = '''
-mise_python="$(yq '.tools.python' .config/mise/config.toml)"
-uv_pin="$(yq '.dotfiles["~/.config/uv/.python-version"].content' mise.toml)"
-test "$mise_python" = "$uv_pin" || {
-  echo "uv pins Python $uv_pin (mise.toml), but mise uses $mise_python (.config/mise/config.toml)" >&2
-  exit 1
-}
-'''
-
-[tasks."setup:dotfiles"]
-description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
-run = "~/.local/bin/dotfiles-local setup-dotfiles"
+[tasks."fmt:ts"]
+description = "Format TypeScript and apply safe lint fixes"
+run = "biome check --write"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
 [tasks.bootstrap]
@@ -268,34 +266,25 @@ test "$(git branch --show-current)" = main || {
 cargo install --locked --path rust/crates/local --profile local --root ~/.local
 '''
 
-[tasks.link-check]
-description = "Check if links are valid, showing redirects"
-run = "lychee -v ."
-
-[tasks.format-md]
-description = "Format markdown files"
-run = "rumdl check --fix"
-
-[tasks.format-ts]
-description = "Format TypeScript and apply safe lint fixes"
-run = "biome check --write"
-
-[tasks.format-sh]
-description = "Format shell scripts"
-# The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
-run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
+[tasks."setup:dotfiles"]
+description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
+run = "~/.local/bin/dotfiles-local setup-dotfiles"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
 run = "~/.local/bin/dotfiles-local ccusage-popup daily"
 
+[tasks."ccusage:monthly"]
+description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
+run = "~/.local/bin/dotfiles-local ccusage-popup monthly"
+
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
 run = "~/.local/bin/dotfiles-local ccusage-popup weekly"
 
-[tasks."ccusage:monthly"]
-description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
-run = "~/.local/bin/dotfiles-local ccusage-popup monthly"
+[tasks."mise:multi-upgrade"]
+description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
+run = "~/.local/bin/dotfiles-local mise-multi-upgrade"
 
 [tasks."skills:push"]
 description = "Push local edits to a gist-sourced SKILL.md back to its gist and pin it (external write; needs gh auth)"
@@ -304,13 +293,16 @@ usage = 'arg "<name>" help="Alias of a gist dependency in apm.yml to push back t
 # name is one token.
 run = '~/.local/bin/dotfiles-local push-gist-skill "$usage_name"'
 
+[tasks."skills:remove"]
+description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"
+# No cleanup step: the singular `target: claude` pin (not plural `targets:`) confines
+# `apm uninstall` to .claude/skills/, so it never leaves a stray .agents/skills/ to prune.
+# Keep the pin singular and don't re-add `rm -rf`.
+run = "apm uninstall"
+
 [tasks."skills:unmanaged"]
 description = "List entries under .claude/skills/ that neither git tracks nor apm.lock.yaml deploys"
 run = "~/.local/bin/dotfiles-local skills-unmanaged"
-
-[tasks."mise:multi-upgrade"]
-description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
-run = "~/.local/bin/dotfiles-local mise-multi-upgrade"
 
 # dotfiles-local updates the apm.yml and apm.lock.yaml of the directory it runs in, which
 # a task with no `dir` leaves as this checkout's root, wherever `mise run` was called from.
@@ -318,9 +310,22 @@ run = "~/.local/bin/dotfiles-local mise-multi-upgrade"
 description = "Update apm skill(s), holding back any whose upstream change merged under a day ago"
 run = "~/.local/bin/dotfiles-local skills-update"
 
-[tasks."skills:remove"]
-description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"
-# No cleanup step: the singular `target: claude` pin (not plural `targets:`) confines
-# `apm uninstall` to .claude/skills/, so it never leaves a stray .agents/skills/ to prune.
-# Keep the pin singular and don't re-add `rm -rf`.
-run = "apm uninstall"
+# Writes the installed CLI's type declarations, which global-hooks/tsconfig.json extends,
+# for an editor to type-check the function-hooks module; pre-commit does not need them,
+# since `claude plugin validate` type-checks the module itself. The engine writes them,
+# git-ignored, beside a plugin in a `--plugin-dir` folder the session watches for saves,
+# and not beside one it loads from the skills directory, so the task loads the module
+# that way. A `-p` run watches the folder only under `CLAUDE_CODE_PLUGIN_DIR_WATCH`, and
+# writes nothing without it. `/cost` is a command that runs without a model call, and
+# the rest keeps the run from connecting MCP servers and making startup requests, which
+# is most of its time, and from waiting on a stdin that is open and silent.
+# The run exits 0 whether or not it wrote anything, so the old declarations go first and
+# the last step fails on a run that wrote none instead of leaving stale ones in place.
+[tasks."ts:types"]
+description = "Write the installed Claude Code CLI's type declarations for editing the function-hooks module"
+env = { CLAUDE_CODE_PLUGIN_DIR_WATCH = "1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1" }
+run = [
+  "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
+  "claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
+  "test -f .claude/skills/global-hooks/.claude-plugin/types/tsconfig.json",
+]
