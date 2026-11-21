@@ -3,8 +3,9 @@
 
 use std::fs;
 use std::io::{self, Write};
-use std::path::Path;
-use std::process::ExitCode;
+use std::path::{Path, PathBuf};
+
+use clap::Args;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
@@ -20,31 +21,24 @@ const RECORD: [&str; 6] = [
     "archived",
 ];
 
-const USAGE: &str = "\
-Usage: dotfiles-local find-kboat-repo-lookup <dir> <title>...
+/// Print the records of the given titles from the catalogue an export left.
+///
+/// Prints, one JSON object per line and in the catalogue's order, the record of each note
+/// whose title is given, from the catalog.json that find-kboat-repo-export-catalog wrote
+/// into DIR: its title, url, summary, status, `last_commit` and archived. A title the
+/// catalogue does not hold prints nothing.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The directory the export wrote
+    dir: PathBuf,
+    /// The titles whose records to print
+    titles: Vec<String>,
+}
 
-Prints, one JSON object per line and in the catalogue's order, the record of each note
-whose title is given, from the catalog.json that find-kboat-repo-export-catalog wrote
-into <dir>: its title, url, summary, status, last_commit and archived. A title the
-catalogue does not hold prints nothing.
-
-  --help, -h  print this message
-";
-
-/// Prints the record of each title in `args` after the export's directory, or, given
-/// `--help`, prints how it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        [dir, titles @ ..] => lookup(Path::new(dir), titles),
-        [] => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+impl Request {
+    /// Prints the record of each title the request names.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        lookup(&self.dir, &self.titles)
     }
 }
 

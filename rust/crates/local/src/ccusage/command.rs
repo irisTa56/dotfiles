@@ -1,7 +1,8 @@
 //! The command: the period it is run for, and the stages it runs through.
 
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
+use clap::{Args, ValueEnum};
 use jiff::civil::Date;
 use jiff::{ToSpan, ZonedDateTime};
 
@@ -11,30 +12,26 @@ use super::report_file::ReportFile;
 use super::session_logs::SessionLogs;
 use crate::failure::{Failure, exit_code};
 
-const USAGE: &str = "\
-Usage: mise run ccusage:<daily|weekly|monthly>
+/// Show Claude Code usage in a Quick Look popup as three tables per period.
+///
+/// The tables are token usage with the cache hit rate, cost by model, and cost by
+/// repository. Run it as `mise run ccusage:<PERIOD>`.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The period the usage is shown over
+    #[arg(value_enum)]
+    period: Period,
+}
 
-Shows Claude Code usage in a Quick Look popup as three tables per period:
-token usage with the cache hit rate, cost by model, and cost by repository.
-Periods cover the last 2 weeks, the last 9 weeks starting on a Sunday (as
-`ccusage claude weekly` does by default), or the last 12 months.
-";
-
-/// Shows the usage over the period `args` names.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let Some(period) = Period::from_args(args) else {
-        // The usage's own last line end and the one the report adds leave a blank line
-        // after it.
-        return Failure::new(format_args!("{USAGE}"), 2).report();
-    };
-    match period.show() {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+impl Request {
+    /// Shows the usage over the period the request names.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        self.period.show()
     }
 }
 
 /// The span the usage is shown over, and the unit its rows are.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, ValueEnum)]
 pub(super) enum Period {
     /// The last 2 weeks, a row a day.
     Daily,
@@ -45,15 +42,6 @@ pub(super) enum Period {
 }
 
 impl Period {
-    fn from_args(args: &[String]) -> Option<Self> {
-        match args {
-            [period] if period == "daily" => Some(Period::Daily),
-            [period] if period == "weekly" => Some(Period::Weekly),
-            [period] if period == "monthly" => Some(Period::Monthly),
-            _ => None,
-        }
-    }
-
     /// The first day the period covers, counted back from `today`.
     fn since(self, today: Date) -> Date {
         match self {

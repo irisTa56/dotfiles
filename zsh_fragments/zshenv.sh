@@ -21,7 +21,7 @@ export LC_CTYPE=ja_JP.UTF-8
 
 # rclone reads its config password from the login keychain,
 # so the config can stay encrypted without a prompt;
-# `mise run setup:dotfiles` stores the password where this command reads it,
+# `mise run dotfiles:setup` stores the password where this command reads it,
 # so storing it elsewhere changes the item that task creates too.
 # Here rather than mise's [env],
 # which only `mise activate` in an interactive shell applies.

@@ -239,10 +239,10 @@ run = "biome check --write"
 [tasks.bootstrap]
 description = "Finish machine setup after `mise bootstrap` links dotfiles and installs tools"
 run = [
-  # First, since setup:dotfiles runs the binary this installs. Off main it fails, and
+  # First, since dotfiles:setup runs the binary this installs. Off main it fails, and
   # the steps after it do not run.
   { task = "local:install" },
-  { task = "setup:dotfiles" },
+  { task = "dotfiles:setup" },
   # Restores every skill to its pinned copy, over a gist skill's edit not yet pushed too.
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
@@ -266,21 +266,21 @@ test "$(git branch --show-current)" = main || {
 cargo install --locked --path rust/crates/local --profile local --root ~/.local
 '''
 
-[tasks."setup:dotfiles"]
+[tasks."dotfiles:setup"]
 description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
-run = "~/.local/bin/dotfiles-local setup-dotfiles"
+run = "~/.local/bin/dotfiles-local dotfiles-setup"
 
 [tasks."ccusage:daily"]
 description = "Show Claude Code usage, cost by model and by repository (last 2 weeks) in a Quick Look popup"
-run = "~/.local/bin/dotfiles-local ccusage-popup daily"
+run = "~/.local/bin/dotfiles-local ccusage daily"
 
 [tasks."ccusage:monthly"]
 description = "Show Claude Code usage, cost by model and by repository (last 12 months) in a Quick Look popup"
-run = "~/.local/bin/dotfiles-local ccusage-popup monthly"
+run = "~/.local/bin/dotfiles-local ccusage monthly"
 
 [tasks."ccusage:weekly"]
 description = "Show Claude Code usage, cost by model and by repository (last 9 weeks) in a Quick Look popup"
-run = "~/.local/bin/dotfiles-local ccusage-popup weekly"
+run = "~/.local/bin/dotfiles-local ccusage weekly"
 
 [tasks."mise:multi-upgrade"]
 description = "Upgrade mise tools directory by directory, asking for each first; `-- --help` lists its options"
@@ -291,7 +291,7 @@ description = "Push local edits to a gist-sourced SKILL.md back to its gist and 
 usage = 'arg "<name>" help="Alias of a gist dependency in apm.yml to push back to its gist"'
 # $usage_name is a single required arg (usage errors if omitted); quote it since a skill
 # name is one token.
-run = '~/.local/bin/dotfiles-local push-gist-skill "$usage_name"'
+run = '~/.local/bin/dotfiles-local skills-push "$usage_name"'
 
 [tasks."skills:remove"]
 description = "Uninstall apm skill(s) from apm.yml, apm.lock.yaml, and .claude/skills/"

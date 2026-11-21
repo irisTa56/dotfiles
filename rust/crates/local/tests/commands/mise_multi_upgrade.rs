@@ -298,28 +298,28 @@ fn prints_its_usage_for_help_and_h_asking_and_upgrading_nothing() {
     for flag in ["--help", "-h"] {
         let run = sandbox.run(&[flag], "y\n");
         assert_eq!(run.code, Some(0), "{flag}");
-        assert!(
-            run.out
-                .starts_with("Usage: mise run mise:multi-upgrade [--dry-run [--bump]]"),
-            "{flag}: {}",
-            run.out
-        );
-        assert!(run.out.ends_with("for information. A `-` marks nothing to\nreport; a `?` marks a Released cell whose age could not be determined.\n\n"), "{flag}: {}", run.out);
+        assert!(run.out.contains(USAGE), "{flag}: {}", run.out);
     }
+    let run = sandbox.run(&["--help"], "y\n");
+    assert!(
+        run.out
+            .contains("a `?` marks a Released cell whose age could not be determined."),
+        "{}",
+        run.out
+    );
     assert_eq!(sandbox.mise_calls(), Vec::<String>::new());
 }
 
-const USAGE_START: &str = "Usage: mise run mise:multi-upgrade";
+const USAGE: &str = "Usage: dotfiles-local mise-multi-upgrade";
 
-// A switch is set by its name, cleared by `--no-` before it, or set either way by `=true`
-// or `=false`; short ones run together; and `--` ends them.
+// A switch is set by its name alone, short ones run together, and `--` ends them; a
+// `--no-` before one, or a value after `=`, is a usage error.
 #[test]
-fn reads_its_switches_in_every_form_it_takes() {
+fn reads_its_switches_only_in_the_forms_clap_takes() {
     let sandbox = Fixture::new("switches");
     for args in [
         &["-nh"][..],
         &["-hn"],
-        &["--dry-run=true", "--help=true"],
         &[
             "--include-worktrees",
             "--include-tmpdirs",
@@ -327,37 +327,32 @@ fn reads_its_switches_in_every_form_it_takes() {
             "-n",
             "-h",
         ],
-        &[
-            "--no-dry-run",
-            "--no-bump",
-            "--no-include-worktrees",
-            "--no-include-tmpdirs",
-            "-h",
-        ],
         &["-h", "--"],
-        &["-h=true"],
-        &["-hn=false"],
+        // `-h` ends the reading where it stands, so what follows it is never read.
+        &["-nh=false"],
     ] {
         let run = sandbox.run(args, "");
         assert_eq!(run.code, Some(0), "{args:?}: {}", run.err);
-        assert!(run.out.starts_with(USAGE_START), "{args:?}: {}", run.out);
+        assert!(run.out.contains(USAGE), "{args:?}: {}", run.out);
     }
     for args in [
         &["--bogus"][..],
         &["-x"],
-        &["-hx"],
-        &["--dry_run", "-h"],
-        &["--Dry-run", "-h"],
-        &["--help=1"],
-        &["--help=TRUE"],
-        &["--no-n", "-h"],
-        &["-h", "extra"],
-        &["-h", "--", "--dry-run"],
-        &["-h", "--", "--"],
-        &["-h", "-"],
-        &["-h=1"],
-        &["-n=junk", "-h"],
-        &["--no-dry-run=true", "-h"],
+        &["--dry_run"],
+        &["--Dry-run"],
+        &["--no-dry-run"],
+        &["--no-bump"],
+        &["--no-include-worktrees"],
+        &["--no-include-tmpdirs"],
+        &["--dry-run=true"],
+        &["--dry-run=false"],
+        &["--bump=false"],
+        &["--help=true"],
+        &["-n=false"],
+        &["-n", "-n"],
+        &["extra"],
+        &["--", "--dry-run"],
+        &["-"],
     ] {
         let run = sandbox.run(args, "");
         assert_eq!(
@@ -366,9 +361,8 @@ fn reads_its_switches_in_every_form_it_takes() {
             "{args:?}: {}",
             run.err
         );
-        assert!(run.err.starts_with(USAGE_START), "{args:?}: {}", run.err);
         assert!(
-            run.err.ends_with("determined.\n\n"),
+            run.err.starts_with("error: ") && run.err.contains(USAGE),
             "{args:?}: {}",
             run.err
         );
@@ -377,20 +371,15 @@ fn reads_its_switches_in_every_form_it_takes() {
 }
 
 #[test]
-fn refuses_bump_without_dry_run_with_its_usage_and_exit_2() {
+fn refuses_bump_without_dry_run_as_a_usage_error() {
     let sandbox = Fixture::new("bump-alone");
-    for args in [
-        &["--bump"][..],
-        &["-n", "--bump", "--dry-run=false"],
-        &["--bump", "--no-dry-run"],
-        &["-n=false", "--bump"],
-        &["-nh=false", "--bump", "-n=false"],
-    ] {
+    for args in [&["--bump"][..], &["--include-tmpdirs", "--bump"]] {
         let run = sandbox.run(args, "y\n");
         assert_eq!((run.code, run.out.as_str()), (Some(2), ""), "{args:?}");
         assert!(
-            run.err
-                .starts_with(&format!("--bump needs --dry-run\n\n{USAGE_START}")),
+            run.err.starts_with(
+                "error: the following required arguments were not provided:\n  --dry-run\n"
+            ),
             "{args:?}: {}",
             run.err
         );

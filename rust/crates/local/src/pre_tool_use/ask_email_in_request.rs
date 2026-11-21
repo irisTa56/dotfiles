@@ -10,13 +10,15 @@
 //! the word, a request made from another program, and an address assembled from pieces
 //! all pass unasked.
 
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 use std::sync::LazyLock;
 
+use clap::Args;
 use regex::{Regex, RegexBuilder};
 use serde_json::Value;
 
 use super::{BashCall, Verdict};
+use crate::failure::Failure;
 
 /// A bare curl or wget, at the start of a line or after a space, ;, &, ( or |, and
 /// followed by a space. A space is an ASCII one, the only kind the shell splits words on.
@@ -32,16 +34,32 @@ const CAUSE: &str = "Sends the user's email address";
 /// What Claude is told about why the user is asked.
 const REASON: &str = "It carries the user's email address: allow it only if the service requires the address; otherwise -A project-research identifies the caller.";
 
-/// Judges the call on stdin.
-pub(crate) fn run() -> ExitCode {
-    let Some(local_part) = LocalPart::configured() else {
-        return Verdict::Pass.report();
-    };
-    match BashCall::read() {
-        Some(call) if call.makes_a_request() && local_part.is_in(&call.command) => call.ask(),
-        _ => Verdict::Pass,
+/// Ask the user before a curl or wget call that carries their email address, as a
+/// `PreToolUse` hook for Bash reading the call on stdin.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
+
+impl Request {
+    /// Judges the call on stdin. Every failure of its own lets the call through, so the
+    /// hook never ends with one.
+    #[expect(
+        clippy::unnecessary_wraps,
+        clippy::unused_self,
+        reason = "every command's entry has the one shape main reports a failure from"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        let verdict = match LocalPart::configured() {
+            Some(local_part) => match BashCall::read() {
+                Some(call) if call.makes_a_request() && local_part.is_in(&call.command) => {
+                    call.ask()
+                }
+                _ => Verdict::Pass,
+            },
+            None => Verdict::Pass,
+        };
+        verdict.report();
+        Ok(())
     }
-    .report()
 }
 
 /// The local part of the user's email address, matched as written, in any case.

@@ -311,35 +311,32 @@ fn stops_where_the_fetch_fails() {
     assert_eq!(sandbox.branches(), "current\nmain\nmerged\n");
 }
 
-// `--help` prints how it is called and touches nothing; any other argument is a mistake
-// told the same way on stderr with exit 2, before anything is fetched or deleted.
+// `--help` prints how it is called and touches nothing; any other argument is a usage
+// error on stderr with exit 2, before anything is fetched or deleted.
 #[test]
-fn prints_usage_on_help_and_on_any_argument() {
+fn prints_usage_on_help_and_fails_as_a_usage_error_on_any_argument() {
     let sandbox = Fixture::new("usage");
     sandbox.work(&["branch", "merged"]);
 
     let help = sandbox.run(&["--help"]);
     let short = sandbox.run(&["-h"]);
-    let mistakes =
-        [&["merged"][..], &["--dry-run"], &["--help", "x"]].map(|args| sandbox.run(args));
+    let mistakes = [&["merged"][..], &["--dry-run"]].map(|args| sandbox.run(args));
 
-    let help_out = String::from_utf8_lossy(&help.stdout).into_owned();
-    assert_eq!(help.status.code(), Some(0));
-    assert!(
-        help_out.starts_with("Usage: git-sweep-branches\n"),
-        "{help_out}"
-    );
-    assert_eq!(
-        (short.status.code(), String::from_utf8_lossy(&short.stdout)),
-        (Some(0), help_out.as_str().into())
-    );
+    for run in [help, short] {
+        let stdout = String::from_utf8_lossy(&run.stdout).into_owned();
+        assert_eq!(run.status.code(), Some(0));
+        assert!(
+            stdout.contains("Usage: dotfiles-local git-sweep-branches\n"),
+            "{stdout}"
+        );
+    }
     for mistake in mistakes {
-        assert_eq!(
-            (
-                mistake.status.code(),
-                String::from_utf8_lossy(&mistake.stderr).into_owned()
-            ),
-            (Some(2), help_out.clone())
+        let stderr = String::from_utf8_lossy(&mistake.stderr).into_owned();
+        assert_eq!(mistake.status.code(), Some(2), "{stderr}");
+        assert!(
+            stderr.starts_with("error: unexpected argument")
+                && stderr.contains("Usage: dotfiles-local git-sweep-branches\n"),
+            "{stderr}"
         );
     }
     assert_eq!(sandbox.calls(), "");

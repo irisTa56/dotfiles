@@ -35,7 +35,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
-- The `bootstrap` task runs last, on every run. It starts with `local:install`, which installs `dotfiles-local` into `~/.local/bin` from `main`, and fails on any other branch, stopping the steps after it. Then come `setup:dotfiles`, which runs that binary, `apm install`, and the `basic-memory` MCP server, as the sections below describe.
+- The `bootstrap` task runs last, on every run. It starts with `local:install`, which installs `dotfiles-local` into `~/.local/bin` from `main`, and fails on any other branch, stopping the steps after it. Then come `dotfiles:setup`, which runs that binary, `apm install`, and the `basic-memory` MCP server, as the sections below describe.
 
 The global config, `.config/mise/config.toml`, holds the tools and settings that reach every repository; the root `mise.toml` pins the tools this repository's own tasks use.
 
@@ -43,7 +43,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 
 ## Shell and User Config
 
-`mise bootstrap` runs `mise run setup:dotfiles`, which does the following:
+`mise bootstrap` runs `mise run dotfiles:setup`, which does the following:
 
 - Drops `~/.dircolors`, overwritten with canonical content.
 - Makes `~/.zshenv`, `~/.zprofile` and `~/.zshrc` source this repository's shell fragments.
@@ -54,7 +54,7 @@ A few more steps stay by hand, since each needs a secret, a sign-in or a path on
 ### Shell startup: `.zshenv`, `.zprofile` and `.zshrc`
 
 Each of the three files sources the fragment of the same name in `zsh_fragments/` (`zshenv.sh`, `zprofile.sh`, `zshrc.sh`); the `.zshenv` and `.zprofile` fragments say, line by line, why each line is in that file.
-`setup:dotfiles` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
+`dotfiles:setup` appends the sourcing line, pointing at the main checkout, to a file that does not already name its fragment, so an edit to a fragment reaches the next shell without rerunning setup, and lines an installer appends to the files stay.
 
 #### `.zprofile`
 
@@ -67,8 +67,8 @@ See [Homebrew discussion #1127](https://github.com/orgs/Homebrew/discussions/112
 
 - It also exports `RCLONE_PASSWORD_COMMAND`, which reads rclone's config password from the login keychain, so a config encrypted with it opens without a prompt in any shell, an agent's included.
 - rclone runs the command only for an encrypted config, so an unencrypted one is unaffected.
-- `setup:dotfiles` stores a random password where the command reads it, and [encrypts the config](https://rclone.org/docs/#configuration-encryption) with it, before any remote exists if need be; a remote added later with [`rclone config`](https://rclone.org/drive/) is saved encrypted.
-- A config already encrypted with another password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `setup:dotfiles` stops on it.
+- `dotfiles:setup` stores a random password where the command reads it, and [encrypts the config](https://rclone.org/docs/#configuration-encryption) with it, before any remote exists if need be; a remote added later with [`rclone config`](https://rclone.org/drive/) is saved encrypted.
+- A config already encrypted with another password stops opening under the export, since a failing [password command](https://rclone.org/docs/#password-command) does not fall back to the prompt, and `dotfiles:setup` stops on it.
   - Decrypt it first with `env -u RCLONE_PASSWORD_COMMAND rclone config encryption remove`, which asks for that password; for a config copied from another Mac, the password command prints it there.
   - Without the password, as when the keychain item is gone, move the config aside and add the remotes again.
 - It also defines the `uvx` and `uv` shell functions that give uv the [release window](#release-window).
@@ -81,10 +81,10 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 
 - The window applies when a version is picked, for a one-off install or a lockfile update, not to a version a lockfile already pins.
 - npm, Hex and cargo take it from their user or global config rather than an environment variable, which would outrank a project's own config, so a project can still set its own.
-- npm: `setup:dotfiles` sets [`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/) in `~/.npmrc`.
-- Hex: `setup:dotfiles` sets [`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html) in `~/.hex/hex.config`, which any `mix` reads, whatever shell starts it.
+- npm: `dotfiles:setup` sets [`min-release-age`](https://docs.npmjs.com/cli/v11/using-npm/config/) in `~/.npmrc`.
+- Hex: `dotfiles:setup` sets [`cooldown`](https://hex.hexdocs.pm/Mix.Tasks.Hex.Config.html) in `~/.hex/hex.config`, which any `mix` reads, whatever shell starts it.
   - It covers a project's `mix.lock` when a dependency is added or updated, and `Mix.install` in a script, which has no lockfile and resolves again whenever its cache is gone, as after an Elixir or Erlang upgrade.
-  - `setup:dotfiles` updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
+  - `dotfiles:setup` updates Hex first with `mix local.hex --force`: the Hex archive is built for one Erlang/OTP, so an older one can fail to load after an upgrade.
   - It updates two archives, the one under the Elixir install that mise's `MIX_HOME` names and the one in `~/.mix`, which a shell with `mix` on PATH but without mise's environment uses; both read the one `~/.hex/hex.config`.
 - cargo: `[dotfiles]` merges [`global-min-publish-age`](https://doc.rust-lang.org/cargo/reference/config.html#registryglobal-min-publish-age) into `~/.cargo/config.toml`.
   - It [applies when cargo resolves a project's dependencies](https://doc.rust-lang.org/cargo/reference/resolver.html#publish-age), as `cargo update`, `cargo add` and `cargo generate-lockfile` do.
@@ -137,7 +137,9 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
 - `local:install` installs the binary into `~/.local/bin` from a checkout on `main`, and fails on any other branch, since every caller runs the installed copy.
   - `mise bootstrap` runs it, and so do the post-merge and post-checkout hooks that `mise install` registers, once `main` moves or is switched to.
   - A feature branch tries its change in its own worktree with `cargo run --manifest-path rust/Cargo.toml -p dotfiles-local -- <command>`; the installed binary runs main's code until the branch merges.
-- Each command is a module, `src/<name>.rs` with a `run` that takes the arguments after the command's name and returns the exit code, and an arm in `src/main.rs` that picks it by that name and lists it in the binary's usage.
+- Each command is a module, `src/<name>.rs`, with a `Request` that clap reads the command's arguments into, and a variant of `src/main.rs`'s `Command` holding it.
+  - The request's doc comments are the command's help, and clap lists the command under that variant's name, so the help and the list of commands both come from the definition.
+  - Its `run` returns `Result<(), Failure>`, and `main` alone reports a failure, with its message where it has one, as the exit status.
 - The binary runs in its caller's working directory, so a mise task that runs it sets no `dir` and the command acts on the root of the checkout the task ran in, and a command a shell function runs reads a relative path from where the function was called.
 - Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust` runs them with the rest of the workspace.
   - A test that needs a real tool, such as yq or jq, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
@@ -163,13 +165,8 @@ A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise 
 - A skill that has an agent run a subcommand uses the name settled this way, and does not set one.
 - One that neither a task nor a person runs by name, such as a hook or a command only a skill runs, keeps the name it has.
 
-Some names predate the rule and do not follow it yet:
-
-- `setup:dotfiles` is `dotfiles:setup` under it, and its subcommand `setup-dotfiles` is `dotfiles-setup`.
-- The subcommand `push-gist-skill`, which `skills:push` runs, is `skills-push`.
-- The subcommand `ccusage-popup`, which the `ccusage:` tasks run, is `ccusage`.
-- The shared task `link-check:staged` puts its action where its area goes.
-  - Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the `pre-commit` of every repository that runs it, so it keeps its name until they change with it.
+One name predates the rule and does not follow it yet: the shared task `link-check:staged` puts its action where its area goes.
+Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the `pre-commit` of every repository that runs it, so it keeps its name until they change with it.
 
 ## Agent Instructions
 

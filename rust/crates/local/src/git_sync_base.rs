@@ -2,41 +2,48 @@
 //! pull request into it merges.
 
 use std::io::{self, Write};
-use std::process::ExitCode;
+use std::str::FromStr;
+
+use clap::Args;
 
 use crate::failure::Failure;
 use crate::git::{git, read};
 
-const USAGE: &str = "\
-Usage: git-sync-base [branch]
+/// Bring a base branch up to date with origin, typically after a pull request into it
+/// merges.
+///
+/// Brings up to date the branch named, or origin's default branch where none is. Where no
+/// other worktree has the branch checked out, this checkout switches to it and
+/// fast-forwards. Where another worktree has it, git refuses that switch, so the other
+/// worktree is fast-forwarded in place and this checkout stays on its current branch.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The base branch [default: origin's default branch]
+    branch: Option<Branch>,
+}
 
-Brings a base branch up to date with origin, typically after a pull request into it
-merges: the branch named, or origin's default branch where none is.
+/// A branch's name, which may not open with `-`, since git would take it for an
+/// option.
+#[derive(Debug, Clone)]
+struct Branch(String);
 
-Where no other worktree has the branch checked out, this checkout switches to it and
-fast-forwards. Where another worktree has it, git refuses that switch, so the other
-worktree is fast-forwarded in place and this checkout stays on its current branch.
+impl FromStr for Branch {
+    type Err = &'static str;
 
-  --help, -h  print this message
-";
-
-/// Brings the base branch `args` names, or origin's default one, up to date with
-/// origin.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
+    fn from_str(name: &str) -> Result<Self, Self::Err> {
+        if name.starts_with('-') {
+            return Err("a branch may not open with '-', which git would take for an option");
         }
-        [] => sync(None),
-        [name] if !name.starts_with('-') => {
-            sync(Some(name.as_str()).filter(|name| !name.is_empty()))
-        }
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+        Ok(Branch(name.to_owned()))
+    }
+}
+
+impl Request {
+    /// Brings the base branch the request names, or origin's default one, up to date
+    /// with origin.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        let named = self.branch.map(|branch| branch.0);
+        sync(named.as_deref().filter(|name| !name.is_empty()))
     }
 }
 

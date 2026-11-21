@@ -1,6 +1,6 @@
-//! `ccusage-popup`: Claude Code usage as tables in a Quick Look popup, run with fakes for
-//! ccusage, git and qlmanage, the last standing in for macOS's since the tests run on
-//! Linux too.
+//! The `ccusage` subcommand: Claude Code usage as tables in a Quick Look popup, run with
+//! fakes for ccusage, git and qlmanage, the last standing in for macOS's since the tests
+//! run on Linux too.
 //!
 //! The sandbox lies under the system's temporary directory rather than in this
 //! repository's `target/`: in an agent's worktree that path holds `.claude/worktrees/`,
@@ -37,7 +37,7 @@ impl Fixture {
     fn new(test: &str, usage: &str) -> Self {
         let fixture = Fixture {
             sandbox: Sandbox::outside_repository(
-                "ccusage-popup",
+                "ccusage",
                 test,
                 &["tmp", "config/projects", "home"],
             ),
@@ -106,14 +106,14 @@ impl Fixture {
         self.root().join("config")
     }
 
-    /// Runs `ccusage-popup` with `args`, the fakes first on PATH, `CLAUDE_CONFIG_DIR`
-    /// naming the sandbox's config dir and `TMPDIR` the sandbox's own.
+    /// Runs the `ccusage` subcommand with `args`, the fakes first on PATH,
+    /// `CLAUDE_CONFIG_DIR` naming the sandbox's config dir and `TMPDIR` the sandbox's own.
     fn run(&self, args: &[&str]) -> Run {
         self.run_with(args, &[("CLAUDE_CONFIG_DIR", self.config().as_os_str())])
     }
 
     fn run_with(&self, args: &[&str], env: &[(&str, &std::ffi::OsStr)]) -> Run {
-        let output = dotfiles_local("ccusage-popup")
+        let output = dotfiles_local("ccusage")
             .args(args)
             .env("PATH", self.sandbox.path_before_inherited())
             .env("TMPDIR", self.root().join("tmp"))
@@ -160,7 +160,7 @@ impl Fixture {
 const NO_USAGE: &str = r#"{"totals": {"totalTokens": 0}}"#;
 
 #[test]
-fn refuses_another_period_with_its_usage_and_exit_2() {
+fn refuses_another_period_as_a_usage_error() {
     let sandbox = Fixture::new("another-period", NO_USAGE);
 
     let run = sandbox.run(&["yearly"]);
@@ -168,7 +168,10 @@ fn refuses_another_period_with_its_usage_and_exit_2() {
     assert_eq!(run.code, Some(2), "{}", run.err);
     assert!(
         run.err
-            .starts_with("Usage: mise run ccusage:<daily|weekly|monthly>\n"),
+            .starts_with("error: invalid value 'yearly' for '<PERIOD>'")
+            && run
+                .err
+                .contains("[possible values: daily, weekly, monthly]"),
         "{}",
         run.err
     );

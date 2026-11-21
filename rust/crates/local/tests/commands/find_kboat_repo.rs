@@ -340,8 +340,8 @@ fn export_names_the_stored_output_when_it_is_not_a_report() {
     );
 }
 
-// `--help` prints how the command is called; any other argument prints that to stderr
-// and exits 2 before kboat-note runs.
+// `--help` prints how the command is called; any other argument is a usage error before
+// kboat-note runs.
 #[test]
 fn export_takes_no_arguments() {
     let sandbox = Fixture::new("export-args");
@@ -352,13 +352,15 @@ fn export_takes_no_arguments() {
     let help_out = String::from_utf8_lossy(&help.stdout);
     assert_eq!(help.status.code(), Some(0));
     assert!(
-        help_out.starts_with("Usage: dotfiles-local find-kboat-repo-export-catalog\n"),
+        help_out.contains("Usage: dotfiles-local find-kboat-repo-export-catalog\n"),
         "{help_out}"
     );
+    let other_err = String::from_utf8_lossy(&other.stderr);
     assert_eq!(other.status.code(), Some(2));
-    assert_eq!(
-        String::from_utf8_lossy(&other.stderr),
-        format!("{help_out}")
+    assert!(
+        other_err.starts_with("error: unexpected argument 'extra'")
+            && other_err.contains("Usage: dotfiles-local find-kboat-repo-export-catalog\n"),
+        "{other_err}"
     );
     assert_eq!(other.stdout, [] as [u8; 0]);
     assert_eq!(sandbox.mise_args(), None);
@@ -414,8 +416,8 @@ fn lookup_prints_the_record_of_each_title() {
     assert_eq!(sandbox.mise_args(), None);
 }
 
-// `--help` prints how lookup is called, and a run with no directory prints that to
-// stderr and exits 2; a directory without the export's catalog.json fails with exit 1.
+// `--help` prints how lookup is called, and a run with no directory is a usage error; a
+// directory without the export's catalog.json fails with exit 1.
 #[test]
 fn lookup_needs_an_export() {
     let sandbox = Fixture::new("lookup-args");
@@ -431,12 +433,15 @@ fn lookup_needs_an_export() {
 
     let help_out = String::from_utf8_lossy(&help.stdout);
     assert_eq!(help.status.code(), Some(0));
-    assert!(
-        help_out.starts_with("Usage: dotfiles-local find-kboat-repo-lookup <dir> <title>...\n"),
-        "{help_out}"
-    );
+    let usage = "Usage: dotfiles-local find-kboat-repo-lookup <DIR> [TITLES]...\n";
+    assert!(help_out.contains(usage), "{help_out}");
+    let none_err = String::from_utf8_lossy(&none.stderr);
     assert_eq!(none.status.code(), Some(2));
-    assert_eq!(String::from_utf8_lossy(&none.stderr), format!("{help_out}"));
+    assert!(
+        none_err.starts_with("error: the following required arguments were not provided:")
+            && none_err.contains(usage),
+        "{none_err}"
+    );
     assert_eq!(unread.status.code(), Some(1));
     let unread_err = String::from_utf8_lossy(&unread.stderr);
     assert!(

@@ -4,7 +4,10 @@
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
+use std::str::FromStr;
+
+use clap::Args;
 
 use crate::failure::Failure;
 use crate::git::read;
@@ -20,33 +23,40 @@ const DRAFT: &str = "fnox.local.toml.new";
 /// The line telling an agent in the repository how secrets reach a command.
 const NOTE: &str = "- Secrets here come from the macOS keychain through fnox (`fnox.local.toml`), not `.env`: run a command that needs one as `fnox exec -- <command>`.";
 
-const USAGE: &str = "\
-Usage: fnox-add-secret <NAME>
+/// Store an API key in the macOS keychain for this repository through fnox.
+///
+/// Stores the key NAME in the macOS keychain for this repository through fnox, which
+/// prompts for its value. The main checkout's fnox.local.toml gets a keychain provider
+/// named after the repository where it lacks one. The line on running a command under
+/// `fnox exec` goes into a new CLAUDE.local.md there, or is printed for you to place in
+/// an existing one that lacks it.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// The key's name
+    #[arg(value_name = "NAME")]
+    name: Name,
+}
 
-Stores the key <NAME> in the macOS keychain for this repository through fnox, which
-prompts for its value. The main checkout's fnox.local.toml gets a keychain provider
-named after the repository where it lacks one. The line on running a command under
-`fnox exec` goes into a new CLAUDE.local.md there, or is printed for you to place in
-an existing one that lacks it.
+/// A key's name, which may not open with `-`, since `fnox set` would take it for an
+/// option.
+#[derive(Debug, Clone)]
+struct Name(String);
 
-  --help, -h  print this message
-";
+impl FromStr for Name {
+    type Err = &'static str;
 
-/// Stores the key named by the one name `args` holds, or, given `--help`, prints how
-/// it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
+    fn from_str(name: &str) -> Result<Self, Self::Err> {
+        if name.starts_with('-') {
+            return Err("a name may not open with '-', which fnox would take for an option");
         }
-        // A name starting with `-` would reach `fnox set` as an option.
-        [name] if !name.starts_with('-') => add(name),
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+        Ok(Name(name.to_owned()))
+    }
+}
+
+impl Request {
+    /// Stores the key the request names.
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        add(&self.name.0)
     }
 }
 

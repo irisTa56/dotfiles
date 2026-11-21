@@ -1,38 +1,31 @@
 //! `git-sweep-branches`: runs gh-poi, then deletes the local branches it leaves that
 //! carry no commits of their own.
 
-use std::io::{self, Write};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
+
+use clap::Args;
 
 use crate::failure::Failure;
 use crate::git::{git, read};
 
-const USAGE: &str = "\
-Usage: git-sweep-branches
+/// Run gh-poi, then delete the local branches it leaves that carry no commits of their own.
+///
+/// gh-poi deletes a branch only once it finds a pull request holding the branch's
+/// commits, so a branch that never got one stays however long ago its tip reached the
+/// default branch. Here such a branch goes too. A branch `gh poi lock` holds is left
+/// alone by both, as is one checked out in a worktree.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
 
-Runs gh-poi, then deletes the local branches it leaves that carry no commits of their
-own. gh-poi deletes a branch only once it finds a pull request holding the branch's
-commits, so a branch that never got one stays however long ago its tip reached the
-default branch. Here such a branch goes too. A branch `gh poi lock` holds is left alone
-by both, as is one checked out in a worktree.
-
-  --help, -h  print this message
-";
-
-/// Fetches origin, runs gh-poi, and deletes the branches origin's default branch holds,
-/// or, given `--help`, prints how it is called.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
-        [] => sweep(),
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+impl Request {
+    /// Fetches origin, runs gh-poi, and deletes the branches origin's default branch
+    /// holds.
+    #[expect(
+        clippy::unused_self,
+        reason = "the command takes no arguments, and every command's entry has one shape"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        sweep()
     }
 }
 

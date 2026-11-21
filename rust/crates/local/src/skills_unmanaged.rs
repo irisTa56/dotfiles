@@ -9,37 +9,33 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
+
+use clap::Args;
 
 use crate::failure::{Failure, exit_code};
 
 /// The directory whose entries are listed, relative to the checkout's root.
 const SKILLS: &str = ".claude/skills";
 
-const USAGE: &str = "\
-Usage: mise run skills:unmanaged
+/// List the entries under .claude/skills/ that exist on this machine alone.
+///
+/// Lists the entries under .claude/skills/ that neither git tracks nor apm.lock.yaml
+/// deploys, one path per line. Such an entry exists on this machine alone: no clone
+/// carries it and no `apm install` restores it. Hidden entries count too. An entry
+/// counts as tracked or deployed when any file under it is. Run it as `mise run
+/// skills:unmanaged`.
+#[derive(Debug, Args)]
+pub(crate) struct Request {}
 
-Lists the entries under .claude/skills/ that neither git tracks nor apm.lock.yaml
-deploys, one path per line. Such an entry exists on this machine alone: no clone
-carries it and no `apm install` restores it. Hidden entries count too. An entry
-counts as tracked or deployed when any file under it is.
-
-  --help, -h  print this message
-";
-
-/// Prints each unmanaged entry under `.claude/skills/`, one path per line.
-pub(crate) fn run(args: &[String]) -> ExitCode {
-    let outcome = match args {
-        [] => list(),
-        [flag] if flag == "--help" || flag == "-h" => {
-            let _ = writeln!(io::stdout(), "{USAGE}");
-            Ok(())
-        }
-        _ => Err(Failure::new(format_args!("{USAGE}"), 2)),
-    };
-    match outcome {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(failure) => failure.report(),
+impl Request {
+    /// Prints each unmanaged entry under `.claude/skills/`, one path per line.
+    #[expect(
+        clippy::unused_self,
+        reason = "the command takes no arguments, and every command's entry has one shape"
+    )]
+    pub(crate) fn run(self) -> Result<(), Failure> {
+        list()
     }
 }
 
