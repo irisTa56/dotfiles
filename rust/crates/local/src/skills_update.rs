@@ -78,8 +78,8 @@ fn update(packages: &[String]) -> Result<(), Failure> {
 /// They reach stdout through a pipe rather than as stdout itself, so apm writes as it
 /// does for a reader that is not a terminal, without colors.
 fn apm(args: &[String]) -> Result<(), Failure> {
-    let failed =
-        |error: io::Error| Failure::new(format_args!("apm {} failed ({error})", args.join(" ")), 1);
+    let label = format!("apm {} failed", args.join(" "));
+    let failed = |error: io::Error| Failure::new(format_args!("{label} ({error})"), 1);
     let (mut reader, writer) = io::pipe().map_err(failed)?;
     let errors = writer.try_clone().map_err(failed)?;
     // The command, holding this side's write ends of the pipe, is dropped at the end of
@@ -95,10 +95,7 @@ fn apm(args: &[String]) -> Result<(), Failure> {
     if status.success() {
         return Ok(());
     }
-    Err(program::failed(
-        status,
-        format_args!("apm {} failed", args.join(" ")),
-    ))
+    Err(program::failed(status, format_args!("{label}")))
 }
 
 /// Copies what `reader` yields to stdout until it ends, dropping a write that fails, so

@@ -73,7 +73,8 @@ impl Program {
         result.map_err(|error| self.unrunnable(&error))
     }
 
-    /// Runs the program to its end, its stdout and, unless set, its stderr captured.
+    /// Runs the program to its end, capturing its stdout and stderr where they are not
+    /// set.
     pub(crate) fn output(mut self) -> Result<Output, Failure> {
         let result = self.command.output();
         result.map_err(|error| self.unrunnable(&error))
