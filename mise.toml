@@ -106,7 +106,7 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # is in README.md, under "Naming tasks and subcommands".
 
 # The shared task, run by the subcommand built from the working tree for the reason
-# `qa:rust:skills` gives; a commit here, on a release pull request's branch included,
+# `qa:rust:skills` below gives; a commit here, on a release pull request's branch included,
 # waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
 # subcommand's failure tells a commit to skip.
 [tasks."link-check:staged.sh"]
