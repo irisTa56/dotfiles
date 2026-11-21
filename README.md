@@ -130,6 +130,7 @@ A command that runs unattended, or whose caller does not start zsh, is one in `~
 - `qa:sh` checks only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
 
 The shared tasks under `tasks/`, which other repositories run, follow [their own rules](tasks/README.md#writing-one) instead.
+So do Claude Code's PreToolUse hooks: each goes in the `global-hooks` module as a `tool.check` hook with TypeScript tests, unless it rewrites the call's input, as [Agent Skills](#agent-skills) describes.
 
 A command for this machine alone that is written in Rust is a subcommand of `dotfiles-local`, the binary of the `rust/crates/local` package, so that it is compiled with warnings as errors and tested in CI, a dependency it takes is pinned in `rust/Cargo.lock`, and every such command shares one name on `PATH`.
 
@@ -194,6 +195,9 @@ That symlink carries user-global hooks.
 An edit to it takes effect after `/reload-plugins` or a restart.
 The same `hooks/hooks.json` names one function-hooks module under `modules`, `hooks/index.ts`, since it takes one per plugin; that module registers the others:
 
+- `hooks/block-bash.ts` blocks a Bash call that would not do what it reads as, over any rule that would allow it, and tells Claude what to write instead; where the hook itself fails, it blocks the call naming the cause rather than letting it through unjudged.
+  - `hooks/block-piped-git-push.ts` blocks a `git push` chained with `&&` after a piped git merge, rebase, pull or commit, which pushes even when that step failed.
+  - `hooks/block-bsd-sed-inplace.ts` and `hooks/block-bsd-stat-format.ts` block BSD's `sed -i ''` and `stat -f <format>` while the tool on `PATH` is GNU's, which reads the empty suffix or the format as a file name, so the call fails.
 - `hooks/compact-reminder.tsx` shows a band above the prompt once the context reaches 300k tokens, so a `/compact` with instructions comes before the automatic one, which has none; `idleCompaction` is off in `.config/claude/settings.json` for the same reason.
 - `hooks/connector-ask.ts` lays a base under the permission rules: even in [auto mode, whose classifier](https://code.claude.com/docs/en/permission-modes#how-the-classifier-evaluates-actions) would otherwise settle the call with no prompt, a connector tool asks the user unless its server declares it a read, since it acts on outside services under the user's account; deny and allow rules sit on top of that base, and a tool added later is covered without anyone listing it.
 - `hooks/reply-language.ts` adds the reply-language context in `context/reply-language.md` to every prompt at `prompt.submit` rather than `classic.UserPromptSubmit`, since [an organization's managed plugin can continue a classic event past the user tier](https://github.com/irisTa56/dotfiles/pull/421), where a module's hook on it never runs.
@@ -201,7 +205,10 @@ The same `hooks/hooks.json` names one function-hooks module under `modules`, `ho
 - `hooks/scheduled-chrome.ts` denies Claude in Chrome's tools in a run a scheduled task started, in its main conversation and in its subagents, until a person replies in that session; the built-in browser stays available.
 - `hooks/subagent-model.ts` runs the built-in Explore on Sonnet where the spawn names no model, which `CLAUDE_CODE_SUBAGENT_MODEL` does not reach, and asks the user before a subagent is passed a model above Sonnet, leading that call's description with "Runs on <model>" since the desktop app's prompt shows the description and not the ask's reason.
 
-Beside the module, `hooks/hooks.json` registers `dotfiles-local reply-language-stop` as a Stop command hook: [a managed plugin can continue `classic.Stop` past the user tier too](https://github.com/irisTa56/dotfiles/pull/424), and a command hook in `hooks.json` still runs where the module's hook on that event does not.
+Beside the module, `hooks/hooks.json` registers `dotfiles-local ask-email-in-request` as a PreToolUse command hook, which asks before a curl or wget call that carries the user's email address and heads the call's description, which the prompt shows, with that cause.
+A module's hook can rewrite the description only in `tool.call`, apart from the ask in `tool.check`, and [auto mode refuses a call whose input a hook changed after it reviewed the call](https://github.com/irisTa56/dotfiles/pull/473), where a command hook's rewrite and ask arrive together.
+
+It also registers `dotfiles-local reply-language-stop` as a Stop command hook: [a managed plugin can continue `classic.Stop` past the user tier too](https://github.com/irisTa56/dotfiles/pull/424), and a command hook in `hooks.json` still runs where the module's hook on that event does not.
 It sends a final reply of the main conversation whose prose outside code and quotations runs past a couple of English sentences with no Japanese sentence in it back once to be rewritten in Japanese, since final replies have switched to English after a turn filled with English tool output; a reply in the middle of a turn is left to drift.
 It keeps what one stop leaves for the next in a file per session under the system temporary directory.
 

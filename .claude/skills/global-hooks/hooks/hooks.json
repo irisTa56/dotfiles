@@ -7,18 +7,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.local/bin/dotfiles-local\" block-piped-git-push"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME/.local/bin/dotfiles-local\" block-bsd-sed-inplace"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME/.local/bin/dotfiles-local\" block-bsd-stat-format"
-          },
-          {
-            "type": "command",
             "command": "\"$HOME/.local/bin/dotfiles-local\" ask-email-in-request"
           }
         ]
