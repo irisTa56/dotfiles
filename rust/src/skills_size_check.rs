@@ -33,9 +33,9 @@ const SKILLS: &str = ":(glob).claude/skills/*/SKILL.md";
 /// them.
 const UNCHECKED: u8 = 2;
 
-/// A run's arguments: `--verbose` first, and then a git pathspec. Nothing goes after the
-/// pathspec, since an argument there, such as a `--verbose` written last, would otherwise
-/// be dropped and leave a silent pass.
+/// A run's arguments: `--verbose` first, and then a git pathspec, as tasks/README.md
+/// states them, so an argument after the pathspec, such as a `--verbose` written last,
+/// is a usage error.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// Print each passing skill's length against the limit too, for sizing a skill;

@@ -87,8 +87,8 @@ fn with_verbose_and_a_pathspec_reports_the_passing_skills_and_still_fails() {
     );
 }
 
-// An argument after the pathspec is not read, and dropping it silently would leave the
-// caller with no lengths and no reason.
+// An option goes before the pathspec, so one written after it is a usage error rather
+// than taking effect.
 #[test]
 fn fails_as_a_usage_error_naming_an_option_after_the_pathspec() {
     Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
