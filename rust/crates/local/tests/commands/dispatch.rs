@@ -2,8 +2,10 @@
 
 use std::process::{Command, Output};
 
+use crate::support::DOTFILES_LOCAL;
+
 fn run(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
+    Command::new(DOTFILES_LOCAL)
         .args(args)
         .output()
         .expect("dotfiles-local starts")

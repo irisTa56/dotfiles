@@ -8,24 +8,23 @@ use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+
 /// A bare origin whose default branch is `main`, a clone of it to run in, and a second
 /// clone that moves origin on, none of which the machine's git config reaches.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
-impl Sandbox {
-    /// A fresh sandbox named after `test`, where origin's `main` and `feature` hold one
+impl Fixture {
+    /// A fresh fixture named after `test`, where origin's `main` and `feature` hold one
     /// commit each and the work clone has `feature` checked out.
     fn new(test: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("git-sync-base")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(&root).expect("the sandbox is created");
-        let sandbox = Sandbox { root };
-        sandbox.git(
-            &sandbox.root,
+        let fixture = Fixture {
+            sandbox: Sandbox::new("git-sync-base", test, &[]),
+        };
+        fixture.git(
+            fixture.root(),
             &[
                 "init",
                 "--quiet",
@@ -34,17 +33,21 @@ impl Sandbox {
                 "origin.git",
             ],
         );
-        sandbox.git(&sandbox.root, &["init", "--quiet", "upstream"]);
-        sandbox.upstream(&["remote", "add", "origin", "../origin.git"]);
-        sandbox.commit("first");
-        sandbox.upstream(&["push", "--quiet", "origin", "HEAD:main", "HEAD:feature"]);
-        sandbox.git(&sandbox.root, &["clone", "--quiet", "origin.git", "work"]);
-        sandbox.git(&sandbox.work(), &["switch", "--quiet", "feature"]);
-        sandbox
+        fixture.git(fixture.root(), &["init", "--quiet", "upstream"]);
+        fixture.upstream(&["remote", "add", "origin", "../origin.git"]);
+        fixture.commit("first");
+        fixture.upstream(&["push", "--quiet", "origin", "HEAD:main", "HEAD:feature"]);
+        fixture.git(fixture.root(), &["clone", "--quiet", "origin.git", "work"]);
+        fixture.git(&fixture.work(), &["switch", "--quiet", "feature"]);
+        fixture
+    }
+
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     fn work(&self) -> PathBuf {
-        self.root.join("work")
+        self.root().join("work")
     }
 
     /// Makes a commit in the upstream clone.
@@ -54,7 +57,7 @@ impl Sandbox {
 
     /// Runs git with `args` in the upstream clone.
     fn upstream(&self, args: &[&str]) {
-        self.git(&self.root.join("upstream"), args);
+        self.git(&self.root().join("upstream"), args);
     }
 
     fn git(&self, dir: &Path, args: &[&str]) {
@@ -77,30 +80,16 @@ impl Sandbox {
         String::from_utf8_lossy(&output.stdout).trim().to_owned()
     }
 
-    /// `program` run in `dir`, with what a git hook sets in the environment taken away,
-    /// the machine's git config left unread, and a fixed committer.
+    /// `program` run in `dir`, with git kept to the fixture and a fixed committer.
     fn command(&self, program: impl AsRef<OsStr>, dir: &Path) -> Command {
-        let mut command = Command::new(program);
-        for (name, _) in std::env::vars_os() {
-            if name.to_string_lossy().starts_with("GIT_") {
-                command.env_remove(name);
-            }
-        }
-        command
-            .current_dir(dir)
-            .env("GIT_CONFIG_GLOBAL", "/dev/null")
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .env("GIT_CEILING_DIRECTORIES", &self.root)
-            .env("GIT_AUTHOR_NAME", "Test")
-            .env("GIT_AUTHOR_EMAIL", "test@example.com")
-            .env("GIT_COMMITTER_NAME", "Test")
-            .env("GIT_COMMITTER_EMAIL", "test@example.com");
+        let mut command = isolated(program, dir, self.root());
+        command.envs(IDENTITY);
         command
     }
 
     /// Runs `git-sync-base` with `args` in `dir`.
     fn run(&self, dir: &Path, args: &[&str]) -> Output {
-        self.command(env!("CARGO_BIN_EXE_dotfiles-local"), dir)
+        self.command(DOTFILES_LOCAL, dir)
             .arg("git-sync-base")
             .args(args)
             .output()
@@ -112,7 +101,7 @@ impl Sandbox {
 // it and fast-forwards to what origin has.
 #[test]
 fn switches_to_origins_default_branch_and_fast_forwards() {
-    let sandbox = Sandbox::new("default-branch");
+    let sandbox = Fixture::new("default-branch");
     sandbox.commit("second");
     sandbox.upstream(&["push", "--quiet", "origin", "HEAD:main"]);
 
@@ -141,7 +130,7 @@ fn takes_the_branch_named_as_the_base() {
         ("named-branch", "release"),
         ("named-remote-branch", "origin/release"),
     ] {
-        let sandbox = Sandbox::new(test);
+        let sandbox = Fixture::new(test);
         sandbox.commit("release");
         sandbox.upstream(&["push", "--quiet", "origin", "HEAD:release"]);
 
@@ -165,8 +154,8 @@ fn takes_the_branch_named_as_the_base() {
 // worktree is fast-forwarded in place and this checkout stays where it is, saying so.
 #[test]
 fn fast_forwards_the_worktree_holding_the_base_and_stays() {
-    let sandbox = Sandbox::new("held-elsewhere");
-    let holder = sandbox.root.join("held 日本");
+    let sandbox = Fixture::new("held-elsewhere");
+    let holder = sandbox.root().join("held 日本");
     sandbox.git(
         &sandbox.work(),
         &[
@@ -210,8 +199,8 @@ fn fast_forwards_the_worktree_holding_the_base_and_stays() {
 // A detached checkout has no branch to name, so the message says what it stays on.
 #[test]
 fn names_a_detached_head_it_stays_on() {
-    let sandbox = Sandbox::new("held-elsewhere-detached");
-    let holder = sandbox.root.join("held");
+    let sandbox = Fixture::new("held-elsewhere-detached");
+    let holder = sandbox.root().join("held");
     sandbox.git(
         &sandbox.work(),
         &["worktree", "add", "--quiet", "../held", "main"],
@@ -241,7 +230,7 @@ fn names_a_detached_head_it_stays_on() {
 // the switch to the branch it is on does nothing.
 #[test]
 fn fast_forwards_the_base_this_checkout_is_on() {
-    let sandbox = Sandbox::new("on-the-base");
+    let sandbox = Fixture::new("on-the-base");
     sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
     sandbox.commit("second");
     sandbox.upstream(&["push", "--quiet", "origin", "HEAD:main"]);
@@ -270,7 +259,7 @@ fn fast_forwards_the_base_this_checkout_is_on() {
 // and left unmerged.
 #[test]
 fn ends_with_gits_failure() {
-    let sandbox = Sandbox::new("diverged");
+    let sandbox = Fixture::new("diverged");
     sandbox.commit("upstream");
     sandbox.upstream(&["push", "--quiet", "origin", "HEAD:main"]);
     sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
@@ -296,10 +285,10 @@ fn ends_with_gits_failure() {
 // A fetch that fails stops the run before anything is switched.
 #[test]
 fn stops_where_the_fetch_fails() {
-    let sandbox = Sandbox::new("fetch-fails");
+    let sandbox = Fixture::new("fetch-fails");
     fs::rename(
-        sandbox.root.join("origin.git"),
-        sandbox.root.join("gone.git"),
+        sandbox.root().join("origin.git"),
+        sandbox.root().join("gone.git"),
     )
     .expect("origin is moved away");
 
@@ -320,9 +309,9 @@ fn stops_where_the_fetch_fails() {
 // from and ends as it would have otherwise.
 #[test]
 fn finishes_after_a_hook_replaces_its_binary() {
-    let sandbox = Sandbox::new("replaced-binary");
-    let binary = sandbox.root.join("dotfiles-local");
-    fs::copy(env!("CARGO_BIN_EXE_dotfiles-local"), &binary).expect("the binary is copied");
+    let sandbox = Fixture::new("replaced-binary");
+    let binary = sandbox.root().join("dotfiles-local");
+    fs::copy(DOTFILES_LOCAL, &binary).expect("the binary is copied");
     let reinstall = format!(
         "#!/bin/sh\ncp '{0}' '{0}.new' && mv '{0}.new' '{0}'\n",
         binary.display()
@@ -366,10 +355,10 @@ fn finishes_after_a_hook_replaces_its_binary() {
 // clone is the one taken.
 #[test]
 fn follows_a_default_branch_origin_changed() {
-    let sandbox = Sandbox::new("default-changed");
+    let sandbox = Fixture::new("default-changed");
     sandbox.upstream(&["push", "--quiet", "origin", "HEAD:trunk"]);
     sandbox.git(
-        &sandbox.root.join("origin.git"),
+        &sandbox.root().join("origin.git"),
         &["symbolic-ref", "HEAD", "refs/heads/trunk"],
     );
 
@@ -390,7 +379,7 @@ fn follows_a_default_branch_origin_changed() {
 // An empty name is no name, as `git-sync-base ""` was to the shell it replaces.
 #[test]
 fn takes_an_empty_name_as_none() {
-    let sandbox = Sandbox::new("empty-name");
+    let sandbox = Fixture::new("empty-name");
 
     let run = sandbox.run(&sandbox.work(), &[""]);
 
@@ -410,10 +399,10 @@ fn takes_an_empty_name_as_none() {
 // mistake told the same way, before anything is fetched.
 #[test]
 fn prints_usage_on_help_and_on_more_than_one_branch() {
-    let sandbox = Sandbox::new("usage");
+    let sandbox = Fixture::new("usage");
     fs::rename(
-        sandbox.root.join("origin.git"),
-        sandbox.root.join("gone.git"),
+        sandbox.root().join("origin.git"),
+        sandbox.root().join("gone.git"),
     )
     .expect("origin is moved away");
 
@@ -440,7 +429,7 @@ fn prints_usage_on_help_and_on_more_than_one_branch() {
 // switched, so the checkout stays on the branch it was on.
 #[test]
 fn takes_a_dash_argument_as_a_usage_mistake() {
-    let sandbox = Sandbox::new("dash-argument");
+    let sandbox = Fixture::new("dash-argument");
     let help = sandbox.run(&sandbox.work(), &["--help"]);
 
     let run = sandbox.run(&sandbox.work(), &["--detach"]);

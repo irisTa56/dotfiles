@@ -4,9 +4,10 @@
 //! fake apm and gh stand in for theirs, so nothing reaches gist.github.com.
 
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+
+use crate::support::{DOTFILES_LOCAL, Sandbox, isolated};
 
 /// The gist the test's skill comes from, as apm.lock.yaml names it.
 const GIST: &str = "tester/0123abcd";
@@ -17,35 +18,30 @@ const SKILL: &str = "writing";
 /// A dotfiles checkout of the test's own, a bare repository standing in for the gist,
 /// a directory holding the fakes and the records they leave, none of which the
 /// machine's git config reaches.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`: a gist holding one SKILL.md commit, and a
     /// checkout that marks itself as dotfiles, pins that commit in apm.lock.yaml and
     /// holds an edited SKILL.md.
     fn new(test: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("push-gist-skill")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        for dir in ["bin", "repo", "seed"] {
-            fs::create_dir_all(root.join(dir)).expect("the sandbox is created");
-        }
-        let sandbox = Sandbox { root };
-        sandbox.write_config();
-        sandbox.fake_apm();
-        sandbox.fake_gh();
-        let pinned = sandbox.seed_gist();
-        sandbox.write(
+        let fixture = Fixture {
+            sandbox: Sandbox::new("push-gist-skill", test, &["repo", "seed"]),
+        };
+        fixture.write_config();
+        fixture.fake_apm();
+        fixture.fake_gh();
+        let pinned = fixture.seed_gist();
+        fixture.write(
             "rust/crates/local/Cargo.toml",
             "[package]\nname = \"dotfiles-local\"\n",
         );
-        sandbox.write("apm.lock.yaml", &lockfile(&pinned));
-        sandbox.write(&format!(".claude/skills/{SKILL}/SKILL.md"), "edited\n");
-        sandbox.git(&sandbox.repo(), &["init", "--quiet"]);
-        sandbox
+        fixture.write("apm.lock.yaml", &lockfile(&pinned));
+        fixture.write(&format!(".claude/skills/{SKILL}/SKILL.md"), "edited\n");
+        fixture.git(&fixture.repo(), &["init", "--quiet"]);
+        fixture
     }
 
     /// Writes the git config the tests read in place of the machine's: an identity,
@@ -53,9 +49,9 @@ impl Sandbox {
     fn write_config(&self) {
         let config = format!(
             "[user]\n\tname = Test\n\temail = test@example.com\n[url \"file://{}/\"]\n\tinsteadOf = https://gist.github.com/\n",
-            self.root.join("gists").display()
+            self.root().join("gists").display()
         );
-        fs::write(self.root.join("gitconfig"), config).expect("the git config is written");
+        fs::write(self.root().join("gitconfig"), config).expect("the git config is written");
     }
 
     /// Creates the bare repository standing in for the gist, holding one commit with
@@ -64,7 +60,7 @@ impl Sandbox {
         let gist = self.gist();
         fs::create_dir_all(&gist).expect("the gist directory is created");
         self.git(&gist, &["init", "--quiet", "--bare"]);
-        let seed = self.root.join("seed");
+        let seed = self.root().join("seed");
         self.git(&seed, &["init", "--quiet"]);
         fs::write(seed.join("SKILL.md"), "pinned\n").expect("the seed is written");
         self.git(&seed, &["add", "SKILL.md"]);
@@ -86,46 +82,41 @@ impl Sandbox {
     /// and arguments, then pins the gist's head in the lockfile, or the commit in
     /// `apm-pin` where there is one, and exits with the code in `apm-code`, if any.
     fn fake_apm(&self) {
-        self.fake(
+        self.sandbox.fake(
             "apm",
-            r#"#!/bin/sh
-{ pwd; printf '%s\n' "$@"; } > "$SANDBOX/apm-call"
+            r#"{ pwd; printf '%s\n' "$@"; } > "$SANDBOX/apm-call"
 code=$(cat "$SANDBOX/apm-code" 2>/dev/null || echo 0)
 [ "$code" = 0 ] || exit "$code"
 pin=$(cat "$SANDBOX/apm-pin" 2>/dev/null || git -C "$SANDBOX/gists/tester/0123abcd.git" rev-parse HEAD)
-P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit) = strenv(P)' apm.lock.yaml
-"#,
+P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host == "gist.github.com") | .resolved_commit) = strenv(P)' apm.lock.yaml"#,
         );
     }
 
     /// Writes a fake gh into the sandbox's PATH, which records its arguments and gives
     /// no credential.
     fn fake_gh(&self) {
-        self.fake(
+        self.sandbox.fake(
             "gh",
-            "#!/bin/sh\nprintf '%s\\n' \"$@\" >> \"$SANDBOX/gh-calls\"\nexit 1\n",
+            "printf '%s\\n' \"$@\" >> \"$SANDBOX/gh-calls\"\nexit 1",
         );
     }
 
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, body).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// The working directory and arguments apm was called with, one a line, or `None`
     /// where it was not called.
     fn apm_call(&self) -> Option<String> {
-        fs::read_to_string(self.root.join("apm-call")).ok()
+        fs::read_to_string(self.root().join("apm-call")).ok()
     }
 
     fn gist(&self) -> PathBuf {
-        self.root.join("gists").join(format!("{GIST}.git"))
+        self.root().join("gists").join(format!("{GIST}.git"))
     }
 
     fn repo(&self) -> PathBuf {
-        self.root.join("repo")
+        self.root().join("repo")
     }
 
     /// Writes `contents` to the checkout's `path`, creating its directories.
@@ -169,31 +160,18 @@ P="$pin" N="$3" yq -i '(.dependencies[] | select(.name == strenv(N) and .host ==
     /// PATH. HOME stays, since yq may be a mise shim, which reads the trust mise keeps
     /// under it.
     fn command(&self, program: &str, dir: &Path) -> Command {
-        let mut command = Command::new(program);
-        for (name, _) in std::env::vars_os() {
-            if name.to_string_lossy().starts_with("GIT_") {
-                command.env_remove(name);
-            }
-        }
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        let path = std::env::join_paths(
-            std::iter::once(self.root.join("bin")).chain(std::env::split_paths(&inherited)),
-        )
-        .expect("PATH is joined");
+        let mut command = isolated(program, dir, self.root());
         command
-            .current_dir(dir)
-            .env("PATH", path)
-            .env("SANDBOX", &self.root)
-            .env("GIT_CONFIG_GLOBAL", self.root.join("gitconfig"))
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .env("GIT_CEILING_DIRECTORIES", &self.root)
+            .env("PATH", self.sandbox.path_before_inherited())
+            .env("SANDBOX", self.root())
+            .env("GIT_CONFIG_GLOBAL", self.root().join("gitconfig"))
             .env("GIT_TERMINAL_PROMPT", "0");
         command
     }
 
     /// Runs `push-gist-skill` with `args` in `dir`.
     fn run(&self, dir: &Path, args: &[&str]) -> Output {
-        self.command(env!("CARGO_BIN_EXE_dotfiles-local"), dir)
+        self.command(DOTFILES_LOCAL, dir)
             .arg("push-gist-skill")
             .args(args)
             .output()
@@ -239,7 +217,7 @@ fn outcome(output: &Output) -> (Option<i32>, String, String) {
 
 #[test]
 fn pushes_the_local_skill_on_top_of_the_pin_and_pins_the_push() {
-    let sandbox = Sandbox::new("pushes");
+    let sandbox = Fixture::new("pushes");
     let gist = sandbox.gist();
     let pinned = sandbox.read_git(&gist, &["rev-parse", "HEAD"]);
 
@@ -281,9 +259,9 @@ fn pushes_the_local_skill_on_top_of_the_pin_and_pins_the_push() {
 // install.
 #[test]
 fn fails_where_apm_pins_another_commit() {
-    let sandbox = Sandbox::new("pins-another");
+    let sandbox = Fixture::new("pins-another");
     let other = "2222222222222222222222222222222222222222";
-    fs::write(sandbox.root.join("apm-pin"), other).expect("the pin is written");
+    fs::write(sandbox.root().join("apm-pin"), other).expect("the pin is written");
 
     let run = sandbox.run(&sandbox.repo(), &[SKILL]);
 
@@ -305,8 +283,8 @@ fn fails_where_apm_pins_another_commit() {
 // edit's only copy, is left for apm not to overwrite.
 #[test]
 fn fails_without_updating_where_the_gist_moved_past_the_pin() {
-    let sandbox = Sandbox::new("moved-past");
-    let seed = sandbox.root.join("seed");
+    let sandbox = Fixture::new("moved-past");
+    let seed = sandbox.root().join("seed");
     fs::write(seed.join("SKILL.md"), "moved\n").expect("the seed is written");
     sandbox.git(
         &seed,
@@ -342,7 +320,7 @@ fn fails_without_updating_where_the_gist_moved_past_the_pin() {
 // The name becomes a path component.
 #[test]
 fn refuses_a_name_that_is_not_one_path_component() {
-    let sandbox = Sandbox::new("invalid-name");
+    let sandbox = Fixture::new("invalid-name");
     for (name, shown) in [("", "<empty>"), (".", "."), ("..", ".."), ("a/b", "a/b")] {
         let run = sandbox.run(&sandbox.repo(), &[name]);
 
@@ -362,7 +340,7 @@ fn refuses_a_name_that_is_not_one_path_component() {
 // Only a dependency from gist.github.com counts, not one of the same name elsewhere.
 #[test]
 fn fails_where_no_gist_dependency_has_the_name() {
-    let sandbox = Sandbox::new("no-gist");
+    let sandbox = Fixture::new("no-gist");
     let lock = sandbox
         .read("apm.lock.yaml")
         .replace("host: gist.github.com", "host: github.com");
@@ -383,7 +361,7 @@ fn fails_where_no_gist_dependency_has_the_name() {
 
 #[test]
 fn fails_where_the_skill_has_no_local_copy() {
-    let sandbox = Sandbox::new("no-local");
+    let sandbox = Fixture::new("no-local");
     fs::remove_file(
         sandbox
             .repo()
@@ -410,7 +388,7 @@ fn fails_where_the_skill_has_no_local_copy() {
 // checkout holding dotfiles-local's source is the one it acts for.
 #[test]
 fn fails_without_pushing_outside_a_dotfiles_checkout() {
-    let sandbox = Sandbox::new("not-dotfiles");
+    let sandbox = Fixture::new("not-dotfiles");
     let pinned = sandbox.read_git(&sandbox.gist(), &["rev-parse", "HEAD"]);
     for manifest in [None, Some("[package]\nname = \"other\"\n")] {
         let path = sandbox.repo().join("rust/crates/local/Cargo.toml");
@@ -446,11 +424,11 @@ fn fails_without_pushing_outside_a_dotfiles_checkout() {
 // run from a worktree, the main checkout's copy and pin stay as they are.
 #[test]
 fn acts_on_the_worktree_it_runs_in() {
-    let sandbox = Sandbox::new("worktree");
+    let sandbox = Fixture::new("worktree");
     let repo = sandbox.repo();
     sandbox.git(&repo, &["add", "--all"]);
     sandbox.git(&repo, &["commit", "--quiet", "--message", "checkout"]);
-    let worktree = sandbox.root.join("worktree");
+    let worktree = sandbox.root().join("worktree");
     sandbox.git(
         &repo,
         &[
@@ -488,8 +466,8 @@ fn acts_on_the_worktree_it_runs_in() {
 
 #[test]
 fn ends_with_apms_code_where_apm_fails() {
-    let sandbox = Sandbox::new("apm-fails");
-    fs::write(sandbox.root.join("apm-code"), "3").expect("the code is written");
+    let sandbox = Fixture::new("apm-fails");
+    fs::write(sandbox.root().join("apm-code"), "3").expect("the code is written");
 
     let run = sandbox.run(&sandbox.repo(), &[SKILL]);
 
@@ -506,7 +484,7 @@ fn ends_with_apms_code_where_apm_fails() {
 
 #[test]
 fn prints_its_usage_on_help() {
-    let sandbox = Sandbox::new("help");
+    let sandbox = Fixture::new("help");
     for flag in ["--help", "-h"] {
         let (code, stdout, stderr) = outcome(&sandbox.run(&sandbox.repo(), &[flag]));
 
@@ -521,7 +499,7 @@ fn prints_its_usage_on_help() {
 
 #[test]
 fn fails_with_its_usage_on_other_than_one_name() {
-    let sandbox = Sandbox::new("usage");
+    let sandbox = Fixture::new("usage");
     for args in [&[][..], &[SKILL, "other"][..]] {
         let (code, stdout, stderr) = outcome(&sandbox.run(&sandbox.repo(), args));
 
@@ -537,7 +515,7 @@ fn fails_with_its_usage_on_other_than_one_name() {
 // An unchanged copy leaves nothing to commit, and so nothing to push or pin.
 #[test]
 fn fails_where_the_local_copy_matches_the_pin() {
-    let sandbox = Sandbox::new("unchanged");
+    let sandbox = Fixture::new("unchanged");
     sandbox.write(&format!(".claude/skills/{SKILL}/SKILL.md"), "pinned\n");
     let pinned = sandbox.read_git(&sandbox.gist(), &["rev-parse", "HEAD"]);
 

@@ -10,41 +10,38 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+
 /// A dotfiles checkout of the test's own, a home, a directory holding the fakes and the
 /// records they leave, none of which the machine's git config reaches.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`: a checkout holding one commit that marks it
     /// as dotfiles, with a `.zshenv` fragment that states the keychain command, and an
     /// empty home.
     fn new(test: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("setup-dotfiles")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        for dir in ["bin", "home", "repo"] {
-            fs::create_dir_all(root.join(dir)).expect("the sandbox is created");
-        }
-        let sandbox = Sandbox { root };
-        sandbox.write(
+        let fixture = Fixture {
+            sandbox: Sandbox::new("setup-dotfiles", test, &["home", "repo"]),
+        };
+        fixture.write(
             "rust/crates/local/Cargo.toml",
             "[package]\nname = \"dotfiles-local\"\n",
         );
-        sandbox.write(
+        fixture.write(
             "zsh_fragments/zshenv.sh",
             "export RCLONE_PASSWORD_COMMAND=\"security find-generic-password -a rclone -s config -w\"\n",
         );
-        sandbox.git(&sandbox.repo(), &["init", "--quiet"]);
-        sandbox.git(&sandbox.repo(), &["add", "."]);
-        sandbox.git(
-            &sandbox.repo(),
+        fixture.git(&fixture.repo(), &["init", "--quiet"]);
+        fixture.git(&fixture.repo(), &["add", "."]);
+        fixture.git(
+            &fixture.repo(),
             &["commit", "--quiet", "--message", "first"],
         );
-        sandbox.fakes();
-        sandbox
+        fixture.fakes();
+        fixture
     }
 
     /// Writes the fakes into the sandbox's PATH. Each but zsh appends its name and
@@ -62,16 +59,16 @@ impl Sandbox {
     fn fakes(&self) {
         // zsh reads ~/.zshenv in every shell before running `-c`'s command, and bash
         // runs the sourcing line the command writes there as zsh does.
-        self.fake(
+        self.sandbox.fake_run_by(
             "zsh",
-            "#!/usr/bin/env bash\n. \"$HOME/.zshenv\"\n[ \"$1\" = -c ] && eval \"$2\"\n",
+            "/usr/bin/env bash",
+            ". \"$HOME/.zshenv\"\n[ \"$1\" = -c ] && eval \"$2\"",
         );
-        let prologue = r#"#!/bin/sh
-printf '%s\n' "$(basename "$0") $*" >> "$SANDBOX/calls"
+        let prologue = r#"printf '%s\n' "$(basename "$0") $*" >> "$SANDBOX/calls"
 code=$(cat "$SANDBOX/$(basename "$0")-code" 2>/dev/null || echo 0)
 [ "$code" = 0 ] || exit "$code"
 "#;
-        self.fake(
+        self.sandbox.fake(
             "curl",
             &format!(
                 r#"{prologue}while [ "$1" != -o ]; do shift; done
@@ -79,14 +76,14 @@ printf 'fetched colors\n' > "$2"
 "#
             ),
         );
-        self.fake("npm", prologue);
-        self.fake(
+        self.sandbox.fake("npm", prologue);
+        self.sandbox.fake(
             "mix",
             &format!(
                 "{prologue}printf 'MIX_HOME=%s MIX_ARCHIVES=%s\\n' \"${{MIX_HOME-unset}}\" \"${{MIX_ARCHIVES-unset}}\" >> \"$SANDBOX/calls\"\n"
             ),
         );
-        self.fake(
+        self.sandbox.fake(
             "security",
             &format!(
                 r#"{prologue}case "$1" in
@@ -99,7 +96,7 @@ esac
 "#
             ),
         );
-        self.fake(
+        self.sandbox.fake(
             "rclone",
             &format!(
                 r#"{prologue}case "$*" in
@@ -112,24 +109,21 @@ esac
         );
     }
 
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, body).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// The fakes' calls, one a line, in order, or the empty string where none was made.
     fn calls(&self) -> String {
-        fs::read_to_string(self.root.join("calls")).unwrap_or_default()
+        fs::read_to_string(self.root().join("calls")).unwrap_or_default()
     }
 
     fn repo(&self) -> PathBuf {
-        self.root.join("repo")
+        self.root().join("repo")
     }
 
     fn home(&self) -> PathBuf {
-        self.root.join("home")
+        self.root().join("home")
     }
 
     /// The names of what the home holds, sorted.
@@ -170,38 +164,21 @@ esac
     /// keychain command taken away, the machine's git config left unread, the sandbox's
     /// home, and the fakes first on PATH.
     fn command(&self, program: &str, dir: &Path) -> Command {
-        let mut command = Command::new(program);
-        for (name, _) in std::env::vars_os() {
-            if name.to_string_lossy().starts_with("GIT_") {
-                command.env_remove(name);
-            }
-        }
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        let path = std::env::join_paths(
-            std::iter::once(self.root.join("bin")).chain(std::env::split_paths(&inherited)),
-        )
-        .expect("PATH is joined");
+        let mut command = isolated(program, dir, self.root());
         command
-            .current_dir(dir)
             .env_remove("RCLONE_PASSWORD_COMMAND")
-            .env("PATH", path)
+            .env("PATH", self.sandbox.path_before_inherited())
             .env("HOME", self.home())
-            .env("SANDBOX", &self.root)
+            .env("SANDBOX", self.root())
             .env("MIX_HOME", "/elixir/mix")
             .env("MIX_ARCHIVES", "/elixir/mix/archives")
-            .env("GIT_CONFIG_GLOBAL", "/dev/null")
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .env("GIT_CEILING_DIRECTORIES", &self.root)
-            .env("GIT_AUTHOR_NAME", "Test")
-            .env("GIT_AUTHOR_EMAIL", "test@example.com")
-            .env("GIT_COMMITTER_NAME", "Test")
-            .env("GIT_COMMITTER_EMAIL", "test@example.com");
+            .envs(IDENTITY);
         command
     }
 
     /// Runs `setup-dotfiles` with `args` in `dir`.
     fn run(&self, dir: &Path, args: &[&str]) -> Output {
-        self.command(env!("CARGO_BIN_EXE_dotfiles-local"), dir)
+        self.command(DOTFILES_LOCAL, dir)
             .arg("setup-dotfiles")
             .args(args)
             .output()
@@ -226,7 +203,7 @@ fn said(run: &Output) -> String {
 // the shell, so it fails before it writes or runs anything.
 #[test]
 fn fails_without_writing_outside_a_dotfiles_checkout() {
-    let sandbox = Sandbox::new("elsewhere");
+    let sandbox = Fixture::new("elsewhere");
     fs::remove_file(sandbox.repo().join("rust/crates/local/Cargo.toml"))
         .expect("the marker is removed");
 
@@ -246,7 +223,7 @@ fn fails_without_writing_outside_a_dotfiles_checkout() {
     assert_eq!(sandbox.home_entries(), Vec::<String>::new());
 }
 
-impl Sandbox {
+impl Fixture {
     /// What the home's `name` holds, or `None` where it has no such file.
     fn home_file(&self, name: &str) -> Option<String> {
         fs::read_to_string(self.home().join(name)).ok()
@@ -259,7 +236,7 @@ const COLORS: &str = "https://raw.githubusercontent.com/trapd00r/LS_COLORS/maste
 // The colors are downloaded beside ~/.dircolors and then moved over it.
 #[test]
 fn downloads_the_colors_into_dircolors() {
-    let sandbox = Sandbox::new("colors");
+    let sandbox = Fixture::new("colors");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
@@ -293,7 +270,7 @@ fn sourcing(root: &Path, name: &str) -> String {
 // the line starting with a newline in case the file's last line lacks one.
 #[test]
 fn appends_the_sourcing_lines_to_the_startup_files() {
-    let sandbox = Sandbox::new("startup");
+    let sandbox = Fixture::new("startup");
     fs::write(sandbox.home().join(".zshrc"), "eval \"$(installer init)\"")
         .expect("the file is written");
 
@@ -318,7 +295,7 @@ fn appends_the_sourcing_lines_to_the_startup_files() {
 // rerun adds nothing.
 #[test]
 fn leaves_a_startup_file_that_names_its_fragment() {
-    let sandbox = Sandbox::new("rerun");
+    let sandbox = Fixture::new("rerun");
     let own = "source ~/elsewhere/zsh_fragments/zshrc.sh\n";
     fs::write(sandbox.home().join(".zshrc"), own).expect("the file is written");
 
@@ -338,8 +315,8 @@ fn leaves_a_startup_file_that_names_its_fragment() {
 // worktree goes away.
 #[test]
 fn points_a_worktrees_run_at_the_main_checkouts_fragments() {
-    let sandbox = Sandbox::new("worktree");
-    let worktree = sandbox.root.join("worktree");
+    let sandbox = Fixture::new("worktree");
+    let worktree = sandbox.root().join("worktree");
     sandbox.git(
         &sandbox.repo(),
         &[
@@ -366,7 +343,7 @@ fn points_a_worktrees_run_at_the_main_checkouts_fragments() {
 // shell without it falls back to.
 #[test]
 fn sets_the_release_windows_after_updating_hex_in_both_archives() {
-    let sandbox = Sandbox::new("windows");
+    let sandbox = Fixture::new("windows");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
@@ -385,7 +362,7 @@ fn sets_the_release_windows_after_updating_hex_in_both_archives() {
     );
 }
 
-impl Sandbox {
+impl Fixture {
     /// The fakes' calls after the release windows', the password the keychain holds, if
     /// any, shown as `<password>`.
     fn rclone_calls(&self) -> Vec<String> {
@@ -402,7 +379,7 @@ impl Sandbox {
 
     /// The password the keychain item holds, or `None` where there is no item.
     fn password(&self) -> Option<String> {
-        fs::read_to_string(self.root.join("keychain")).ok()
+        fs::read_to_string(self.root().join("keychain")).ok()
     }
 }
 
@@ -413,7 +390,7 @@ const KEYCHAIN: &str = "security find-generic-password -a rclone -s config -w";
 // command `.zshenv` states reads it, and the config is encrypted under that command.
 #[test]
 fn stores_a_random_password_and_encrypts_the_config_with_it() {
-    let sandbox = Sandbox::new("rclone");
+    let sandbox = Fixture::new("rclone");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
@@ -438,10 +415,10 @@ fn stores_a_random_password_and_encrypts_the_config_with_it() {
 // stream.
 #[test]
 fn keeps_a_stored_password_and_an_encrypted_config() {
-    let sandbox = Sandbox::new("encrypted");
+    let sandbox = Fixture::new("encrypted");
     let stored = "stored-password-7f3a";
-    fs::write(sandbox.root.join("keychain"), stored).expect("the item is stored");
-    fs::write(sandbox.root.join("encrypted"), "").expect("the config is marked");
+    fs::write(sandbox.root().join("keychain"), stored).expect("the item is stored");
+    fs::write(sandbox.root().join("encrypted"), "").expect("the config is marked");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
@@ -459,8 +436,8 @@ fn keeps_a_stored_password_and_an_encrypted_config() {
 // the command stops and says how to recover rather than encrypting it again.
 #[test]
 fn stops_on_a_config_encrypted_with_another_password() {
-    let sandbox = Sandbox::new("foreign");
-    let config = sandbox.root.join("rclone.conf");
+    let sandbox = Fixture::new("foreign");
+    let config = sandbox.root().join("rclone.conf");
     fs::write(
         &config,
         "# Encrypted rclone configuration File\n\nRCLONE_ENCRYPT_V0:\nabc\n",
@@ -489,7 +466,7 @@ fn stops_on_a_config_encrypted_with_another_password() {
 // so the command stops before rclone.
 #[test]
 fn stops_where_zsh_states_no_keychain_command() {
-    let sandbox = Sandbox::new("no-command");
+    let sandbox = Fixture::new("no-command");
     sandbox.write("zsh_fragments/zshenv.sh", "");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
@@ -508,7 +485,7 @@ fn stops_where_zsh_states_no_keychain_command() {
 // generated password appears on neither stream.
 #[test]
 fn shows_each_command_but_never_the_password() {
-    let sandbox = Sandbox::new("shown");
+    let sandbox = Fixture::new("shown");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 
@@ -537,10 +514,10 @@ fn shows_each_command_but_never_the_password() {
     );
 }
 
-impl Sandbox {
+impl Fixture {
     /// Makes the fake `name` exit with `code`.
     fn fail(&self, name: &str, code: u8) {
-        fs::write(self.root.join(format!("{name}-code")), code.to_string())
+        fs::write(self.root().join(format!("{name}-code")), code.to_string())
             .expect("the code is written");
     }
 }
@@ -549,7 +526,7 @@ impl Sandbox {
 // exit code before anything else changes.
 #[test]
 fn stops_on_a_failed_download_keeping_the_colors() {
-    let sandbox = Sandbox::new("offline");
+    let sandbox = Fixture::new("offline");
     fs::write(sandbox.home().join(".dircolors"), "old colors\n").expect("the colors are written");
     sandbox.fail("curl", 22);
 
@@ -567,7 +544,7 @@ fn stops_on_a_failed_download_keeping_the_colors() {
 // A step that fails stops the run with its exit code, before the steps after it.
 #[test]
 fn stops_at_a_failed_step_with_its_exit_code() {
-    let sandbox = Sandbox::new("npm-fails");
+    let sandbox = Fixture::new("npm-fails");
     sandbox.fail("npm", 3);
 
     let run = sandbox.run(&sandbox.repo(), &[]);
@@ -583,7 +560,7 @@ fn stops_at_a_failed_step_with_its_exit_code() {
 // told so.
 #[test]
 fn prints_usage_on_help_and_fails_with_it_on_arguments() {
-    let sandbox = Sandbox::new("usage");
+    let sandbox = Fixture::new("usage");
 
     let help = sandbox.run(&sandbox.repo(), &["--help"]);
     let extra = sandbox.run(&sandbox.repo(), &["now"]);
@@ -603,7 +580,7 @@ fn prints_usage_on_help_and_fails_with_it_on_arguments() {
 // leaves it as it was and carries on through the steps after it.
 #[test]
 fn leaves_a_read_only_startup_file_that_names_its_fragment() {
-    let sandbox = Sandbox::new("read-only");
+    let sandbox = Fixture::new("read-only");
     let own = "source ~/elsewhere/zsh_fragments/zshrc.sh\n";
     let path = sandbox.home().join(".zshrc");
     fs::write(&path, own).expect("the file is written");
@@ -631,9 +608,12 @@ fn leaves_a_read_only_startup_file_that_names_its_fragment() {
 // A config that exists unencrypted, its remotes already in it, is encrypted in place.
 #[test]
 fn encrypts_an_existing_plain_config() {
-    let sandbox = Sandbox::new("plain");
-    fs::write(sandbox.root.join("rclone.conf"), "[remote]\ntype = drive\n")
-        .expect("the config is written");
+    let sandbox = Fixture::new("plain");
+    fs::write(
+        sandbox.root().join("rclone.conf"),
+        "[remote]\ntype = drive\n",
+    )
+    .expect("the config is written");
 
     let run = sandbox.run(&sandbox.repo(), &[]);
 

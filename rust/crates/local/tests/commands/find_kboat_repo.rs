@@ -4,27 +4,21 @@
 //! follows `--`, and a fake kboat-note, which prints a fixture, are all that is on PATH.
 
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-/// A directory holding the fakes, the k-boat checkout they are pointed at, and the
+use crate::support::{DOTFILES_LOCAL, Sandbox};
+
+/// A sandbox holding the fakes, the k-boat checkout they are pointed at, and the
 /// temporary directory the export lands in.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
-impl Sandbox {
-    /// A fresh sandbox named after `test`, where kboat-note prints `catalog` and exits 0.
+impl Fixture {
+    /// A fresh fixture named after `test`, where kboat-note prints `catalog` and exits 0.
     fn new(test: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("find-kboat-repo")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        for dir in ["bin", "k-boat", "tmp"] {
-            fs::create_dir_all(root.join(dir)).expect("the sandbox is created");
-        }
-        let sandbox = Sandbox { root };
+        let sandbox = Sandbox::new("find-kboat-repo", test, &["k-boat", "tmp"]);
         sandbox.fake(
             "mise",
             "printf '%s\\n' \"$@\" > \"$SANDBOX/mise-args\"\n\
@@ -32,22 +26,19 @@ impl Sandbox {
              shift\n\
              exec \"$@\"",
         );
-        sandbox.kboat_note("{\"anomalies\": [], \"notes\": []}", 0);
-        sandbox
+        let fixture = Fixture { sandbox };
+        fixture.kboat_note("{\"anomalies\": [], \"notes\": []}", 0);
+        fixture
     }
 
-    /// Writes a fake `name` into the sandbox's PATH, running the shell script `body`.
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// Makes kboat-note print `output` and exit with `code`.
     fn kboat_note(&self, output: &str, code: u8) {
-        fs::write(self.root.join("kboat-note-output"), output).expect("the fixture is written");
-        self.fake(
+        fs::write(self.root().join("kboat-note-output"), output).expect("the fixture is written");
+        self.sandbox.fake(
             "kboat-note",
             &format!("/bin/cat \"$SANDBOX/kboat-note-output\"\nexit {code}"),
         );
@@ -55,20 +46,20 @@ impl Sandbox {
 
     /// The arguments mise was called with, one a line, or `None` where it was not called.
     fn mise_args(&self) -> Option<String> {
-        fs::read_to_string(self.root.join("mise-args")).ok()
+        fs::read_to_string(self.root().join("mise-args")).ok()
     }
 
     /// `dotfiles-local` with `args`, given the sandbox's PATH alone and its temporary
     /// directory, and the k-boat checkout as `KBOAT_REPO`.
     fn command(&self, args: &[&str]) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"));
+        let mut command = Command::new(DOTFILES_LOCAL);
         command
             .args(args)
             .env_clear()
-            .env("PATH", self.root.join("bin"))
-            .env("SANDBOX", &self.root)
-            .env("TMPDIR", self.root.join("tmp"))
-            .env("KBOAT_REPO", self.root.join("k-boat"));
+            .env("PATH", self.sandbox.bin())
+            .env("SANDBOX", self.root())
+            .env("TMPDIR", self.root().join("tmp"))
+            .env("KBOAT_REPO", self.root().join("k-boat"));
         command
     }
 
@@ -81,7 +72,7 @@ impl Sandbox {
 // says where it is set and exits 2 before running anything.
 #[test]
 fn export_fails_without_kboat_repo() {
-    let sandbox = Sandbox::new("no-kboat-repo");
+    let sandbox = Fixture::new("no-kboat-repo");
     for value in [None, Some("")] {
         let mut command = sandbox.command(&["find-kboat-repo-export-catalog"]);
         match value {
@@ -132,7 +123,7 @@ fn exported_dir(stdout: &[u8]) -> PathBuf {
 // spaces.
 #[test]
 fn export_reads_the_catalogue_through_kboat_note() {
-    let sandbox = Sandbox::new("export");
+    let sandbox = Fixture::new("export");
     let output = report(
         &[
             "\"title\": \"a/one\", \"role\": \"library\"",
@@ -150,7 +141,7 @@ fn export_reads_the_catalogue_through_kboat_note() {
         "{}",
         String::from_utf8_lossy(&run.stderr)
     );
-    let k_boat = sandbox.root.join("k-boat");
+    let k_boat = sandbox.root().join("k-boat");
     assert_eq!(
         sandbox.mise_args().as_deref(),
         Some(
@@ -165,7 +156,7 @@ fn export_reads_the_catalogue_through_kboat_note() {
         )
     );
     let dir = exported_dir(&run.stdout);
-    assert_eq!(dir.parent(), Some(sandbox.root.join("tmp").as_path()));
+    assert_eq!(dir.parent(), Some(sandbox.root().join("tmp").as_path()));
     assert!(
         dir.file_name()
             .is_some_and(|name| name.to_string_lossy().starts_with("tmp.")),
@@ -191,7 +182,7 @@ fn export_reads_the_catalogue_through_kboat_note() {
 // stays as it is.
 #[test]
 fn export_compacts_each_note_for_judging() {
-    let sandbox = Sandbox::new("compact");
+    let sandbox = Fixture::new("compact");
     sandbox.kboat_note(
         &report(
             &[
@@ -234,7 +225,7 @@ fn export_compacts_each_note_for_judging() {
 // and the summary lists every chunk in order.
 #[test]
 fn export_splits_the_notes_into_chunks_of_100() {
-    let sandbox = Sandbox::new("chunks");
+    let sandbox = Fixture::new("chunks");
     let notes: Vec<String> = (0..250)
         .map(|index| format!("\"title\": \"o/r{index}\""))
         .collect();
@@ -292,7 +283,7 @@ fn export_splits_the_notes_into_chunks_of_100() {
 // null where it left no report.
 #[test]
 fn export_reports_a_failing_kboat_note() {
-    let sandbox = Sandbox::new("failing");
+    let sandbox = Fixture::new("failing");
     for (output, code, anomalies) in [
         (
             "{\"anomalies\": [{\"path\": \"Repos\", \"error\": \"missing\"}], \"notes\": []}",
@@ -324,14 +315,14 @@ fn export_reports_a_failing_kboat_note() {
 // that it can be inspected.
 #[test]
 fn export_names_the_stored_output_when_it_is_not_a_report() {
-    let sandbox = Sandbox::new("unparsable");
+    let sandbox = Fixture::new("unparsable");
     sandbox.kboat_note("not json", 0);
 
     let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
 
     assert_ne!(run.status.code(), Some(0));
     assert_eq!(String::from_utf8_lossy(&run.stdout), "");
-    let dirs: Vec<_> = fs::read_dir(sandbox.root.join("tmp"))
+    let dirs: Vec<_> = fs::read_dir(sandbox.root().join("tmp"))
         .expect("the temporary directory is readable")
         .map(|entry| entry.expect("an entry is read").path())
         .collect();
@@ -353,7 +344,7 @@ fn export_names_the_stored_output_when_it_is_not_a_report() {
 // and exits 2 before kboat-note runs.
 #[test]
 fn export_takes_no_arguments() {
-    let sandbox = Sandbox::new("export-args");
+    let sandbox = Fixture::new("export-args");
 
     let help = sandbox.run(&["find-kboat-repo-export-catalog", "--help"]);
     let other = sandbox.run(&["find-kboat-repo-export-catalog", "extra"]);
@@ -379,8 +370,8 @@ fn export_takes_no_arguments() {
 // one it begins or one differing in case.
 #[test]
 fn lookup_prints_the_record_of_each_title() {
-    let sandbox = Sandbox::new("lookup");
-    let dir = sandbox.root.join("export");
+    let sandbox = Fixture::new("lookup");
+    let dir = sandbox.root().join("export");
     fs::create_dir_all(&dir).expect("the export directory is created");
     fs::write(
         dir.join("catalog.json"),
@@ -427,8 +418,8 @@ fn lookup_prints_the_record_of_each_title() {
 // stderr and exits 2; a directory without the export's catalog.json fails with exit 1.
 #[test]
 fn lookup_needs_an_export() {
-    let sandbox = Sandbox::new("lookup-args");
-    let missing = sandbox.root.join("missing");
+    let sandbox = Fixture::new("lookup-args");
+    let missing = sandbox.root().join("missing");
 
     let help = sandbox.run(&["find-kboat-repo-lookup", "--help"]);
     let none = sandbox.run(&["find-kboat-repo-lookup"]);
@@ -461,7 +452,7 @@ fn lookup_needs_an_export() {
 // An empty catalogue reads as one with no chunks to judge.
 #[test]
 fn export_lists_no_chunks_for_an_empty_catalogue() {
-    let sandbox = Sandbox::new("empty");
+    let sandbox = Fixture::new("empty");
 
     let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
 
@@ -487,7 +478,7 @@ fn export_lists_no_chunks_for_an_empty_catalogue() {
 // that holds the report, so the note can be found among many.
 #[test]
 fn export_names_the_note_and_the_stored_output_when_a_note_cannot_be_read() {
-    let sandbox = Sandbox::new("list-type");
+    let sandbox = Fixture::new("list-type");
     sandbox.kboat_note(
         &report(
             &[
@@ -503,7 +494,7 @@ fn export_names_the_note_and_the_stored_output_when_a_note_cannot_be_read() {
 
     assert_ne!(run.status.code(), Some(0));
     assert_eq!(String::from_utf8_lossy(&run.stdout), "");
-    let dirs: Vec<_> = fs::read_dir(sandbox.root.join("tmp"))
+    let dirs: Vec<_> = fs::read_dir(sandbox.root().join("tmp"))
         .expect("the temporary directory is readable")
         .map(|entry| entry.expect("an entry is read").path())
         .collect();
@@ -525,8 +516,8 @@ fn export_names_the_note_and_the_stored_output_when_a_note_cannot_be_read() {
 // without a summary.
 #[test]
 fn export_fails_without_mise() {
-    let sandbox = Sandbox::new("no-mise");
-    fs::remove_file(sandbox.root.join("bin").join("mise")).expect("the fake mise is removed");
+    let sandbox = Fixture::new("no-mise");
+    fs::remove_file(sandbox.root().join("bin").join("mise")).expect("the fake mise is removed");
 
     let run = sandbox.run(&["find-kboat-repo-export-catalog"]);
 

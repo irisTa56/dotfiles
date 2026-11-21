@@ -9,6 +9,8 @@ use std::process::{Command, Stdio};
 
 use serde_json::{Value, json};
 
+use crate::support::{Sandbox, dotfiles_local, output_with_input};
+
 /// What the hook asks Claude for when it sends a reply back.
 const REWRITE: &str = "直前の返答は英語で書かれている。同じ内容を日本語で書き直して、もう一度返答する。ユーザーが英語で求めた文やコードはそのまま残し、その周りの説明を日本語で書く。";
 
@@ -52,18 +54,19 @@ impl Run {
 }
 
 /// A temporary directory of the test's own, given to the hook as TMPDIR.
-struct Sandbox {
-    tmp: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
-impl Sandbox {
+impl Fixture {
     fn new(test: &str) -> Self {
-        let tmp = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("reply-language-stop")
-            .join(test);
-        let _ = fs::remove_dir_all(&tmp);
-        fs::create_dir_all(&tmp).expect("the sandbox is created");
-        Sandbox { tmp }
+        Fixture {
+            sandbox: Sandbox::new("reply-language-stop", test, &[]),
+        }
+    }
+
+    fn tmp(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// Runs the hook on a stop of the session `session` with the fields `fields`.
@@ -78,38 +81,30 @@ impl Sandbox {
 
     /// The state file named `name`, where the hook keeps a session's state.
     fn state_file(&self, name: &str) -> PathBuf {
-        self.tmp.join("claude-reply-language").join(name)
+        self.tmp().join("claude-reply-language").join(name)
     }
 
     /// Runs the hook with `input` as its stdin and the sandbox as TMPDIR.
     fn run_with_input(&self, input: &[u8]) -> Run {
         let mut command = self.command();
-        command.env("TMPDIR", &self.tmp);
+        command.env("TMPDIR", self.tmp());
         Self::run(command, input)
     }
 
     /// The hook run from the sandbox, with none of the variables naming a temporary
     /// directory set.
     fn command(&self) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"));
+        let mut command = dotfiles_local("reply-language-stop");
         command
-            .arg("reply-language-stop")
-            .current_dir(&self.tmp)
+            .current_dir(self.tmp())
             .env_remove("TMPDIR")
             .env_remove("TMP")
             .env_remove("TEMP");
         command
     }
 
-    fn run(mut command: Command, input: &[u8]) -> Run {
-        let mut child = command
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("dotfiles-local starts");
-        let _ = child.stdin.take().expect("stdin is piped").write_all(input);
-        let output = child.wait_with_output().expect("dotfiles-local ends");
+    fn run(command: Command, input: &[u8]) -> Run {
+        let output = output_with_input(command, input);
         Run {
             code: output.status.code(),
             out: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -120,7 +115,7 @@ impl Sandbox {
 
 #[test]
 fn sends_an_english_final_reply_back_to_be_rewritten_in_japanese() {
-    let sandbox = Sandbox::new("english");
+    let sandbox = Fixture::new("english");
     assert_eq!(
         sandbox.stop(
             "s",
@@ -132,7 +127,7 @@ fn sends_an_english_final_reply_back_to_be_rewritten_in_japanese() {
 
 /// What the hook leaves on the first stop of a fresh session, ending in `message`.
 fn first_stop(test: &str, message: &str) -> Run {
-    Sandbox::new(test).stop(
+    Fixture::new(test).stop(
         "s",
         &json!({ "stop_hook_active": false, "last_assistant_message": message }),
     )
@@ -442,7 +437,7 @@ fn starts_a_line_after_every_javascript_line_terminator() {
 
 /// A stop of the session `s` ending in an English reply, `continued` where a Stop hook
 /// blocked the stop before.
-fn english_stop(sandbox: &Sandbox, continued: bool) -> Run {
+fn english_stop(sandbox: &Fixture, continued: bool) -> Run {
     sandbox.stop(
         "s",
         &json!({ "stop_hook_active": continued, "last_assistant_message": english() }),
@@ -452,7 +447,7 @@ fn english_stop(sandbox: &Sandbox, continued: bool) -> Run {
 // The reply after the hook's own block is already the rewrite; another block would loop.
 #[test]
 fn lets_the_rewrite_through_on_the_stop_after_its_own_block() {
-    let sandbox = Sandbox::new("rewrite");
+    let sandbox = Fixture::new("rewrite");
     assert_eq!(english_stop(&sandbox, false), Run::blocked());
     assert_eq!(english_stop(&sandbox, true), Run::passed());
 }
@@ -460,7 +455,7 @@ fn lets_the_rewrite_through_on_the_stop_after_its_own_block() {
 // A subagent's replies go to its parent agent, not the user.
 #[test]
 fn leaves_a_subagent_alone() {
-    let sandbox = Sandbox::new("subagent");
+    let sandbox = Fixture::new("subagent");
     let fields = json!({
         "stop_hook_active": false,
         "last_assistant_message": english(),
@@ -473,7 +468,7 @@ fn leaves_a_subagent_alone() {
 // after the hook's own block is still let through.
 #[test]
 fn keeps_the_main_conversation_s_state_over_a_subagent_s_stop() {
-    let sandbox = Sandbox::new("subagent-between");
+    let sandbox = Fixture::new("subagent-between");
     assert_eq!(english_stop(&sandbox, false), Run::blocked());
     let subagent = json!({ "stop_hook_active": false, "agent_id": "sub-1" });
     assert_eq!(sandbox.stop("s", &subagent), Run::passed());
@@ -484,7 +479,7 @@ fn keeps_the_main_conversation_s_state_over_a_subagent_s_stop() {
 // like any other.
 #[test]
 fn sends_back_english_after_another_hook_s_block() {
-    let sandbox = Sandbox::new("other-hook");
+    let sandbox = Fixture::new("other-hook");
     assert_eq!(english_stop(&sandbox, true), Run::blocked());
 }
 
@@ -492,7 +487,7 @@ fn sends_back_english_after_another_hook_s_block() {
 // overwritten there.
 #[test]
 fn sends_back_english_in_the_next_turn_after_its_own_block() {
-    let sandbox = Sandbox::new("next-turn");
+    let sandbox = Fixture::new("next-turn");
     assert_eq!(english_stop(&sandbox, false), Run::blocked());
     assert_eq!(english_stop(&sandbox, false), Run::blocked());
 }
@@ -501,7 +496,7 @@ fn sends_back_english_in_the_next_turn_after_its_own_block() {
 // turn.
 #[test]
 fn sends_back_english_after_its_rewrite_and_another_hook_s_block() {
-    let sandbox = Sandbox::new("rewrite-then-other-hook");
+    let sandbox = Fixture::new("rewrite-then-other-hook");
     assert_eq!(english_stop(&sandbox, false), Run::blocked());
     assert_eq!(english_stop(&sandbox, true), Run::passed());
     assert_eq!(english_stop(&sandbox, true), Run::blocked());
@@ -511,7 +506,7 @@ fn sends_back_english_after_its_rewrite_and_another_hook_s_block() {
 // through.
 #[test]
 fn keeps_one_session_s_block_from_letting_another_s_reply_through() {
-    let sandbox = Sandbox::new("sessions");
+    let sandbox = Fixture::new("sessions");
     let english =
         |continued| json!({ "stop_hook_active": continued, "last_assistant_message": english() });
     assert_eq!(sandbox.stop("a", &english(false)), Run::blocked());
@@ -521,7 +516,7 @@ fn keeps_one_session_s_block_from_letting_another_s_reply_through() {
 
 #[test]
 fn leaves_a_stop_with_no_text_alone() {
-    let sandbox = Sandbox::new("no-text");
+    let sandbox = Fixture::new("no-text");
     assert_eq!(
         sandbox.stop("s", &json!({ "stop_hook_active": false })),
         Run::passed()
@@ -586,7 +581,7 @@ fn leaves_japanese_around_english_names_alone() {
 // block.
 #[test]
 fn keeps_the_state_in_a_file_per_session_under_the_temporary_directory() {
-    let sandbox = Sandbox::new("state-file");
+    let sandbox = Fixture::new("state-file");
     english_stop(&sandbox, false);
     assert_eq!(
         fs::read_to_string(sandbox.state_file("s")).ok().as_deref(),
@@ -614,7 +609,7 @@ fn names_the_state_file_after_the_session() {
         ("x-y_Z9", "x-y_Z9"),
         ("é😀", "___"),
     ] {
-        let sandbox = Sandbox::new(&format!("session-name-{name}"));
+        let sandbox = Fixture::new(&format!("session-name-{name}"));
         let fields = json!({ "stop_hook_active": false, "last_assistant_message": english() });
         sandbox.stop(session, &fields);
         assert_eq!(
@@ -634,8 +629,8 @@ fn finds_the_temporary_directory_in_tmpdir_tmp_or_temp() {
         "last_assistant_message": english(),
     })
     .to_string();
-    let sandbox = Sandbox::new("tmpdir");
-    let other = sandbox.tmp.join("other");
+    let sandbox = Fixture::new("tmpdir");
+    let other = sandbox.tmp().join("other");
     let state = |dir: &Path| {
         fs::read_to_string(
             dir.join("claude-reply-language")
@@ -654,7 +649,7 @@ fn finds_the_temporary_directory_in_tmpdir_tmp_or_temp() {
             vec![("TMPDIR", "{dir}/"), ("TMP", "{other}")],
         ),
     ] {
-        let dir = sandbox.tmp.join(name);
+        let dir = sandbox.tmp().join(name);
         let mut command = sandbox.command();
         for (variable, value) in env {
             let value = value
@@ -663,12 +658,12 @@ fn finds_the_temporary_directory_in_tmpdir_tmp_or_temp() {
             command.env(variable, value);
         }
         assert_eq!(
-            (name, Sandbox::run(command, input.as_bytes()), state(&dir)),
+            (name, Fixture::run(command, input.as_bytes()), state(&dir)),
             (name, Run::blocked(), Some("1".to_owned()))
         );
     }
     let tmp = Path::new("/tmp");
-    let run = Sandbox::run(sandbox.command(), input.as_bytes());
+    let run = Fixture::run(sandbox.command(), input.as_bytes());
     let written = state(tmp);
     let _ = fs::remove_file(
         tmp.join("claude-reply-language")
@@ -688,7 +683,7 @@ fn assert_failed(run: &Run) {
 // go ahead.
 #[test]
 fn fails_with_exit_1_on_input_it_cannot_read() {
-    let sandbox = Sandbox::new("bad-input");
+    let sandbox = Fixture::new("bad-input");
     for input in [
         "not json",
         "null",
@@ -707,15 +702,16 @@ fn fails_with_exit_1_on_input_it_cannot_read() {
 // again.
 #[test]
 fn fails_with_exit_1_before_the_verdict_where_the_state_cannot_be_written() {
-    let sandbox = Sandbox::new("unwritable");
-    fs::write(sandbox.tmp.join("claude-reply-language"), "").expect("a file blocks the directory");
+    let sandbox = Fixture::new("unwritable");
+    fs::write(sandbox.tmp().join("claude-reply-language"), "")
+        .expect("a file blocks the directory");
     assert_failed(&english_stop(&sandbox, false));
 }
 
 // A verdict that cannot be written fails the hook too.
 #[test]
 fn fails_with_exit_1_where_the_verdict_cannot_be_written() {
-    let sandbox = Sandbox::new("closed-stdout");
+    let sandbox = Fixture::new("closed-stdout");
     let input = json!({
         "session_id": "s",
         "stop_hook_active": false,
@@ -724,7 +720,7 @@ fn fails_with_exit_1_where_the_verdict_cannot_be_written() {
     .to_string();
     let mut child = sandbox
         .command()
-        .env("TMPDIR", &sandbox.tmp)
+        .env("TMPDIR", sandbox.tmp())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -744,7 +740,7 @@ fn fails_with_exit_1_where_the_verdict_cannot_be_written() {
 // failing the hook.
 #[test]
 fn reads_input_that_is_no_utf_8() {
-    let sandbox = Sandbox::new("no-utf-8");
+    let sandbox = Fixture::new("no-utf-8");
     let input = json!({
         "session_id": "s",
         "stop_hook_active": false,
@@ -761,7 +757,7 @@ fn reads_input_that_is_no_utf_8() {
 // `stop_hook_active` is true as JavaScript takes a value for true.
 #[test]
 fn reads_fields_of_other_types() {
-    let sandbox = Sandbox::new("other-types");
+    let sandbox = Fixture::new("other-types");
     for message in [json!(null), json!(5)] {
         let run = sandbox.stop(
             "judged",
@@ -806,7 +802,7 @@ fn judges_a_reply_holding_a_lone_surrogate_escape() {
         let input = format!(
             r#"{{"session_id":"s","stop_hook_active":false,"last_assistant_message":"{reply}"}}"#
         );
-        Sandbox::new("lone-surrogate-reply").run_with_input(input.as_bytes())
+        Fixture::new("lone-surrogate-reply").run_with_input(input.as_bytes())
     };
     for (name, escape) in [
         ("high", r"\ud83d"),
@@ -840,7 +836,7 @@ fn names_the_state_file_with_one_underscore_for_a_lone_surrogate_escape() {
         (r"a😀b", "a__b"),
         (r"a\\ud83db", "a_ud83db"),
     ] {
-        let sandbox = Sandbox::new("lone-surrogate-session");
+        let sandbox = Fixture::new("lone-surrogate-session");
         let input = format!(
             r#"{{"session_id":"{escape}","stop_hook_active":false,"last_assistant_message":"{}"}}"#,
             english()
