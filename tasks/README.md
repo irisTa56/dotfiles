@@ -145,7 +145,6 @@ Where some pins differ and others it could not tell, it exits 2.
 
 Give it a CI step of its own and fail the build on anything but 0, so a failure costs a re-run and nothing half-done.
 The task runs a released `dotfiles-tasks` binary, which its script pins, installs with `mise install` from this repository's GitHub Releases and runs from the directory `mise where` prints, so the job needs nothing beyond mise and git, and curl for the pull request `--bump` opens.
-`shared-tasks:check` is [an alias](https://mise.jdx.dev/tasks/task-configuration.html#alias) for it, so a CI step written under that name keeps running.
 
 With `--bump` before any pathspec, where it would exit 1 it first moves each differing pin to its upstream's tip, except one whose path is gone there, and prints what the move brings, a GitHub URL comparing the two commits where the upstream is on GitHub, then exits 1 all the same.
 Run by hand, it rewrites each pin in the files that spell it, for whoever ran it to commit.
