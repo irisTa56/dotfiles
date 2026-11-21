@@ -142,7 +142,7 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
   - Its `run` returns `Result<(), Failure>`, and `main` alone reports a failure, with its message where it has one, as the exit status.
 - The binary runs in its caller's working directory, so a mise task that runs it sets no `dir` and the command acts on the root of the checkout the task ran in, and a command a shell function runs reads a relative path from where the function was called.
 - Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust` runs them with the rest of the workspace.
-  - A test that needs a real tool, such as yq or jq, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
+  - A test that needs a real tool, such as gitleaks or lychee, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
 - A dependency it adds or updates changes `rust/Cargo.lock`, which `dotfiles-tasks`'s releases cover, so a `feat` or `fix` commit with that change opens a release pull request.
 
 A property of the shared tasks under `tasks/`, such as each wrapper pinning the `dotfiles-tasks` release `rust/Cargo.toml` is at, is tested in `rust/tests/tasks/` beside the tests of the tasks themselves, rather than checked by a `qa:` task of its own.
