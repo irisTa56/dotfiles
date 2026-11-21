@@ -99,8 +99,7 @@ describe("block-piped-git-push", () => {
   // budget runs out and its failure handler blocks the call.
   test("passes a long chain with no push, promptly", async ($, on) => {
     allowed(on);
-    const command =
-      "git merge b | tail -1 && git status && ".repeat(200) + "true";
+    const command = `${"git merge b | tail -1 && git status && ".repeat(200)}true`;
     const start = performance.now();
     const verdict = await check($, command);
     const elapsed = performance.now() - start;
