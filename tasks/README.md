@@ -45,6 +45,14 @@ mise [keys its clone cache on the repository URL and the ref alone, and reuses a
 It recognises a sha only at 40 characters and treats anything shorter as a branch or tag name, which fails with "the remote didn't have any ref that matched" rather than with anything about its length.
 That link is pinned to a release for the same reason the `ref` is: on `main` it would keep resolving while quietly ceasing to support the claim.
 
+A workflow that runs them sets `MISE_NO_HOOKS: "1"` in its workflow-wide `env`, since mise runs the consuming repository's [`[hooks] postinstall`](https://mise.jdx.dev/hooks.html) on every `mise install` there:
+
+- the one [`jdx/mise-action` runs unless told `install: false`](https://github.com/jdx/mise-action/blob/v5.2.10/action.yml#L37-L40);
+- the one `mise run` runs to install a tool a task declares.
+
+A `postinstall` that sets up a local checkout has nothing to do in CI and can break a job there: a pre-push hook it registers runs on the push `upstream:pin-check -- --bump` makes, and where the hook fails, as one whose tool the job did not install does, the push fails with it.
+The `mise install` a task runs for the `dotfiles-tasks` binary skips the hooks itself.
+
 ### `secrets:commit-scan`
 
 It reads the staged diff, so it belongs in a pre-commit hook.
@@ -163,6 +171,9 @@ The job needs this, which `contents: write` and `pull-requests: write` give the 
 
 ```yaml
 # .github/workflows/<workflow>.yml, in the consuming repository
+env:
+  MISE_NO_HOOKS: "1"
+
 jobs:
   upstream-pin-check:
     runs-on: ubuntu-latest
