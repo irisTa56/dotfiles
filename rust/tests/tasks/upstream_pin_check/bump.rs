@@ -644,3 +644,45 @@ fn without_curl() -> TempDir {
     }
     bin
 }
+
+// A move that a person has to finish, such as one whose upstream was taken in part by
+// hand, is opened as a draft, which GitHub will not merge until it is marked ready.
+#[test]
+fn under_github_actions_opens_the_pull_request_as_a_draft_with_draft() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .arg("--draft")
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &[&format!("opened its pull request: {OPENED}")]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["draft"], true);
+}
+
+// Without --draft the pull request is one a merge finishes.
+#[test]
+fn under_github_actions_opens_the_pull_request_ready_without_draft() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &[]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["draft"], false);
+}

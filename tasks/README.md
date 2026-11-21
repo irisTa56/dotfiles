@@ -198,11 +198,14 @@ jobs:
 - [GitHub starts no workflow run on a pull request the job's token opened or pushed to](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/triggering-a-workflow#triggering-a-workflow-from-a-workflow) until a person with write access selects "Approve workflows to run" on it, so its required checks wait for that.
 
 Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever merges that pull request.
+With `--draft` as well, it opens the pull request as a draft, which GitHub [will not merge until someone marks it ready for review](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests).
+That suits a pin whose path the repository took in part by hand, such as some of an upstream's lints copied into `Cargo.toml`, where moving the pin alone leaves the copy behind and merging the pull request as it stands would hide that: the person who brings the change over commits it to `upstream-pin-bump` and then marks the pull request ready.
+GitHub opens drafts in public repositories on every plan but in private ones only on GitHub Team and GitHub Enterprise Cloud, as [the endpoint that opens it](https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request) says, so elsewhere GitHub refuses the pull request and the run ends as below.
 
 It exits 2, pushing nothing, where a new branch's pull request could not be opened: without `GITHUB_TOKEN` in the step's `env`, or without curl.
 It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where the pull request could not be opened: GitHub refused it, which prints GitHub's reason, or the API gave no answer within a minute.
 It then deletes the branch it pushed, since a run that finds the branch takes its pull request to be open, so the next run opens one; where it cannot delete the branch it says so, and the branch has to be deleted by hand.
-It exits 2 too on an option other than `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+It exits 2 too on an option other than `--bump` and `--draft`, on `--draft` without `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
 It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one

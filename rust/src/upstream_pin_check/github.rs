@@ -61,6 +61,7 @@ impl GitHub {
             "base": pull.base,
             "title": pull.title,
             "body": pull.body,
+            "draft": pull.draft,
         });
         let output = Command::new("curl")
             .args(["-sS", "-X", "POST"])

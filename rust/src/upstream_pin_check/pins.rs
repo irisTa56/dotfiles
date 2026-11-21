@@ -74,10 +74,11 @@ impl Differing<'_> {
         files
     }
 
-    /// Moves the pins: under GitHub Actions on origin, and otherwise in the working tree.
-    pub(super) fn move_pins(&self, scratch: &Scratch) -> Result<Status, Status> {
+    /// Moves the pins: under GitHub Actions on origin, proposing the move as a draft
+    /// pull request where `draft` is set, and otherwise in the working tree.
+    pub(super) fn move_pins(&self, scratch: &Scratch, draft: bool) -> Result<Status, Status> {
         if env::var("GITHUB_ACTIONS").is_ok_and(|v| v == "true") {
-            Ok(scratch.move_on_origin(self))
+            Ok(scratch.move_on_origin(self, draft))
         } else {
             self.move_in_working_tree()
                 .map_err(|error| Status::stopped_on(&error))

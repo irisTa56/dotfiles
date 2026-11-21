@@ -30,13 +30,17 @@ pub(crate) enum Status {
     Unknown = 2,
 }
 
-/// A run's arguments: `--bump`, and then git pathspecs.
+/// A run's arguments: `--bump` and `--draft`, and then git pathspecs.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// Move each differing pin to its upstream's tip, and under GitHub Actions push the
     /// move and open its pull request.
     #[arg(long)]
     bump: bool,
+    /// Open the pull request of --bump as a draft, for a move a person has to finish
+    /// before it merges.
+    #[arg(long, requires = "bump")]
+    draft: bool,
     /// The files to read pins from, as git pathspecs [default: every tracked file].
     #[arg(trailing_var_arg = true)]
     pathspecs: Vec<Pathspec>,
@@ -135,11 +139,12 @@ struct GitHub {
     token: String,
 }
 
-/// A pull request to open, from `head` into `base`.
+/// A pull request to open, from `head` into `base`, as a draft where `draft` is set.
 #[derive(Debug)]
 struct PullRequest<'a> {
     head: &'a str,
     base: &'a str,
     title: &'a str,
     body: &'a str,
+    draft: bool,
 }

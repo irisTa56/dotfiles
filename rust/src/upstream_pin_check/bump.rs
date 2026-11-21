@@ -30,10 +30,10 @@ impl Scratch {
     /// pushed to a branch of its own, and proposed as a pull request into that branch.
     /// While that branch exists, its pull request is open, so the move is made on the
     /// branch instead, over whatever a person added there.
-    pub(super) fn move_on_origin(&self, differing: &Differing) -> Status {
+    pub(super) fn move_on_origin(&self, differing: &Differing, draft: bool) -> Status {
         let moved = match self.bump_branch_exists() {
             Ok(true) => self.move_on_bump_branch(differing),
-            Ok(false) => self.propose_move(differing),
+            Ok(false) => self.propose_move(differing, draft),
             Err(status) => Err(status),
         };
         match moved {
@@ -60,9 +60,9 @@ impl Scratch {
     }
 
     /// Moves the pins on the default branch, pushes the move to a new [`BUMP_BRANCH`],
-    /// and opens its pull request. What opening one needs is checked before the push, so
-    /// that a run lacking it leaves no branch behind.
-    fn propose_move(&self, differing: &Differing) -> Result<Status, Status> {
+    /// and opens its pull request, as a draft where `draft` is set. What opening one needs
+    /// is checked before the push, so that a run lacking it leaves no branch behind.
+    fn propose_move(&self, differing: &Differing, draft: bool) -> Result<Status, Status> {
         let github = GitHub::from_env()?;
         let default_branch = self.default_branch()?;
         let base = self.fetch_from_origin("HEAD")?;
@@ -76,7 +76,7 @@ impl Scratch {
         for line in &message.0 {
             Failure(&format!("pushed the move to {BUMP_BRANCH}: {line}")).report();
         }
-        Ok(self.open_pull_request(&github, &default_branch, &message))
+        Ok(self.open_pull_request(&github, &default_branch, &message, draft))
     }
 
     /// Moves the pins as [`BUMP_BRANCH`] spells them, in a commit over its tip, which its
@@ -259,16 +259,23 @@ impl Scratch {
         Ok(())
     }
 
-    /// Opens the pull request of [`BUMP_BRANCH`] into `base`. Where it cannot, the branch
-    /// this run pushed is deleted again, since a run that finds the branch takes its pull
-    /// request to be open and opens none.
-    fn open_pull_request(&self, github: &GitHub, base: &str, message: &Message) -> Status {
+    /// Opens the pull request of [`BUMP_BRANCH`] into `base`, as a draft where `draft` is
+    /// set. Where it cannot, the branch this run pushed is deleted again, since a run that
+    /// finds the branch takes its pull request to be open and opens none.
+    fn open_pull_request(
+        &self,
+        github: &GitHub,
+        base: &str,
+        message: &Message,
+        draft: bool,
+    ) -> Status {
         let body = message.list();
         let pull = PullRequest {
             head: BUMP_BRANCH,
             base,
             title: TITLE,
             body: &body,
+            draft,
         };
         match github.open(self.dir(), &pull) {
             Ok(page) => {
