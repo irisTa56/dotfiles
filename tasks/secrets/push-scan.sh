@@ -14,7 +14,7 @@
 # through `mise x`, which leaves the tools a task's header declares off PATH.
 # mise runs the consuming project's [hooks] postinstall on every install there, and
 # that setup is not this task's to run, so the install skips mise's hooks.
-tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.8.1' # x-release-please-version
+tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.9.0' # x-release-please-version
 MISE_NO_HOOKS=1 mise install --quiet "$tool" || exit 2
 dir=$(mise where "$tool") || exit 2
 exec "$dir/dotfiles-tasks" secrets-push-scan "$@"
