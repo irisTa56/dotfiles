@@ -158,6 +158,7 @@ A mise task is named `<area>:<action>` or `<area>:<what it produces>`, as `skill
 A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise task, or of the alias or function a person types, that runs it, with each `:` as `-`.
 
 - One that several tasks run takes the part their names share.
+  - A shared task's subcommand takes the shared task's name, as `skills-size-check` does, though a task in `mise.toml` such as `qa:rust:skills` runs it from the working tree as well.
 - A skill that has an agent run a subcommand uses the name settled this way, and does not set one.
 - One that neither a task nor a person runs by name, such as a hook or a command only a skill runs, keeps the name it has.
 
