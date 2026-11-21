@@ -1,6 +1,7 @@
 //! The commands for this machine alone, one subcommand each, which `mise run
 //! local:install` installs into `~/.local/bin` from the main checkout.
 
+mod apm_lock;
 mod ccusage;
 mod dotfiles_checkout;
 mod dotfiles_setup;

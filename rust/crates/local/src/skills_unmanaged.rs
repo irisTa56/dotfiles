@@ -9,10 +9,12 @@ use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 use clap::Args;
 
+use crate::apm_lock::ApmLock;
 use crate::failure::{Failure, exit_code};
 
 /// The directory whose entries are listed, relative to the checkout's root.
@@ -91,13 +93,10 @@ impl Managed {
             Command::new("git").args(["ls-files", "-z", "--", SKILLS]),
             format_args!("git could not list {SKILLS}"),
         )?;
-        let deployed = output(
-            Command::new("yq").args([".dependencies[].deployed_files[]", "apm.lock.yaml"]),
-            format_args!("yq could not read apm.lock.yaml"),
-        )?;
+        let lock = ApmLock::read(Path::new("."))?;
         let paths = tracked
             .split(|&byte| byte == 0)
-            .chain(deployed.split(|&byte| byte == b'\n'))
+            .chain(lock.deployed_files().map(str::as_bytes))
             .filter(|path| !path.is_empty())
             .map(top_level)
             .collect();

@@ -85,6 +85,15 @@ impl Sandbox {
         self.fake_run_by(name, "/bin/sh", body);
     }
 
+    /// Writes into `bin` a fake of each of `programs` that fails saying it was run, so a
+    /// run with `bin` first on PATH shows the command does without them even on a
+    /// machine that has them.
+    pub(crate) fn forbid(&self, programs: &[&str]) {
+        for program in programs {
+            self.fake(program, &format!("echo '{program} was run' >&2\nexit 99"));
+        }
+    }
+
     /// Writes a fake `name` into `bin` that runs `body` as a script of `interpreter`, a
     /// shebang line's command.
     pub(crate) fn fake_run_by(&self, name: &str, interpreter: &str, body: &str) {
