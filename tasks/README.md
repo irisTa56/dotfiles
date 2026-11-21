@@ -210,7 +210,7 @@ GitHub opens drafts in public repositories on every plan but in private ones onl
 It exits 2, pushing nothing, where a new branch's pull request could not be opened: without `GITHUB_TOKEN` in the step's `env`, or without curl.
 It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where the pull request could not be opened: GitHub refused it, which prints GitHub's reason, or the API gave no answer within a minute.
 It then deletes the branch it pushed, since a run that finds the branch takes its pull request to be open, so the next run opens one; where it cannot delete the branch it says so, and the branch has to be deleted by hand.
-It exits 2 too on an option other than `--bump`, `--draft` and `--branch-suffix`, on `--draft` or `--branch-suffix` without `--bump`, on a suffix that makes no name git takes for a branch, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+It exits 2 too on an option other than `--bump`, `--draft` and `--branch-suffix`, on `--draft` or `--branch-suffix` without `--bump`, on a suffix of anything but letters, digits, hyphens and underscores, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
 It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one
