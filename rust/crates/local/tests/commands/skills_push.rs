@@ -368,6 +368,32 @@ fn fails_where_no_gist_dependency_has_the_name() {
     assert_eq!(sandbox.apm_call(), None);
 }
 
+// A gist's repo_url is `<owner>/<gist_id>`, so one of another form, which would reach
+// `git clone` as part of a URL, is not taken for the gist.
+#[test]
+fn fails_where_the_gist_dependency_names_no_gist() {
+    for repo in ["tester/not-hex", "../x"] {
+        let sandbox = Fixture::new(&format!("not-a-gist-{}", repo.replace('/', "-")));
+        let lock = sandbox
+            .read("apm.lock.yaml")
+            .replace(&format!("repo_url: {GIST}"), &format!("repo_url: {repo}"));
+        sandbox.write("apm.lock.yaml", &lock);
+
+        let run = sandbox.run(&sandbox.repo(), &[SKILL]);
+
+        assert_eq!(
+            outcome(&run),
+            (
+                Some(1),
+                String::new(),
+                format!("[fail] {SKILL}: no gist dependency by that alias in apm.lock.yaml\n")
+            ),
+            "{repo}"
+        );
+        assert_eq!(sandbox.apm_call(), None, "{repo}");
+    }
+}
+
 #[test]
 fn fails_where_the_skill_has_no_local_copy() {
     let sandbox = Fixture::new("no-local");
