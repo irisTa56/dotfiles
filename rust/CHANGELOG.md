@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.7.0...dotfiles-tasks-v0.8.0) (2026-11-21)
+
+
+### Features
+
+* **local:** add block-bsd-sed-inplace as a dotfiles-local subcommand ([#467](https://github.com/irisTa56/dotfiles/issues/467)) ([49d22d1](https://github.com/irisTa56/dotfiles/commit/49d22d16bad2bab0270769a25becd1596a183fa5))
+* **local:** add find-kboat-repo's commands as dotfiles-local subcommands ([#485](https://github.com/irisTa56/dotfiles/issues/485)) ([fec764f](https://github.com/irisTa56/dotfiles/commit/fec764f9efc7fcbdfe0419a39b83a7014040df30))
+
 ## [0.7.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.6.0...dotfiles-tasks-v0.7.0) (2026-11-20)
 
 
