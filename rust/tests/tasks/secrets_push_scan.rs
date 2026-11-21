@@ -83,7 +83,11 @@ fn fails_on_a_secret_in_a_commit_the_push_sends_naming_where_it_sits() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &format!("fine\n{}", leaking()))]);
     checkout
-        .secrets_push_scan(&["origin"], &main_line(&checkout, &sha))
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(
             1,
             &[
@@ -98,7 +102,12 @@ fn fails_on_a_secret_in_a_commit_the_push_sends_naming_where_it_sits() {
 fn passes_a_push_that_sends_no_secret_saying_nothing() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let run = checkout.secrets_push_scan(&["origin"], &main_line(&checkout, &sha));
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -108,7 +117,12 @@ fn passes_a_push_that_sends_no_secret_saying_nothing() {
 fn passes_a_push_whose_secret_the_remote_already_holds() {
     let origin = Origin::with_main(&[("a.txt", &leaking())]);
     let (checkout, sha) = ahead_of(&origin, &[("b.txt", "fine\n")]);
-    let run = checkout.secrets_push_scan(&["origin"], &main_line(&checkout, &sha));
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -122,7 +136,11 @@ fn fails_on_a_secret_another_remote_holds_but_the_pushed_one_does_not() {
     checkout.add_remote("other", &other);
     checkout.git(&["push", "-q", "other", "HEAD:refs/heads/main"]);
     checkout
-        .secrets_push_scan(&["origin"], &main_line(&checkout, &sha))
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(1, &[&format!("commit {sha}")]);
 }
 
@@ -131,7 +149,12 @@ fn fails_on_a_secret_another_remote_holds_but_the_pushed_one_does_not() {
 fn passes_a_push_that_sends_no_ref() {
     let origin = Origin::with_main(&[("a.txt", &leaking())]);
     let (checkout, _) = ahead_of(&origin, &[]);
-    let run = checkout.secrets_push_scan(&["origin"], "");
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input("")
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -140,10 +163,12 @@ fn passes_a_push_that_sends_no_ref() {
 fn passes_a_push_that_deletes_a_ref() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
-    let run = checkout.secrets_push_scan(
-        &["origin"],
-        &line("(delete)", ZERO, "refs/heads/gone", &sha),
-    );
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(line("(delete)", ZERO, "refs/heads/gone", &sha))
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -156,7 +181,11 @@ fn fails_on_a_secret_in_the_message_of_a_commit_the_push_sends() {
     checkout.stage_over(&origin);
     let sha = commit(&checkout, &format!("add {}", github_token()));
     checkout
-        .secrets_push_scan(&["origin"], &main_line(&checkout, &sha))
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(1, &[&format!("of the commit message, commit {sha}")]);
 }
 
@@ -170,10 +199,11 @@ fn fails_on_a_secret_in_a_commit_an_annotated_tag_sends() {
     checkout.git(&["branch", "v1", "origin/main"]);
     let tag = checkout.git(&["rev-parse", "refs/tags/v1"]);
     checkout
-        .secrets_push_scan(
-            &["origin"],
-            &line("refs/tags/v1", &tag, "refs/tags/v1", ZERO),
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(line("refs/tags/v1", &tag, "refs/tags/v1", ZERO))
+        .run()
         .expect(1, &[&format!("commit {sha}")]);
 }
 
@@ -191,7 +221,12 @@ fn reports_the_secrets_of_every_ref_the_push_sends_and_the_way_through_once() {
         line("refs/heads/topic", &second, "refs/heads/topic", ZERO),
     ]
     .concat();
-    let run = checkout.secrets_push_scan(&["origin"], &refs);
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(&refs)
+        .run();
     run.expect(
         1,
         &[&format!("commit {first}"), &format!("commit {second}")],
@@ -206,7 +241,12 @@ fn fails_on_a_secret_the_push_sends_when_run_from_a_subdirectory() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking()), ("sub/b.txt", "fine\n")]);
     checkout
-        .secrets_push_scan_in("sub", &["origin"], &main_line(&checkout, &sha))
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .in_dir("sub")
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(1, &[&format!("commit {sha}")]);
 }
 
@@ -216,7 +256,11 @@ fn fails_with_gits_status_outside_a_repository() {
     let checkout = Checkout::new(&[]);
     checkout.remove(".git");
     checkout
-        .secrets_push_scan(&["origin"], "")
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input("")
+        .run()
         .expect(128, &["not a git repository"]);
 }
 
@@ -227,7 +271,10 @@ fn fails_as_a_usage_error_without_the_remote_name_git_gives_a_pre_push_hook() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
     checkout
-        .secrets_push_scan(&[], &main_line(&checkout, &sha))
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(2, &["<REMOTE>"]);
 }
 
@@ -238,10 +285,11 @@ fn fails_on_a_secret_the_push_sends_when_given_the_remotes_url_too() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &format!("fine\n{}", leaking()))]);
     checkout
-        .secrets_push_scan(
-            &["origin", "https://example.com/origin.git"],
-            &main_line(&checkout, &sha),
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .args(["origin", "https://example.com/origin.git"])
+        .input(main_line(&checkout, &sha))
+        .run()
         .expect(1, &[&format!("Github at line 2 of a.txt, commit {sha}")]);
 }
 
@@ -254,11 +302,12 @@ fn fails_with_what_trufflehog_said_where_its_scan_fails() {
     let bin = stand_in("echo scan broke >&2\nexit 3\n");
     let path = path_without_trufflehog(Some(&bin));
     checkout
-        .secrets_push_scan_with(
-            &["origin"],
-            &main_line(&checkout, &sha),
-            &[("PATH", Some(&path))],
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .env("PATH", &path)
+        .run()
         .expect(1, &["scan broke"]);
 }
 
@@ -270,11 +319,12 @@ fn fails_naming_trufflehog_where_it_is_not_on_path() {
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
     let path = path_without_trufflehog(None);
     checkout
-        .secrets_push_scan_with(
-            &["origin"],
-            &main_line(&checkout, &sha),
-            &[("PATH", Some(&path))],
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .env("PATH", &path)
+        .run()
         .expect(1, &["trufflehog"]);
 }
 
@@ -296,7 +346,12 @@ fn passes_a_push_of_a_ref_whose_name_is_not_utf8() {
         b"\n",
     ]
     .concat();
-    let run = checkout.secrets_push_scan_bytes(&["origin"], &refs);
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(&refs)
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -308,11 +363,13 @@ fn fails_where_trufflehogs_report_lines_lack_the_commit() {
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
     let bin = stand_in("echo '{\"SourceMetadata\":{\"Data\":{}}}'\n");
     let path = path_without_trufflehog(Some(&bin));
-    let run = checkout.secrets_push_scan_with(
-        &["origin"],
-        &main_line(&checkout, &sha),
-        &[("PATH", Some(&path))],
-    );
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .env("PATH", &path)
+        .run();
     assert_eq!(run.code(), 1, "output: {}", run.output());
 }
 
@@ -331,7 +388,11 @@ fn fails_on_a_secret_in_the_first_ref_the_push_sends_when_a_later_one_is_clean()
     ]
     .concat();
     checkout
-        .secrets_push_scan(&["origin"], &refs)
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(&refs)
+        .run()
         .expect(1, &[&format!("commit {first}")]);
 }
 
@@ -346,11 +407,12 @@ fn asks_trufflehog_not_to_verify_to_fail_on_a_scan_error_and_not_to_update() {
     let bin = stand_in("printf '%s\\n' \"$@\" >\"$(dirname \"$0\")/args\"\n");
     let path = path_without_trufflehog(Some(&bin));
     checkout
-        .secrets_push_scan_with(
-            &["origin"],
-            &main_line(&checkout, &sha),
-            &[("PATH", Some(&path))],
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .env("PATH", &path)
+        .run()
         .expect(0, &[]);
     let args = fs::read_to_string(bin.path().join("args")).expect("the stand-in ran");
     let args: Vec<&str> = args.lines().collect();
@@ -371,11 +433,13 @@ fn passes_a_ref_the_remote_holds_already_without_scanning_it() {
     let held = checkout.git(&["rev-parse", "origin/main"]);
     let bin = stand_in("echo scan broke >&2\nexit 3\n");
     let path = path_without_trufflehog(Some(&bin));
-    let run = checkout.secrets_push_scan_with(
-        &["origin"],
-        &line("refs/heads/other", &held, "refs/heads/other", ZERO),
-        &[("PATH", Some(&path))],
-    );
+    let run = checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(line("refs/heads/other", &held, "refs/heads/other", ZERO))
+        .env("PATH", &path)
+        .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -387,10 +451,11 @@ fn fails_with_gits_status_on_a_pushed_object_the_repository_lacks() {
     let (checkout, _) = ahead_of(&origin, &[]);
     let missing = "1".repeat(40);
     checkout
-        .secrets_push_scan(
-            &["origin"],
-            &line("refs/heads/main", &missing, "refs/heads/main", ZERO),
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(line("refs/heads/main", &missing, "refs/heads/main", ZERO))
+        .run()
         .expect(128, &["bad object"]);
 }
 
@@ -402,10 +467,11 @@ fn fails_where_trufflehogs_report_is_not_json() {
     let bin = stand_in("echo 'not json'\n");
     let path = path_without_trufflehog(Some(&bin));
     checkout
-        .secrets_push_scan_with(
-            &["origin"],
-            &main_line(&checkout, &sha),
-            &[("PATH", Some(&path))],
-        )
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(main_line(&checkout, &sha))
+        .env("PATH", &path)
+        .run()
         .expect(1, &["could not read trufflehog's report"]);
 }

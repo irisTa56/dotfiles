@@ -1,13 +1,12 @@
 //! Runs with `--bump`: outside GitHub Actions it moves the pins in the working tree, and
 //! under it pushes the move on origin's default branch to a branch of its own.
 
-use std::ffi::OsStr;
-
 use tempfile::TempDir;
 
-use crate::support::checkout::{Checkout, Run};
+use crate::support::checkout::Checkout;
 use crate::support::git::IDENTITY;
 use crate::support::github::GitHubApi;
+use crate::support::invocation::Invocation;
 use crate::support::origin::Origin;
 use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
@@ -27,21 +26,23 @@ const REPOSITORY: &str = "o/consumer";
 const OPENED: &str = "https://github.com/o/consumer/pull/7";
 
 impl Runner {
-    /// Runs `upstream-pin-check --bump` in `checkout`, with `env` set over what the runner
-    /// sets. Under GitHub Actions that is a token and a stand-in API that opens any pull
-    /// request it is asked for.
-    fn bump(self, checkout: &Checkout, env: &[(&str, Option<&OsStr>)]) -> Run {
-        let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
-        let runner: &[(&str, Option<&OsStr>)] = match self {
-            Runner::Local => &[("GITHUB_ACTIONS", None)],
-            Runner::GitHubActions => &[
-                ("GITHUB_ACTIONS", Some(OsStr::new("true"))),
-                ("GITHUB_TOKEN", Some(OsStr::new("t0ken"))),
-                ("GITHUB_API_URL", Some(OsStr::new(api.url()))),
-                ("GITHUB_REPOSITORY", Some(OsStr::new(REPOSITORY))),
-            ],
-        };
-        checkout.upstream_pin_check_with(&["--bump"], &[runner, env].concat())
+    /// A run of `upstream-pin-check --bump` in `checkout`, with what the runner sets in
+    /// its environment. Under GitHub Actions that is a token and a stand-in API that opens
+    /// any pull request it is asked for.
+    fn bump(self, checkout: &Checkout) -> Invocation {
+        let bump = checkout
+            .dotfiles_tasks()
+            .args(["upstream-pin-check", "--bump"]);
+        match self {
+            Runner::Local => bump.env_remove("GITHUB_ACTIONS"),
+            Runner::GitHubActions => {
+                let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+                bump.env("GITHUB_ACTIONS", "true")
+                    .env("GITHUB_TOKEN", "t0ken")
+                    .env("GITHUB_API_URL", api.url())
+                    .env("GITHUB_REPOSITORY", REPOSITORY)
+            }
+        }
     }
 }
 
@@ -53,7 +54,7 @@ fn moves_a_differing_pin_to_the_tip_in_every_file_that_spells_it() {
     let cargo = format!("# {}\n# {kept}\n", up.marker("lints", 0));
     let clippy = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo), ("clippy.toml", &clippy)]);
-    Runner::Local.bump(&checkout, &[]).expect(
+    Runner::Local.bump(&checkout).run().expect(
         1,
         &[&format!(
             "moved the pin of {}//lints to {}",
@@ -81,7 +82,7 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
     let pinned = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &pinned), ("README.md", "r")]);
     checkout.publish(&origin);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(
+    Runner::GitHubActions.bump(&checkout).run().expect(
         1,
         &[
             "pushed the move to upstream-pin-bump",
@@ -111,10 +112,9 @@ fn under_github_actions_opens_the_pull_request_of_the_branch_it_pushes() {
     checkout.publish(&origin);
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
         .expect(1, &[&format!("opened its pull request: {OPENED}")]);
     let requests = api.requests();
     let [request] = &requests[..] else {
@@ -146,10 +146,9 @@ fn under_github_actions_opens_the_pull_request_into_origins_default_branch_by_it
     origin.rename_main("trunk");
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
         .expect(1, &[]);
     let requests = api.requests();
     let [request] = &requests[..] else {
@@ -177,13 +176,10 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout.publish(&origin);
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[
-                ("GIT_CONFIG_GLOBAL", Some(config.as_os_str())),
-                ("GIT_CONFIG_NOSYSTEM", Some(OsStr::new("1"))),
-            ],
-        )
+        .bump(&checkout)
+        .env("GIT_CONFIG_GLOBAL", &config)
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .run()
         .expect(
             1,
             &[&format!(
@@ -217,7 +213,7 @@ fn keeps_every_byte_of_a_file_outside_the_pin_it_moves() {
         "Cargo.toml",
         &[NOT_UTF8[0], up.marker("lints", 0).as_bytes(), NOT_UTF8[1]].concat(),
     );
-    Runner::Local.bump(&checkout, &[]).expect(1, &[]);
+    Runner::Local.bump(&checkout).run().expect(1, &[]);
     assert_eq!(
         checkout.read("Cargo.toml"),
         [NOT_UTF8[0], up.marker("lints", 1).as_bytes(), NOT_UTF8[1]].concat()
@@ -233,7 +229,7 @@ fn under_github_actions_pushes_every_byte_of_a_file_outside_the_pin_it_moves() {
         &[NOT_UTF8[0], up.marker("lints", 0).as_bytes(), NOT_UTF8[1]].concat(),
     );
     checkout.publish(&origin);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     assert_eq!(
         origin.show(&format!("{BUMP}:Cargo.toml")),
         Some([NOT_UTF8[0], up.marker("lints", 1).as_bytes(), NOT_UTF8[1]].concat())
@@ -258,7 +254,7 @@ fn under_github_actions_leaves_a_full_checkouts_history_as_it_was() {
             .concat(),
         );
     }
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     assert_eq!(
         checkout.git(&["rev-parse", "--is-shallow-repository"]),
         "false"
@@ -275,7 +271,7 @@ fn under_github_actions_leaves_a_shallow_checkout_holding_the_default_branch_tip
     let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     let checkout = Checkout::shallow_clone(&origin);
     origin.advance_main(3);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     let tip = origin.commit("main").expect("origin has main");
     assert_eq!(
         checkout.git(&["rev-parse", "--is-shallow-repository"]),
@@ -296,7 +292,7 @@ fn under_github_actions_pushes_a_moved_file_at_the_mode_it_has_on_the_default_br
     // The checkout, such as a pull request's merge commit, may stage the file at
     // another mode; the move takes the default branch's.
     checkout.git(&["update-index", "--chmod=-x", "run.sh"]);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     assert_eq!(origin.mode(BUMP, "run.sh").as_deref(), Some("100755"));
 }
 
@@ -310,7 +306,7 @@ fn moves_a_differing_pin_and_still_fails_as_unable_to_tell_beside_an_unreadable_
     let unreadable = format!("# {}\n", marker(&missing, "x", ABSENT_COMMIT));
     let cargo = format!("# {}\n{unreadable}", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
-    Runner::Local.bump(&checkout, &[]).expect(
+    Runner::Local.bump(&checkout).run().expect(
         2,
         &[&format!(
             "moved the pin of {}//lints to {}",
@@ -334,7 +330,8 @@ fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() 
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout.publish(&origin);
     Runner::GitHubActions
-        .bump(&checkout, &[])
+        .bump(&checkout)
+        .run()
         .expect(2, &["could not push the move to upstream-pin-bump"]);
     assert_eq!(origin.commit(BUMP), None);
 }
@@ -348,7 +345,9 @@ fn under_github_actions_pushes_nothing_without_the_token_to_open_the_pull_reques
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.publish(&origin);
     Runner::GitHubActions
-        .bump(&checkout, &[("GITHUB_TOKEN", None)])
+        .bump(&checkout)
+        .env_remove("GITHUB_TOKEN")
+        .run()
         .expect(2, &["GITHUB_TOKEN: ${{ github.token }}"]);
     assert_eq!(origin.commit(BUMP), None);
 }
@@ -362,7 +361,9 @@ fn under_github_actions_pushes_nothing_without_curl_to_open_the_pull_request() {
     checkout.publish(&origin);
     let bin = without_curl();
     Runner::GitHubActions
-        .bump(&checkout, &[("PATH", Some(bin.path().as_os_str()))])
+        .bump(&checkout)
+        .env("PATH", bin.path())
+        .run()
         .expect(2, &["needs curl on PATH"]);
     assert_eq!(origin.commit(BUMP), None);
 }
@@ -378,10 +379,9 @@ fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_re
     let refusal = "GitHub Actions is not permitted to create or approve pull requests.";
     let api = GitHubApi::answering(403, &format!(r#"{{"message":"{refusal}"}}"#));
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
         .expect(
             2,
             &[
@@ -403,10 +403,9 @@ fn under_github_actions_says_so_where_origin_refuses_to_delete_the_branch_it_cou
     checkout.publish(&origin);
     let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
         .expect(
             2,
             &["could not delete upstream-pin-bump; delete it by hand"],
@@ -424,17 +423,15 @@ fn under_github_actions_opens_the_pull_request_in_a_later_run_after_github_refus
     checkout.publish(&origin);
     let refusing = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(refusing.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", refusing.url())
+        .run()
         .expect(2, &[]);
     let accepting = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(accepting.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", accepting.url())
+        .run()
         .expect(1, &[OPENED]);
     let requests = accepting.requests();
     let [request] = &requests[..] else {
@@ -460,10 +457,10 @@ fn under_github_actions_reports_the_reason_github_gives_for_a_422_and_blames_no_
             r#"{{"message":"Validation Failed","errors":[{{"resource":"PullRequest","code":"custom","message":"{reason}"}}]}}"#
         ),
     );
-    let run = Runner::GitHubActions.bump(
-        &checkout,
-        &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-    );
+    let run = Runner::GitHubActions
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run();
     run.expect(2, &[reason]);
     assert!(
         !run.output()
@@ -484,10 +481,9 @@ fn under_github_actions_moves_the_pins_on_an_existing_bump_branch_over_what_it_h
     let added = origin.commit_onto_main_as(BUMP, "NOTE.md", "kept");
     let api = GitHubApi::answering(500, "{}");
     Runner::GitHubActions
-        .bump(
-            &checkout,
-            &[("GITHUB_API_URL", Some(OsStr::new(api.url())))],
-        )
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
         .expect(
             1,
             &[&format!(
@@ -518,7 +514,8 @@ fn under_github_actions_leaves_a_bump_branch_holding_the_tips_already_as_it_is()
     let moved = format!("# {}\n", up.marker("lints", 1));
     let added = origin.commit_onto_main_as(BUMP, "Cargo.toml", &moved);
     Runner::GitHubActions
-        .bump(&checkout, &[])
+        .bump(&checkout)
+        .run()
         .expect(1, &["upstream-pin-bump holds none of these pins to move"]);
     assert_eq!(origin.commit(BUMP), Some(added));
 }
@@ -535,7 +532,8 @@ fn under_github_actions_fails_as_unable_to_tell_where_the_default_branch_holds_n
     checkout.publish(&origin);
     checkout.git(&["add", "Cargo.toml"]);
     Runner::GitHubActions
-        .bump(&checkout, &[])
+        .bump(&checkout)
+        .run()
         .expect(2, &["holds none of these pins to move"]);
 }
 
@@ -546,7 +544,7 @@ fn leaves_a_pin_whose_path_is_gone_from_the_default_branch_where_it_was() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("lints/a.toml", None)]]);
     let pinned = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &pinned)]);
-    Runner::Local.bump(&checkout, &[]).expect(1, &[]);
+    Runner::Local.bump(&checkout).run().expect(1, &[]);
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
 }
 
@@ -559,7 +557,7 @@ fn under_github_actions_names_the_commit_origins_default_branch_pins_as_where_th
     let origin = Origin::with_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 1)))]);
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.stage_over(&origin);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     let message = origin.log(BUMP, "%B").expect("origin has the bump branch");
     assert!(message.contains(up.commit(1)), "{message}");
     assert!(!message.contains(up.commit(0)), "{message}");
@@ -573,7 +571,7 @@ fn under_github_actions_claims_no_move_of_a_pin_origins_default_branch_does_not_
     let cargo = format!("# {}\n# {}\n", a.marker("lints", 0), b.marker("y", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
     checkout.stage_over(&origin);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     let message = origin.log(BUMP, "%B").expect("origin has the bump branch");
     assert!(message.contains(&a.url()), "{message}");
     assert!(!message.contains(&b.url()), "{message}");
@@ -590,7 +588,7 @@ fn under_github_actions_moves_a_pin_in_a_large_file_beside_one_in_a_small_file()
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("big.toml", &big), ("Cargo.toml", &cargo)]);
     checkout.publish(&origin);
-    Runner::GitHubActions.bump(&checkout, &[]).expect(1, &[]);
+    Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     let pushed = origin
         .show(&format!("{BUMP}:big.toml"))
         .expect("origin's bump branch holds big.toml");
@@ -620,7 +618,8 @@ fn under_github_actions_pushes_no_move_of_a_pin_origin_holds_at_a_commit_whose_p
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.stage_over(&origin);
     Runner::GitHubActions
-        .bump(&checkout, &[])
+        .bump(&checkout)
+        .run()
         .expect(2, &["holds none of these pins to move"]);
     assert_eq!(origin.commit(BUMP), None);
 }

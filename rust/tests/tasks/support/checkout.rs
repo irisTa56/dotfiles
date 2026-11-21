@@ -1,35 +1,21 @@
-//! The repository a run of the binary, its wrapper or a shell task checks, and how the run
-//! ended.
+//! The repository a run of the binary, its wrapper or a shell task checks, and the runs
+//! that can be made in it.
 
-use std::ffi::OsStr;
 use std::fs;
-use std::io::{self, Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use tempfile::TempDir;
 
 use super::git::{IDENTITY, git, isolated};
+use super::invocation::Invocation;
 use super::mise::Mise;
 use super::origin::Origin;
 
 /// The repository a run checks: a fresh git repository with the files a test stages.
 pub(crate) struct Checkout {
     dir: TempDir,
-}
-
-/// One of a run's output streams.
-#[derive(Debug, Clone, Copy)]
-pub(crate) enum Stream {
-    Stdout,
-    Stderr,
-}
-
-/// How a run ended: its exit code, and stdout and stderr as one stream.
-pub(crate) struct Run {
-    code: i32,
-    output: String,
 }
 
 impl Checkout {
@@ -146,185 +132,18 @@ impl Checkout {
         self.git(&["add", "-A"]);
     }
 
-    /// Runs `link-check-staged` in the repository.
-    pub(crate) fn link_check_staged(&self) -> Run {
-        self.task("link-check-staged", &[], &[])
+    /// A run of the built binary in the repository, naming no subcommand until one is
+    /// passed as its first argument.
+    pub(crate) fn dotfiles_tasks(&self) -> Invocation {
+        self.invocation(isolated(
+            env!("CARGO_BIN_EXE_dotfiles-tasks"),
+            self.dir.path(),
+        ))
     }
 
-    /// Runs `link-check-staged` as `link_check_staged` does, with `env` set as `task`
-    /// sets it.
-    pub(crate) fn link_check_staged_with(&self, env: &[(&str, Option<&OsStr>)]) -> Run {
-        self.task("link-check-staged", &[], env)
-    }
-
-    /// Runs `link-check-staged` in the directory `dir` of the repository.
-    pub(crate) fn link_check_staged_in(&self, dir: &str) -> Run {
-        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command
-            .arg("link-check-staged")
-            .current_dir(self.dir.path().join(dir));
-        Run::of(command)
-    }
-
-    /// Runs `upstream-pin-check` with `args` in the repository.
-    pub(crate) fn upstream_pin_check(&self, args: &[&str]) -> Run {
-        self.task("upstream-pin-check", args, &[])
-    }
-
-    /// Runs `upstream-pin-check` as `upstream_pin_check` does, with `env` set as `task`
-    /// sets it.
-    pub(crate) fn upstream_pin_check_with(
-        &self,
-        args: &[&str],
-        env: &[(&str, Option<&OsStr>)],
-    ) -> Run {
-        self.task("upstream-pin-check", args, env)
-    }
-
-    /// Runs `upstream-pin-check` with `args` in the repository, with `closed`, stdout or
-    /// stderr, a pipe whose reading end is already closed. The run's output is the other
-    /// stream alone.
-    pub(crate) fn upstream_pin_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
-        self.task_closing("upstream-pin-check", closed, args)
-    }
-
-    /// Runs `skills-size-check` with `args` in the repository.
-    pub(crate) fn skills_size_check(&self, args: &[&str]) -> Run {
-        self.task("skills-size-check", args, &[])
-    }
-
-    /// Runs `skills-size-check` with `args` in the repository, with `closed`, stdout or
-    /// stderr, a pipe whose reading end is already closed. The run's output is the other
-    /// stream alone.
-    pub(crate) fn skills_size_check_closing(&self, closed: Stream, args: &[&str]) -> Run {
-        self.task_closing("skills-size-check", closed, args)
-    }
-
-    /// Runs `skills-size-check` as `skills_size_check` does, with `env` set as `task` sets
-    /// it.
-    pub(crate) fn skills_size_check_with(
-        &self,
-        args: &[&str],
-        env: &[(&str, Option<&OsStr>)],
-    ) -> Run {
-        self.task("skills-size-check", args, env)
-    }
-
-    /// Runs the subcommand `task` with `args` in the repository, with each variable of
-    /// `env` set over the isolated environment, or removed from it where its value is
-    /// `None`.
-    pub(crate) fn task(&self, task: &str, args: &[&str], env: &[(&str, Option<&OsStr>)]) -> Run {
-        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg(task).args(args);
-        for (name, value) in env {
-            match value {
-                Some(value) => command.env(name, value),
-                None => command.env_remove(name),
-            };
-        }
-        Run::of(command)
-    }
-
-    /// Runs the subcommand `task` with `args` in the repository, with `closed`, stdout or
-    /// stderr, a pipe whose reading end is already closed.
-    pub(crate) fn task_closing(&self, task: &str, closed: Stream, args: &[&str]) -> Run {
-        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command.arg(task).args(args);
-        Run::closing(command, closed)
-    }
-
-    /// Runs the shell task consumers run, `tasks/secrets/commit-scan.sh`, in the directory
-    /// `dir` of the repository, finding gitleaks on the PATH the tests run with.
-    pub(crate) fn secrets_commit_scan_in(&self, dir: &str) -> Run {
-        let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks/secrets/commit-scan.sh");
-        let mut command = isolated("bash", self.dir.path());
-        command.arg(script).current_dir(self.dir.path().join(dir));
-        Run::of(command)
-    }
-
-    /// Runs `secrets-push-scan` with `args` in the repository, fed `refs` on stdin, as git
-    /// feeds a pre-push hook the refs a push sends.
-    pub(crate) fn secrets_push_scan(&self, args: &[&str], refs: &str) -> Run {
-        self.push_scan(".", args, refs.as_bytes(), &[])
-    }
-
-    /// Runs `secrets-push-scan` as `secrets_push_scan` does, fed `refs` as bytes, which
-    /// need not be UTF-8, as a ref name git allows need not be.
-    pub(crate) fn secrets_push_scan_bytes(&self, args: &[&str], refs: &[u8]) -> Run {
-        self.push_scan(".", args, refs, &[])
-    }
-
-    /// Runs `secrets-push-scan` as `secrets_push_scan` does, in the directory `dir` of the
-    /// repository.
-    pub(crate) fn secrets_push_scan_in(&self, dir: &str, args: &[&str], refs: &str) -> Run {
-        self.push_scan(dir, args, refs.as_bytes(), &[])
-    }
-
-    /// Runs `secrets-push-scan` as `secrets_push_scan` does, with `env` set as `task` sets
-    /// it.
-    pub(crate) fn secrets_push_scan_with(
-        &self,
-        args: &[&str],
-        refs: &str,
-        env: &[(&str, Option<&OsStr>)],
-    ) -> Run {
-        self.push_scan(".", args, refs.as_bytes(), env)
-    }
-
-    fn push_scan(
-        &self,
-        dir: &str,
-        args: &[&str],
-        refs: &[u8],
-        env: &[(&str, Option<&OsStr>)],
-    ) -> Run {
-        let mut command = isolated(env!("CARGO_BIN_EXE_dotfiles-tasks"), self.dir.path());
-        command
-            .arg("secrets-push-scan")
-            .args(args)
-            .current_dir(self.dir.path().join(dir));
-        for (name, value) in env {
-            match value {
-                Some(value) => command.env(name, value),
-                None => command.env_remove(name),
-            };
-        }
-        Run::fed(command, refs)
-    }
-
-    /// Runs the wrapper consumers run, `tasks/upstream/pin-check.sh`, with `args` in the
-    /// repository, finding `mise` in place of mise.
-    pub(crate) fn upstream_pin_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
-        self.wrapper("upstream/pin-check.sh", args, mise)
-    }
-
-    /// Runs the wrapper consumers run, `tasks/skills/size-check.sh`, with `args` in the
-    /// repository, finding `mise` in place of mise.
-    pub(crate) fn skills_size_check_wrapper(&self, args: &[&str], mise: &Mise) -> Run {
-        self.wrapper("skills/size-check.sh", args, mise)
-    }
-
-    /// Runs the wrapper consumers run, `tasks/link-check/staged.sh`, in the repository,
+    /// A run of the wrapper consumers run at `path` under `tasks/`, in the repository,
     /// finding `mise` in place of mise.
-    pub(crate) fn link_check_staged_wrapper(&self, mise: &Mise) -> Run {
-        self.wrapper("link-check/staged.sh", &[], mise)
-    }
-
-    /// Runs the wrapper consumers run, `tasks/secrets/push-scan.sh`, with `args` in the
-    /// repository, fed `refs` on stdin as `secrets_push_scan` is, finding `mise` in place
-    /// of mise.
-    pub(crate) fn secrets_push_scan_wrapper(&self, args: &[&str], refs: &str, mise: &Mise) -> Run {
-        self.wrapper_fed("secrets/push-scan.sh", args, refs.as_bytes(), mise)
-    }
-
-    /// Runs the wrapper at `path` under `tasks/` with `args` in the repository, finding
-    /// `mise` in place of mise.
-    fn wrapper(&self, path: &str, args: &[&str], mise: &Mise) -> Run {
-        self.wrapper_fed(path, args, &[], mise)
-    }
-
-    /// Runs the wrapper at `path` as `wrapper` does, fed `input` on stdin.
-    fn wrapper_fed(&self, path: &str, args: &[&str], input: &[u8], mise: &Mise) -> Run {
+    pub(crate) fn wrapper(&self, path: &str, mise: &Mise) -> Invocation {
         let wrapper = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../tasks")
             .join(path);
@@ -333,92 +152,23 @@ impl Checkout {
         // wrapper skips them itself.
         command
             .arg(wrapper)
-            .args(args)
             .env("PATH", mise.path())
             .env_remove("MISE_NO_HOOKS");
-        Run::fed(command, input)
-    }
-}
-
-impl Run {
-    /// Runs `command` to its end, reading stdout and stderr as one stream.
-    fn of(mut command: Command) -> Self {
-        let (reader, writer) = io::pipe().expect("a pipe can be made");
-        command
-            .stdout(writer.try_clone().expect("the pipe can be shared"))
-            .stderr(writer);
-        Run::reading(command, reader, &[])
+        self.invocation(command)
     }
 
-    /// Runs `command` to its end as `of` does, fed `input` on stdin.
-    fn fed(mut command: Command, input: &[u8]) -> Self {
-        let (reader, writer) = io::pipe().expect("a pipe can be made");
-        command
-            .stdout(writer.try_clone().expect("the pipe can be shared"))
-            .stderr(writer);
-        Run::reading(command, reader, input)
+    /// A run of the shell task consumers run at `path` under `tasks/`, in the repository,
+    /// finding what it runs on the PATH the tests run with.
+    pub(crate) fn shell_task(&self, path: &str) -> Invocation {
+        let script = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../tasks")
+            .join(path);
+        let mut command = isolated("bash", self.dir.path());
+        command.arg(script);
+        self.invocation(command)
     }
 
-    /// Runs `command` to its end with `closed` a pipe whose reading end is already
-    /// closed, reading the other stream alone.
-    fn closing(mut command: Command, closed: Stream) -> Self {
-        let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
-        drop(closed_reader);
-        let (reader, writer) = io::pipe().expect("a pipe can be made");
-        match closed {
-            Stream::Stdout => command.stdout(closed_writer).stderr(writer),
-            Stream::Stderr => command.stdout(writer).stderr(closed_writer),
-        };
-        Run::reading(command, reader, &[])
-    }
-
-    /// Runs `command`, its stdout and stderr already set, to its end, feeding it `input`
-    /// on stdin and reading `reader`.
-    fn reading(mut command: Command, mut reader: io::PipeReader, input: &[u8]) -> Self {
-        let mut child = command
-            .stdin(Stdio::piped())
-            .spawn()
-            .expect("the command runs");
-        // A command that exits without reading its input fails the write, which says
-        // nothing about the run.
-        let mut stdin = child.stdin.take().expect("stdin is piped");
-        let _ = stdin.write_all(input);
-        drop(stdin);
-        // The command holds the pipes' writing ends until it is dropped, and reading
-        // waits for every one to close.
-        drop(command);
-        let mut output = String::new();
-        reader
-            .read_to_string(&mut output)
-            .expect("the output is UTF-8");
-        let status = child.wait().expect("the command's run ends");
-        Run {
-            code: status
-                .code()
-                .expect("the command exits rather than being killed"),
-            output,
-        }
-    }
-
-    /// The code the run exited with.
-    pub(crate) fn code(&self) -> i32 {
-        self.code
-    }
-
-    /// What the run printed, stdout and stderr as one stream.
-    pub(crate) fn output(&self) -> &str {
-        &self.output
-    }
-
-    /// Asserts that the run exited with `code` and printed each of `parts`.
-    pub(crate) fn expect(&self, code: i32, parts: &[&str]) {
-        assert_eq!(self.code, code, "exit code; output:\n{}", self.output);
-        for part in parts {
-            assert!(
-                self.output.contains(part),
-                "the output lacks {part:?}:\n{}",
-                self.output
-            );
-        }
+    fn invocation(&self, command: Command) -> Invocation {
+        Invocation::new(command, self.dir.path().to_path_buf())
     }
 }

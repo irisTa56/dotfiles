@@ -2,8 +2,9 @@
 
 use tempfile::TempDir;
 
-use crate::support::checkout::{Checkout, Stream};
+use crate::support::checkout::Checkout;
 use crate::support::git::git;
+use crate::support::invocation::Stream;
 use crate::support::upstream::{ABSENT_COMMIT, Upstream, marker};
 
 // A wrong pathspec, or a pin spelled so that it is not read, would otherwise pass having
@@ -14,7 +15,9 @@ fn fails_when_no_tracked_file_holds_a_pin() {
         "Cargo.toml",
         "# upstream: git::https://example.com/a.git//lints?ref=main\n",
     )])
-    .upstream_pin_check(&[])
+    .dotfiles_tasks()
+    .arg("upstream-pin-check")
+    .run()
     .expect(2, &["found no upstream pin"]);
 }
 
@@ -22,7 +25,10 @@ fn fails_when_no_tracked_file_holds_a_pin() {
 // git's, so the run says the same as for a marker it does not read.
 #[test]
 fn fails_when_no_tracked_file_spells_a_marker_at_all() {
-    let run = Checkout::new(&[("Cargo.toml", "[package]\n")]).upstream_pin_check(&[]);
+    let run = Checkout::new(&[("Cargo.toml", "[package]\n")])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run();
     assert_eq!(run.code(), 2, "{}", run.output());
     assert_eq!(
         run.output(),
@@ -37,7 +43,9 @@ fn passes_a_pin_whose_path_is_unchanged_on_the_default_branch_tip() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(0, &["[ok]"]);
 }
 
@@ -50,7 +58,10 @@ fn leaves_the_repository_of_a_git_hook_it_runs_under_alone() {
     git(hook.path(), &["init", "-q", "--bare"]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check_with(&[], &[("GIT_DIR", Some(hook.path().as_os_str()))])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .env("GIT_DIR", hook.path().as_os_str())
+        .run()
         .expect(0, &["[ok]"]);
     assert!(
         !hook.path().join("FETCH_HEAD").exists(),
@@ -68,7 +79,9 @@ fn fails_on_a_pin_whose_path_changed_naming_both_commits_and_the_file() {
     ]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(
             1,
             &[
@@ -86,7 +99,9 @@ fn fails_on_a_pin_whose_path_is_gone_from_the_default_branch() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("lints/a.toml", None)]]);
     let cargo = format!("# {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(1, &["is gone from the default branch"]);
 }
 
@@ -97,7 +112,9 @@ fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read() {
     let cargo = format!("# {}\n", marker(&url, "lints", ABSENT_COMMIT));
     // git's own reason comes first, so the run says why it could not tell.
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(
             2,
             &[
@@ -114,7 +131,9 @@ fn fails_as_unable_to_tell_where_the_pinned_commit_is_not_in_the_upstream() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))]]);
     let cargo = format!("# {}\n", marker(&up.url(), "lints", ABSENT_COMMIT));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(
             2,
             &[&format!("could not read {ABSENT_COMMIT} from file://")],
@@ -126,7 +145,9 @@ fn fails_as_unable_to_tell_where_the_path_is_not_in_the_pinned_commit() {
     let up = Upstream::new(&[&[("lints/a.toml", Some("a"))]]);
     let cargo = format!("# {}\n", up.marker("lint", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(2, &["//lint does not exist at the pinned"]);
 }
 
@@ -139,7 +160,10 @@ fn reads_only_the_files_a_pathspec_argument_names() {
     let cargo = format!("# {}\n", up.marker("lints", 0));
     let mise = format!("includes = [\"{}\"]\n", up.marker("lints", 1));
     Checkout::new(&[("Cargo.toml", &cargo), ("mise.toml", &mise)])
-        .upstream_pin_check(&["mise.toml"])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .arg("mise.toml")
+        .run()
         .expect(0, &["[ok]"]);
 }
 
@@ -158,7 +182,9 @@ fn reports_each_pin_a_pin_spelled_in_two_files_once_and_fails_if_any_differs() {
         ("Cargo.toml", &lints_pin),
         ("clippy.toml", &lints_pin),
     ])
-    .upstream_pin_check(&[])
+    .dotfiles_tasks()
+    .arg("upstream-pin-check")
+    .run()
     .expect(
         1,
         &[
@@ -180,7 +206,9 @@ fn reads_no_pin_from_a_git_url_that_has_no_path() {
         up.marker("lints", 0)
     );
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(0, &["[ok]"]);
 }
 
@@ -193,7 +221,9 @@ fn reads_no_pin_from_a_ref_with_more_hex_digits_than_a_sha1() {
         "0123456789abcdef".repeat(4)
     );
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(2, &["found no upstream pin"]);
 }
 
@@ -206,7 +236,9 @@ fn reads_no_pin_from_a_url_git_would_take_for_an_option() {
         up.marker("lints", 0)
     );
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check(&[])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .run()
         .expect(0, &["[ok]"]);
 }
 
@@ -217,14 +249,20 @@ fn fails_as_unable_to_tell_where_it_cannot_make_its_scratch_repository() {
     let missing = aux.path().join("no-such-dir");
     let cargo = format!("# {}\n", up.marker("lints", 0));
     Checkout::new(&[("Cargo.toml", &cargo)])
-        .upstream_pin_check_with(&[], &[("TMPDIR", Some(missing.as_os_str()))])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .env("TMPDIR", missing.as_os_str())
+        .run()
         .expect(2, &["[fail] stopped on"]);
 }
 
 #[test]
 fn fails_as_a_usage_error_on_an_option_it_does_not_take() {
     Checkout::new(&[])
-        .upstream_pin_check(&["--frobnicate"])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .arg("--frobnicate")
+        .run()
         .expect(2, &["'--frobnicate'"]);
 }
 
@@ -236,7 +274,10 @@ fn fails_as_a_usage_error_on_bump_after_a_pathspec() {
     let pinned = format!("# {}\n", up.marker("lints", 0));
     let checkout = Checkout::new(&[("Cargo.toml", &pinned)]);
     checkout
-        .upstream_pin_check(&["Cargo.toml", "--bump"])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .args(["Cargo.toml", "--bump"])
+        .run()
         .expect(2, &["'--bump'", "--bump, then git pathspecs"]);
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
 }
@@ -244,7 +285,10 @@ fn fails_as_a_usage_error_on_bump_after_a_pathspec() {
 #[test]
 fn fails_as_a_usage_error_on_a_dash_argument_after_a_pathspec() {
     Checkout::new(&[])
-        .upstream_pin_check(&["Cargo.toml", "-x"])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .args(["Cargo.toml", "-x"])
+        .run()
         .expect(2, &["'-x'"]);
 }
 
@@ -263,8 +307,11 @@ fn checks_the_pins_after_an_ok_line_when_stdout_is_closed() {
         tasks.marker("tasks", 0),
         lints.marker("lints", 0)
     );
-    let run =
-        Checkout::new(&[("Cargo.toml", &cargo)]).upstream_pin_check_closing(Stream::Stdout, &[]);
+    let run = Checkout::new(&[("Cargo.toml", &cargo)])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .closing(Stream::Stdout)
+        .run();
     run.expect(1, &[&format!("{}//lints differs", lints.url())]);
 }
 
@@ -277,8 +324,11 @@ fn fails_on_a_pin_whose_path_changed_when_stderr_is_closed() {
         &[("lints/a.toml", Some("b"))],
     ]);
     let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
-    let run =
-        Checkout::new(&[("Cargo.toml", &cargo)]).upstream_pin_check_closing(Stream::Stderr, &[]);
+    let run = Checkout::new(&[("Cargo.toml", &cargo)])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .closing(Stream::Stderr)
+        .run();
     assert_eq!((run.code(), run.output()), (1, ""));
 }
 
@@ -289,7 +339,10 @@ fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read_when_stderr_is_clos
     let aux = TempDir::new().expect("a temporary directory can be made");
     let url = format!("file://{}", aux.path().join("missing").display());
     let cargo = format!("# {}\n", marker(&url, "lints", ABSENT_COMMIT));
-    let run =
-        Checkout::new(&[("Cargo.toml", &cargo)]).upstream_pin_check_closing(Stream::Stderr, &[]);
+    let run = Checkout::new(&[("Cargo.toml", &cargo)])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .closing(Stream::Stderr)
+        .run();
     assert_eq!((run.code(), run.output()), (2, ""));
 }
