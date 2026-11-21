@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.9.0...dotfiles-tasks-v0.10.0) (2026-11-21)
+
+
+### Features
+
+* **tasks:** let upstream:pin-check --bump open a draft pull request on a branch of its own ([#509](https://github.com/irisTa56/dotfiles/issues/509)) ([62663e8](https://github.com/irisTa56/dotfiles/commit/62663e825a9a2a89bb52aead4a9eab5494873390))
+
 ## [0.9.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.8.1...dotfiles-tasks-v0.9.0) (2026-11-21)
 
 
