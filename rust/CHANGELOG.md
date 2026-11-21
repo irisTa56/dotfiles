@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.8.0...dotfiles-tasks-v0.8.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **tasks:** install the dotfiles-tasks release without running the consumer's hooks ([#493](https://github.com/irisTa56/dotfiles/issues/493)) ([5a54522](https://github.com/irisTa56/dotfiles/commit/5a54522466cc0c6c2cf39e3f1a458273fadd7b47))
+
 ## [0.8.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.7.0...dotfiles-tasks-v0.8.0) (2026-11-21)
 
 
