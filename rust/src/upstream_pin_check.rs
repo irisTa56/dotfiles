@@ -30,17 +30,39 @@ pub(crate) enum Status {
     Unknown = 2,
 }
 
-/// A run's arguments: `--bump`, and then git pathspecs.
+/// A run's arguments: `--bump`, `--draft` and `--branch-suffix`, and then git pathspecs.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// Move each differing pin to its upstream's tip, and under GitHub Actions push the
     /// move and open its pull request.
     #[arg(long)]
     bump: bool,
+    /// Open the pull request of --bump as a draft, for a move a person has to finish
+    /// before it merges; a pull request already open is left as it is, draft or not.
+    #[arg(long, requires = "bump")]
+    draft: bool,
+    /// Push the move of --bump to `upstream-pin-bump-<suffix>` and open its pull request
+    /// from there, so that pins proposed apart, in runs narrowed by pathspec, each have a
+    /// pull request of their own.
+    #[arg(long, requires = "bump", value_name = "SUFFIX")]
+    branch_suffix: Option<BranchSuffix>,
     /// The files to read pins from, as git pathspecs [default: every tracked file].
     #[arg(trailing_var_arg = true)]
     pathspecs: Vec<Pathspec>,
 }
+
+/// The branch a bump under GitHub Actions pushes its move to and opens its pull request
+/// from, with `-<suffix>` after it where `--branch-suffix` gives one. It is this task's
+/// alone, so where it exists its pull request is open. A person may add commits to it, so
+/// a later run adds its own over them and never forces; merging the pull request deletes
+/// it where the repository deletes merged branches, and the next run pushes afresh.
+const BUMP_BRANCH: &str = "upstream-pin-bump";
+
+/// What `--branch-suffix` adds to the task's own branch name: letters, digits, hyphens
+/// and underscores, so that the name stays one git takes and one no other suffix's
+/// branch nests in or under.
+#[derive(Debug, Clone)]
+struct BranchSuffix(String);
 
 /// A git pathspec. One that opens with `-` is refused, since past the first pathspec
 /// it is an option written out of place, such as a `--bump` written last.
@@ -135,11 +157,20 @@ struct GitHub {
     token: String,
 }
 
-/// A pull request to open, from `head` into `base`.
+/// How a bump under GitHub Actions proposes its move: the branch it pushes to and opens
+/// its pull request from, and whether that pull request is a draft.
+#[derive(Debug, Clone, Copy)]
+struct Proposal<'r> {
+    branch: &'r str,
+    draft: bool,
+}
+
+/// A pull request to open, from `head` into `base`, as a draft where `draft` is set.
 #[derive(Debug)]
 struct PullRequest<'a> {
     head: &'a str,
     base: &'a str,
     title: &'a str,
     body: &'a str,
+    draft: bool,
 }

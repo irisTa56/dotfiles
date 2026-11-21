@@ -644,3 +644,130 @@ fn without_curl() -> TempDir {
     }
     bin
 }
+
+// A move that a person has to finish, such as one whose upstream was taken in part by
+// hand, is opened as a draft, which GitHub will not merge until it is marked ready.
+#[test]
+fn under_github_actions_opens_the_pull_request_as_a_draft_with_draft() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .arg("--draft")
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &[&format!("opened its pull request: {OPENED}")]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["draft"], true);
+}
+
+// Without --draft the request carries no draft key, as before --draft existed, so a
+// repository whose plan has no drafts gets the request it always did.
+#[test]
+fn under_github_actions_opens_the_pull_request_ready_without_draft() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &[]);
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert!(request.body.get("draft").is_none(), "{}", request.body);
+}
+
+// Pins a repository wants proposed apart, such as an include a merge finishes beside a
+// copy a person has to bring over, go to branches of their own, each named by a suffix to
+// the task's own, so a move of one series neither lands on the other's pull request nor
+// waits behind it.
+#[test]
+fn under_github_actions_proposes_the_move_on_the_branch_branch_suffix_names() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch-suffix", "lints"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(
+            1,
+            &[
+                "pushed the move to upstream-pin-bump-lints",
+                &format!("opened its pull request: {OPENED}"),
+            ],
+        );
+    assert_eq!(
+        origin.show("upstream-pin-bump-lints:Cargo.toml"),
+        Some(format!("# {}\n", up.marker("lints", 1)).into_bytes())
+    );
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["head"], "upstream-pin-bump-lints");
+}
+
+// While the pull request of the branch --branch-suffix names is open, a newer tip moves
+// the pins on that branch, over what a person added there, and leaves the default bump
+// branch, another series's, alone.
+#[test]
+fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_suffix_names() {
+    let up = Upstream::changing_lints(3);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let added = origin.commit_onto_main_as("upstream-pin-bump-lints", "NOTE.md", "kept");
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(500, "{}");
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch-suffix", "lints"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(1, &["pushed the move onto upstream-pin-bump-lints"]);
+    assert_eq!(origin.commit("upstream-pin-bump-lints~1"), Some(added));
+    assert_eq!(
+        origin.show("upstream-pin-bump-lints:Cargo.toml"),
+        Some(format!("# {}\n", up.marker("lints", 2)).into_bytes())
+    );
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
+    assert!(api.requests().is_empty(), "{:?}", api.requests());
+}
+
+// A run whose pull request GitHub refused deletes the branch it pushed, which is the
+// suffixed one; deleting the task's default branch instead would close another series's
+// open pull request and leave this one's branch to stop every later run opening its own.
+#[test]
+fn under_github_actions_deletes_the_suffixed_branch_it_could_not_propose() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch-suffix", "lints"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(2, &["deleted upstream-pin-bump-lints again"]);
+    assert_eq!(origin.commit("upstream-pin-bump-lints"), None);
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
+}

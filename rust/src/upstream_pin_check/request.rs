@@ -3,7 +3,9 @@
 use std::env;
 use std::str::FromStr;
 
-use super::{Failure, Pathspec, Pins, Request, Scratch, Status};
+use super::{
+    BUMP_BRANCH, BranchSuffix, Failure, Pathspec, Pins, Proposal, Request, Scratch, Status,
+};
 use crate::git::Git;
 
 /// The status `git grep` exits with where nothing matches, which only means no tracked
@@ -34,7 +36,20 @@ impl Request {
         if !self.bump || differing.0.is_empty() {
             return Ok(status);
         }
-        Ok(status.max(differing.move_pins(&scratch)?))
+        let branch = self.branch();
+        let proposal = Proposal {
+            branch: &branch,
+            draft: self.draft,
+        };
+        Ok(status.max(differing.move_pins(&scratch, proposal)?))
+    }
+
+    /// The branch --bump proposes its move on under GitHub Actions.
+    fn branch(&self) -> String {
+        match &self.branch_suffix {
+            Some(BranchSuffix(suffix)) => format!("{BUMP_BRANCH}-{suffix}"),
+            None => BUMP_BRANCH.to_owned(),
+        }
     }
 
     /// The tracked files that spell a marker, named from the repository's root, where the
@@ -69,9 +84,21 @@ impl FromStr for Pathspec {
     fn from_str(arg: &str) -> Result<Self, Self::Err> {
         if arg.starts_with('-') {
             return Err(
-                "an option goes before the pathspecs; this takes --bump, then git pathspecs",
+                "an option goes before the pathspecs; this takes --bump, --draft and --branch-suffix, then git pathspecs",
             );
         }
         Ok(Pathspec(arg.to_owned()))
+    }
+}
+
+impl FromStr for BranchSuffix {
+    type Err = &'static str;
+
+    fn from_str(arg: &str) -> Result<Self, Self::Err> {
+        let allowed = |c: char| c.is_ascii_alphanumeric() || c == '-' || c == '_';
+        if arg.is_empty() || !arg.chars().all(allowed) {
+            return Err("a suffix is one or more letters, digits, hyphens and underscores");
+        }
+        Ok(BranchSuffix(arg.to_owned()))
     }
 }

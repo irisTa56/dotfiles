@@ -5,15 +5,11 @@ use std::collections::HashMap;
 use std::fmt::Write;
 
 use super::{
-    Differing, Failure, GitHub, Marker, Message, Move, Moves, PullRequest, Scratch, Status, Text,
+    Differing, Failure, GitHub, Marker, Message, Move, Moves, Proposal, PullRequest, Scratch,
+    Status, Text,
 };
 use crate::git::Run;
 
-/// The branch the move is pushed to and its pull request opened from. A person may add
-/// commits to it, so a later run adds its own over them and never forces; merging the pull
-/// request deletes it where the repository deletes merged branches, and the next run
-/// pushes afresh.
-const BUMP_BRANCH: &str = "upstream-pin-bump";
 /// The status `git ls-remote --exit-code` exits with where no ref matches.
 const LS_REMOTE_NO_REF: i32 = 2;
 /// The move's commit subject, and its pull request's title.
@@ -30,10 +26,10 @@ impl Scratch {
     /// pushed to a branch of its own, and proposed as a pull request into that branch.
     /// While that branch exists, its pull request is open, so the move is made on the
     /// branch instead, over whatever a person added there.
-    pub(super) fn move_on_origin(&self, differing: &Differing) -> Status {
-        let moved = match self.bump_branch_exists() {
-            Ok(true) => self.move_on_bump_branch(differing),
-            Ok(false) => self.propose_move(differing),
+    pub(super) fn move_on_origin(&self, differing: &Differing, proposal: Proposal) -> Status {
+        let moved = match self.bump_branch_exists(proposal.branch) {
+            Ok(true) => self.move_on_bump_branch(differing, proposal.branch),
+            Ok(false) => self.propose_move(differing, proposal),
             Err(status) => Err(status),
         };
         match moved {
@@ -41,9 +37,9 @@ impl Scratch {
         }
     }
 
-    /// Whether [`BUMP_BRANCH`] exists on origin; a run that cannot tell ends here.
-    fn bump_branch_exists(&self) -> Result<bool, Status> {
-        let bump_ref = format!("refs/heads/{BUMP_BRANCH}");
+    /// Whether `branch` exists on origin; a run that cannot tell ends here.
+    fn bump_branch_exists(&self, branch: &str) -> Result<bool, Status> {
+        let bump_ref = format!("refs/heads/{branch}");
         let exists = self
             .git
             .run(&["ls-remote", "-q", "--exit-code", "origin", &bump_ref]);
@@ -53,16 +49,18 @@ impl Scratch {
         if exists.status() == Some(LS_REMOTE_NO_REF) {
             return Ok(false);
         }
-        Err(Failure(&format!(
-            "could not tell whether {BUMP_BRANCH} exists on origin"
-        ))
-        .report_git(&exists))
+        Err(
+            Failure(&format!("could not tell whether {branch} exists on origin"))
+                .report_git(&exists),
+        )
     }
 
-    /// Moves the pins on the default branch, pushes the move to a new [`BUMP_BRANCH`],
-    /// and opens its pull request. What opening one needs is checked before the push, so
-    /// that a run lacking it leaves no branch behind.
-    fn propose_move(&self, differing: &Differing) -> Result<Status, Status> {
+    /// Moves the pins on the default branch, pushes the move to the proposal's branch,
+    /// new, and opens its pull request, as a draft where the proposal says so. What opening
+    /// one needs is checked before the push, so that a run lacking it leaves no branch
+    /// behind.
+    fn propose_move(&self, differing: &Differing, proposal: Proposal) -> Result<Status, Status> {
+        let branch = proposal.branch;
         let github = GitHub::from_env()?;
         let default_branch = self.default_branch()?;
         let base = self.fetch_from_origin("HEAD")?;
@@ -72,30 +70,30 @@ impl Scratch {
             return Err(Status::Unknown);
         }
         let message = Message::of(&moved);
-        self.push_move(&base, &tree, &message)?;
+        self.push_move(&base, &tree, &message, branch)?;
         for line in &message.0 {
-            Failure(&format!("pushed the move to {BUMP_BRANCH}: {line}")).report();
+            Failure(&format!("pushed the move to {branch}: {line}")).report();
         }
-        Ok(self.open_pull_request(&github, &default_branch, &message))
+        Ok(self.open_pull_request(&github, &default_branch, &message, proposal))
     }
 
-    /// Moves the pins as [`BUMP_BRANCH`] spells them, in a commit over its tip, which its
-    /// open pull request then shows; a branch whose pins are at the tips already is left
-    /// as it is.
-    fn move_on_bump_branch(&self, differing: &Differing) -> Result<Status, Status> {
-        let base = self.fetch_from_origin(&format!("refs/heads/{BUMP_BRANCH}"))?;
-        let (tree, moved) = self.stage_moves(&base, BUMP_BRANCH, differing)?;
+    /// Moves the pins as `branch` spells them, in a commit over its tip, which its open
+    /// pull request then shows; a branch whose pins are at the tips already is left as it
+    /// is.
+    fn move_on_bump_branch(&self, differing: &Differing, branch: &str) -> Result<Status, Status> {
+        let base = self.fetch_from_origin(&format!("refs/heads/{branch}"))?;
+        let (tree, moved) = self.stage_moves(&base, branch, differing)?;
         if moved.0.is_empty() {
             Failure(&format!(
-                "{BUMP_BRANCH} holds none of these pins to move, or holds them where the path matches the tip's already, so it is left as it is"
+                "{branch} holds none of these pins to move, or holds them where the path matches the tip's already, so it is left as it is"
             ))
             .report();
             return Ok(Status::Differs);
         }
         let message = Message::of(&moved);
-        self.push_move(&base, &tree, &message)?;
+        self.push_move(&base, &tree, &message, branch)?;
         for line in &message.0 {
-            Failure(&format!("pushed the move onto {BUMP_BRANCH}: {line}")).report();
+            Failure(&format!("pushed the move onto {branch}: {line}")).report();
         }
         Ok(Status::Differs)
     }
@@ -235,8 +233,14 @@ impl Scratch {
             .run()
     }
 
-    /// Commits `tree` over `base` as the bot and pushes it to [`BUMP_BRANCH`].
-    fn push_move(&self, base: &str, tree: &str, message: &Message) -> Result<(), Status> {
+    /// Commits `tree` over `base` as the bot and pushes it to `branch`.
+    fn push_move(
+        &self,
+        base: &str,
+        tree: &str,
+        message: &Message,
+        branch: &str,
+    ) -> Result<(), Status> {
         let git = &self.git;
         let commit = git
             .call(&["commit-tree", tree, "-p", base, "-F", "-"])
@@ -249,26 +253,33 @@ impl Scratch {
         if !commit.success() {
             return Err(Failure("could not commit the move").report_git(&commit));
         }
-        let refspec = format!("{}:refs/heads/{BUMP_BRANCH}", commit.stdout().trim());
+        let refspec = format!("{}:refs/heads/{branch}", commit.stdout().trim());
         let pushed = git.run(&["push", "-q", "origin", &refspec]);
         if !pushed.success() {
             return Err(Failure(&format!(
-                    "could not push the move to {BUMP_BRANCH}; the push needs the job's token with contents: write kept on the checkout's origin"
+                    "could not push the move to {branch}; the push needs the job's token with contents: write kept on the checkout's origin"
                 )).report_git(&pushed));
         }
         Ok(())
     }
 
-    /// Opens the pull request of [`BUMP_BRANCH`] into `base`. Where it cannot, the branch
-    /// this run pushed is deleted again, since a run that finds the branch takes its pull
-    /// request to be open and opens none.
-    fn open_pull_request(&self, github: &GitHub, base: &str, message: &Message) -> Status {
+    /// Opens the pull request of the proposal's branch into `base`, as a draft where the
+    /// proposal says so. Where it cannot, the branch this run pushed is deleted again, since
+    /// a run that finds the branch takes its pull request to be open and opens none.
+    fn open_pull_request(
+        &self,
+        github: &GitHub,
+        base: &str,
+        message: &Message,
+        proposal: Proposal,
+    ) -> Status {
         let body = message.list();
         let pull = PullRequest {
-            head: BUMP_BRANCH,
+            head: proposal.branch,
             base,
             title: TITLE,
             body: &body,
+            draft: proposal.draft,
         };
         match github.open(self.dir(), &pull) {
             Ok(page) => {
@@ -277,27 +288,24 @@ impl Scratch {
             }
             Err(reason) => {
                 Failure(&format!("could not open its pull request: {reason}")).report();
-                self.withdraw_push();
+                self.withdraw_push(proposal.branch);
                 Status::Unknown
             }
         }
     }
 
-    /// Deletes [`BUMP_BRANCH`] from origin, where this run pushed it.
-    fn withdraw_push(&self) {
-        let deleted = self.git.run(&[
-            "push",
-            "-q",
-            "origin",
-            &format!(":refs/heads/{BUMP_BRANCH}"),
-        ]);
+    /// Deletes `branch` from origin, where this run pushed it.
+    fn withdraw_push(&self, branch: &str) {
+        let deleted = self
+            .git
+            .run(&["push", "-q", "origin", &format!(":refs/heads/{branch}")]);
         if deleted.success() {
             Failure(&format!(
-                "deleted {BUMP_BRANCH} again, so that the next run opens its pull request"
+                "deleted {branch} again, so that the next run opens its pull request"
             ))
             .report();
         } else {
-            Failure(&format!("could not delete {BUMP_BRANCH}; delete it by hand, or the next run will open no pull request")).report_git(&deleted);
+            Failure(&format!("could not delete {branch}; delete it by hand, or the next run will open no pull request")).report_git(&deleted);
         }
     }
 }
