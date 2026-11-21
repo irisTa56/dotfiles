@@ -1,16 +1,13 @@
 //! What the `PreToolUse` hook tests share: running a hook on a Bash call, with a fake
-//! standing in for the tool on PATH the hook asks, where it asks one.
+//! standing in for the tool on PATH the hook asks.
 
 use std::path::PathBuf;
 
 use crate::support::{Sandbox, dotfiles_local, output_with_input};
 
-/// The tool on PATH: GNU's or BSD's, told apart as the hooks tell them, by whether
-/// `--version` succeeds, none, or a fake running the given shell script body.
+/// The tool on PATH: none, or a fake running the given shell script body.
 #[derive(Clone, Copy)]
 pub(crate) enum Tool {
-    Gnu,
-    Bsd,
     Missing,
     Fake(&'static str),
 }
@@ -50,54 +47,14 @@ impl Run {
 pub(crate) struct Hook {
     /// The subcommand.
     name: &'static str,
-    /// The tool on PATH the hook asks, if it asks any.
-    tool: Option<&'static str>,
-    /// What Claude is told when the hook blocks a call, if it blocks any.
-    blocked: Option<&'static str>,
+    /// The tool on PATH the hook asks.
+    tool: &'static str,
 }
 
 impl Hook {
-    /// The hook run as the subcommand `name`, judging by the kind of `tool` on PATH and
-    /// telling Claude `blocked` when it blocks a call.
-    pub(crate) const fn new(name: &'static str, tool: &'static str, blocked: &'static str) -> Self {
-        Hook {
-            name,
-            tool: Some(tool),
-            blocked: Some(blocked),
-        }
-    }
-
-    /// The hook run as the subcommand `name`, asking the user rather than blocking, and
-    /// asking `tool` on PATH what it judges by.
+    /// The hook run as the subcommand `name`, asking `tool` on PATH what it judges by.
     pub(crate) const fn asking(name: &'static str, tool: &'static str) -> Self {
-        Hook {
-            name,
-            tool: Some(tool),
-            blocked: None,
-        }
-    }
-
-    /// The hook run as the subcommand `name`, judging by the command alone and telling
-    /// Claude `blocked` when it blocks a call. It is run under `Tool::Missing`, which
-    /// leaves PATH empty.
-    pub(crate) const fn judging_by_the_command(name: &'static str, blocked: &'static str) -> Self {
-        Hook {
-            name,
-            tool: None,
-            blocked: Some(blocked),
-        }
-    }
-
-    /// What the hook leaves when it blocks a call.
-    pub(crate) fn blocked(&self) -> Run {
-        Run {
-            code: Some(2),
-            out: String::new(),
-            err: self
-                .blocked
-                .expect("the hook blocks calls rather than asking")
-                .to_owned(),
-        }
+        Hook { name, tool }
     }
 
     /// Runs the hook on a Bash call of `command`, under the tool `tool`.
@@ -114,7 +71,7 @@ impl Hook {
     pub(crate) fn run_with_input(&self, test: &str, tool: Tool, input: &str) -> Run {
         let mut command = dotfiles_local(self.name);
         command.env("PATH", self.bin(test, tool));
-        // The hook need not read its input, as where the tool is the BSD one.
+        // The hook need not read its input, as where it passes the call before reading it.
         let output = output_with_input(command, input.as_bytes());
         Run {
             code: output.status.code(),
@@ -126,17 +83,9 @@ impl Hook {
     /// A sandbox of the test's own whose `bin`, alone on PATH, holds the fake tool.
     fn bin(&self, test: &str, tool: Tool) -> PathBuf {
         let sandbox = Sandbox::new(self.name, test, &[]);
-        let body = match tool {
-            Tool::Gnu => "exit 0",
-            Tool::Bsd => "exit 1",
-            Tool::Fake(body) => body,
-            Tool::Missing => return sandbox.bin(),
-        };
-        sandbox.fake(
-            self.tool
-                .expect("a hook judging by the command alone runs under Tool::Missing"),
-            body,
-        );
+        if let Tool::Fake(body) = tool {
+            sandbox.fake(self.tool, body);
+        }
         sandbox.bin()
     }
 }
