@@ -17,23 +17,30 @@ function with-new-terminal() {
 }
 
 function _echo_gnu_paths() {
-  gnu_paths="$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"
-  gnu_paths="$HOMEBREW_PREFIX/opt/findutils/libexec/gnubin:$gnu_paths"
-  gnu_paths="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$gnu_paths"
-  gnu_paths="$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin:$gnu_paths"
-  gnu_paths="$HOMEBREW_PREFIX/opt/gawk/libexec/gnubin:$gnu_paths"
-  gnu_paths="$HOMEBREW_PREFIX/opt/grep/libexec/gnubin:$gnu_paths"
-  echo "$gnu_paths"
+  local gnu_paths=(
+    "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"
+    "$HOMEBREW_PREFIX/opt/findutils/libexec/gnubin"
+    "$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+    "$HOMEBREW_PREFIX/opt/gnu-tar/libexec/gnubin"
+    "$HOMEBREW_PREFIX/opt/gawk/libexec/gnubin"
+    "$HOMEBREW_PREFIX/opt/grep/libexec/gnubin"
+  )
+  (
+    IFS=:
+    echo "${gnu_paths[*]}"
+  )
 }
 
 function gnu-activate() {
+  local gnu_paths
   gnu_paths="$(_echo_gnu_paths)"
   export PATH="$gnu_paths:$PATH"
 }
 
 function gnu-deactivate() {
+  local gnu_paths
   gnu_paths="$(_echo_gnu_paths)"
-  export PATH=${PATH//$gnu_paths/}
+  export PATH=${PATH//$gnu_paths:/}
 }
 
 function show-modified-homebrew-formula() {
