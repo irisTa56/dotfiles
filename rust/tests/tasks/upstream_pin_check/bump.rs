@@ -688,10 +688,11 @@ fn under_github_actions_opens_the_pull_request_ready_without_draft() {
 }
 
 // Pins a repository wants proposed apart, such as an include a merge finishes beside a
-// copy a person has to bring over, go to branches of their own, so a move of one series
-// neither lands on the other's pull request nor waits behind it.
+// copy a person has to bring over, go to branches of their own, each named by a suffix to
+// the task's own, so a move of one series neither lands on the other's pull request nor
+// waits behind it.
 #[test]
-fn under_github_actions_proposes_the_move_on_the_branch_branch_names() {
+fn under_github_actions_proposes_the_move_on_the_branch_branch_suffix_names() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
@@ -700,18 +701,18 @@ fn under_github_actions_proposes_the_move_on_the_branch_branch_names() {
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
         .bump(&checkout)
-        .args(["--branch", "lints-bump"])
+        .args(["--branch-suffix", "lints"])
         .env("GITHUB_API_URL", api.url())
         .run()
         .expect(
             1,
             &[
-                "pushed the move to lints-bump",
+                "pushed the move to upstream-pin-bump-lints",
                 &format!("opened its pull request: {OPENED}"),
             ],
         );
     assert_eq!(
-        origin.show("lints-bump:Cargo.toml"),
+        origin.show("upstream-pin-bump-lints:Cargo.toml"),
         Some(format!("# {}\n", up.marker("lints", 1)).into_bytes())
     );
     assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
@@ -719,42 +720,20 @@ fn under_github_actions_proposes_the_move_on_the_branch_branch_names() {
     let [request] = &requests[..] else {
         panic!("one request, not {requests:?}");
     };
-    assert_eq!(request.body["head"], "lints-bump");
+    assert_eq!(request.body["head"], "upstream-pin-bump-lints");
 }
 
-// The pull request is opened from the branch into origin's default branch, so naming the
-// default branch itself would push the move straight onto it with nothing to review.
+// A suffix that makes no name git takes for a branch would fail at the push, where the
+// message blames the token, so it is refused by name before anything is pushed.
 #[test]
-fn under_github_actions_refuses_a_branch_that_is_origins_default_branch() {
-    let up = Upstream::changing_lints(2);
-    let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
-    let before = origin.commit("main");
-    let run = Runner::GitHubActions
-        .bump(&checkout)
-        .args(["--branch", "main"])
-        .run();
-    assert_eq!(run.code(), 2, "exit code; output:\n{}", run.output());
-    assert!(
-        run.output().contains("--branch"),
-        "the output does not name the option:\n{}",
-        run.output()
-    );
-    assert_eq!(origin.commit("main"), before);
-}
-
-// A value git cannot take for a branch name would fail at the push, where the message
-// blames the token, so it is refused by name before anything is pushed.
-#[test]
-fn under_github_actions_refuses_a_branch_name_git_cannot_take_naming_the_value() {
+fn under_github_actions_refuses_a_branch_suffix_git_cannot_take_naming_the_value() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.publish(&origin);
     let run = Runner::GitHubActions
         .bump(&checkout)
-        .args(["--branch", "a b"])
+        .args(["--branch-suffix", "a b"])
         .run();
     assert_eq!(run.code(), 2, "exit code; output:\n{}", run.output());
     assert!(
@@ -768,30 +747,30 @@ fn under_github_actions_refuses_a_branch_name_git_cannot_take_naming_the_value()
         run.output()
     );
     assert_eq!(origin.commit(BUMP), None);
-    assert_eq!(origin.commit("a b"), None);
+    assert_eq!(origin.commit("upstream-pin-bump-a b"), None);
 }
 
-// While the pull request of the branch --branch names is open, a newer tip moves the pins
-// on that branch, over what a person added there, and leaves the default bump branch,
-// another series's, alone.
+// While the pull request of the branch --branch-suffix names is open, a newer tip moves
+// the pins on that branch, over what a person added there, and leaves the default bump
+// branch, another series's, alone.
 #[test]
-fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_names() {
+fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_suffix_names() {
     let up = Upstream::changing_lints(3);
     let origin = Origin::new();
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
     checkout.publish(&origin);
-    let added = origin.commit_onto_main_as("lints-bump", "NOTE.md", "kept");
+    let added = origin.commit_onto_main_as("upstream-pin-bump-lints", "NOTE.md", "kept");
     let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
     let api = GitHubApi::answering(500, "{}");
     Runner::GitHubActions
         .bump(&checkout)
-        .args(["--branch", "lints-bump"])
+        .args(["--branch-suffix", "lints"])
         .env("GITHUB_API_URL", api.url())
         .run()
-        .expect(1, &["pushed the move onto lints-bump"]);
-    assert_eq!(origin.commit("lints-bump~1"), Some(added));
+        .expect(1, &["pushed the move onto upstream-pin-bump-lints"]);
+    assert_eq!(origin.commit("upstream-pin-bump-lints~1"), Some(added));
     assert_eq!(
-        origin.show("lints-bump:Cargo.toml"),
+        origin.show("upstream-pin-bump-lints:Cargo.toml"),
         Some(format!("# {}\n", up.marker("lints", 2)).into_bytes())
     );
     assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));

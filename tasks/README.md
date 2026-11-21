@@ -169,7 +169,8 @@ Under GitHub Actions it leaves the working tree alone, which is often a pull req
   - A branch whose pins are at the tips already is left as it is.
   - Merging the pull request deletes the branch where the repository deletes merged branches, and deleting it by hand works as well, after which the next run opens a pull request afresh.
 
-Every pin a run moves goes to that one branch, whichever upstream it is of, so pins meant to be proposed apart take a run each, narrowed by pathspec, with `--branch <name>` naming a branch of their own in place of `upstream-pin-bump`, such as `mise run upstream:pin-check -- --bump --branch upstream-pin-bump-lints Cargo.toml clippy.toml` beside a run for `mise.toml`.
+Every pin a run moves goes to that one branch, whichever upstream it is of, so pins meant to be proposed apart take a run each, narrowed by pathspec, with `--branch-suffix <suffix>` giving them `upstream-pin-bump-<suffix>` in place of `upstream-pin-bump`, such as `mise run upstream:pin-check -- --bump --branch-suffix lints Cargo.toml clippy.toml` beside a run for `mise.toml`.
+The suffix only extends the task's own name, so that a branch of that name exists only while its pull request is open, which is what lets a run take finding it to mean that.
 
 The job needs this, which `contents: write` and `pull-requests: write` give the job's own token:
 
@@ -203,13 +204,13 @@ Taking in what the upstream changed, such as running the shared tasks the move c
 With `--draft` as well, it opens the pull request as a draft, which GitHub [will not merge until someone marks it ready for review](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests).
 That suits a pin whose path the repository took in part by hand, such as some of an upstream's lints copied into `Cargo.toml`, where moving the pin alone leaves the copy behind and merging the pull request as it stands would hide that: the person who brings the change over commits it to the pull request's branch and then marks it ready.
 Only the pull request a run opens is a draft: a later run that finds the branch pushes its move onto it and leaves the pull request as it is, so a newer move can land on one already marked ready, and its change wants bringing over too before the merge.
-Give such pins a `--branch` of their own, so that a move a merge alone finishes, such as an include's, does not wait behind them in the draft.
+Give such pins a `--branch-suffix` of their own, so that a move a merge alone finishes, such as an include's, does not wait behind them in the draft.
 GitHub opens drafts in public repositories on every plan but in private ones only on GitHub Team and GitHub Enterprise Cloud, as [the endpoint that opens it](https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request) says, so elsewhere GitHub refuses the pull request and the run ends as below.
 
 It exits 2, pushing nothing, where a new branch's pull request could not be opened: without `GITHUB_TOKEN` in the step's `env`, or without curl.
 It exits 2 at the push where the token cannot push, a pull request from a fork's among them, and after it where the pull request could not be opened: GitHub refused it, which prints GitHub's reason, or the API gave no answer within a minute.
 It then deletes the branch it pushed, since a run that finds the branch takes its pull request to be open, so the next run opens one; where it cannot delete the branch it says so, and the branch has to be deleted by hand.
-It exits 2 too on an option other than `--bump`, `--draft` and `--branch`, on `--draft` or `--branch` without `--bump`, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
+It exits 2 too on an option other than `--bump`, `--draft` and `--branch-suffix`, on `--draft` or `--branch-suffix` without `--bump`, on a suffix that makes no name git takes for a branch, and where the default branch holds none of the differing pins to move, a pin there whose path matches the tip's counting as none; a pull request cut before the last move merged can meet the second until it is brought up to date.
 It exits 2 as well on an error from the filesystem, such as a scratch directory it could not create, or a file on the default branch it could not read.
 
 ## Writing one

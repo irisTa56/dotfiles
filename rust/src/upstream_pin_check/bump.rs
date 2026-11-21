@@ -37,37 +37,29 @@ impl Scratch {
         differing: &Differing,
         proposal: Proposal,
     ) -> Result<Status, Status> {
-        let default_branch = self.proposable(proposal.branch)?;
+        self.refuse_unless_a_branch_name(proposal.branch)?;
         if self.bump_branch_exists(proposal.branch)? {
             self.move_on_bump_branch(differing, proposal.branch)
         } else {
-            self.propose_move(differing, proposal, &default_branch)
+            self.propose_move(differing, proposal)
         }
     }
 
-    /// Returns the name of origin's default branch, which the pull request goes into,
-    /// where `branch` can carry the move apart from it: a name git takes for a branch, and
-    /// not the default branch's own, onto which the move would land with no pull request.
-    fn proposable(&self, branch: &str) -> Result<String, Status> {
+    /// Ends the run where `branch`, which `--branch-suffix` may have made, is no name git
+    /// takes for a branch, rather than at the push, where git's refusal reads as one of
+    /// permission.
+    fn refuse_unless_a_branch_name(&self, branch: &str) -> Result<(), Status> {
         let checked = self
             .git
             .run(&["check-ref-format", &format!("refs/heads/{branch}")]);
-        if !checked.success() {
-            Failure(&format!(
-                "--branch {branch:?} is not a name git takes for a branch"
-            ))
-            .report();
-            return Err(Status::Unknown);
+        if checked.success() {
+            return Ok(());
         }
-        let default_branch = self.default_branch()?;
-        if branch == default_branch {
-            Failure(&format!(
-                "--branch {branch} is origin's default branch, onto which the move would land with no pull request"
-            ))
-            .report();
-            return Err(Status::Unknown);
-        }
-        Ok(default_branch)
+        Failure(&format!(
+            "--branch-suffix makes {branch:?}, which is no name git takes for a branch"
+        ))
+        .report();
+        Err(Status::Unknown)
     }
 
     /// Whether `branch` exists on origin; a run that cannot tell ends here.
@@ -92,14 +84,10 @@ impl Scratch {
     /// new, and opens its pull request, as a draft where the proposal says so. What opening
     /// one needs is checked before the push, so that a run lacking it leaves no branch
     /// behind.
-    fn propose_move(
-        &self,
-        differing: &Differing,
-        proposal: Proposal,
-        default_branch: &str,
-    ) -> Result<Status, Status> {
+    fn propose_move(&self, differing: &Differing, proposal: Proposal) -> Result<Status, Status> {
         let branch = proposal.branch;
         let github = GitHub::from_env()?;
+        let default_branch = self.default_branch()?;
         let base = self.fetch_from_origin("HEAD")?;
         let (tree, moved) = self.stage_moves(&base, "origin's default branch", differing)?;
         if moved.0.is_empty() {
@@ -111,7 +99,7 @@ impl Scratch {
         for line in &message.0 {
             Failure(&format!("pushed the move to {branch}: {line}")).report();
         }
-        Ok(self.open_pull_request(&github, default_branch, &message, proposal))
+        Ok(self.open_pull_request(&github, &default_branch, &message, proposal))
     }
 
     /// Moves the pins as `branch` spells them, in a commit over its tip, which its open

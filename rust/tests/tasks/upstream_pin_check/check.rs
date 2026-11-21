@@ -282,7 +282,7 @@ fn fails_as_a_usage_error_on_bump_after_a_pathspec() {
             2,
             &[
                 "'--bump'",
-                "--bump, --draft and --branch, then git pathspecs",
+                "--bump, --draft and --branch-suffix, then git pathspecs",
             ],
         );
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
@@ -353,13 +353,13 @@ fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read_when_stderr_is_clos
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
-// --draft and --branch say how --bump opens its pull request, so alone either would do
+// --draft and --branch-suffix say how --bump opens its pull request, so alone either would do
 // nothing.
 #[test]
-fn fails_as_a_usage_error_on_draft_or_branch_without_bump() {
+fn fails_as_a_usage_error_on_draft_or_branch_suffix_without_bump() {
     let up = Upstream::changing_lints(2);
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    for args in [&["--draft"][..], &["--branch", "b"][..]] {
+    for args in [&["--draft"][..], &["--branch-suffix", "b"][..]] {
         checkout
             .dotfiles_tasks()
             .arg("upstream-pin-check")

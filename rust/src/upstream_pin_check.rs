@@ -30,7 +30,7 @@ pub(crate) enum Status {
     Unknown = 2,
 }
 
-/// A run's arguments: `--bump`, `--draft` and `--branch`, and then git pathspecs.
+/// A run's arguments: `--bump`, `--draft` and `--branch-suffix`, and then git pathspecs.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// Move each differing pin to its upstream's tip, and under GitHub Actions push the
@@ -41,19 +41,21 @@ pub(crate) struct Request {
     /// before it merges; a pull request already open is left as it is, draft or not.
     #[arg(long, requires = "bump")]
     draft: bool,
-    /// The branch --bump pushes its move to and opens its pull request from, so that pins
-    /// proposed apart, in runs narrowed by pathspec, each have a pull request of their own.
-    #[arg(long, requires = "bump", default_value = BUMP_BRANCH)]
-    branch: String,
+    /// Push the move of --bump to `upstream-pin-bump-<suffix>` and open its pull request
+    /// from there, so that pins proposed apart, in runs narrowed by pathspec, each have a
+    /// pull request of their own.
+    #[arg(long, requires = "bump", value_name = "SUFFIX")]
+    branch_suffix: Option<String>,
     /// The files to read pins from, as git pathspecs [default: every tracked file].
     #[arg(trailing_var_arg = true)]
     pathspecs: Vec<Pathspec>,
 }
 
 /// The branch a bump under GitHub Actions pushes its move to and opens its pull request
-/// from, where `--branch` names no other. A person may add commits to it, so a later run
-/// adds its own over them and never forces; merging the pull request deletes it where the
-/// repository deletes merged branches, and the next run pushes afresh.
+/// from, with `-<suffix>` after it where `--branch-suffix` gives one. It is this task's
+/// alone, so where it exists its pull request is open. A person may add commits to it, so
+/// a later run adds its own over them and never forces; merging the pull request deletes
+/// it where the repository deletes merged branches, and the next run pushes afresh.
 const BUMP_BRANCH: &str = "upstream-pin-bump";
 
 /// A git pathspec. One that opens with `-` is refused, since past the first pathspec
