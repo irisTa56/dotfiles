@@ -6,11 +6,12 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::Args;
 
-use crate::failure::{Failure, exit_code};
+use crate::failure::Failure;
+use crate::program::{self, Program};
 
 /// Run a shell script in a new Terminal window, leaving out its comment and blank lines.
 ///
@@ -41,21 +42,15 @@ impl Request {
             })?;
         let applescript = self.applescript(&contents);
         // osascript prints the window it opened, which no caller reads.
-        let status = Command::new("osascript")
+        let status = Program::new("osascript")
             .arg("-e")
             .arg(applescript)
             .stdout(Stdio::null())
-            .status()
-            .map_err(|error| Failure::new(format_args!("osascript failed: {error}"), 1))?;
+            .status()?;
         if status.success() {
             return Ok(());
         }
-        // A signal ends it with the status a shell gives such a command.
-        let code = exit_code(status);
-        Err(Failure::new(
-            format_args!("osascript failed (exit {code})"),
-            code,
-        ))
+        Err(program::failed(status, format_args!("osascript failed")))
     }
 
     /// What osascript runs to open the window and run `contents`, the script's text.

@@ -1203,6 +1203,35 @@ fn fails_when_there_is_no_mise_or_no_git() {
     assert!(run.err.starts_with("cannot run mise: "), "{}", run.err);
 }
 
+// mise gone by the time an upgrade starts fails the run there, as it does a listing.
+#[test]
+fn fails_naming_mise_when_it_cannot_run_an_upgrade() {
+    let sandbox = Fixture::new("gone-before-upgrade");
+    let dir = sandbox.project("/work/project");
+    sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
+    let bin = sandbox.root().join("bin");
+    fs::rename(bin.join("mise"), bin.join("mise-before")).expect("mise is moved aside");
+    // Asking for release dates comes after every listing and before any upgrade.
+    sandbox.sandbox.fake(
+        "mise",
+        "case \"$*\" in \"ls-remote \"*) /bin/rm \"$0\" ;; esac\n\
+         exec \"${0%/*}/mise-before\" \"$@\"",
+    );
+
+    let run = sandbox.run_with(
+        &[],
+        "y\n",
+        &[
+            ("PATH", &sandbox.dir("bin")),
+            ("TMPDIR", &sandbox.dir("tmp")),
+        ],
+    );
+
+    assert_eq!(run.code, Some(1), "{}", run.err);
+    assert!(run.err.starts_with("cannot run mise: "), "{}", run.err);
+    assert_eq!(sandbox.upgrades(), Vec::<String>::new());
+}
+
 // The pipe a report is written to closes when its reader stops early, as with `| head`,
 // which ends a report but fails a run that would upgrade what nobody saw asked about.
 #[test]

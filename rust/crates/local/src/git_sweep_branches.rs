@@ -1,12 +1,13 @@
 //! `git-sweep-branches`: runs gh-poi, then deletes the local branches it leaves that
 //! carry no commits of their own.
 
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::Args;
 
 use crate::failure::Failure;
-use crate::git::{git, read};
+use crate::git::{self, git, read};
+use crate::program::Program;
 
 /// Run gh-poi, then delete the local branches it leaves that carry no commits of their own.
 ///
@@ -51,14 +52,7 @@ fn refresh() -> Result<(), Failure> {
 
 /// Runs gh-poi, which deletes the branches whose merged pull request holds them.
 fn gh_poi() -> Result<(), Failure> {
-    let status = Command::new("gh-poi")
-        .status()
-        .map_err(|error| Failure::new(format_args!("cannot run gh-poi: {error}"), 1))?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(Failure::passed_on(status))
-    }
+    Program::new("gh-poi").run()
 }
 
 /// Deletes each local branch origin's default branch holds whole, except that default
@@ -93,13 +87,12 @@ fn delete_merged() -> Result<(), Failure> {
 /// Whether `gh poi lock` holds `branch`: its lock reads as true where git reads it as a
 /// boolean, and a lock git cannot read as one holds nothing.
 fn locked(branch: &str) -> bool {
-    Command::new("git")
-        .args([
-            "config",
-            "--type=bool",
-            &format!("branch.{branch}.gh-poi-locked"),
-        ])
-        .stderr(Stdio::null())
-        .output()
-        .is_ok_and(|output| output.stdout == b"true\n")
+    git::command(&[
+        "config",
+        "--type=bool",
+        &format!("branch.{branch}.gh-poi-locked"),
+    ])
+    .stderr(Stdio::null())
+    .output()
+    .is_ok_and(|output| output.stdout == b"true\n")
 }

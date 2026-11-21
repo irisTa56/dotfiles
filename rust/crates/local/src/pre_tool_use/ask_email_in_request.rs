@@ -10,7 +10,7 @@
 //! the word, a request made from another program, and an address assembled from pieces
 //! all pass unasked.
 
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::sync::LazyLock;
 
 use clap::Args;
@@ -19,6 +19,7 @@ use serde_json::Value;
 
 use super::{BashCall, Verdict};
 use crate::failure::Failure;
+use crate::git;
 
 /// A bare curl or wget, at the start of a line or after a space, ;, &, ( or |, and
 /// followed by a space. A space is an ASCII one, the only kind the shell splits words on.
@@ -70,8 +71,7 @@ impl LocalPart {
     /// git has none or the part is empty, which the hook lets through, as any failure of
     /// its own.
     fn configured() -> Option<Self> {
-        let output = Command::new("git")
-            .args(["config", "--global", "user.email"])
+        let output = git::command(&["config", "--global", "user.email"])
             .stdin(Stdio::null())
             .stderr(Stdio::null())
             .output()

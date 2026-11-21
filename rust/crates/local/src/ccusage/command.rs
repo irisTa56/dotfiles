@@ -1,6 +1,6 @@
 //! The command: the period it is run for, and the stages it runs through.
 
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::{Args, ValueEnum};
 use jiff::civil::Date;
@@ -10,7 +10,8 @@ use super::projects::Projects;
 use super::report::Report;
 use super::report_file::ReportFile;
 use super::session_logs::SessionLogs;
-use crate::failure::{Failure, exit_code};
+use crate::failure::Failure;
+use crate::program::{self, Program};
 
 /// Show Claude Code usage in a Quick Look popup as three tables per period.
 ///
@@ -71,18 +72,16 @@ impl Period {
             "--since",
             &since,
         ];
-        let output = Command::new("ccusage")
+        let output = Program::new("ccusage")
             .args(args)
             .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| Failure::new(format_args!("cannot run ccusage: {error}"), 1))?;
+            .output()?;
         if output.status.success() {
             return Ok(output.stdout);
         }
-        let code = exit_code(output.status);
-        Err(Failure::new(
-            format_args!("ccusage {} failed (exit {code})", args.join(" ")),
-            code,
+        Err(program::failed(
+            output.status,
+            format_args!("ccusage {} failed", args.join(" ")),
         ))
     }
 

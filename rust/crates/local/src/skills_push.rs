@@ -8,7 +8,6 @@
 use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use clap::Args;
 use tempfile::TempDir;
@@ -17,6 +16,7 @@ use crate::apm_lock::{ApmLock, LockedDependency};
 use crate::dotfiles_checkout::DotfilesCheckout;
 use crate::failure::Failure;
 use crate::git::{git, read};
+use crate::program::Program;
 
 /// Push a gist-sourced skill's local edit back to its gist, and pin the pushed commit.
 ///
@@ -126,16 +126,10 @@ impl Checkout {
 
     /// Has apm pin the gist's head for the skill `name`.
     fn update(&self, name: &str) -> Result<(), Failure> {
-        let status = Command::new("apm")
+        Program::new("apm")
             .current_dir(&self.root)
             .args(["update", "--yes", name])
-            .status()
-            .map_err(|error| Failure::new(format_args!("cannot run apm: {error}"), 1))?;
-        if status.success() {
-            Ok(())
-        } else {
-            Err(Failure::passed_on(status))
-        }
+            .run()
     }
 }
 

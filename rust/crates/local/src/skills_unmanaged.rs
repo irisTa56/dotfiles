@@ -5,17 +5,18 @@
 //! the mise task calling it leaves as the root of the checkout it ran in.
 
 use std::collections::BTreeSet;
-use std::fmt;
 use std::fs;
 use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::Args;
 
 use crate::apm_lock::ApmLock;
-use crate::failure::{Failure, exit_code};
+use crate::failure::Failure;
+use crate::git;
+use crate::program;
 
 /// The directory whose entries are listed, relative to the checkout's root.
 const SKILLS: &str = ".claude/skills";
@@ -89,10 +90,7 @@ struct Managed {
 
 impl Managed {
     fn read() -> Result<Self, Failure> {
-        let tracked = output(
-            Command::new("git").args(["ls-files", "-z", "--", SKILLS]),
-            format_args!("git could not list {SKILLS}"),
-        )?;
+        let tracked = tracked()?;
         let lock = ApmLock::read(Path::new("."))?;
         let paths = tracked
             .split(|&byte| byte == 0)
@@ -117,17 +115,17 @@ fn top_level(path: &[u8]) -> Vec<u8> {
         .join(&b'/')
 }
 
-/// What `command` prints, its stderr passed on, or a failure saying what `failing` did
-/// where it does not succeed.
-fn output(command: &mut Command, failing: fmt::Arguments<'_>) -> Result<Vec<u8>, Failure> {
-    let program = command.get_program().to_string_lossy().into_owned();
-    let output = command
+/// The paths git tracks under `.claude/skills/`, each ended by a NUL, its stderr passed
+/// on.
+fn tracked() -> Result<Vec<u8>, Failure> {
+    let output = git::command(&["ls-files", "-z", "--", SKILLS])
         .stderr(Stdio::inherit())
-        .output()
-        .map_err(|error| Failure::new(format_args!("cannot run {program}: {error}"), 1))?;
+        .output()?;
     if !output.status.success() {
-        let code = exit_code(output.status);
-        return Err(Failure::new(format_args!("{failing} (exit {code})"), code));
+        return Err(program::failed(
+            output.status,
+            format_args!("git could not list {SKILLS}"),
+        ));
     }
     Ok(output.stdout)
 }

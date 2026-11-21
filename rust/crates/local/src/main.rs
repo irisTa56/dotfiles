@@ -13,6 +13,7 @@ mod git_sweep_branches;
 mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;
+mod program;
 mod reply_language_stop;
 mod skills_push;
 mod skills_unmanaged;

@@ -4,17 +4,17 @@
 //! It reads and updates the apm.yml and apm.lock.yaml of the directory it runs in,
 //! which the mise task calling it leaves as the root of the checkout it ran in.
 
-use std::fmt;
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use clap::Args;
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
 
 use crate::apm_lock::{ApmLock, LockedDependency};
-use crate::failure::{Failure, exit_code};
+use crate::failure::Failure;
+use crate::program::{self, Program};
 
 /// Update APM skills, holding back any whose last change upstream merged under a day ago.
 ///
@@ -78,30 +78,24 @@ fn update(packages: &[String]) -> Result<(), Failure> {
 /// They reach stdout through a pipe rather than as stdout itself, so apm writes as it
 /// does for a reader that is not a terminal, without colors.
 fn apm(args: &[String]) -> Result<(), Failure> {
-    let failed = |detail: &dyn fmt::Display, code| {
-        Failure::new(
-            format_args!("apm {} failed ({detail})", args.join(" ")),
-            code,
-        )
-    };
-    let (mut reader, writer) = io::pipe().map_err(|error| failed(&error, 1))?;
-    let errors = writer.try_clone().map_err(|error| failed(&error, 1))?;
+    let label = format!("apm {} failed", args.join(" "));
+    let failed = |error: io::Error| Failure::new(format_args!("{label} ({error})"), 1);
+    let (mut reader, writer) = io::pipe().map_err(failed)?;
+    let errors = writer.try_clone().map_err(failed)?;
     // The command, holding this side's write ends of the pipe, is dropped at the end of
     // this statement, so the reading below ends once apm has closed its own.
-    let mut child = Command::new("apm")
+    let mut child = Program::new("apm")
         .args(args)
         .stdin(Stdio::null())
         .stdout(writer)
         .stderr(errors)
-        .spawn()
-        .map_err(|error| failed(&error, 1))?;
+        .spawn()?;
     pass_on(&mut reader);
-    let status = child.wait().map_err(|error| failed(&error, 1))?;
+    let status = child.wait().map_err(failed)?;
     if status.success() {
         return Ok(());
     }
-    let code = exit_code(status);
-    Err(failed(&format_args!("exit {code}"), code))
+    Err(program::failed(status, format_args!("{label}")))
 }
 
 /// Copies what `reader` yields to stdout until it ends, dropping a write that fails, so
@@ -283,15 +277,14 @@ struct GithubQuery {
 impl GithubQuery {
     /// The answer, or the reason to hold where there is none; fails where gh cannot run.
     fn answer(&self) -> Result<Result<String, String>, Failure> {
-        let output = Command::new("gh")
+        let output = Program::new("gh")
             .args(["api", &self.path])
             .stderr(Stdio::inherit())
-            .output()
-            .map_err(|error| Failure::new(format_args!("cannot run gh: {error}"), 1))?;
+            .output()?;
         if !output.status.success() {
             return Ok(Err(format!(
                 "GitHub request failed (exit {})",
-                exit_code(output.status)
+                program::exit_code(output.status)
             )));
         }
         let answer: Value = match serde_json::from_slice(&output.stdout) {

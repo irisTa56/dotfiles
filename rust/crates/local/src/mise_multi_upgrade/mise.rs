@@ -2,7 +2,10 @@
 
 use std::fmt;
 use std::io::{self, Read, Write};
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{ExitStatus, Stdio};
+
+use crate::failure::Failure;
+use crate::program::Program;
 
 /// mise, called with a list of arguments.
 pub(super) struct Mise {
@@ -17,8 +20,8 @@ impl Mise {
     /// What mise prints on stdout, given no input, or `None` where it fails. Its stderr
     /// is left to the terminal: its warnings would break the JSON read from stdout, and
     /// its errors are what the user needs to see.
-    pub(super) fn output(&self) -> io::Result<Option<Vec<u8>>> {
-        let output = Command::new("mise")
+    pub(super) fn output(&self) -> Result<Option<Vec<u8>>, Failure> {
+        let output = Program::new("mise")
             .args(&self.args)
             .stderr(Stdio::inherit())
             .output()?;
@@ -30,8 +33,8 @@ impl Mise {
     ///
     /// Its stdout reaches this one through a pipe rather than as this one itself, so
     /// mise writes as it does for a reader that is not a terminal.
-    pub(super) fn pass_on(&self) -> io::Result<ExitStatus> {
-        let mut child = Command::new("mise")
+    pub(super) fn pass_on(&self) -> Result<ExitStatus, Failure> {
+        let mut child = Program::new("mise")
             .args(&self.args)
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
@@ -41,8 +44,10 @@ impl Mise {
             Some(mut reader) => copy_to_stdout(&mut reader),
             None => Ok(()),
         };
-        let status = child.wait()?;
-        copied.map(|()| status)
+        child
+            .wait()
+            .and_then(|status| copied.map(|()| status))
+            .map_err(|error| Failure::new(format_args!("{self} failed: {error}"), 1))
     }
 }
 
