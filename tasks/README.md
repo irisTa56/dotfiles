@@ -202,6 +202,7 @@ jobs:
 Taking in what the upstream changed, such as running the shared tasks the move changes or bringing a lint over, stays with whoever merges that pull request.
 With `--draft` as well, it opens the pull request as a draft, which GitHub [will not merge until someone marks it ready for review](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests#draft-pull-requests).
 That suits a pin whose path the repository took in part by hand, such as some of an upstream's lints copied into `Cargo.toml`, where moving the pin alone leaves the copy behind and merging the pull request as it stands would hide that: the person who brings the change over commits it to the pull request's branch and then marks it ready.
+Only the pull request a run opens is a draft: a later run that finds the branch pushes its move onto it and leaves the pull request as it is, so a newer move can land on one already marked ready, and its change wants bringing over too before the merge.
 Give such pins a `--branch` of their own, so that a move a merge alone finishes, such as an include's, does not wait behind them in the draft.
 GitHub opens drafts in public repositories on every plan but in private ones only on GitHub Team and GitHub Enterprise Cloud, as [the endpoint that opens it](https://docs.github.com/en/rest/pulls/pulls#create-a-pull-request) says, so elsewhere GitHub refuses the pull request and the run ends as below.
 

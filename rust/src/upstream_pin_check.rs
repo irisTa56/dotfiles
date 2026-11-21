@@ -38,7 +38,7 @@ pub(crate) struct Request {
     #[arg(long)]
     bump: bool,
     /// Open the pull request of --bump as a draft, for a move a person has to finish
-    /// before it merges.
+    /// before it merges; a pull request already open is left as it is, draft or not.
     #[arg(long, requires = "bump")]
     draft: bool,
     /// The branch --bump pushes its move to and opens its pull request from, so that pins
