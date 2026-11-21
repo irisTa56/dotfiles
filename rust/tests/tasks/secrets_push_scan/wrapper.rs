@@ -1,7 +1,7 @@
 //! Runs through `tasks/secrets/push-scan.sh`, the wrapper consumers run, which installs
 //! the release it pins with mise and runs it.
 
-use crate::support::mise::Mise;
+use crate::support::mise::{Mise, POSTINSTALL};
 use crate::support::origin::Origin;
 
 use super::{ahead_of, leaking, main_line};
@@ -47,4 +47,20 @@ fn exits_as_secrets_push_scan_does_on_a_secret_the_push_sends() {
             &Mise::installing_with(0),
         )
         .expect(1, &[&format!("Github at line 1 of a.txt, commit {sha}")]);
+}
+
+// mise runs a consumer's `[hooks] postinstall` on every install in its project;
+// installing the release is the wrapper's business, not an occasion for the consumer's
+// setup.
+#[test]
+fn installs_the_release_without_running_the_consumers_postinstall() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
+    let run = checkout.secrets_push_scan_wrapper(
+        &["origin"],
+        &main_line(&checkout, &sha),
+        &Mise::installing_with(0),
+    );
+    assert_eq!(run.code(), 0, "{}", run.output());
+    assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }

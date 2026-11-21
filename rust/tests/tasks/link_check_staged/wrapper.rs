@@ -1,7 +1,7 @@
 //! Runs through `tasks/link-check/staged.sh`, the wrapper consumers run, which installs
 //! the release it pins with mise and runs it.
 
-use crate::support::mise::Mise;
+use crate::support::mise::{Mise, POSTINSTALL};
 
 use super::staged;
 
@@ -35,4 +35,14 @@ fn exits_as_link_check_staged_does_on_a_broken_link() {
                 "MISE_TASK_SKIP=link-check:staged.sh git commit",
             ],
         );
+}
+
+// mise runs a consumer's `[hooks] postinstall` on every install in its project;
+// installing the release is the wrapper's business, not an occasion for the consumer's
+// setup.
+#[test]
+fn installs_the_release_without_running_the_consumers_postinstall() {
+    let run = staged(&[("a.md", "no link\n")]).link_check_staged_wrapper(&Mise::installing_with(0));
+    assert_eq!(run.code(), 0, "{}", run.output());
+    assert!(!run.output().contains(POSTINSTALL), "{}", run.output());
 }
