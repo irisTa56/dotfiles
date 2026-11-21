@@ -10,15 +10,16 @@ use std::fmt::Write as _;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+
+use crate::support::{Sandbox, dotfiles_local};
 
 use jiff::civil::{Date, Weekday};
 use jiff::{ToSpan, ZonedDateTime};
 
 /// A directory of the test's own, holding session logs, the fakes and the temporary
 /// directory the command writes its report under, removed when the test ends.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
 /// What a run left: its exit status, its stdout and stderr, and the HTML Quick Look was
@@ -30,42 +31,37 @@ struct Run {
     html: Option<String>,
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`, whose ccusage answers `usage` with status 0,
     /// whose git knows no repository, and whose qlmanage succeeds.
     fn new(test: &str, usage: &str) -> Self {
-        let root = std::env::temp_dir().join(format!(
-            "dotfiles-local-ccusage-popup-{}-{test}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&root);
-        for dir in ["bin", "tmp", "config/projects", "home"] {
-            fs::create_dir_all(root.join(dir)).expect("the sandbox is created");
-        }
-        let sandbox = Sandbox { root };
-        sandbox.ccusage(usage, 0);
-        sandbox.repositories(&[]);
-        sandbox.quick_look(0);
-        sandbox
+        let fixture = Fixture {
+            sandbox: Sandbox::outside_repository(
+                "ccusage-popup",
+                test,
+                &["tmp", "config/projects", "home"],
+            ),
+        };
+        fixture.ccusage(usage, 0);
+        fixture.repositories(&[]);
+        fixture.quick_look(0);
+        fixture
     }
 
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, format!("#!/bin/sh\n{body}")).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// Makes ccusage print `usage` and exit with `code`, recording its arguments one call
     /// a line.
     fn ccusage(&self, usage: &str, code: u8) {
-        let answer = self.root.join("usage.json");
+        let answer = self.root().join("usage.json");
         fs::write(&answer, usage).expect("the usage is written");
-        self.fake(
+        self.sandbox.fake(
             "ccusage",
             &format!(
                 "echo \"$*\" >> '{log}'\n/bin/cat '{answer}'\necho 'ccusage warns' >&2\nexit {code}\n",
-                log = self.root.join("ccusage.log").display(),
+                log = self.root().join("ccusage.log").display(),
                 answer = answer.display(),
             ),
         );
@@ -80,34 +76,34 @@ impl Sandbox {
                 let _ = writeln!(cases, "  '{}') echo '{common}'; exit 0 ;;", dir.display());
                 cases
             });
-        self.fake(
+        self.sandbox.fake(
             "git",
             &format!(
                 "if [ \"$1 $3 $4 $5\" != '-C rev-parse --path-format=absolute --git-common-dir' ]; then\n\
                  echo \"$*\" >> '{log}'; exit 2\nfi\n\
                  case \"$2\" in\n{cases}esac\n\
                  echo 'fatal: not a git repository' >&2\nexit 128\n",
-                log = self.root.join("git.unexpected").display(),
+                log = self.root().join("git.unexpected").display(),
             ),
         );
     }
 
     /// Makes qlmanage copy the file it is handed beside its path, and exit with `code`.
     fn quick_look(&self, code: u8) {
-        self.fake(
+        self.sandbox.fake(
             "qlmanage",
             &format!(
                 "[ \"$1\" = -p ] || exit 2\necho \"$2\" > '{path}'\n/bin/cat \"$2\" > '{html}'\n\
                  echo 'qlmanage chatters'\necho 'qlmanage warns' >&2\nexit {code}\n",
-                path = self.root.join("html.path").display(),
-                html = self.root.join("html").display(),
+                path = self.root().join("html.path").display(),
+                html = self.root().join("html").display(),
             ),
         );
     }
 
     /// The directory a project's session logs live in, under the config dir the runs name.
     fn config(&self) -> PathBuf {
-        self.root.join("config")
+        self.root().join("config")
     }
 
     /// Runs `ccusage-popup` with `args`, the fakes first on PATH, `CLAUDE_CONFIG_DIR`
@@ -117,24 +113,18 @@ impl Sandbox {
     }
 
     fn run_with(&self, args: &[&str], env: &[(&str, &std::ffi::OsStr)]) -> Run {
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        let path = std::env::join_paths(
-            std::iter::once(self.root.join("bin")).chain(std::env::split_paths(&inherited)),
-        )
-        .expect("PATH is joined");
-        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("ccusage-popup")
+        let output = dotfiles_local("ccusage-popup")
             .args(args)
-            .env("PATH", path)
-            .env("TMPDIR", self.root.join("tmp"))
-            .env("HOME", self.root.join("home"))
+            .env("PATH", self.sandbox.path_before_inherited())
+            .env("TMPDIR", self.root().join("tmp"))
+            .env("HOME", self.root().join("home"))
             .env_remove("CLAUDE_CONFIG_DIR")
             .env_remove("XDG_CONFIG_HOME")
             .envs(env.iter().copied())
             .output()
             .expect("dotfiles-local starts");
-        let html = fs::read_to_string(self.root.join("html")).ok();
-        let _ = fs::remove_file(self.root.join("html"));
+        let html = fs::read_to_string(self.root().join("html")).ok();
+        let _ = fs::remove_file(self.root().join("html"));
         Run {
             code: output.status.code(),
             out: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -146,7 +136,7 @@ impl Sandbox {
     /// Asserts that the report Quick Look was handed, and the directory made for it, are
     /// gone, and that nothing else is left in the temporary directory.
     fn assert_report_removed(&self) {
-        let left: Vec<_> = fs::read_dir(self.root.join("tmp"))
+        let left: Vec<_> = fs::read_dir(self.root().join("tmp"))
             .expect("the temporary directory is read")
             .map(|entry| entry.expect("an entry is read").path())
             .collect();
@@ -159,16 +149,10 @@ impl Sandbox {
     }
 
     fn log(&self, name: &str) -> Vec<String> {
-        fs::read_to_string(self.root.join(name)).map_or_else(
+        fs::read_to_string(self.root().join(name)).map_or_else(
             |_| Vec::new(),
             |log| log.lines().map(str::to_owned).collect(),
         )
-    }
-}
-
-impl Drop for Sandbox {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.root);
     }
 }
 
@@ -177,7 +161,7 @@ const NO_USAGE: &str = r#"{"totals": {"totalTokens": 0}}"#;
 
 #[test]
 fn refuses_another_period_with_its_usage_and_exit_2() {
-    let sandbox = Sandbox::new("another-period", NO_USAGE);
+    let sandbox = Fixture::new("another-period", NO_USAGE);
 
     let run = sandbox.run(&["yearly"]);
 
@@ -199,7 +183,7 @@ fn today() -> Date {
 
 #[test]
 fn asks_ccusage_for_the_last_two_weeks_of_daily_usage_per_project() {
-    let sandbox = Sandbox::new("daily-range", NO_USAGE);
+    let sandbox = Fixture::new("daily-range", NO_USAGE);
 
     let run = sandbox.run(&["daily"]);
 
@@ -213,7 +197,7 @@ fn asks_ccusage_for_the_last_two_weeks_of_daily_usage_per_project() {
 
 #[test]
 fn asks_for_nine_weeks_from_a_sunday_and_twelve_months_from_the_first() {
-    let sandbox = Sandbox::new("weekly-monthly-range", NO_USAGE);
+    let sandbox = Fixture::new("weekly-monthly-range", NO_USAGE);
 
     sandbox.run(&["weekly"]);
     sandbox.run(&["monthly"]);
@@ -237,7 +221,7 @@ fn asks_for_nine_weeks_from_a_sunday_and_twelve_months_from_the_first() {
 
 #[test]
 fn says_so_when_the_range_holds_no_usage_and_removes_the_report() {
-    let sandbox = Sandbox::new("no-usage", NO_USAGE);
+    let sandbox = Fixture::new("no-usage", NO_USAGE);
 
     let run = sandbox.run(&["daily"]);
 
@@ -257,7 +241,7 @@ fn says_so_when_the_range_holds_no_usage_and_removes_the_report() {
 
 #[test]
 fn fails_when_quick_look_fails_removing_the_report_all_the_same() {
-    let sandbox = Sandbox::new("quick-look-fails", NO_USAGE);
+    let sandbox = Fixture::new("quick-look-fails", NO_USAGE);
     sandbox.quick_look(1);
 
     let run = sandbox.run(&["daily"]);
@@ -270,14 +254,14 @@ fn fails_when_quick_look_fails_removing_the_report_all_the_same() {
 
 #[test]
 fn fails_when_there_is_no_quick_look() {
-    let sandbox = Sandbox::new("no-quick-look", NO_USAGE);
-    fs::remove_file(sandbox.root.join("bin/qlmanage")).expect("the fake is removed");
+    let sandbox = Fixture::new("no-quick-look", NO_USAGE);
+    fs::remove_file(sandbox.root().join("bin/qlmanage")).expect("the fake is removed");
 
     let run = sandbox.run_with(
         &["daily"],
         &[
             ("CLAUDE_CONFIG_DIR", sandbox.config().as_os_str()),
-            ("PATH", sandbox.root.join("bin").as_os_str()),
+            ("PATH", sandbox.root().join("bin").as_os_str()),
         ],
     );
 
@@ -360,7 +344,7 @@ fn buckets_days_by_week_from_sunday_and_by_month_and_totals_each_table() {
         },
         Day::new("2026-11-01", 2.5),
     ];
-    let sandbox = Sandbox::new("buckets", &usage(&[("-p", &days)]));
+    let sandbox = Fixture::new("buckets", &usage(&[("-p", &days)]));
 
     let weekly = sandbox
         .run(&["weekly"])
@@ -383,7 +367,7 @@ fn buckets_days_by_week_from_sunday_and_by_month_and_totals_each_table() {
     assert_line(&monthly, "2026-11 1,000 10 0 0 1,010 0.0% $2.50");
 }
 
-impl Sandbox {
+impl Fixture {
     /// Records `cwd` as the cwd of `project`'s session log under the config dir `config`,
     /// after a line that records none.
     fn session(config: &Path, project: &str, cwd: &str) {
@@ -401,7 +385,7 @@ impl Sandbox {
 
     /// A directory under the sandbox that exists, as a session's cwd.
     fn dir(&self, path: &str) -> PathBuf {
-        let dir = self.root.join(path);
+        let dir = self.root().join(path);
         fs::create_dir_all(&dir).expect("the directory is created");
         dir
     }
@@ -413,32 +397,32 @@ fn text(path: &Path) -> &str {
 
 #[test]
 fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
-    let sandbox = Sandbox::new("repositories", NO_USAGE);
+    let sandbox = Fixture::new("repositories", NO_USAGE);
     let config = sandbox.config();
     let alpha = sandbox.dir("repos/alpha");
     let beta = sandbox.dir("repos/beta");
     let plain = sandbox.dir("plain");
-    Sandbox::session(&config, "-alpha", text(&alpha));
-    Sandbox::session(
+    Fixture::session(&config, "-alpha", text(&alpha));
+    Fixture::session(
         &config,
         "-alpha-wt",
         text(&alpha.join(".claude/worktrees/x/sub")),
     );
-    Sandbox::session(
+    Fixture::session(
         &config,
         "-scratch",
         "/private/tmp/claude-501/-alpha/abc/scratchpad",
     );
-    Sandbox::session(&config, "-beta", text(&beta));
-    Sandbox::session(&config, "-moved", "/nowhere/moved-repo");
-    Sandbox::session(&config, "-gone", "/tmp/gone");
-    Sandbox::session(&config, "-var-gone", "/var/dotfiles-local-test-gone");
-    Sandbox::session(
+    Fixture::session(&config, "-beta", text(&beta));
+    Fixture::session(&config, "-moved", "/nowhere/moved-repo");
+    Fixture::session(&config, "-gone", "/tmp/gone");
+    Fixture::session(&config, "-var-gone", "/var/dotfiles-local-test-gone");
+    Fixture::session(
         &config,
         "-private-gone",
         "/private/dotfiles-local-test-gone",
     );
-    Sandbox::session(&config, "-plain", text(&plain));
+    Fixture::session(&config, "-plain", text(&plain));
     let day = |cost| [Day::new("2026-11-01", cost)];
     sandbox.ccusage(
         &usage(&[
@@ -478,9 +462,9 @@ fn counts_each_project_toward_the_repository_its_sessions_ran_in() {
 
 #[test]
 fn escapes_the_report_for_html() {
-    let sandbox = Sandbox::new("escapes", NO_USAGE);
+    let sandbox = Fixture::new("escapes", NO_USAGE);
     let dir = sandbox.dir("r&d");
-    Sandbox::session(&sandbox.config(), "-rd", text(&dir));
+    Fixture::session(&sandbox.config(), "-rd", text(&dir));
     let git = dir.join(".git");
     sandbox.repositories(&[(&dir, text(&git))]);
     sandbox.ccusage(
@@ -503,9 +487,9 @@ fn escapes_the_report_for_html() {
 
 #[test]
 fn shows_a_model_name_with_multibyte_characters_near_its_end_without_the_prefix() {
-    let sandbox = Sandbox::new("multibyte-model", NO_USAGE);
+    let sandbox = Fixture::new("multibyte-model", NO_USAGE);
     let dir = sandbox.dir("repo");
-    Sandbox::session(&sandbox.config(), "-repo", text(&dir));
+    Fixture::session(&sandbox.config(), "-repo", text(&dir));
     let git = dir.join(".git");
     sandbox.repositories(&[(&dir, text(&git))]);
     sandbox.ccusage(
@@ -532,11 +516,11 @@ fn shows_a_model_name_with_multibyte_characters_near_its_end_without_the_prefix(
 
 #[test]
 fn reads_session_logs_from_each_claude_config_dir_entry_that_holds_or_is_projects() {
-    let sandbox = Sandbox::new("config-dirs", NO_USAGE);
-    let holds = sandbox.root.join("holds");
-    let named = sandbox.root.join("other/projects");
+    let sandbox = Fixture::new("config-dirs", NO_USAGE);
+    let holds = sandbox.root().join("holds");
+    let named = sandbox.root().join("other/projects");
     let repo = sandbox.dir("repo");
-    Sandbox::session(&holds, "-a", text(&repo));
+    Fixture::session(&holds, "-a", text(&repo));
     fs::create_dir_all(named.join("-b")).expect("the project's directory is created");
     fs::write(
         named.join("-b/s.jsonl"),
@@ -556,7 +540,7 @@ fn reads_session_logs_from_each_claude_config_dir_entry_that_holds_or_is_project
         " {} ,{},,{}/neither",
         holds.display(),
         named.display(),
-        sandbox.root.display()
+        sandbox.root().display()
     );
 
     let run = sandbox.run_with(&["daily"], &[("CLAUDE_CONFIG_DIR", entries.as_ref())]);
@@ -569,12 +553,12 @@ fn reads_session_logs_from_each_claude_config_dir_entry_that_holds_or_is_project
 // Without CLAUDE_CONFIG_DIR, ccusage reads both of these.
 #[test]
 fn reads_session_logs_under_the_xdg_config_dir_and_the_home_dir_by_default() {
-    let sandbox = Sandbox::new("default-dirs", NO_USAGE);
-    let xdg = sandbox.root.join("xdg");
-    let home = sandbox.root.join("home");
+    let sandbox = Fixture::new("default-dirs", NO_USAGE);
+    let xdg = sandbox.root().join("xdg");
+    let home = sandbox.root().join("home");
     let (first, second) = (sandbox.dir("first"), sandbox.dir("second"));
-    Sandbox::session(&xdg.join("claude"), "-a", text(&first));
-    Sandbox::session(&home.join(".claude"), "-b", text(&second));
+    Fixture::session(&xdg.join("claude"), "-a", text(&first));
+    Fixture::session(&home.join(".claude"), "-b", text(&second));
     let (first_git, second_git) = (first.join(".git"), second.join(".git"));
     sandbox.repositories(&[(&first, text(&first_git)), (&second, text(&second_git))]);
     sandbox.ccusage(
@@ -601,7 +585,7 @@ fn reads_session_logs_under_the_xdg_config_dir_and_the_home_dir_by_default() {
 
 #[test]
 fn fails_on_ccusage_output_with_no_per_project_breakdown() {
-    let sandbox = Sandbox::new("no-projects", r#"{"totals": {"totalTokens": 5}}"#);
+    let sandbox = Fixture::new("no-projects", r#"{"totals": {"totalTokens": 5}}"#);
 
     let run = sandbox.run(&["daily"]);
 
@@ -636,7 +620,7 @@ fn fails_at_a_day_that_lacks_a_field_the_tables_read_naming_that_day() {
         day["modelBreakdowns"] = serde_json::json!([model]);
         broken.push((field, day));
     }
-    let sandbox = Sandbox::new("lacks-a-field", NO_USAGE);
+    let sandbox = Fixture::new("lacks-a-field", NO_USAGE);
 
     for (field, day) in broken {
         sandbox.ccusage(
@@ -664,7 +648,7 @@ fn fails_at_a_day_that_lacks_a_field_the_tables_read_naming_that_day() {
 
 #[test]
 fn fails_with_ccusages_status_when_ccusage_fails() {
-    let sandbox = Sandbox::new("ccusage-fails", "");
+    let sandbox = Fixture::new("ccusage-fails", "");
     sandbox.ccusage("", 3);
 
     let run = sandbox.run(&["daily"]);
@@ -693,7 +677,7 @@ fn shows_costs_to_the_nearest_cent_grouped_by_thousands_and_shares_to_a_tenth() 
         // Half a cent rounds away from zero.
         Day::new("2026-11-03", 0.125),
     ];
-    let sandbox = Sandbox::new("number-formats", &usage(&[("-p", &days)]));
+    let sandbox = Fixture::new("number-formats", &usage(&[("-p", &days)]));
 
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 
@@ -706,7 +690,7 @@ fn shows_costs_to_the_nearest_cent_grouped_by_thousands_and_shares_to_a_tenth() 
     assert_line(&html, "Total 3,000 30 1,000 1,000 3,030 20.0% $1,234.82");
 }
 
-impl Sandbox {
+impl Fixture {
     /// Runs `args` and asserts that the run failed with exit 1 and `message` as its one
     /// line on stderr, before reaching Quick Look.
     fn assert_fails(&self, args: &[&str], message: &str) {
@@ -724,7 +708,7 @@ impl Sandbox {
 
 #[test]
 fn fails_on_ccusage_output_that_is_not_json() {
-    let sandbox = Sandbox::new("not-json", "not json");
+    let sandbox = Fixture::new("not-json", "not json");
 
     let run = sandbox.run(&["daily"]);
 
@@ -740,7 +724,7 @@ fn fails_on_ccusage_output_that_is_not_json() {
 
 #[test]
 fn fails_on_projects_that_are_not_an_object() {
-    let sandbox = Sandbox::new("projects-list", r#"{"projects": []}"#);
+    let sandbox = Fixture::new("projects-list", r#"{"projects": []}"#);
 
     sandbox.assert_fails(
         &["daily"],
@@ -750,7 +734,7 @@ fn fails_on_projects_that_are_not_an_object() {
 
 #[test]
 fn fails_on_a_project_whose_days_are_not_a_list() {
-    let sandbox = Sandbox::new("days-object", r#"{"projects": {"-p": {"a": 1}}}"#);
+    let sandbox = Fixture::new("days-object", r#"{"projects": {"-p": {"a": 1}}}"#);
 
     sandbox.assert_fails(
         &["daily"],
@@ -761,7 +745,7 @@ fn fails_on_a_project_whose_days_are_not_a_list() {
 #[test]
 fn fails_on_a_date_a_week_cannot_be_found_for() {
     let day = Day::new("x", 1.0);
-    let sandbox = Sandbox::new("bad-date", &usage(&[("-p", &[day])]));
+    let sandbox = Fixture::new("bad-date", &usage(&[("-p", &[day])]));
 
     sandbox.assert_fails(
         &["weekly"],
@@ -774,14 +758,14 @@ fn fails_on_a_date_a_week_cannot_be_found_for() {
 
 #[test]
 fn fails_when_there_is_no_ccusage() {
-    let sandbox = Sandbox::new("no-ccusage", NO_USAGE);
-    fs::remove_file(sandbox.root.join("bin/ccusage")).expect("the fake is removed");
+    let sandbox = Fixture::new("no-ccusage", NO_USAGE);
+    fs::remove_file(sandbox.root().join("bin/ccusage")).expect("the fake is removed");
 
     let run = sandbox.run_with(
         &["daily"],
         &[
             ("CLAUDE_CONFIG_DIR", sandbox.config().as_os_str()),
-            ("PATH", sandbox.root.join("bin").as_os_str()),
+            ("PATH", sandbox.root().join("bin").as_os_str()),
         ],
     );
 
@@ -791,8 +775,8 @@ fn fails_when_there_is_no_ccusage() {
 
 #[test]
 fn fails_on_a_session_log_it_cannot_read() {
-    let sandbox = Sandbox::new("unreadable-log", NO_USAGE);
-    Sandbox::session(&sandbox.config(), "-p", "/nowhere");
+    let sandbox = Fixture::new("unreadable-log", NO_USAGE);
+    Fixture::session(&sandbox.config(), "-p", "/nowhere");
     let log = sandbox.config().join("projects/-p/s.jsonl");
     fs::set_permissions(&log, fs::Permissions::from_mode(0o000))
         .expect("the log is made unreadable");
@@ -850,7 +834,7 @@ fn lays_out_each_table_in_aligned_columns() {
         },
         Day::new("2026-11-02", 12.25),
     ];
-    let sandbox = Sandbox::new("layout", &usage(&[("-p", &days)]));
+    let sandbox = Fixture::new("layout", &usage(&[("-p", &days)]));
 
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 
@@ -873,7 +857,7 @@ fn keeps_a_model_name_whose_last_nine_characters_are_not_a_date() {
             ..Day::new("2026-11-01", 2.0)
         },
     ];
-    let sandbox = Sandbox::new("not-a-date", &usage(&[("-p", &days)]));
+    let sandbox = Fixture::new("not-a-date", &usage(&[("-p", &days)]));
 
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 
@@ -884,17 +868,17 @@ fn keeps_a_model_name_whose_last_nine_characters_are_not_a_date() {
 // even where its next component names a project.
 #[test]
 fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
-    let sandbox = Sandbox::new("scratchpad-uid", NO_USAGE);
+    let sandbox = Fixture::new("scratchpad-uid", NO_USAGE);
     let config = sandbox.config();
     let repo = sandbox.dir("repo");
-    Sandbox::session(&config, "-repo", text(&repo));
-    Sandbox::session(
+    Fixture::session(&config, "-repo", text(&repo));
+    Fixture::session(
         &config,
         "-uid",
         "/private/tmp/claude-501/-repo/s/scratchpad",
     );
-    Sandbox::session(&config, "-tmp-uid", "/tmp/claude-501/-repo/s/scratchpad");
-    Sandbox::session(
+    Fixture::session(&config, "-tmp-uid", "/tmp/claude-501/-repo/s/scratchpad");
+    Fixture::session(
         &config,
         "-no-uid",
         "/private/tmp/claude-/-repo/s/scratchpad",
@@ -922,7 +906,7 @@ fn counts_a_session_toward_its_parent_project_only_under_a_uid() {
 // A project's sessions are its *.jsonl logs, read in name order until one records a cwd.
 #[test]
 fn takes_a_projects_cwd_from_the_first_jsonl_log_by_name_that_records_one() {
-    let sandbox = Sandbox::new("first-log", NO_USAGE);
+    let sandbox = Fixture::new("first-log", NO_USAGE);
     let (repo, wrong) = (sandbox.dir("repo"), sandbox.dir("wrong"));
     let dir = sandbox.config().join("projects/-p");
     fs::create_dir_all(&dir).expect("the project's directory is created");
@@ -961,7 +945,7 @@ fn orders_keys_of_equal_cost_by_name() {
             ..Day::new("2026-11-01", 1.0)
         },
     ];
-    let sandbox = Sandbox::new("equal-costs", &usage(&[("-p", &days)]));
+    let sandbox = Fixture::new("equal-costs", &usage(&[("-p", &days)]));
 
     let html = sandbox.run(&["daily"]).html.expect("Quick Look is reached");
 

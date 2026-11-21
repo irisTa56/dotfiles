@@ -2,13 +2,14 @@
 //! osascript that stands in for macOS's, since the tests run on Linux too.
 
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Output};
+use std::path::Path;
+use std::process::Output;
+
+use crate::support::{Sandbox, dotfiles_local};
 
 /// A directory of the tests' own, holding the script to run and a fake osascript.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
     /// Whether the tests' own PATH follows the sandbox's `bin`, which leaves out
     /// macOS's osascript where the sandbox has none.
     path: SearchPath,
@@ -26,70 +27,65 @@ struct Run {
     applescript: Option<String>,
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`, whose osascript ends with `exit` (a shell
     /// command, such as `exit 3`).
     fn new(test: &str, exit: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("with-new-terminal")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(root.join("bin")).expect("the sandbox is created");
+        let sandbox = Sandbox::new("with-new-terminal", test, &[]);
         fs::write(
-            root.join("job.sh"),
+            sandbox.root().join("job.sh"),
             "#!/bin/zsh\n# a comment\n\n  # an indented comment\necho \"a\\b\" && ls\n",
         )
         .expect("the script is written");
-        let osascript = root.join("bin/osascript");
         // It records its arguments one per NUL, and prints what macOS's prints for a
         // new window, which no caller of with-new-terminal reads.
-        fs::write(
-            &osascript,
-            format!(
-                "#!/bin/sh\nprintf '%s\\0' \"$@\" > \"$(dirname \"$0\")/args\"\necho 'tab 1 of window id 1'\n{exit}\n"
+        sandbox.fake(
+            "osascript",
+            &format!(
+                "printf '%s\\0' \"$@\" > \"$(dirname \"$0\")/args\"\necho 'tab 1 of window id 1'\n{exit}"
             ),
-        )
-        .expect("the fake osascript is written");
-        fs::set_permissions(&osascript, fs::Permissions::from_mode(0o755))
-            .expect("the fake osascript is made executable");
-        Sandbox {
-            root,
+        );
+        Fixture {
+            sandbox,
             path: SearchPath::Inherited,
         }
     }
 
+    fn root(&self) -> &Path {
+        self.sandbox.root()
+    }
+
     /// This sandbox with no osascript to be found.
     fn without_osascript(self) -> Self {
-        fs::remove_file(self.root.join("bin/osascript")).expect("the fake osascript is removed");
-        Sandbox {
+        fs::remove_file(self.root().join("bin/osascript")).expect("the fake osascript is removed");
+        Fixture {
             path: SearchPath::SandboxOnly,
             ..self
         }
     }
 
     fn script(&self) -> String {
-        self.root.join("job.sh").display().to_string()
+        self.root().join("job.sh").display().to_string()
     }
 
     /// Runs `with-new-terminal` from the sandbox, finding the fake osascript first on PATH.
     fn run(&self, args: &[&str]) -> Run {
         let path = std::env::var_os("PATH").unwrap_or_default();
-        let mut dirs = vec![self.root.join("bin")];
+        let mut dirs = vec![self.sandbox.bin()];
         if let SearchPath::Inherited = self.path {
             dirs.extend(std::env::split_paths(&path));
         }
-        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("with-new-terminal")
+        let output = dotfiles_local("with-new-terminal")
             .args(args)
-            .current_dir(&self.root)
-            .env("HOME", &self.root)
+            .current_dir(self.root())
+            .env("HOME", self.root())
             .env(
                 "PATH",
                 std::env::join_paths(dirs).expect("no directory on PATH holds a colon"),
             )
             .output()
             .expect("dotfiles-local starts");
-        let applescript = fs::read(self.root.join("bin/args")).ok().map(|args| {
+        let applescript = fs::read(self.root().join("bin/args")).ok().map(|args| {
             let args = String::from_utf8(args).expect("the arguments are UTF-8");
             let args: Vec<&str> = args.trim_end_matches('\0').split('\0').collect();
             match args.as_slice() {
@@ -116,7 +112,7 @@ impl Run {
 
 #[test]
 fn runs_the_script_in_a_new_window_without_its_comment_and_blank_lines() {
-    let sandbox = Sandbox::new("runs", "exit 0");
+    let sandbox = Fixture::new("runs", "exit 0");
     let run = sandbox.run(&[&sandbox.script()]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
     assert_eq!(
@@ -134,7 +130,7 @@ fn runs_the_script_in_a_new_window_without_its_comment_and_blank_lines() {
 
 #[test]
 fn changes_to_cwd_first_and_takes_the_title_from_title() {
-    let sandbox = Sandbox::new("cwd-title", "exit 0");
+    let sandbox = Fixture::new("cwd-title", "exit 0");
     let run = sandbox.run(&[&sandbox.script(), "--cwd", "/srv/app", "--title", "a \"b\""]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
     let applescript = run.applescript.expect("osascript ran");
@@ -151,7 +147,7 @@ fn changes_to_cwd_first_and_takes_the_title_from_title() {
 // The shell function leaves the directory it was called from as the command's own.
 #[test]
 fn reads_a_relative_script_path_from_the_directory_it_runs_in() {
-    let sandbox = Sandbox::new("relative", "exit 0");
+    let sandbox = Fixture::new("relative", "exit 0");
     let run = sandbox.run(&["job.sh"]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
     assert!(run.applescript.expect("osascript ran").contains("&& ls"));
@@ -159,7 +155,7 @@ fn reads_a_relative_script_path_from_the_directory_it_runs_in() {
 
 #[test]
 fn fails_with_osascripts_status_when_it_fails() {
-    let sandbox = Sandbox::new("osascript-fails", "exit 3");
+    let sandbox = Fixture::new("osascript-fails", "exit 3");
     let run = sandbox.run(&[&sandbox.script()]);
     assert_eq!(
         (run.code(), run.stderr().as_str()),
@@ -169,7 +165,7 @@ fn fails_with_osascripts_status_when_it_fails() {
 
 #[test]
 fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
-    let sandbox = Sandbox::new("usage", "exit 0");
+    let sandbox = Fixture::new("usage", "exit 0");
     for args in [
         &[][..],
         &["a.sh", "b.sh"],
@@ -195,7 +191,7 @@ fn refuses_anything_but_one_script_path_with_its_usage_and_exit_1() {
 // `--`.
 #[test]
 fn reads_options_anywhere_and_with_an_equals_sign() {
-    let sandbox = Sandbox::new("options", "exit 0");
+    let sandbox = Fixture::new("options", "exit 0");
     let run = sandbox.run(&[
         "--title=first",
         "--cwd",
@@ -216,7 +212,7 @@ fn reads_options_anywhere_and_with_an_equals_sign() {
 
 #[test]
 fn fails_with_exit_1_on_a_script_it_cannot_read() {
-    let sandbox = Sandbox::new("missing", "exit 0");
+    let sandbox = Fixture::new("missing", "exit 0");
     let run = sandbox.run(&["missing.sh"]);
     assert_eq!(run.code(), Some(1));
     assert!(
@@ -230,7 +226,7 @@ fn fails_with_exit_1_on_a_script_it_cannot_read() {
 // A value may open with `-` where a digit, a space or nothing follows it.
 #[test]
 fn takes_a_value_that_opens_with_a_dash_where_the_mix_task_took_it() {
-    let sandbox = Sandbox::new("dash-values", "exit 0");
+    let sandbox = Fixture::new("dash-values", "exit 0");
     for value in ["-", "- x", "-1abc"] {
         let run = sandbox.run(&["job.sh", "--title", value]);
         assert_eq!(run.code(), Some(0), "value {value:?}: {}", run.stderr());
@@ -245,8 +241,8 @@ fn takes_a_value_that_opens_with_a_dash_where_the_mix_task_took_it() {
 // A byte that is not UTF-8 in a comment line goes with the line.
 #[test]
 fn runs_a_script_that_is_not_utf8() {
-    let sandbox = Sandbox::new("not-utf8", "exit 0");
-    fs::write(sandbox.root.join("latin.sh"), b"echo hi\n# caf\xe9\n")
+    let sandbox = Fixture::new("not-utf8", "exit 0");
+    fs::write(sandbox.root().join("latin.sh"), b"echo hi\n# caf\xe9\n")
         .expect("the script is written");
     let run = sandbox.run(&["latin.sh"]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
@@ -260,7 +256,7 @@ fn runs_a_script_that_is_not_utf8() {
 // A `~` the shell left alone, as in a quoted path, stands for the home directory.
 #[test]
 fn reads_a_script_path_under_home_that_opens_with_a_tilde() {
-    let sandbox = Sandbox::new("tilde", "exit 0");
+    let sandbox = Fixture::new("tilde", "exit 0");
     let run = sandbox.run(&["~/job.sh"]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
     assert!(
@@ -273,7 +269,7 @@ fn reads_a_script_path_under_home_that_opens_with_a_tilde() {
 // A signal ends it with the status a shell gives a command the signal ended.
 #[test]
 fn fails_with_128_and_the_signal_when_a_signal_ends_osascript() {
-    let sandbox = Sandbox::new("osascript-killed", "kill -9 $$");
+    let sandbox = Fixture::new("osascript-killed", "kill -9 $$");
     let run = sandbox.run(&["job.sh"]);
     assert_eq!(
         (run.code(), run.stderr().as_str()),
@@ -283,7 +279,7 @@ fn fails_with_128_and_the_signal_when_a_signal_ends_osascript() {
 
 #[test]
 fn fails_with_exit_1_where_there_is_no_osascript() {
-    let sandbox = Sandbox::new("no-osascript", "exit 0").without_osascript();
+    let sandbox = Fixture::new("no-osascript", "exit 0").without_osascript();
     let run = sandbox.run(&["job.sh"]);
     assert_eq!(run.code(), Some(1));
     assert!(
@@ -296,8 +292,8 @@ fn fails_with_exit_1_where_there_is_no_osascript() {
 // What follows the last command, such as a CR line end or spaces, is left out.
 #[test]
 fn leaves_out_whitespace_after_the_last_command() {
-    let sandbox = Sandbox::new("trailing", "exit 0");
-    fs::write(sandbox.root.join("crlf.sh"), "echo a\r\nls  \r\n").expect("the script is written");
+    let sandbox = Fixture::new("trailing", "exit 0");
+    fs::write(sandbox.root().join("crlf.sh"), "echo a\r\nls  \r\n").expect("the script is written");
     let run = sandbox.run(&["crlf.sh"]);
     assert_eq!(run.code(), Some(0), "stderr: {}", run.stderr());
     assert!(

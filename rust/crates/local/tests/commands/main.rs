@@ -20,4 +20,5 @@ mod reply_language_stop;
 mod setup_dotfiles;
 mod skills_unmanaged;
 mod skills_update;
+mod support;
 mod with_new_terminal;

@@ -1,11 +1,9 @@
 //! What the `PreToolUse` hook tests share: running a hook on a Bash call, with a fake
 //! standing in for the tool on PATH the hook asks, where it asks one.
 
-use std::fs;
-use std::io::Write as _;
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::path::PathBuf;
+
+use crate::support::{Sandbox, dotfiles_local, output_with_input};
 
 /// The tool on PATH: GNU's or BSD's, told apart as the hooks tell them, by whether
 /// `--version` succeeds, none, or a fake running the given shell script body.
@@ -114,21 +112,10 @@ impl Hook {
 
     /// Runs the hook with `input` as its stdin, under the tool `tool`.
     pub(crate) fn run_with_input(&self, test: &str, tool: Tool, input: &str) -> Run {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg(self.name)
-            .env("PATH", self.bin(test, tool))
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("dotfiles-local starts");
+        let mut command = dotfiles_local(self.name);
+        command.env("PATH", self.bin(test, tool));
         // The hook need not read its input, as where the tool is the BSD one.
-        let _ = child
-            .stdin
-            .take()
-            .expect("stdin is piped")
-            .write_all(input.as_bytes());
-        let output = child.wait_with_output().expect("dotfiles-local ends");
+        let output = output_with_input(command, input.as_bytes());
         Run {
             code: output.status.code(),
             out: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -136,27 +123,20 @@ impl Hook {
         }
     }
 
-    /// A directory of the test's own whose `bin`, alone on PATH, holds the fake tool.
+    /// A sandbox of the test's own whose `bin`, alone on PATH, holds the fake tool.
     fn bin(&self, test: &str, tool: Tool) -> PathBuf {
-        let bin = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join(self.name)
-            .join(test)
-            .join("bin");
-        let _ = fs::remove_dir_all(&bin);
-        fs::create_dir_all(&bin).expect("the sandbox is created");
+        let sandbox = Sandbox::new(self.name, test, &[]);
         let body = match tool {
             Tool::Gnu => "exit 0",
             Tool::Bsd => "exit 1",
             Tool::Fake(body) => body,
-            Tool::Missing => return bin,
+            Tool::Missing => return sandbox.bin(),
         };
-        let path = bin.join(
+        sandbox.fake(
             self.tool
                 .expect("a hook judging by the command alone runs under Tool::Missing"),
+            body,
         );
-        fs::write(&path, format!("#!/bin/sh\n{body}\n")).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
-        bin
+        sandbox.bin()
     }
 }

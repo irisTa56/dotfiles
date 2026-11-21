@@ -4,11 +4,12 @@
 //! here too. apm is a fake that records how it was called.
 
 use std::fs::{self, File};
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Output, Stdio};
+use std::path::Path;
+use std::process::{Output, Stdio};
 
 use jiff::{SignedDuration, Timestamp};
+
+use crate::support::{Sandbox, dotfiles_local};
 
 /// A merge time long past the day a change is held for.
 const OLD: &str = "2026-01-01T00:00:00Z";
@@ -47,8 +48,8 @@ enum Answer<'a> {
 }
 
 /// A directory of the test's own, holding the lockfile and the fake gh and apm.
-struct Sandbox {
-    root: PathBuf,
+struct Fixture {
+    sandbox: Sandbox,
 }
 
 /// What a run left: its exit status and its stdout followed by its stderr.
@@ -63,22 +64,17 @@ impl Run {
     }
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`, holding `lock` as apm.lock.yaml, whose apm
     /// fails with `exit` when called with the subcommand `failing`, if any.
     fn new(test: &str, lock: &str) -> Self {
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("skills-update")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(root.join("bin")).expect("the sandbox is created");
-        fs::create_dir_all(root.join("gh")).expect("the GitHub answers' directory is created");
-        fs::write(root.join("apm.lock.yaml"), lock).expect("the lockfile is written");
-        let sandbox = Sandbox { root };
-        sandbox.apm_failing("", 0);
+        let sandbox = Sandbox::new("skills-update", test, &["gh"]);
+        fs::write(sandbox.root().join("apm.lock.yaml"), lock).expect("the lockfile is written");
+        let fixture = Fixture { sandbox };
+        fixture.apm_failing("", 0);
         // It answers a path with the file named after it, through jq as gh applies
         // --jq, and fails where there is none. It records each path it is asked.
-        sandbox.fake(
+        fixture.sandbox.fake(
             "gh",
             "dir=$(dirname \"$0\")/..\n\
              echo \"$2\" >> \"$dir/gh.log\"\n\
@@ -86,19 +82,16 @@ impl Sandbox {
              [ -f \"$answer\" ] || exit 1\n\
              exec jq -r \"$4\" \"$answer\"\n",
         );
-        sandbox
+        fixture
     }
 
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, format!("#!/bin/sh\n{body}")).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// Makes apm fail with `code` when its subcommand is `subcommand`.
     fn apm_failing(&self, subcommand: &str, code: u8) {
-        self.fake(
+        self.sandbox.fake(
             "apm",
             &format!(
                 "dir=$(dirname \"$0\")/..\n\
@@ -142,15 +135,14 @@ impl Sandbox {
             .chars()
             .map(|c| if "/?&=".contains(c) { '_' } else { c })
             .collect();
-        fs::write(self.root.join("gh").join(file), json).expect("the answer is written");
+        fs::write(self.root().join("gh").join(file), json).expect("the answer is written");
     }
 
     /// Runs `skills-update` with `args` from the sandbox, finding the fakes first on PATH.
     fn run(&self, args: &[&str]) -> Run {
-        let output: Output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("skills-update")
+        let output: Output = dotfiles_local("skills-update")
             .args(args)
-            .current_dir(&self.root)
+            .current_dir(self.root())
             .env("PATH", self.search_path())
             .output()
             .expect("dotfiles-local starts");
@@ -167,9 +159,9 @@ impl Sandbox {
     /// Makes yq print `json` for any lockfile, through an absolute path to cat, so that it
     /// runs where PATH holds the sandbox's `bin` alone.
     fn yq_printing(&self, json: &str) {
-        let lock = self.root.join("lock.json");
+        let lock = self.root().join("lock.json");
         fs::write(&lock, json).expect("the JSON yq prints is written");
-        self.fake(
+        self.sandbox.fake(
             "yq",
             &format!("echo 'yq warns' >&2\nexec /bin/cat '{}'\n", lock.display()),
         );
@@ -178,22 +170,17 @@ impl Sandbox {
     /// Runs `skills-update` with `args` from the sandbox, with its `bin` alone on PATH,
     /// and returns its stdout and stderr apart.
     fn run_isolated(&self, args: &[&str]) -> Output {
-        Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("skills-update")
+        dotfiles_local("skills-update")
             .args(args)
-            .current_dir(&self.root)
-            .env("PATH", self.root.join("bin"))
+            .current_dir(self.root())
+            .env("PATH", self.sandbox.bin())
             .output()
             .expect("dotfiles-local starts")
     }
 
     /// The tests' own PATH, after the sandbox's `bin`.
     fn search_path(&self) -> std::ffi::OsString {
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        std::env::join_paths(
-            std::iter::once(self.root.join("bin")).chain(std::env::split_paths(&inherited)),
-        )
-        .expect("PATH is joined")
+        self.sandbox.path_before_inherited()
     }
 
     /// Each call apm was given, its arguments joined by spaces.
@@ -208,7 +195,7 @@ impl Sandbox {
 
     fn log(&self, name: &str) -> Vec<String> {
         // A fake writes its log on its first call.
-        fs::read_to_string(self.root.join(name)).map_or_else(
+        fs::read_to_string(self.root().join(name)).map_or_else(
             |_| Vec::new(),
             |log| log.lines().map(str::to_owned).collect(),
         )
@@ -227,7 +214,7 @@ fn hours_ago(hours: i64) -> String {
 
 #[test]
 fn updates_a_skill_whose_last_change_merged_over_a_day_ago_and_holds_a_newer_one() {
-    let sandbox = Sandbox::new("updates-and-holds", LOCK);
+    let sandbox = Fixture::new("updates-and-holds", LOCK);
     let recent = hours_ago(23);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(&recent));
@@ -249,7 +236,7 @@ fn updates_a_skill_whose_last_change_merged_over_a_day_ago_and_holds_a_newer_one
 
 #[test]
 fn updates_a_skill_just_past_a_day() {
-    let sandbox = Sandbox::new("just-past-a-day", LOCK);
+    let sandbox = Fixture::new("just-past-a-day", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(&hours_ago(25)));
 
@@ -265,27 +252,26 @@ fn updates_a_skill_just_past_a_day() {
 // The mise task runs it from the root of the checkout it ran in, whose apm.yml apm reads.
 #[test]
 fn reads_the_lockfile_and_runs_every_apm_call_in_the_directory_it_runs_in() {
-    let sandbox = Sandbox::new("runs-where-it-is", LOCK);
+    let sandbox = Fixture::new("runs-where-it-is", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(OLD));
 
     let run = sandbox.run(&[]);
 
     assert_eq!(run.code, Some(0), "{}", run.out);
-    let root = fs::canonicalize(&sandbox.root).expect("the sandbox resolves");
+    let root = fs::canonicalize(sandbox.root()).expect("the sandbox resolves");
     let cwds = sandbox.log("apm.cwd");
     assert_eq!(cwds, vec![root.display().to_string(); 3]);
 }
 
 #[test]
 fn passes_on_what_apm_prints_to_either_stream_on_stdout() {
-    let sandbox = Sandbox::new("apm-output", LOCK);
+    let sandbox = Fixture::new("apm-output", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(OLD));
 
-    let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-        .arg("skills-update")
-        .current_dir(&sandbox.root)
+    let output = dotfiles_local("skills-update")
+        .current_dir(sandbox.root())
         .env("PATH", sandbox.search_path())
         .output()
         .expect("dotfiles-local starts");
@@ -301,10 +287,10 @@ fn passes_on_what_apm_prints_to_either_stream_on_stdout() {
 // binary's own stdout is, and what it prints through them must still reach that stdout.
 #[test]
 fn gives_apm_a_pipe_for_each_stream_even_when_its_own_stdout_is_a_file() {
-    let sandbox = Sandbox::new("apm-pipes", LOCK);
-    sandbox.skill("old", &Answer::Merged(OLD));
-    sandbox.skill("recent", &Answer::Merged(OLD));
-    sandbox.fake(
+    let fixture = Fixture::new("apm-pipes", LOCK);
+    fixture.skill("old", &Answer::Merged(OLD));
+    fixture.skill("recent", &Answer::Merged(OLD));
+    fixture.sandbox.fake(
         "apm",
         "dir=$(dirname \"$0\")/..\n\
          for stream in stdout stderr; do\n\
@@ -314,19 +300,18 @@ fn gives_apm_a_pipe_for_each_stream_even_when_its_own_stdout_is_a_file() {
          echo \"apm says $1\"\n\
          echo \"apm warns $1\" >&2\n",
     );
-    let stdout_file = sandbox.root.join("stdout.txt");
+    let stdout_file = fixture.root().join("stdout.txt");
 
-    let status = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-        .arg("skills-update")
-        .current_dir(&sandbox.root)
-        .env("PATH", sandbox.search_path())
+    let status = dotfiles_local("skills-update")
+        .current_dir(fixture.root())
+        .env("PATH", fixture.search_path())
         .stdout(File::create(&stdout_file).expect("the stdout file is created"))
         .stderr(Stdio::null())
         .status()
         .expect("dotfiles-local starts");
 
     assert!(status.success(), "{status}");
-    let streams = sandbox.log("apm.streams");
+    let streams = fixture.log("apm.streams");
     let expected: Vec<String> = ["update", "install", "audit"]
         .iter()
         .flat_map(|step| [format!("{step} stdout pipe"), format!("{step} stderr pipe")])
@@ -343,7 +328,7 @@ fn gives_apm_a_pipe_for_each_stream_even_when_its_own_stdout_is_a_file() {
 
 #[test]
 fn asks_github_nothing_about_a_gist_and_updates_it() {
-    let sandbox = Sandbox::new("gist", LOCK);
+    let sandbox = Fixture::new("gist", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(OLD));
 
@@ -363,7 +348,7 @@ fn asks_github_nothing_about_a_gist_and_updates_it() {
 
 #[test]
 fn asks_about_a_whole_repository_by_its_commits_and_updates_it_by_name() {
-    let sandbox = Sandbox::new(
+    let sandbox = Fixture::new(
         "whole-repository",
         "dependencies:\n- name: whole\n  host: github.com\n  repo_url: o/whole\n",
     );
@@ -384,7 +369,7 @@ fn asks_about_a_whole_repository_by_its_commits_and_updates_it_by_name() {
 
 #[test]
 fn holds_a_path_with_no_commit_and_the_reason_says_so() {
-    let sandbox = Sandbox::new("no-commit", LOCK);
+    let sandbox = Fixture::new("no-commit", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::NoCommit);
 
@@ -402,7 +387,7 @@ fn holds_a_path_with_no_commit_and_the_reason_says_so() {
 
 #[test]
 fn holds_a_commit_with_no_pull_request_with_a_reason_that_claims_no_more() {
-    let sandbox = Sandbox::new("no-pull", LOCK);
+    let sandbox = Fixture::new("no-pull", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::NoPull);
 
@@ -420,7 +405,7 @@ fn holds_a_commit_with_no_pull_request_with_a_reason_that_claims_no_more() {
 
 #[test]
 fn holds_a_commit_whose_only_pull_request_went_to_another_branch_with_the_same_reason() {
-    let sandbox = Sandbox::new("other-branch", LOCK);
+    let sandbox = Fixture::new("other-branch", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::OtherBranch(OLD));
 
@@ -438,7 +423,7 @@ fn holds_a_commit_whose_only_pull_request_went_to_another_branch_with_the_same_r
 
 #[test]
 fn holds_a_skill_whose_request_fails_rather_than_updating_it() {
-    let sandbox = Sandbox::new("request-fails", LOCK);
+    let sandbox = Fixture::new("request-fails", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Fail);
 
@@ -456,7 +441,7 @@ fn holds_a_skill_whose_request_fails_rather_than_updating_it() {
 
 #[test]
 fn holds_a_skill_whose_merge_time_github_reports_in_a_form_it_cannot_read_saying_so() {
-    let sandbox = Sandbox::new("not-a-timestamp", LOCK);
+    let sandbox = Fixture::new("not-a-timestamp", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged("yesterday"));
 
@@ -474,7 +459,7 @@ fn holds_a_skill_whose_merge_time_github_reports_in_a_form_it_cannot_read_saying
 
 #[test]
 fn asks_about_and_updates_only_the_packages_named() {
-    let sandbox = Sandbox::new("named", LOCK);
+    let sandbox = Fixture::new("named", LOCK);
     sandbox.skill("recent", &Answer::Merged(OLD));
 
     let run = sandbox.run(&["o/r/skills/recent"]);
@@ -492,7 +477,7 @@ fn asks_about_and_updates_only_the_packages_named() {
 
 #[test]
 fn refuses_a_name_the_lockfile_does_not_hold_asking_and_updating_nothing() {
-    let sandbox = Sandbox::new("unknown-name", LOCK);
+    let sandbox = Fixture::new("unknown-name", LOCK);
 
     let run = sandbox.run(&["o/r/skills/typo", "o/r/skills/old"]);
 
@@ -507,7 +492,7 @@ fn refuses_a_name_the_lockfile_does_not_hold_asking_and_updating_nothing() {
 // A name matches one dependency, so the second time it is given there is none left for it.
 #[test]
 fn refuses_a_name_given_twice() {
-    let sandbox = Sandbox::new("name-twice", LOCK);
+    let sandbox = Fixture::new("name-twice", LOCK);
 
     let run = sandbox.run(&["o/r/skills/old", "o/r/skills/old"]);
 
@@ -519,7 +504,7 @@ fn refuses_a_name_given_twice() {
 
 #[test]
 fn runs_no_apm_when_every_chosen_skill_is_held() {
-    let sandbox = Sandbox::new("all-held", LOCK);
+    let sandbox = Fixture::new("all-held", LOCK);
     let recent = hours_ago(1);
     sandbox.skill("recent", &Answer::Merged(&recent));
 
@@ -537,7 +522,7 @@ fn runs_no_apm_when_every_chosen_skill_is_held() {
 
 #[test]
 fn fails_with_apms_status_when_a_step_fails_running_none_after_it() {
-    let sandbox = Sandbox::new("apm-fails", LOCK);
+    let sandbox = Fixture::new("apm-fails", LOCK);
     sandbox.skill("old", &Answer::Merged(OLD));
     sandbox.skill("recent", &Answer::Merged(OLD));
     sandbox.apm_failing("install", 4);
@@ -561,7 +546,7 @@ fn fails_with_apms_status_when_a_step_fails_running_none_after_it() {
 
 #[test]
 fn fails_with_yqs_status_when_it_cannot_read_the_lockfile() {
-    let sandbox = Sandbox::new("unreadable-lockfile", "dependencies: [\n");
+    let sandbox = Fixture::new("unreadable-lockfile", "dependencies: [\n");
 
     let run = sandbox.run(&[]);
 
@@ -576,7 +561,7 @@ fn fails_with_yqs_status_when_it_cannot_read_the_lockfile() {
 
 #[test]
 fn fails_at_a_lockfile_with_no_dependencies_list_naming_what_it_read() {
-    let sandbox = Sandbox::new("no-dependencies", "lockfile_version: '1'\n");
+    let sandbox = Fixture::new("no-dependencies", "lockfile_version: '1'\n");
 
     let run = sandbox.run(&[]);
 
@@ -591,7 +576,7 @@ fn fails_at_a_lockfile_with_no_dependencies_list_naming_what_it_read() {
 
 #[test]
 fn fails_at_a_dependency_with_no_repository_before_asking_github_anything() {
-    let sandbox = Sandbox::new(
+    let sandbox = Fixture::new(
         "no-repository",
         "dependencies:\n- name: lost\n  host: github.com\n  virtual_path: skills/lost\n",
     );
@@ -611,7 +596,7 @@ fn fails_at_a_dependency_with_no_repository_before_asking_github_anything() {
 
 #[test]
 fn prints_its_usage_for_help_and_h_and_refuses_another_flag_with_exit_2() {
-    let sandbox = Sandbox::new("usage", LOCK);
+    let sandbox = Fixture::new("usage", LOCK);
 
     for flag in ["--help", "-h"] {
         let run = sandbox.run(&[flag]);
@@ -634,7 +619,7 @@ fn prints_its_usage_for_help_and_h_and_refuses_another_flag_with_exit_2() {
 // flag after a name is taken as a name.
 #[test]
 fn reads_only_the_first_argument_as_a_flag() {
-    let sandbox = Sandbox::new("flag-position", LOCK);
+    let sandbox = Fixture::new("flag-position", LOCK);
 
     let run = sandbox.run(&["--help", "o/r/skills/old"]);
     assert_eq!(run.code, Some(2), "{}", run.out);
@@ -664,9 +649,9 @@ fn fails_with_exit_1_naming_a_command_it_cannot_run() {
             "apm update --yes own failed (",
         ),
     ] {
-        let sandbox = Sandbox::new(&format!("missing-{missing}"), LOCK);
+        let sandbox = Fixture::new(&format!("missing-{missing}"), LOCK);
         sandbox.yq_printing(lock);
-        fs::remove_file(sandbox.root.join("bin").join(missing)).expect("the fake is removed");
+        fs::remove_file(sandbox.root().join("bin").join(missing)).expect("the fake is removed");
 
         let output = sandbox.run_isolated(&[]);
 
@@ -685,10 +670,10 @@ fn fails_with_exit_1_naming_a_command_it_cannot_run() {
 
 #[test]
 fn fails_with_yqs_own_status() {
-    let sandbox = Sandbox::new("yq-status", LOCK);
-    sandbox.fake("yq", "exit 3\n");
+    let fixture = Fixture::new("yq-status", LOCK);
+    fixture.sandbox.fake("yq", "exit 3\n");
 
-    let output = sandbox.run_isolated(&[]);
+    let output = fixture.run_isolated(&[]);
 
     assert_eq!(
         (
@@ -701,11 +686,11 @@ fn fails_with_yqs_own_status() {
 
 #[test]
 fn passes_on_what_yq_and_gh_print_to_stderr() {
-    let sandbox = Sandbox::new("tool-stderr", LOCK);
-    sandbox.yq_printing(WHOLE);
-    sandbox.fake("gh", "echo 'gh warns' >&2\n");
+    let fixture = Fixture::new("tool-stderr", LOCK);
+    fixture.yq_printing(WHOLE);
+    fixture.sandbox.fake("gh", "echo 'gh warns' >&2\n");
 
-    let output = sandbox.run_isolated(&[]);
+    let output = fixture.run_isolated(&[]);
 
     assert_eq!(
         (
@@ -723,12 +708,12 @@ fn passes_on_what_yq_and_gh_print_to_stderr() {
 
 #[test]
 fn fails_with_128_and_the_signal_when_a_signal_ends_apm() {
-    let sandbox = Sandbox::new("apm-signal", LOCK);
-    sandbox.skill("old", &Answer::Merged(OLD));
-    sandbox.skill("recent", &Answer::Merged(OLD));
-    sandbox.fake("apm", "kill -9 $$\n");
+    let fixture = Fixture::new("apm-signal", LOCK);
+    fixture.skill("old", &Answer::Merged(OLD));
+    fixture.skill("recent", &Answer::Merged(OLD));
+    fixture.sandbox.fake("apm", "kill -9 $$\n");
 
-    let run = sandbox.run(&[]);
+    let run = fixture.run(&[]);
 
     assert_eq!(run.code, Some(137), "{}", run.out);
     assert!(
@@ -741,7 +726,7 @@ fn fails_with_128_and_the_signal_when_a_signal_ends_apm() {
 
 #[test]
 fn fails_at_a_dependency_with_no_name() {
-    let sandbox = Sandbox::new(
+    let sandbox = Fixture::new(
         "no-name",
         "dependencies:\n- host: gist.github.com\n  repo_url: me/abc\n",
     );
@@ -761,11 +746,11 @@ fn fails_at_a_dependency_with_no_name() {
 // rather than waiting on a terminal or pipe no one answers.
 #[test]
 fn gives_apm_no_input() {
-    let sandbox = Sandbox::new("apm-stdin", LOCK);
-    sandbox.skill("old", &Answer::Merged(OLD));
-    sandbox.skill("recent", &Answer::Merged(OLD));
-    let streams = sandbox.root.join("apm.stdin");
-    sandbox.fake(
+    let fixture = Fixture::new("apm-stdin", LOCK);
+    fixture.skill("old", &Answer::Merged(OLD));
+    fixture.skill("recent", &Answer::Merged(OLD));
+    let streams = fixture.root().join("apm.stdin");
+    fixture.sandbox.fake(
         "apm",
         &format!(
             "if test -p /dev/stdin; then echo pipe; else echo other; fi >> '{}'\n",
@@ -773,10 +758,9 @@ fn gives_apm_no_input() {
         ),
     );
 
-    let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-        .arg("skills-update")
-        .current_dir(&sandbox.root)
-        .env("PATH", sandbox.search_path())
+    let output = dotfiles_local("skills-update")
+        .current_dir(fixture.root())
+        .env("PATH", fixture.search_path())
         .stdin(Stdio::piped())
         .output()
         .expect("dotfiles-local starts");

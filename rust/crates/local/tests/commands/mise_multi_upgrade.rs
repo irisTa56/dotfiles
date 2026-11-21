@@ -9,10 +9,11 @@ use std::process::{Command, Stdio};
 
 use serde_json::{Value, json};
 
-/// A directory of the test's own, holding the fakes, their answers and their logs,
-/// removed when the test ends.
-struct Sandbox {
-    root: PathBuf,
+use crate::support::{DOTFILES_LOCAL, Sandbox, dotfiles_local, output_with_input};
+
+/// A sandbox of the test's own, holding the fakes, their answers and their logs.
+struct Fixture {
+    sandbox: Sandbox,
 }
 
 /// What a run left: its exit status, its stdout and its stderr.
@@ -22,31 +23,26 @@ struct Run {
     err: String,
 }
 
-impl Sandbox {
+impl Fixture {
     /// A fresh sandbox named after `test`, whose mise tracks no config and whose git
     /// takes every directory for a checkout of its own.
     fn new(test: &str) -> Self {
         // Under this repository's `target/` rather than the system's temporary
         // directory, which the command leaves out.
-        let root = Path::new(env!("CARGO_TARGET_TMPDIR"))
-            .join("mise-multi-upgrade")
-            .join(test);
-        let _ = fs::remove_dir_all(&root);
-        for dir in ["bin", "tmp", "answers"] {
-            fs::create_dir_all(root.join(dir)).expect("the sandbox is created");
-        }
-        let sandbox = Sandbox { root };
-        sandbox.fake_mise();
-        sandbox.fake_git();
-        sandbox
+        let fixture = Fixture {
+            sandbox: Sandbox::new("mise-multi-upgrade", test, &["tmp", "answers"]),
+        };
+        fixture.fake_mise();
+        fixture.fake_git();
+        fixture
     }
 
     /// A git that takes a directory `worktree` lists for a linked worktree of the
     /// project beside it, or for no repository where that is `none`, and any other
     /// directory for a checkout of its own.
     fn fake_git(&self) {
-        let root = self.root.display();
-        self.fake(
+        let root = self.root().display();
+        self.sandbox.fake(
             "git",
             &format!(
                 "dir=$2
@@ -65,12 +61,15 @@ impl Sandbox {
     /// Makes git take `dir` for a linked worktree of `project`, or for no repository
     /// where `project` is `none`.
     fn worktree(&self, dir: &str, project: &str) {
-        append(&self.root.join("worktrees"), &format!("{dir} {project}\n"));
+        append(
+            &self.root().join("worktrees"),
+            &format!("{dir} {project}\n"),
+        );
     }
 
     /// Makes mise track the config at `path`.
     fn track(&self, path: &str) {
-        append(&self.root.join("tracked"), &format!("{path}\n"));
+        append(&self.root().join("tracked"), &format!("{path}\n"));
     }
 
     /// Makes mise track a mise.toml in `dir`, returned.
@@ -112,19 +111,16 @@ impl Sandbox {
         );
     }
 
-    fn fake(&self, name: &str, body: &str) {
-        let path = self.root.join("bin").join(name);
-        fs::write(&path, format!("#!/bin/sh\n{body}")).expect("the fake is written");
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o755))
-            .expect("the fake is made executable");
+    fn root(&self) -> &Path {
+        self.sandbox.root()
     }
 
     /// A mise that answers each argument list from the files `answer` writes for it,
     /// and otherwise as mise does where nothing is outdated, recording each call and
     /// whatever it is given on stdin.
     fn fake_mise(&self) {
-        let root = self.root.display();
-        self.fake(
+        let root = self.root().display();
+        self.sandbox.fake(
             "mise",
             &format!(
                 "printf '%s\\n' \"$*\" >> '{root}/mise.log'\n\
@@ -148,7 +144,7 @@ impl Sandbox {
     /// Makes mise, called with `args`, print `out` and `err` and exit with `code`.
     fn answer(&self, args: &str, out: &str, err: &str, code: u8) {
         let key = args.replace(' ', "_").replace('/', "%");
-        let answers = self.root.join("answers");
+        let answers = self.root().join("answers");
         for (extension, contents) in [("out", out), ("err", err), ("code", &code.to_string())] {
             fs::write(answers.join(format!("{key}.{extension}")), contents)
                 .expect("the answer is written");
@@ -163,31 +159,23 @@ impl Sandbox {
 
     /// The path of `name` in the sandbox, as a string.
     fn dir(&self, name: &str) -> String {
-        self.root.join(name).display().to_string()
+        self.root().join(name).display().to_string()
     }
 
     /// Runs as `run` does, with the variables in `env` set, and `TEMP` and `TMP` unset
     /// unless they are among them.
     fn run_with(&self, args: &[&str], input: &str, env: &[(&str, &str)]) -> Run {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("mise-multi-upgrade")
+        let mut command = dotfiles_local("mise-multi-upgrade");
+        command
             .args(args)
-            .current_dir(&self.root)
+            .current_dir(self.root())
             .env("PATH", self.path())
             .env_remove("TMPDIR")
             .env_remove("TEMP")
             .env_remove("TMP")
-            .envs(env.iter().copied())
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("dotfiles-local starts");
-        let mut stdin = child.stdin.take().expect("stdin is piped");
+            .envs(env.iter().copied());
         // A run that stops reading early closes the pipe, which is no failure here.
-        let _ = stdin.write_all(input.as_bytes());
-        drop(stdin);
-        let output = child.wait_with_output().expect("dotfiles-local ends");
+        let output = output_with_input(command, input.as_bytes());
         Run {
             code: output.status.code(),
             out: String::from_utf8_lossy(&output.stdout).into_owned(),
@@ -200,10 +188,9 @@ impl Sandbox {
     fn run_unread(&self, args: &[&str], input: &str) -> (Option<i32>, String) {
         let (reader, writer) = std::io::pipe().expect("a pipe is made");
         drop(reader);
-        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("mise-multi-upgrade")
+        let output = dotfiles_local("mise-multi-upgrade")
             .args(args)
-            .current_dir(&self.root)
+            .current_dir(self.root())
             .env("PATH", self.path())
             .env("TMPDIR", self.dir("tmp"))
             .stdin(Stdio::from(
@@ -221,14 +208,13 @@ impl Sandbox {
     /// Runs as `run` does with a directory as stdin, so that reading an answer fails
     /// with an I/O error: the exit status and stderr.
     fn run_unreadable_input(&self, args: &[&str]) -> (Option<i32>, String) {
-        let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("mise-multi-upgrade")
+        let output = dotfiles_local("mise-multi-upgrade")
             .args(args)
-            .current_dir(&self.root)
+            .current_dir(self.root())
             .env("PATH", self.path())
             .env("TMPDIR", self.dir("tmp"))
             .stdin(Stdio::from(
-                fs::File::open(&self.root).expect("the directory opens"),
+                fs::File::open(self.root()).expect("the directory opens"),
             ))
             .output()
             .expect("dotfiles-local runs");
@@ -240,23 +226,19 @@ impl Sandbox {
 
     /// A file holding `input`.
     fn input(&self, input: &str) -> PathBuf {
-        let path = self.root.join("input");
+        let path = self.root().join("input");
         fs::write(&path, input).expect("the input is written");
         path
     }
 
     /// PATH with the fakes first.
     fn path(&self) -> std::ffi::OsString {
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        std::env::join_paths(
-            std::iter::once(self.root.join("bin")).chain(std::env::split_paths(&inherited)),
-        )
-        .expect("PATH is joined")
+        self.sandbox.path_before_inherited()
     }
 
     /// The arguments of each mise call, joined by spaces.
     fn mise_calls(&self) -> Vec<String> {
-        fs::read_to_string(self.root.join("mise.log")).map_or_else(
+        fs::read_to_string(self.root().join("mise.log")).map_or_else(
             |_| Vec::new(),
             |log| log.lines().map(str::to_owned).collect(),
         )
@@ -310,15 +292,9 @@ fn append(path: &Path, text: &str) {
         .expect("the file is written");
 }
 
-impl Drop for Sandbox {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.root);
-    }
-}
-
 #[test]
 fn prints_its_usage_for_help_and_h_asking_and_upgrading_nothing() {
-    let sandbox = Sandbox::new("help");
+    let sandbox = Fixture::new("help");
     for flag in ["--help", "-h"] {
         let run = sandbox.run(&[flag], "y\n");
         assert_eq!(run.code, Some(0), "{flag}");
@@ -339,7 +315,7 @@ const USAGE_START: &str = "Usage: mise run mise:multi-upgrade";
 // or `=false`; short ones run together; and `--` ends them.
 #[test]
 fn reads_its_switches_in_every_form_it_takes() {
-    let sandbox = Sandbox::new("switches");
+    let sandbox = Fixture::new("switches");
     for args in [
         &["-nh"][..],
         &["-hn"],
@@ -402,7 +378,7 @@ fn reads_its_switches_in_every_form_it_takes() {
 
 #[test]
 fn refuses_bump_without_dry_run_with_its_usage_and_exit_2() {
-    let sandbox = Sandbox::new("bump-alone");
+    let sandbox = Fixture::new("bump-alone");
     for args in [
         &["--bump"][..],
         &["-n", "--bump", "--dry-run=false"],
@@ -424,7 +400,7 @@ fn refuses_bump_without_dry_run_with_its_usage_and_exit_2() {
 
 #[test]
 fn asks_for_each_directory_then_upgrades_the_accepted_ones_after_the_last_answer() {
-    let sandbox = Sandbox::new("asks");
+    let sandbox = Fixture::new("asks");
     let a = sandbox.project("/work/a");
     let b = sandbox.project("/work/b");
     sandbox.outdated_in(Place::Dir(a), &[("jq", "1.6", "1.7")]);
@@ -455,7 +431,7 @@ fn asks_for_each_directory_then_upgrades_the_accepted_ones_after_the_last_answer
 
 /// A project with one tool to upgrade, plus a linked worktree of it that mise also
 /// tracks, both with jq outdated in their own view.
-fn with_worktree(sandbox: &Sandbox) -> (&'static str, &'static str) {
+fn with_worktree(sandbox: &Fixture) -> (&'static str, &'static str) {
     let dir = sandbox.project("/work/project");
     let worktree = sandbox.project("/work/project/.claude/worktrees/wt");
     sandbox.worktree(worktree, dir);
@@ -467,7 +443,7 @@ fn with_worktree(sandbox: &Sandbox) -> (&'static str, &'static str) {
 
 #[test]
 fn leaves_out_a_linked_worktree() {
-    let sandbox = Sandbox::new("worktree");
+    let sandbox = Fixture::new("worktree");
     let (dir, worktree) = with_worktree(&sandbox);
 
     let run = sandbox.run(&[], "y\ny\n");
@@ -482,7 +458,7 @@ fn leaves_out_a_linked_worktree() {
 
 #[test]
 fn takes_in_a_linked_worktree_with_include_worktrees() {
-    let sandbox = Sandbox::new("include-worktrees");
+    let sandbox = Fixture::new("include-worktrees");
     let (dir, worktree) = with_worktree(&sandbox);
 
     let run = sandbox.run(&["--include-worktrees"], "y\ny\n");
@@ -499,7 +475,7 @@ fn takes_in_a_linked_worktree_with_include_worktrees() {
 
 #[test]
 fn keeps_a_directory_git_does_not_know() {
-    let sandbox = Sandbox::new("no-repository");
+    let sandbox = Fixture::new("no-repository");
     let dir = sandbox.project("/work/plain");
     sandbox.worktree(dir, "none");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -515,7 +491,7 @@ fn keeps_a_directory_git_does_not_know() {
 
 #[test]
 fn upgrades_every_config_directory_form_from_its_project_root() {
-    let sandbox = Sandbox::new("config-forms");
+    let sandbox = Fixture::new("config-forms");
     let forms = [
         ".config/mise/conf.d/a.toml",
         ".mise/conf.d/a.toml",
@@ -549,7 +525,7 @@ fn upgrades_every_config_directory_form_from_its_project_root() {
 
 #[test]
 fn keeps_a_project_named_like_a_config_directory_under_its_own_path() {
-    let sandbox = Sandbox::new("config-named");
+    let sandbox = Fixture::new("config-named");
     let dirs = ["/work/pmise/mise", "/work/p.mise/.mise"];
     for dir in dirs {
         sandbox.project(dir);
@@ -569,7 +545,7 @@ fn keeps_a_project_named_like_a_config_directory_under_its_own_path() {
 
 #[test]
 fn asks_once_and_upgrades_once_for_a_directory_holding_two_configs() {
-    let sandbox = Sandbox::new("two-configs");
+    let sandbox = Fixture::new("two-configs");
     let dir = sandbox.project("/work/project");
     sandbox.track("/work/project/mise.local.toml");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -583,7 +559,7 @@ fn asks_once_and_upgrades_once_for_a_directory_holding_two_configs() {
 
 /// Tracks a project with one tool to upgrade, returned, plus a config under each of
 /// `scratch`, as under a temporary directory, with the same.
-fn with_scratch(sandbox: &Sandbox, scratch: &[&str]) -> &'static str {
+fn with_scratch(sandbox: &Fixture, scratch: &[&str]) -> &'static str {
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
     for dir in scratch {
@@ -595,7 +571,7 @@ fn with_scratch(sandbox: &Sandbox, scratch: &[&str]) -> &'static str {
 
 #[test]
 fn leaves_out_a_config_under_tmpdir_by_the_name_it_resolves_to_too() {
-    let sandbox = Sandbox::new("tmpdir");
+    let sandbox = Fixture::new("tmpdir");
     let real = sandbox.dir("real");
     let link = sandbox.dir("link");
     fs::create_dir(&real).expect("the temporary directory is created");
@@ -627,7 +603,7 @@ fn leaves_out_a_config_under_tmpdir_by_the_name_it_resolves_to_too() {
 // TEMP, then TMP, are taken in turn.
 #[test]
 fn takes_temp_or_tmp_where_tmpdir_names_no_directory_it_can_write() {
-    let sandbox = Sandbox::new("temp");
+    let sandbox = Fixture::new("temp");
     let temp = sandbox.dir("temp");
     let locked = sandbox.dir("locked");
     for dir in [&temp, &locked] {
@@ -641,7 +617,7 @@ fn takes_temp_or_tmp_where_tmpdir_names_no_directory_it_can_write() {
         &[("TMPDIR", ""), ("TMP", &temp)],
         &[("TMPDIR", &locked), ("TEMP", &locked), ("TMP", &temp)],
     ] {
-        fs::remove_file(sandbox.root.join("mise.log")).ok();
+        fs::remove_file(sandbox.root().join("mise.log")).ok();
 
         let run = sandbox.run_with(&[], "y\ny\n", env);
 
@@ -658,7 +634,7 @@ fn takes_temp_or_tmp_where_tmpdir_names_no_directory_it_can_write() {
 
 #[test]
 fn leaves_out_a_config_under_tmp_whatever_tmpdir_says_by_the_name_it_resolves_to_too() {
-    let sandbox = Sandbox::new("tmp");
+    let sandbox = Fixture::new("tmp");
     let resolved = fs::canonicalize("/tmp").expect("/tmp resolves");
     let resolved = format!("{}/resolved", resolved.display());
     let dir = with_scratch(&sandbox, &["/tmp", "/tmp/named", &resolved]);
@@ -685,7 +661,7 @@ fn leaves_out_a_config_under_tmp_whatever_tmpdir_says_by_the_name_it_resolves_to
 
 #[test]
 fn takes_in_a_config_under_a_temporary_directory_with_include_tmpdirs() {
-    let sandbox = Sandbox::new("include-tmpdirs");
+    let sandbox = Fixture::new("include-tmpdirs");
     let scratch = format!("{}/scratch", sandbox.dir("tmp"));
     let dir = with_scratch(&sandbox, &["/tmp/scratch", &scratch]);
 
@@ -705,7 +681,7 @@ fn takes_in_a_config_under_a_temporary_directory_with_include_tmpdirs() {
 
 #[test]
 fn names_a_directory_under_the_home_directory_from_a_tilde() {
-    let sandbox = Sandbox::new("home");
+    let sandbox = Fixture::new("home");
     let dir = sandbox.project("/work/home/work/project");
     sandbox.project("/work/homely");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -735,7 +711,7 @@ fn days_ago(days: i64) -> String {
 
 #[test]
 fn shows_how_long_ago_each_version_was_released() {
-    let sandbox = Sandbox::new("ages");
+    let sandbox = Fixture::new("ages");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(
         Place::Dir(dir),
@@ -810,7 +786,7 @@ fn shows_how_long_ago_each_version_was_released() {
 
 #[test]
 fn reads_a_list_it_cannot_read_as_release_ages_unknown() {
-    let sandbox = Sandbox::new("unreadable-lists");
+    let sandbox = Fixture::new("unreadable-lists");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(
         Place::Dir(dir),
@@ -850,7 +826,7 @@ fn reads_a_list_it_cannot_read_as_release_ages_unknown() {
 
 #[test]
 fn upgrades_the_global_config_apart_with_global() {
-    let sandbox = Sandbox::new("global");
+    let sandbox = Fixture::new("global");
     let dotfiles = sandbox.project("/work/dotfiles");
     sandbox.track("/work/dotfiles/.config/mise/config.toml");
     sandbox.outdated_in(Place::Global, &[("jq", "1.6", "1.7")]);
@@ -875,7 +851,7 @@ fn upgrades_the_global_config_apart_with_global() {
 
 #[test]
 fn goes_on_past_a_failed_upgrade_and_exits_1() {
-    let sandbox = Sandbox::new("upgrade-fails");
+    let sandbox = Fixture::new("upgrade-fails");
     for dir in ["/work/a", "/work/b", "/work/c"] {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -902,7 +878,7 @@ fn goes_on_past_a_failed_upgrade_and_exits_1() {
 
 #[test]
 fn goes_on_past_places_mise_cannot_list_and_names_them_last_in_order() {
-    let sandbox = Sandbox::new("unlisted");
+    let sandbox = Fixture::new("unlisted");
     for dir in ["/work/a", "/work/b", "/work/c", "/work/d"] {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -932,7 +908,7 @@ fn goes_on_past_places_mise_cannot_list_and_names_them_last_in_order() {
 
 #[test]
 fn skips_a_place_whose_bump_listing_fails() {
-    let sandbox = Sandbox::new("unlisted-bump");
+    let sandbox = Fixture::new("unlisted-bump");
     for dir in ["/work/a", "/work/b"] {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -948,7 +924,7 @@ fn skips_a_place_whose_bump_listing_fails() {
 
 #[test]
 fn shows_every_directory_at_once_with_dry_run_asking_and_upgrading_nothing() {
-    let sandbox = Sandbox::new("dry-run");
+    let sandbox = Fixture::new("dry-run");
     let a = sandbox.project("/work/a");
     let b = sandbox.project("/work/b");
     sandbox.outdated_in(Place::Dir(a), &[("jq", "1.6", "1.7")]);
@@ -975,7 +951,7 @@ fn shows_every_directory_at_once_with_dry_run_asking_and_upgrading_nothing() {
 
 #[test]
 fn shows_a_tool_in_both_answers_once_with_a_bump_only_where_one_is_named() {
-    let sandbox = Sandbox::new("both-answers");
+    let sandbox = Fixture::new("both-answers");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(
         Place::Dir(dir),
@@ -1004,7 +980,7 @@ fn shows_a_tool_in_both_answers_once_with_a_bump_only_where_one_is_named() {
 
 #[test]
 fn leaves_out_every_bump_and_the_tools_only_a_bump_would_reach_without_bump() {
-    let sandbox = Sandbox::new("no-bump");
+    let sandbox = Fixture::new("no-bump");
     let a = sandbox.project("/work/a");
     let b = sandbox.project("/work/b");
     sandbox.outdated_in(Place::Dir(a), &[("node", "24.1.0", "24.2.0")]);
@@ -1032,7 +1008,7 @@ fn leaves_out_every_bump_and_the_tools_only_a_bump_would_reach_without_bump() {
 
 #[test]
 fn asks_nothing_for_a_directory_newer_only_past_its_requests() {
-    let sandbox = Sandbox::new("bump-only");
+    let sandbox = Fixture::new("bump-only");
     let dir = sandbox.project("/work/project");
     sandbox.bump_in(Place::Dir(dir), &[("yq", "3.4", "4.2", Some("4"))]);
 
@@ -1050,7 +1026,7 @@ fn asks_nothing_for_a_directory_newer_only_past_its_requests() {
 
 #[test]
 fn says_all_tools_are_up_to_date_when_dry_run_has_no_table_to_show() {
-    let sandbox = Sandbox::new("up-to-date");
+    let sandbox = Fixture::new("up-to-date");
     sandbox.project("/work/project");
 
     let run = sandbox.run(&["--dry-run"], "");
@@ -1071,7 +1047,7 @@ fn says_all_tools_are_up_to_date_when_dry_run_has_no_table_to_show() {
 
 #[test]
 fn answers_no_to_an_empty_line_and_the_rest_at_end_of_input_and_asks_again_otherwise() {
-    let sandbox = Sandbox::new("answers");
+    let sandbox = Fixture::new("answers");
     let dirs = [
         "/work/a", "/work/b", "/work/c", "/work/d", "/work/e", "/work/f", "/work/g",
     ];
@@ -1114,7 +1090,7 @@ fn answers_no_to_an_empty_line_and_the_rest_at_end_of_input_and_asks_again_other
 
 #[test]
 fn says_nothing_was_upgraded_when_every_directory_is_answered_no() {
-    let sandbox = Sandbox::new("all-no");
+    let sandbox = Fixture::new("all-no");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
 
@@ -1132,7 +1108,7 @@ fn says_nothing_was_upgraded_when_every_directory_is_answered_no() {
 
 #[test]
 fn stops_at_a_mise_outdated_entry_that_lacks_a_key_mise_always_reports() {
-    let sandbox = Sandbox::new("broken-entry");
+    let sandbox = Fixture::new("broken-entry");
     let dir = sandbox.project("/work/project");
     for key in ["requested", "current", "latest"] {
         let mut entry = entry("1.6", Some("1.7"), None);
@@ -1163,7 +1139,7 @@ fn stops_at_a_mise_outdated_entry_that_lacks_a_key_mise_always_reports() {
 
 #[test]
 fn stops_at_a_mise_outdated_bump_entry_that_names_a_bump_but_no_latest_version() {
-    let sandbox = Sandbox::new("broken-bump");
+    let sandbox = Fixture::new("broken-bump");
     let dir = sandbox.project("/work/project");
     sandbox.answer(
         &Place::Dir(dir).outdated(true),
@@ -1180,7 +1156,7 @@ fn stops_at_a_mise_outdated_bump_entry_that_names_a_bump_but_no_latest_version()
 
 #[test]
 fn stops_at_mise_outdated_output_that_is_not_a_json_object() {
-    let sandbox = Sandbox::new("outdated-not-json");
+    let sandbox = Fixture::new("outdated-not-json");
     let dir = sandbox.project("/work/project");
     for out in ["not json", "[]"] {
         sandbox.answer(&Place::Dir(dir).outdated(false), out, "", 0);
@@ -1200,7 +1176,7 @@ fn stops_at_mise_outdated_output_that_is_not_a_json_object() {
 
 #[test]
 fn fails_rather_than_reading_as_up_to_date_when_mise_cannot_list_its_configs() {
-    let sandbox = Sandbox::new("no-configs");
+    let sandbox = Fixture::new("no-configs");
     sandbox.outdated_in(Place::Global, &[("jq", "1.6", "1.7")]);
     sandbox.answer("config ls --tracked-configs", "", "mise ERROR broken\n", 1);
 
@@ -1219,7 +1195,7 @@ fn fails_rather_than_reading_as_up_to_date_when_mise_cannot_list_its_configs() {
 
 #[test]
 fn fails_when_there_is_no_mise_or_no_git() {
-    let sandbox = Sandbox::new("missing");
+    let sandbox = Fixture::new("missing");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
     let bin = sandbox.dir("bin");
@@ -1242,7 +1218,7 @@ fn fails_when_there_is_no_mise_or_no_git() {
 // which ends a report but fails a run that would upgrade what nobody saw asked about.
 #[test]
 fn ends_a_dry_run_quietly_when_its_reader_stops_early_and_fails_a_run_that_asks() {
-    let sandbox = Sandbox::new("unread");
+    let sandbox = Fixture::new("unread");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
 
@@ -1261,7 +1237,7 @@ fn ends_a_dry_run_quietly_when_its_reader_stops_early_and_fails_a_run_that_asks(
 // An answer that cannot be read fails the run as a failure to read, not to write.
 #[test]
 fn fails_a_run_whose_answer_cannot_be_read_naming_the_read_and_upgrades_nothing() {
-    let sandbox = Sandbox::new("unreadable");
+    let sandbox = Fixture::new("unreadable");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
 
@@ -1278,13 +1254,13 @@ fn fails_a_run_whose_answer_cannot_be_read_naming_the_read_and_upgrades_nothing(
 #[cfg(target_os = "linux")]
 #[test]
 fn fails_a_dry_run_whose_output_cannot_be_written() {
-    let sandbox = Sandbox::new("full");
+    let sandbox = Fixture::new("full");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_dotfiles-local"))
-        .args(["mise-multi-upgrade", "--dry-run"])
-        .current_dir(&sandbox.root)
+    let output = dotfiles_local("mise-multi-upgrade")
+        .arg("--dry-run")
+        .current_dir(sandbox.root())
         .env("PATH", sandbox.path())
         .env("TMPDIR", sandbox.dir("tmp"))
         .stdin(Stdio::null())
@@ -1303,20 +1279,21 @@ fn fails_a_dry_run_whose_output_cannot_be_written() {
 /// local asdf plugin, `dummy`, that lists versions 1.0.0, 1.1.0 and 2.0.0 and installs
 /// any of them without the network.
 struct RealMise {
+    /// Held so that the home is removed with it.
+    _sandbox: Sandbox,
+    /// The sandbox's directory, its links resolved.
     dir: PathBuf,
 }
 
 impl RealMise {
     fn new(test: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!(
-            "dotfiles-local-mise-multi-upgrade-real-{}-{test}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).expect("the directory is created");
+        let sandbox = Sandbox::outside_repository("mise-multi-upgrade-real", test, &[]);
         // mise reports a config by its resolved path, `/var` being a link on macOS.
-        let dir = fs::canonicalize(&dir).expect("the directory resolves");
-        let real = RealMise { dir };
+        let dir = fs::canonicalize(sandbox.root()).expect("the directory resolves");
+        let real = RealMise {
+            _sandbox: sandbox,
+            dir,
+        };
         let plugin = real.dir.join("mise/plugin/bin");
         fs::create_dir_all(&plugin).expect("the plugin's directory is created");
         for (name, body) in [
@@ -1432,30 +1409,14 @@ impl RealMise {
                 "{path}"
             );
         }
-        let mut child = self
-            .env(env!("CARGO_BIN_EXE_dotfiles-local"))
-            .arg("mise-multi-upgrade")
-            .args(args)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("dotfiles-local starts");
-        let mut stdin = child.stdin.take().expect("stdin is piped");
-        let _ = stdin.write_all(input.as_bytes());
-        drop(stdin);
-        let output = child.wait_with_output().expect("dotfiles-local ends");
+        let mut command = self.env(DOTFILES_LOCAL);
+        command.arg("mise-multi-upgrade").args(args);
+        let output = output_with_input(command, input.as_bytes());
         Run {
             code: output.status.code(),
             out: String::from_utf8_lossy(&output.stdout).into_owned(),
             err: String::from_utf8_lossy(&output.stderr).into_owned(),
         }
-    }
-}
-
-impl Drop for RealMise {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.dir);
     }
 }
 
@@ -1536,7 +1497,7 @@ fn leaves_out_a_linked_worktree_that_the_real_git_reports() {
 
 #[test]
 fn asks_mise_for_the_versions_of_a_tool_once_however_many_places_show_it() {
-    let sandbox = Sandbox::new("ls-remote-once");
+    let sandbox = Fixture::new("ls-remote-once");
     for dir in ["/work/a", "/work/b"] {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -1558,7 +1519,7 @@ fn asks_mise_for_the_versions_of_a_tool_once_however_many_places_show_it() {
 // what is left once the questions are answered.
 #[test]
 fn gives_mise_no_input_of_the_runs_own() {
-    let sandbox = Sandbox::new("mise-stdin");
+    let sandbox = Fixture::new("mise-stdin");
     for dir in ["/work/a", "/work/b"] {
         sandbox.project(dir);
         sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
@@ -1571,7 +1532,7 @@ fn gives_mise_no_input_of_the_runs_own() {
     assert_eq!(run.code, Some(0), "{}", run.err);
     assert_eq!(sandbox.upgrades().len(), 2);
     assert_eq!(
-        fs::read_to_string(sandbox.root.join("mise.stdin")).expect("mise ran"),
+        fs::read_to_string(sandbox.root().join("mise.stdin")).expect("mise ran"),
         ""
     );
 }
