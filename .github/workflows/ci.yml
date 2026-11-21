@@ -37,38 +37,6 @@ env:
   MISE_NO_HOOKS: "1"
 
 jobs:
-  markdown-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
-        with:
-          install_args: rumdl
-          # mise.toml tracks these tools at `latest`, and a restored cache would hold
-          # each at the release it was first saved with until mise.toml changed.
-          cache: false
-      - run: mise run qa:md
-
-  shell-qa:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
-        with:
-          install_args: shellcheck shfmt
-          cache: false # as in `markdown-lint`
-      - run: mise run qa:sh
-
-  ts-qa:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
-        with:
-          install_args: biome
-          cache: false # as in `markdown-lint`
-      - run: mise run qa:ts
-
   rust-qa:
     runs-on: ubuntu-latest
     steps:
@@ -83,57 +51,20 @@ jobs:
           cache: false # as in `markdown-lint`
       - run: mise run qa:rust
 
-  config-qa:
+  # Measurement only: rust-qa plus Swatinem/rust-cache, compared on the same commit.
+  rust-qa-cached:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
         with:
-          # What the tasks under qa:config: read the config files with.
-          install_args: yq
+          # The real tools the tests run, offline: lychee for link-check-staged's,
+          # gitleaks for secrets:commit-scan's, which run the task's script,
+          # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
+          # this action puts on PATH, after clearing every MISE_ variable.
+          install_args: rust lychee gitleaks trufflehog
           cache: false # as in `markdown-lint`
-      - run: mise run qa:config
-
-  link-check-offline:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: jdx/mise-action@236a21c3b91f5db6d4e174b348674a0f0caac06d # v5.2.9
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
-          install_args: lychee
-          cache: false # as in `markdown-lint`
-      - run: mise run qa:links:offline
-
-  # The two scans mirror the local pair, gitleaks per commit and trufflehog per push,
-  # for commits that reached the repository without going through those hooks.
-  # Known upstream limits, left as they are: a PR scan covers only the first 30 of its
-  # commits and skips what a merge commit brings in (gitleaks-action#187, #236).
-  secret-scan-gitleaks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # full history so gitleaks can scan the PR's commits
-      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # The action pins an older gitleaks otherwise; mise.toml tracks `latest`.
-          GITLEAKS_VERSION: latest
-          # Commenting on the PR needs a write token this workflow does not grant.
-          GITLEAKS_ENABLE_COMMENTS: "false"
-
-  secret-scan-trufflehog:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0 # the action walks history from the base to the head
-      - uses: trufflesecurity/trufflehog@3bd2b5887eb0efb8fa18bfd1d296032924e4ffdc # v3.99.9
-        with:
-          # Unlike secrets:push-scan, candidates are verified with their providers, as
-          # the commits are already public by now; a live or unknown one fails the
-          # job, and so does a commit the scan cannot read. SQLServer is excluded
-          # because the message of commit b39f7e6 quotes a `Server=…;Password=…;`
-          # example, which verifies as unknown and would fail every scheduled
-          # full-history run; TruffleHog cannot ignore a finding in a commit message.
-          extra_args: --results=verified,unknown --fail-on-scan-errors --exclude-detectors=SQLServer
+          workspaces: rust
+      - run: mise run qa:rust
