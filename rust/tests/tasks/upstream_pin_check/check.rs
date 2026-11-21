@@ -222,10 +222,30 @@ fn fails_as_unable_to_tell_where_it_cannot_make_its_scratch_repository() {
 }
 
 #[test]
-fn fails_as_unable_to_tell_on_an_option_it_does_not_take() {
+fn fails_as_a_usage_error_on_an_option_it_does_not_take() {
     Checkout::new(&[])
         .upstream_pin_check(&["--frobnicate"])
-        .expect(2, &["takes --bump"]);
+        .expect(2, &["'--frobnicate'"]);
+}
+
+// An option takes effect only before the pathspecs, so a `--bump` written last moves
+// nothing, and the run says so rather than checking without it.
+#[test]
+fn fails_as_a_usage_error_on_bump_after_a_pathspec() {
+    let up = Upstream::changing_lints(2);
+    let pinned = format!("# {}\n", up.marker("lints", 0));
+    let checkout = Checkout::new(&[("Cargo.toml", &pinned)]);
+    checkout
+        .upstream_pin_check(&["Cargo.toml", "--bump"])
+        .expect(2, &["'--bump'", "--bump, then git pathspecs"]);
+    assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
+}
+
+#[test]
+fn fails_as_a_usage_error_on_a_dash_argument_after_a_pathspec() {
+    Checkout::new(&[])
+        .upstream_pin_check(&["Cargo.toml", "-x"])
+        .expect(2, &["'-x'"]);
 }
 
 // A reader that stops early, as `| head` does, closes stdout before the pins are all

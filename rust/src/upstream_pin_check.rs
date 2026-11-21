@@ -14,6 +14,7 @@ mod request;
 mod scratch;
 mod text;
 
+use clap::Args;
 use tempfile::TempDir;
 
 use crate::git::Git;
@@ -30,11 +31,21 @@ pub(crate) enum Status {
 }
 
 /// A run's arguments: `--bump`, and then git pathspecs.
-#[derive(Debug)]
-pub(crate) struct Request<'a> {
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// Move each differing pin to its upstream's tip, and under GitHub Actions push the
+    /// move and open its pull request.
+    #[arg(long)]
     bump: bool,
-    pathspecs: &'a [String],
+    /// The files to read pins from, as git pathspecs [default: every tracked file].
+    #[arg(trailing_var_arg = true)]
+    pathspecs: Vec<Pathspec>,
 }
+
+/// A git pathspec. One that opens with `-` is refused, since past the first pathspec
+/// it is an option written out of place, such as a `--bump` written last.
+#[derive(Debug, Clone)]
+struct Pathspec(String);
 
 /// What a run could not do, as the line that says so.
 #[derive(Debug, Clone, Copy)]
