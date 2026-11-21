@@ -8,6 +8,7 @@ use std::process::{Command, Stdio};
 
 /// A run not yet started: the command, the checkout it runs in, what it is fed on stdin,
 /// and which of its output streams, if any, is closed.
+#[must_use = "an invocation runs nothing until `run` is called"]
 pub(crate) struct Invocation {
     command: Command,
     root: PathBuf,
@@ -84,14 +85,11 @@ impl Invocation {
     }
 
     /// Runs the command to its end, feeding it its input and reading its output.
-    pub(crate) fn run(self) -> Run {
+    pub(crate) fn run(mut self) -> Run {
+        let mut reader = self.connect_output();
         let Invocation {
-            mut command,
-            input,
-            closed,
-            ..
+            mut command, input, ..
         } = self;
-        let mut reader = connect_output(&mut command, closed);
         let mut child = command
             .stdin(Stdio::piped())
             .spawn()
@@ -116,29 +114,29 @@ impl Invocation {
             output,
         }
     }
-}
 
-/// Points `command`'s stdout and stderr at one pipe, or with `closed` one of them at a pipe
-/// whose reading end is already closed and the other at the pipe, and returns the pipe's
-/// reading end.
-fn connect_output(command: &mut Command, closed: Option<Stream>) -> io::PipeReader {
-    let (reader, writer) = io::pipe().expect("a pipe can be made");
-    match closed {
-        None => {
-            command
-                .stdout(writer.try_clone().expect("the pipe can be shared"))
-                .stderr(writer);
+    /// Points stdout and stderr at one pipe, or, where a stream is to be closed, that one at
+    /// a pipe whose reading end is already closed and the other at the pipe, and returns
+    /// the pipe's reading end.
+    fn connect_output(&mut self) -> io::PipeReader {
+        let (reader, writer) = io::pipe().expect("a pipe can be made");
+        match self.closed {
+            None => {
+                self.command
+                    .stdout(writer.try_clone().expect("the pipe can be shared"))
+                    .stderr(writer);
+            }
+            Some(stream) => {
+                let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
+                drop(closed_reader);
+                match stream {
+                    Stream::Stdout => self.command.stdout(closed_writer).stderr(writer),
+                    Stream::Stderr => self.command.stdout(writer).stderr(closed_writer),
+                };
+            }
         }
-        Some(stream) => {
-            let (closed_reader, closed_writer) = io::pipe().expect("a pipe can be made");
-            drop(closed_reader);
-            match stream {
-                Stream::Stdout => command.stdout(closed_writer).stderr(writer),
-                Stream::Stderr => command.stdout(writer).stderr(closed_writer),
-            };
-        }
+        reader
     }
-    reader
 }
 
 impl Run {
