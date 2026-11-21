@@ -42,8 +42,8 @@ pub(crate) struct Request {
     /// without it, only what fails is printed, so a commit's output stays quiet.
     #[arg(long)]
     verbose: bool,
-    /// The skills to check, as a git pathspec [default: .claude/skills/*/SKILL.md].
-    #[arg(trailing_var_arg = true, num_args = 0..=1)]
+    /// The skills to check, as one git pathspec; a second is refused.
+    #[arg(trailing_var_arg = true, num_args = 0..=1, default_value = SKILLS)]
     pathspec: Vec<String>,
 }
 
@@ -89,7 +89,7 @@ impl Request {
         Ok(ExitCode::from(u8::from(failed)))
     }
 
-    /// The pathspec argument, or the default one where it is missing or empty.
+    /// The pathspec argument, or the default one where it is empty.
     fn pathspec(&self) -> &str {
         match self.pathspec.first() {
             Some(pathspec) if !pathspec.is_empty() => pathspec,

@@ -13,7 +13,7 @@ use std::process::ExitCode;
 use clap::{Parser, Subcommand};
 
 /// The shared tasks that other repositories run through mise; what each does and how it
-/// exits is in the dotfiles repository's tasks/README.md.
+/// exits is in <https://github.com/irisTa56/dotfiles/blob/main/tasks/README.md>.
 #[derive(Debug, Parser)]
 #[command(name = "dotfiles-tasks", disable_help_subcommand = true)]
 struct Cli {
