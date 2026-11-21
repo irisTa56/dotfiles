@@ -17,7 +17,7 @@ A consuming repository picks them up with a [`task_config.includes`](https://mis
 A job that sets [`MISE_TASK_RUN_AUTO_INSTALL=false`](https://mise.jdx.dev/configuration/settings.html#task.run_auto_install) turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
 Beyond that the library assumes git and bash.
 A task that runs the `dotfiles-tasks` binary, which every one of them but `secrets:commit-scan` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
-Such a task prints its usage on `--help` and exits 0 having done nothing else, and exits 2 on an argument it does not take, saying which.
+Such a task prints its usage on `--help` after mise's `--`, as in `mise run link-check:staged -- --help`, and exits 0 having done nothing else; it exits 2 on an argument it does not take, saying which.
 
 ```toml
 # mise.toml, in the consuming repository
