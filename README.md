@@ -144,6 +144,31 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
 
 A property of the shared tasks under `tasks/`, such as each wrapper pinning the `dotfiles-tasks` release `rust/Cargo.toml` is at, is tested in `rust/tests/tasks/` beside the tests of the tasks themselves, rather than checked by a `qa:` task of its own.
 
+### Naming tasks and subcommands
+
+A mise task is named `<area>:<action>` or `<area>:<what it produces>`, as `skills:update` and `ts:types` are.
+
+- A check or a formatter takes the kind of work as its area and its target after it, as `qa:md` and `fmt:md` do, so that each kind of work is one prefix: `pre-commit` runs `qa:**`, and CI runs the same `qa:` tasks ([CI baseline](.claude/rules/ci-baseline.md#checks)).
+  - `fmt` is short, as in `cargo fmt`.
+- `qa:` holds only the checks that `pre-commit` and CI both run and that use no network.
+  - A shared task itself, such as `secrets:commit-scan`, and a check that uses the network, such as `links:check`, sit under an area of their own instead.
+  - `qa:rust:skills` stays under `qa:`, though it runs a shared task's subcommand: it runs it from the working tree, to check this repository.
+- `pre-commit` and `bootstrap` are names mise sets, and fall outside the rule.
+
+A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise task, or of the alias or function a person types, that runs it, with each `:` as `-`.
+
+- One that several tasks run takes the part their names share.
+- A skill that has an agent run a subcommand uses the name settled this way, and does not set one.
+- One that neither a task nor a person runs by name, such as a hook or a command only a skill runs, keeps the name it has.
+
+Some names predate the rule and do not follow it yet:
+
+- `setup:dotfiles` is `dotfiles:setup` under it, and its subcommand `setup-dotfiles` is `dotfiles-setup`.
+- The subcommand `push-gist-skill`, which `skills:push` runs, is `skills-push`.
+- The subcommand `ccusage-popup`, which the `ccusage:` tasks run, is `ccusage`.
+- The shared task `link-check:staged` puts its action where its area goes.
+  - Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the `pre-commit` of every repository that runs it, so it keeps its name until they change with it.
+
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
@@ -182,7 +207,7 @@ It keeps what one stop leaves for the next in a file per session under the syste
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
 
-The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them with `claude plugin validate`; `mise run ts:types` writes the installed CLI's declarations for an editor to type-check them against; Biome lints and formats them (`mise run qa:ts`, `mise run format-ts`), in CI as well.
+The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them with `claude plugin validate`; `mise run ts:types` writes the installed CLI's declarations for an editor to type-check them against; Biome lints and formats them (`mise run qa:ts`, `mise run fmt:ts`), in CI as well.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
 
