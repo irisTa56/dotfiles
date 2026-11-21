@@ -3,7 +3,9 @@
 use std::collections::HashMap;
 use std::{env, fs, io};
 
-use super::{Checked, Differing, Failure, Marker, Move, Moves, Pin, Pins, Scratch, Status, Text};
+use super::{
+    Checked, Differing, Failure, Marker, Move, Moves, Pin, Pins, Proposal, Scratch, Status, Text,
+};
 
 impl Pin {
     fn marker(&self) -> Marker<'_> {
@@ -74,11 +76,15 @@ impl Differing<'_> {
         files
     }
 
-    /// Moves the pins: under GitHub Actions on origin, proposing the move as a draft
-    /// pull request where `draft` is set, and otherwise in the working tree.
-    pub(super) fn move_pins(&self, scratch: &Scratch, draft: bool) -> Result<Status, Status> {
+    /// Moves the pins: under GitHub Actions on origin, proposing the move as `proposal`
+    /// says, and otherwise in the working tree.
+    pub(super) fn move_pins(
+        &self,
+        scratch: &Scratch,
+        proposal: Proposal,
+    ) -> Result<Status, Status> {
         if env::var("GITHUB_ACTIONS").is_ok_and(|v| v == "true") {
-            Ok(scratch.move_on_origin(self, draft))
+            Ok(scratch.move_on_origin(self, proposal))
         } else {
             self.move_in_working_tree()
                 .map_err(|error| Status::stopped_on(&error))

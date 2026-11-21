@@ -278,7 +278,13 @@ fn fails_as_a_usage_error_on_bump_after_a_pathspec() {
         .arg("upstream-pin-check")
         .args(["Cargo.toml", "--bump"])
         .run()
-        .expect(2, &["'--bump'", "--bump and --draft, then git pathspecs"]);
+        .expect(
+            2,
+            &[
+                "'--bump'",
+                "--bump, --draft and --branch, then git pathspecs",
+            ],
+        );
     assert_eq!(checkout.read("Cargo.toml"), pinned.as_bytes());
 }
 
@@ -347,14 +353,18 @@ fn fails_as_unable_to_tell_where_the_upstream_cannot_be_read_when_stderr_is_clos
     assert_eq!((run.code(), run.output()), (2, ""));
 }
 
-// --draft says how --bump opens its pull request, so alone it would do nothing.
+// --draft and --branch say how --bump opens its pull request, so alone either would do
+// nothing.
 #[test]
-fn fails_as_a_usage_error_on_draft_without_bump() {
+fn fails_as_a_usage_error_on_draft_or_branch_without_bump() {
     let up = Upstream::changing_lints(2);
     let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout
-        .dotfiles_tasks()
-        .args(["upstream-pin-check", "--draft"])
-        .run()
-        .expect(2, &["required arguments were not provided", "--bump"]);
+    for args in [&["--draft"][..], &["--branch", "b"][..]] {
+        checkout
+            .dotfiles_tasks()
+            .arg("upstream-pin-check")
+            .args(args)
+            .run()
+            .expect(2, &["required arguments were not provided", "--bump"]);
+    }
 }

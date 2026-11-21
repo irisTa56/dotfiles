@@ -3,7 +3,7 @@
 use std::env;
 use std::str::FromStr;
 
-use super::{Failure, Pathspec, Pins, Request, Scratch, Status};
+use super::{Failure, Pathspec, Pins, Proposal, Request, Scratch, Status};
 use crate::git::Git;
 
 /// The status `git grep` exits with where nothing matches, which only means no tracked
@@ -34,7 +34,15 @@ impl Request {
         if !self.bump || differing.0.is_empty() {
             return Ok(status);
         }
-        Ok(status.max(differing.move_pins(&scratch, self.draft)?))
+        Ok(status.max(differing.move_pins(&scratch, self.proposal())?))
+    }
+
+    /// How --bump proposes its move under GitHub Actions.
+    fn proposal(&self) -> Proposal<'_> {
+        Proposal {
+            branch: &self.branch,
+            draft: self.draft,
+        }
     }
 
     /// The tracked files that spell a marker, named from the repository's root, where the
@@ -69,7 +77,7 @@ impl FromStr for Pathspec {
     fn from_str(arg: &str) -> Result<Self, Self::Err> {
         if arg.starts_with('-') {
             return Err(
-                "an option goes before the pathspecs; this takes --bump and --draft, then git pathspecs",
+                "an option goes before the pathspecs; this takes --bump, --draft and --branch, then git pathspecs",
             );
         }
         Ok(Pathspec(arg.to_owned()))

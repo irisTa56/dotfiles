@@ -30,7 +30,7 @@ pub(crate) enum Status {
     Unknown = 2,
 }
 
-/// A run's arguments: `--bump` and `--draft`, and then git pathspecs.
+/// A run's arguments: `--bump`, `--draft` and `--branch`, and then git pathspecs.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// Move each differing pin to its upstream's tip, and under GitHub Actions push the
@@ -41,10 +41,20 @@ pub(crate) struct Request {
     /// before it merges.
     #[arg(long, requires = "bump")]
     draft: bool,
+    /// The branch --bump pushes its move to and opens its pull request from, so that pins
+    /// proposed apart, in runs narrowed by pathspec, each have a pull request of their own.
+    #[arg(long, requires = "bump", default_value = BUMP_BRANCH)]
+    branch: String,
     /// The files to read pins from, as git pathspecs [default: every tracked file].
     #[arg(trailing_var_arg = true)]
     pathspecs: Vec<Pathspec>,
 }
+
+/// The branch a bump under GitHub Actions pushes its move to and opens its pull request
+/// from, where `--branch` names no other. A person may add commits to it, so a later run
+/// adds its own over them and never forces; merging the pull request deletes it where the
+/// repository deletes merged branches, and the next run pushes afresh.
+const BUMP_BRANCH: &str = "upstream-pin-bump";
 
 /// A git pathspec. One that opens with `-` is refused, since past the first pathspec
 /// it is an option written out of place, such as a `--bump` written last.
@@ -137,6 +147,14 @@ struct GitHub {
     api: String,
     repository: String,
     token: String,
+}
+
+/// How a bump under GitHub Actions proposes its move: the branch it pushes to and opens
+/// its pull request from, and whether that pull request is a draft.
+#[derive(Debug, Clone, Copy)]
+struct Proposal<'r> {
+    branch: &'r str,
+    draft: bool,
 }
 
 /// A pull request to open, from `head` into `base`, as a draft where `draft` is set.

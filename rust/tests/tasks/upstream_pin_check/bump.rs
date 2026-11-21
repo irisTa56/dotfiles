@@ -686,3 +686,38 @@ fn under_github_actions_opens_the_pull_request_ready_without_draft() {
     };
     assert_eq!(request.body["draft"], false);
 }
+
+// Pins a repository wants proposed apart, such as an include a merge finishes beside a
+// copy a person has to bring over, go to branches of their own, so a move of one series
+// neither lands on the other's pull request nor waits behind it.
+#[test]
+fn under_github_actions_proposes_the_move_on_the_branch_branch_names() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    checkout.publish(&origin);
+    let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
+    let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
+    Runner::GitHubActions
+        .bump(&checkout)
+        .args(["--branch", "lints-bump"])
+        .env("GITHUB_API_URL", api.url())
+        .run()
+        .expect(
+            1,
+            &[
+                "pushed the move to lints-bump",
+                &format!("opened its pull request: {OPENED}"),
+            ],
+        );
+    assert_eq!(
+        origin.show("lints-bump:Cargo.toml"),
+        Some(format!("# {}\n", up.marker("lints", 1)).into_bytes())
+    );
+    assert_eq!(origin.commit(BUMP).as_deref(), Some(other.as_str()));
+    let requests = api.requests();
+    let [request] = &requests[..] else {
+        panic!("one request, not {requests:?}");
+    };
+    assert_eq!(request.body["head"], "lints-bump");
+}
