@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.8.1...dotfiles-tasks-v0.9.0) (2026-11-21)
+
+
+### Features
+
+* **local:** parse dotfiles-local arguments with clap and rename subcommands by the naming rule ([#503](https://github.com/irisTa56/dotfiles/issues/503)) ([30e1ab5](https://github.com/irisTa56/dotfiles/commit/30e1ab54fb96550e846a6d910526e07055763958))
+* **tasks:** parse dotfiles-tasks arguments with clap ([#498](https://github.com/irisTa56/dotfiles/issues/498)) ([be368d7](https://github.com/irisTa56/dotfiles/commit/be368d7716d9514f309aa16bf7af5d25c47dc591))
+
 ## [0.8.1](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.8.0...dotfiles-tasks-v0.8.1) (2026-11-21)
 
 
