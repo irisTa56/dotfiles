@@ -17,6 +17,8 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::process::ExitCode;
 
+use clap::Args;
+
 use crate::git::Git;
 use crate::stream::Stream;
 
@@ -27,24 +29,22 @@ const LIMIT: usize = 20_000 - 200;
 /// level.
 const SKILLS: &str = ":(glob).claude/skills/*/SKILL.md";
 
-/// The status of a run that could not check the skills, as on arguments it does not
-/// read.
+/// The status of a run that could not check the skills, as where git could not list
+/// them.
 const UNCHECKED: u8 = 2;
 
-/// A run's arguments: `--verbose` first, and then a git pathspec.
-#[derive(Debug)]
-pub(crate) struct Request<'a> {
-    verbosity: Verbosity,
-    args: &'a [String],
-}
-
-/// Whether a passing skill is reported.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Verbosity {
-    /// Only what fails, so a commit's output stays quiet.
-    Failures,
-    /// Each passing skill's length too, for sizing a skill against the limit.
-    Lengths,
+/// A run's arguments: `--verbose` first, and then a git pathspec. Nothing goes after the
+/// pathspec, since an argument there, such as a `--verbose` written last, would otherwise
+/// be dropped and leave a silent pass.
+#[derive(Debug, Args)]
+pub(crate) struct Request {
+    /// Print each passing skill's length against the limit too, for sizing a skill;
+    /// without it, only what fails is printed, so a commit's output stays quiet.
+    #[arg(long)]
+    verbose: bool,
+    /// The skills to check, as a git pathspec [default: .claude/skills/*/SKILL.md].
+    #[arg(trailing_var_arg = true, num_args = 0..=1)]
+    pathspec: Vec<String>,
 }
 
 /// A tracked `SKILL.md`, as the working tree holds it.
@@ -67,20 +67,7 @@ enum Unmeasured {
     NotUtf8,
 }
 
-impl<'a> Request<'a> {
-    pub(crate) fn new(args: &'a [String]) -> Self {
-        match args.split_first() {
-            Some((first, rest)) if first == "--verbose" => Request {
-                verbosity: Verbosity::Lengths,
-                args: rest,
-            },
-            _ => Request {
-                verbosity: Verbosity::Failures,
-                args,
-            },
-        }
-    }
-
+impl Request {
     /// Runs the check, and returns the code to exit with.
     pub(crate) fn run(&self) -> ExitCode {
         match self.check() {
@@ -91,8 +78,7 @@ impl<'a> Request<'a> {
     /// Each stage hands the next what it needs, or ends the run with a code it has
     /// already reported.
     fn check(&self) -> Result<ExitCode, ExitCode> {
-        let pathspec = self.pathspec()?;
-        let listed = Self::list(pathspec)?;
+        let listed = Self::list(self.pathspec())?;
         let mut failed = false;
         for path in listed
             .split(|&byte| byte == 0)
@@ -103,20 +89,11 @@ impl<'a> Request<'a> {
         Ok(ExitCode::from(u8::from(failed)))
     }
 
-    /// The pathspec argument, or the default one. An argument past it, such as a
-    /// `--verbose` written last, would otherwise be dropped and leave a silent pass.
-    fn pathspec(&self) -> Result<&'a str, ExitCode> {
-        match self.args {
-            [] => Ok(SKILLS),
-            [pathspec] if pathspec.is_empty() => Ok(SKILLS),
-            [pathspec] => Ok(pathspec),
-            [_, unread @ ..] => {
-                Stream::Stderr.line(format_args!(
-                    "skills-size-check does not read {}; its arguments are [--verbose] [pathspec], in that order.",
-                    unread.join(" ")
-                ));
-                Err(ExitCode::from(UNCHECKED))
-            }
+    /// The pathspec argument, or the default one where it is missing or empty.
+    fn pathspec(&self) -> &str {
+        match self.pathspec.first() {
+            Some(pathspec) if !pathspec.is_empty() => pathspec,
+            _ => SKILLS,
         }
     }
 
@@ -154,7 +131,7 @@ impl<'a> Request<'a> {
                 false
             }
             Ok(length) => {
-                if self.verbosity == Verbosity::Lengths {
+                if self.verbose {
                     Stream::Stdout.line(format_args!(
                         "{shown}: {length} of {LIMIT} UTF-16 code units"
                     ));

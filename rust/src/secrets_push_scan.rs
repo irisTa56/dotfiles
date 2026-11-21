@@ -16,6 +16,7 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
 use std::process::{Command, ExitCode, Output, Stdio};
 
+use clap::Args;
 use serde_json::Value;
 
 use crate::git::Git;
@@ -24,6 +25,16 @@ use crate::stream::Stream;
 /// The status of a push this stops, whether for a secret found or for a scan that could not
 /// answer.
 const STOPPED: u8 = 1;
+
+/// The arguments git runs a pre-push hook with: the remote's name, and its URL, which the
+/// scan does not read.
+#[derive(Debug, Args)]
+pub(crate) struct Hook {
+    /// The name of the remote the push goes to.
+    remote: String,
+    /// The remote's URL, which the scan does not read.
+    url: Option<String>,
+}
 
 /// A push about to be sent from the repository the task runs in.
 #[derive(Debug)]
@@ -62,18 +73,18 @@ struct Hit {
 }
 
 impl Push {
-    /// Scans what the push sends, `args` being the hook's arguments and stdin its ref lines,
-    /// and returns the code to exit with.
-    pub(crate) fn scan(args: &[String]) -> ExitCode {
-        match Self::stages(args) {
+    /// Scans what the push sends, `hook` being the hook's arguments and stdin its ref
+    /// lines, and returns the code to exit with.
+    pub(crate) fn scan(hook: &Hook) -> ExitCode {
+        match Self::stages(hook) {
             Ok(code) | Err(code) => code,
         }
     }
 
     /// Each stage hands the next what it needs, or ends the run with a code it has already
     /// reported.
-    fn stages(args: &[String]) -> Result<ExitCode, ExitCode> {
-        let push = Push::from_hook(args)?;
+    fn stages(hook: &Hook) -> Result<ExitCode, ExitCode> {
+        let push = Push::from_hook(hook)?;
         let mut found = false;
         for local in Self::pushed()? {
             let Some(sending) = push.sending(&local)? else {
@@ -98,13 +109,7 @@ impl Push {
 
     /// The push the hook's arguments name, from the repository the environment a git hook
     /// exports names.
-    fn from_hook(args: &[String]) -> Result<Self, ExitCode> {
-        let Some(remote) = args.first() else {
-            Stream::Stderr.line(format_args!(
-                "usage: dotfiles-tasks secrets-push-scan <remote>, as git runs a pre-push hook: the remote's name as the first argument and the pushed refs on stdin"
-            ));
-            return Err(ExitCode::from(STOPPED));
-        };
+    fn from_hook(hook: &Hook) -> Result<Self, ExitCode> {
         let top = Git::inheriting().run(&["rev-parse", "--show-toplevel"]);
         if !top.success() {
             return Err(top.failure(STOPPED));
@@ -112,7 +117,7 @@ impl Push {
         let line = top.stdout_bytes();
         let root = Path::new(OsStr::from_bytes(line.strip_suffix(b"\n").unwrap_or(line)));
         Ok(Push {
-            remote: remote.clone(),
+            remote: hook.remote.clone(),
             url: format!("file://{}", root.display()),
         })
     }

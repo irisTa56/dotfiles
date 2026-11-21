@@ -90,10 +90,17 @@ fn with_verbose_and_a_pathspec_reports_the_passing_skills_and_still_fails() {
 // An argument after the pathspec is not read, and dropping it silently would leave the
 // caller with no lengths and no reason.
 #[test]
-fn fails_naming_an_argument_it_does_not_read_rather_than_dropping_it() {
+fn fails_as_a_usage_error_naming_an_option_after_the_pathspec() {
     Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
         .skills_size_check(&[":(glob).claude/skills/*/SKILL.md", "--verbose"])
-        .expect(2, &["skills-size-check does not read --verbose"]);
+        .expect(2, &["'--verbose'"]);
+}
+
+#[test]
+fn fails_as_a_usage_error_naming_a_second_pathspec() {
+    Checkout::new(&[(".claude/skills/small/SKILL.md", &skill("a"))])
+        .skills_size_check(&[":(glob).claude/skills/*/SKILL.md", "skills/*/SKILL.md"])
+        .expect(2, &["'skills/*/SKILL.md'"]);
 }
 
 // Run where git lists nothing, the check would otherwise pass having read no skill.

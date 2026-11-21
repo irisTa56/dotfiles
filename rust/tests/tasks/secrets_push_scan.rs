@@ -221,14 +221,28 @@ fn fails_with_gits_status_outside_a_repository() {
 }
 
 // git gives a pre-push hook the remote's name, and without it no commit can be told to be
-// new to the remote.
+// new to the remote, so the run is a usage error, which refuses the push.
 #[test]
-fn fails_without_the_remote_name_git_gives_a_pre_push_hook() {
+fn fails_as_a_usage_error_without_the_remote_name_git_gives_a_pre_push_hook() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let run = checkout.secrets_push_scan(&[], &main_line(&checkout, &sha));
-    assert_eq!(run.code(), 1, "output: {}", run.output());
-    assert!(!run.output().is_empty(), "the run says why it failed");
+    checkout
+        .secrets_push_scan(&[], &main_line(&checkout, &sha))
+        .expect(2, &["<REMOTE>"]);
+}
+
+// git gives a pre-push hook the remote's URL after its name, and the scan reads the name
+// alone.
+#[test]
+fn fails_on_a_secret_the_push_sends_when_given_the_remotes_url_too() {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, sha) = ahead_of(&origin, &[("a.txt", &format!("fine\n{}", leaking()))]);
+    checkout
+        .secrets_push_scan(
+            &["origin", "https://example.com/origin.git"],
+            &main_line(&checkout, &sha),
+        )
+        .expect(1, &[&format!("Github at line 2 of a.txt, commit {sha}")]);
 }
 
 // A scan that failed has checked nothing, and what trufflehog said is the one account of

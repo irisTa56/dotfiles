@@ -10,24 +10,40 @@ mod upstream_pin_check;
 
 use std::process::ExitCode;
 
-use stream::Stream;
+use clap::{Parser, Subcommand};
+
+/// The shared tasks that other repositories run through mise; what each does and how it
+/// exits is in the dotfiles repository's tasks/README.md.
+#[derive(Debug, Parser)]
+#[command(name = "dotfiles-tasks", disable_help_subcommand = true)]
+struct Cli {
+    #[command(subcommand)]
+    task: Task,
+}
+
+/// One subcommand per task, named as the task with its `:` turned into `-`.
+#[derive(Debug, Subcommand)]
+enum Task {
+    /// Check the links of the files the commit stages with lychee.
+    LinkCheckStaged,
+    /// Scan the commits a push is about to send for secrets with trufflehog, as a
+    /// pre-push hook.
+    SecretsPushScan(secrets_push_scan::Hook),
+    /// Check that the body of each skill git tracks fits in what a compaction
+    /// re-attaches.
+    SkillsSizeCheck(skills_size_check::Request),
+    /// Check whether the upstream paths this repository pins have changed on their
+    /// default branches.
+    UpstreamPinCheck(upstream_pin_check::Request),
+}
 
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    match args.split_first() {
-        Some((task, _)) if task == "link-check-staged" => link_check_staged::Lychee::check_staged(),
-        Some((task, rest)) if task == "secrets-push-scan" => secrets_push_scan::Push::scan(rest),
-        Some((task, rest)) if task == "upstream-pin-check" => {
-            ExitCode::from(upstream_pin_check::Request::new(rest).run() as u8)
-        }
-        Some((task, rest)) if task == "skills-size-check" => {
-            skills_size_check::Request::new(rest).run()
-        }
-        _ => {
-            Stream::Stderr.line(format_args!(
-                "[fail] usage: dotfiles-tasks <task> [args...]; tasks: link-check-staged, secrets-push-scan, skills-size-check, upstream-pin-check"
-            ));
-            ExitCode::from(upstream_pin_check::Status::Unknown as u8)
-        }
+    // A usage error exits 2 on stderr, and --help 0 on stdout, as clap's `Error::exit`
+    // does; a write it cannot make there, as to a closed pipe, is dropped.
+    match Cli::parse().task {
+        Task::LinkCheckStaged => link_check_staged::Lychee::check_staged(),
+        Task::SecretsPushScan(hook) => secrets_push_scan::Push::scan(&hook),
+        Task::SkillsSizeCheck(request) => request.run(),
+        Task::UpstreamPinCheck(request) => ExitCode::from(request.run() as u8),
     }
 }
