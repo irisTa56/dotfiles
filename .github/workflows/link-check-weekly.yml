@@ -2,7 +2,7 @@ name: Link check (weekly)
 
 # The networked lychee run: every link in the repository, the same scope as
 # `mise run links:check` locally. Kept out of ci.yml, as `links:check` is kept out of
-# `qa:**`: too slow and too flaky on third-party hosts to gate a PR. It runs weekly
+# hk.pkl's checks: too slow and too flaky on third-party hosts to gate a PR. It runs weekly
 # instead, on no pull request, so a failure here blocks no merge; it fails on a
 # broken link so that GitHub notifies the maintainer, who otherwise has no reason
 # to open the run.

@@ -17,12 +17,6 @@ HOMEBREW_BUNDLE_DUMP_NO_CARGO = "1"
 HOMEBREW_BUNDLE_DUMP_NO_NPM = "1"
 HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 
-[vars]
-# Where the shell files are, for the two tasks below that lint or format them. Named once
-# because the lists had already drifted apart when each carried its own: `fmt:sh` was
-# missing the .zshrc fragment, which pre-commit had always checked.
-sh_paths = "tasks zsh_fragments"
-
 # hk runs the pre-commit hook from hk.pkl, which says what a commit checks. It
 # registers the hook in git's config, which leaves the hooks directory alone and is
 # safe to repeat, so it runs on every install; `--mise` runs hk through `mise x`.
@@ -79,8 +73,8 @@ includes = ["tasks"]
 # preview, so the style applies in every folder; VS Code registers it on finding
 # the link. Its directory name must follow package.json's publisher.name-version.
 "~/.vscode/extensions/irista56.markdown-preview-style-0.0.1" = { source = ".config/vscode/markdown-preview-style", mode = "symlink" }
-# Written out as content rather than linked, so it is no `.sh` file that `qa:sh`
-# checks: after changing it, run
+# Written out as content rather than linked, so it is no `.sh` file that hk.pkl's
+# shell checks reach: after changing it, run
 #   yq -r '.dotfiles."~/.local/bin/notify_desktop".content' mise.toml | shellcheck -
 # An edit reaches ~/.local/bin only at the next `mise dot apply` or `mise bootstrap`.
 "~/.local/bin/notify_desktop" = { permissions = "755", content = '''
@@ -137,21 +131,12 @@ run = [
   "claude plugin test .claude/skills/global-hooks",
 ]
 
-# Every check, run in parallel. The commit hook runs the same checks from hk.pkl,
-# which leaves out the Rust tests and the plugin checks when the commit stages
-# nothing they read.
-# CI runs each `qa:` task by name in one of its jobs (.github/workflows/ci.yml), or
-# through an aggregate one runs, as `qa:rust` gathers `qa:rust:*`, so a check that
-# belongs in CI goes under `qa:`, and a new `qa:` task needs a job or such an aggregate
-# too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
-# `*` matches a single task segment and would leave `qa:links:offline` out.
-# `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
-# request's commits with its own jobs instead of the staged diff this one reads.
-# `link-check:staged` sits outside `qa:` for the same reason, and because a networked
-# check would gate a pull request on third-party hosts.
-[tasks.pre-commit]
-description = "Run pre-commit checks"
-depends = ["qa:**", "secrets:commit-scan", "link-check:staged", "plugins:check"]
+# Every check, as CI runs them, through hk.pkl's `check` hook; the commit hook runs them
+# too, each only when the commit can change its result. The scans of the staged change,
+# `secrets:commit-scan` and `link-check:staged`, run at a commit alone.
+[tasks.check]
+description = "Run every check"
+run = "hk check --all"
 
 # The checks that config files agree with each other sit under `qa:config:`, which
 # `qa:config` gathers for CI's config-qa job to run.
@@ -183,16 +168,8 @@ run = [
   "! find -L .claude/evals -type l | grep .",
 ]
 
-[tasks."qa:md"]
-description = "Lint markdown files"
-run = "rumdl check"
-
 # The checks written in Rust, and the checks of the Rust package itself, sit under
-# `qa:rust:`, which `qa:rust` gathers for CI's rust-qa job to run.
-[tasks."qa:rust"]
-description = "Run every check under qa:rust:"
-depends = ["qa:rust:*"]
-
+# `qa:rust:`.
 # Each command names the whole workspace: run in rust/, cargo would otherwise take only
 # the dotfiles-tasks package at its root.
 [tasks."qa:rust:crates"]
@@ -211,21 +188,6 @@ run = [
 description = "Check that each tracked skill's body fits in what a compaction re-attaches"
 run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- skills-size-check"
 
-[tasks."qa:sh"]
-description = "Lint and check formatting of shell scripts"
-# Every shell file here ends in .sh, so one expression feeds both tools. It is a `find`
-# rather than a glob because mise loads a task under tasks/ at whatever depth it sits at,
-# and `sh` — which is what runs this — has no recursive glob to match that.
-run = [
-  "find {{ vars.sh_paths }} -name '*.sh' -exec shellcheck {} +",
-  "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -d {} +",
-]
-
-# biome.json names the files: the function-hooks module under global-hooks.
-[tasks."qa:ts"]
-description = "Lint and check formatting of TypeScript"
-run = "biome ci --error-on-warnings"
-
 # The shared task, run by the subcommand built from the working tree for the reason
 # `qa:rust:skills` gives; the pre-push hook runs it as `secrets:push-scan`, which
 # resolves to this name, and the remote and the pushed refs reach the subcommand as the
@@ -236,16 +198,15 @@ run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- secrets-pus
 
 [tasks."fmt:md"]
 description = "Format markdown files"
-run = "rumdl check --fix"
+run = "hk fix --all --step rumdl"
 
 [tasks."fmt:sh"]
 description = "Format shell scripts"
-# The same files pre-commit runs shfmt over, so this leaves that check nothing to reject.
-run = "find {{ vars.sh_paths }} -name '*.sh' -exec shfmt -i 2 -w {} +"
+run = "hk fix --all --step shfmt"
 
 [tasks."fmt:ts"]
 description = "Format TypeScript and apply safe lint fixes"
-run = "biome check --write"
+run = "hk fix --all --step biome"
 
 # `mise bootstrap` runs this last, on every run, so each step must be safe to repeat.
 [tasks.bootstrap]

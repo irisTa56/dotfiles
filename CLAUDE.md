@@ -13,7 +13,7 @@
   - A Copilot-authored one prints `.github/skills/<name>/…` paths that resolve nowhere here; its companion files sit beside the `SKILL.md` under `~/.claude/skills/<name>/`, and the wrong path text is knowingly left as it stands.
   - Search them with `command grep -r --exclude-dir=worktrees`; bare `grep` here is a harness wrapper around `ugrep --ignore-files`, so it shares `rg`'s blind spot and sees only the tracked ones, and a short result reads as an answer rather than as a failure.
     - Neither honors `.git/info/exclude`, which is where `.claude/worktrees/` is excluded, so its copy of every skill and rule comes back as hits unless the search drops that directory.
-- Checks: `mise run pre-commit` from this repository's root.
+- Checks: `mise run check` from this repository's root.
   - It also leaves out skill evals, which spend plan usage; [skill-evals.md](.claude/rules/skill-evals.md) says when an edit to a skill calls for them.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
 - PR bodies are English prose, and there is no template to fill in.

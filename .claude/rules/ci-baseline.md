@@ -7,17 +7,19 @@ paths:
 
 # CI baseline
 
-Hold a public repository owned by irisTa56, dotfiles and k-boat among them, to this baseline when writing or editing its CI.
+Hold a public repository owned by irisTa56 to this baseline when writing or editing its CI.
 Elsewhere, a repository's own conventions come first, and this is only a reference.
 A repository departs from it only where a comment in its workflow says why.
 
 ## Checks
 
-- CI runs the repository's local `mise run pre-commit` checks by calling the same `qa:` tasks, and `pre-commit` depends on `qa:**`. What a check runs is then the repository's `mise.toml` to say, in one place.
-  - Every `qa:` task runs in exactly one CI job, named there or reached through an aggregate task, such as a `qa:py` that depends on `qa:py:*`. A `qa:` task no job reaches runs only locally, so adding one means giving it a job or an aggregate a job already runs.
-- Jobs that run a `qa:` task install their tools with `jdx/mise-action` and `cache: false`, so a tool tracked at `latest` runs at its current release rather than at the one a cache was first saved with.
-- Each job that sets up mise installs only the tools its task calls, named in `install_args`, or none with `install: false`, so a tool added to `mise.toml` for local use costs no job anything.
-  - The workflow sets `MISE_TASK_RUN_AUTO_INSTALL: "false"`, so `mise run` does not install a tool its job left out, and the task fails on the missing command.
+- One file lists the repository's checks, and the commit hook and CI both run them from it, so what a check runs is said in one place.
+  - In a repository that uses hk, the file is `hk.pkl`, whose `check` hook holds every check. A check that reads files one at a time is a step of its own, and a check of the whole project is a mise task a step calls. CI runs each step with `hk check --all --step <name>`.
+  - In one that does not, the file is `mise.toml`. `pre-commit` depends on `qa:**`, and CI calls the same `qa:` tasks.
+  - Every check runs in exactly one CI job, named there or reached through an aggregate, such as a `qa:py` that depends on `qa:py:*`. A check no job reaches runs only locally, so adding one means giving it a job, or saying beside it why CI leaves it out.
+- Jobs that run a check install their tools with `jdx/mise-action` and `cache: false`, so a tool tracked at `latest` runs at its current release rather than at the one a cache was first saved with.
+- Each job that sets up mise installs only the tools its check calls, hk included where it runs hk, named in `install_args`, or none with `install: false`, so a tool added to `mise.toml` for local use costs no job anything.
+  - The workflow sets `MISE_TASK_RUN_AUTO_INSTALL: "false"`, so `mise run` does not install a tool its job left out, and the check fails on the missing command.
     - The runner image's own copy of a command hides that failure: a job that runs cargo without `rust` among its tools runs the image's toolchain, not `mise.toml`'s.
 - Every job that gates a pull request is a required check in the main ruleset. A Dependabot PR that auto-merges waits on those checks and nothing else.
 
@@ -34,7 +36,7 @@ Secrets are scanned in three layers, each covering what the one before it cannot
 ## Scheduled runs
 
 - `ci.yml` also runs weekly. Every job then meets the current release of its tools even when no pull request comes in, and both secret scans cover the whole history with their current rules.
-- The networked link check runs in a workflow of its own, weekly, and gates nothing; the offline link check is a `qa:` task and gates every pull request. Both workflows fail on a problem, so that GitHub notifies whoever last edited the cron line.
+- The networked link check runs in a workflow of its own, weekly, and gates nothing; the offline link check is one of the checks above and gates every pull request. Both workflows fail on a problem, so that GitHub notifies whoever last edited the cron line.
 
 ## Actions
 

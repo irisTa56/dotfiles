@@ -128,7 +128,7 @@ A command that runs unattended, or whose caller does not start zsh, is one in `~
 - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
 - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
 - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-- `qa:sh` checks only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
+- The shell checks in `hk.pkl` reach only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
 
 The shared tasks under `tasks/`, which other repositories run, follow [their own rules](tasks/README.md#writing-one) instead.
 So do Claude Code's PreToolUse hooks: each goes in the `global-hooks` module as a `tool.check` hook with TypeScript tests, unless it rewrites the call's input, as [Agent Skills](#agent-skills) describes.
@@ -142,7 +142,7 @@ A command for this machine alone that is written in Rust is a subcommand of `dot
   - The request's doc comments are the command's help, and clap lists the command under that variant's name, so the help and the list of commands both come from the definition.
   - Its `run` returns `Result<(), Failure>`, and `main` alone reports a failure, with its message where it has one, as the exit status.
 - The binary runs in its caller's working directory, so a mise task that runs it sets no `dir` and the command acts on the root of the checkout the task ran in, and a command a shell function runs reads a relative path from where the function was called.
-- Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust` runs them with the rest of the workspace.
+- Its tests sit in `tests/commands/<name>.rs` and run the built binary, with a fake shell script first on `PATH` for each external command, and `mise run qa:rust:crates` runs them with the rest of the workspace.
   - A test that needs a real tool, such as gitleaks or lychee, has CI's `rust-qa` job install it through `install_args`, and one that only macOS has, such as `osascript` or `qlmanage`, has a fake answer in its place, since that job runs on Linux.
 - A dependency it adds or updates changes `rust/Cargo.lock`, which `dotfiles-tasks`'s releases cover, so a `feat` or `fix` commit with that change opens a release pull request.
 
@@ -152,12 +152,12 @@ A property of the shared tasks under `tasks/`, such as each wrapper pinning the 
 
 A mise task is named `<area>:<action>` or `<area>:<what it produces>`, as `skills:update` and `ts:types` are.
 
-- A check or a formatter takes the kind of work as its area and its target after it, as `qa:md` and `fmt:md` do, so that each kind of work is one prefix: `pre-commit` runs `qa:**`, and CI runs the same `qa:` tasks ([CI baseline](.claude/rules/ci-baseline.md#checks)).
+- A check or a formatter takes the kind of work as its area and its target after it, as `qa:config` and `fmt:md` do, so that each kind of work is one prefix.
   - `fmt` is short, as in `cargo fmt`.
-- `qa:` holds only the checks that `pre-commit` and CI both run and that use no network.
+- `qa:` holds only the checks of the whole project that `hk.pkl`'s `check` hook runs and that use no network; a check that reads files one at a time is a step in `hk.pkl` rather than a task ([CI baseline](.claude/rules/ci-baseline.md#checks)).
   - A shared task itself, such as `secrets:commit-scan`, and a check that uses the network, such as `links:check`, sit under an area of their own instead.
   - `qa:rust:skills` stays under `qa:`, though it runs a shared task's subcommand: it runs it from the working tree, to check this repository.
-- `pre-commit` and `bootstrap` are names mise sets, and fall outside the rule.
+- `check` takes its name from the `hk check` it runs, and `bootstrap` is a name mise sets; both fall outside the rule.
 
 A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise task, or of the alias or function a person types, that runs it, with each `:` as `-`.
 
@@ -167,7 +167,7 @@ A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise 
 - One that neither a task nor a person runs by name, such as a hook or a command only a skill runs, keeps the name it has.
 
 One name predates the rule and does not follow it yet: the shared task `link-check:staged` puts its action where its area goes.
-Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the `pre-commit` of every repository that runs it, so it keeps its name until they change with it.
+Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the commit hook of every repository that runs it, so it keeps its name until they change with it.
 
 ## Agent Instructions
 
@@ -213,7 +213,7 @@ It keeps what one stop leaves for the next in a file per session under the syste
 The Delegation rule in `.claude/CLAUDE.md` has an agent pass a subagent no model unless it wants Haiku or one the user or a skill names, so the cap on the rest is `CLAUDE_CODE_SUBAGENT_MODEL=sonnet` from `.config/claude/settings.json` together with that Explore hook; without the variable, those subagents run on the session's model.
 Plan, a fork, and an agent whose definition names its own model are outside that cap: Plan and a fork run on the session's model, and a definition's model outranks the variable.
 
-The function-hooks API is early access and may change with a Claude Code update, so `mise run pre-commit` runs the modules' tests with `claude plugin test` and type-checks them with `claude plugin validate`; `mise run ts:types` writes the installed CLI's declarations for an editor to type-check them against; Biome lints and formats them (`mise run qa:ts`, `mise run fmt:ts`), in CI as well.
+The function-hooks API is early access and may change with a Claude Code update, so `mise run check` runs the modules' tests with `claude plugin test` and type-checks them with `claude plugin validate`; `mise run ts:types` writes the installed CLI's declarations for an editor to type-check them against; Biome lints and formats them, in CI as well, and `mise run fmt:ts` applies its fixes.
 
 Restore pinned skills from `apm.lock.yaml`, which `mise bootstrap` also does:
 

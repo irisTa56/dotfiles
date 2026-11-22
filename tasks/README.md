@@ -224,7 +224,7 @@ The exception is `.toml`: mise reads every one that is not a config file as a li
 Keep such a file out of here.
 [`task_config.excludes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.excludes) belongs to the config that declares the include, so naming it in this repository's `mise.toml` would clear it here and leave every consumer loading it.
 
-A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the `find` in `mise.toml` reaches it.
+A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the shell steps in `hk.pkl` reach it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
 The subcommand takes the task's name with its colon as a hyphen, as `link-check-staged` does for `link-check:staged`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
 It installs the release it pins with `mise install`, rather than declaring it in a [`#MISE tools=` header](https://mise.jdx.dev/tasks/task-configuration.html#tools), which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since [`mise x`](https://mise.jdx.dev/cli/exec.html) would leave the tools the header declares off `PATH`.
@@ -234,12 +234,12 @@ A change under `rust/` reaches a consumer only once that pull request merges and
 Declare in the task's `#MISE` header whatever tool mise can install for it, and start no later comment line with `MISE`.
 mise reads the comment block following the header as more of the header, so a line opening with `MISE_TASK_DIR` or `MISE_CACHE_DIR` is parsed as a usage spec and every run of the task prints a parse warning.
 Writing the variable with its sigil, as `$MISE_TASK_DIR`, keeps the line out of that.
-Neither mistake shows up in this repository's own `mise run pre-commit`: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
+Neither mistake shows up in this repository's own commit hook: it runs some of these tasks, `[tools]` in `mise.toml` puts their tools on PATH whatever their headers say, and the usage-spec warning appears only when the task it belongs to runs.
 
 A task runs in the consuming repository: its working directory is that repository's root, and the paths it names resolve there rather than here.
 [`MISE_TASK_DIR`](https://mise.jdx.dev/tasks/running-tasks.html#task-environment) is the one path that points back into this library — into the working tree here, or into a cached clone of this repository in a consumer.
 It is the task's own namespace directory rather than the root of the library: `tasks/secrets` for `secrets:commit-scan`, so a file two tasks share sits at `$MISE_TASK_DIR/..`.
 
-What a task must do is checked here without the consuming repositories ever running the check, by the `dotfiles-tasks` package's tests, which `qa:rust` runs: each sets up a repository, runs the subcommand there, and checks the exit status and output, and a task's tests run its wrapper too, with a stand-in for mise.
+What a task must do is checked here without the consuming repositories ever running the check, by the `dotfiles-tasks` package's tests, which `qa:rust:crates` runs: each sets up a repository, runs the subcommand there, and checks the exit status and output, and a task's tests run its wrapper too, with a stand-in for mise.
 They sit under `rust/tests/tasks/`, a module for each task; the one for `secrets:commit-scan`, which stays a shell script, runs the script itself.
 A module of their own checks that each wrapper pins the release `rust/Cargo.toml` is at, since release-please skips a file its config names but cannot find without saying so, and a wrapper moved or renamed would go on pinning an old release.
