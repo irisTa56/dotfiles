@@ -108,6 +108,8 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # Every check hk.pkl's `check` hook holds; the commit hook runs them too, each only
 # when the commit can change its result. The scans of the staged change,
 # `secrets:commit-scan` and `link-check:staged`, run at a commit alone.
+# A `qa:` task below runs only as a step there: a new one needs its step, and the step a
+# CI job (.github/workflows/ci.yml) or a comment saying why CI leaves it out.
 [tasks.check]
 description = "Run every check"
 run = "hk check --all"
