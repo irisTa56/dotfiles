@@ -1,0 +1,9 @@
+/* The built-in preview wraps code blocks whenever word wrap is on for Markdown
+   editors, which VS Code turns on by default; scroll them sideways instead. */
+pre {
+  overflow-x: auto;
+}
+
+pre code {
+  white-space: pre;
+}

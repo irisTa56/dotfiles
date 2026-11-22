@@ -32,6 +32,7 @@ On a Mac already set up, rerun `brew bundle` before `mise bootstrap`, which inst
 - `[dotfiles]` symlinks the global mise config and the agent instructions below into place, and writes `~/.local/bin/notify_desktop` out from its `content`, over whatever is there.
   - It copies `.config/git/ignore` to `~/.config/git/ignore`, over whatever is there.
   - It sets cargo's [release window](#release-window) in `~/.cargo/config.toml` from `.config/cargo/config.toml`, leaving the file's other keys as they are.
+  - It links `.config/vscode/markdown-preview-style/` into `~/.vscode/extensions/` as a local extension that adds its stylesheet to VS Code's built-in Markdown preview in every folder.
   - It refuses to replace a file or directory already at a link's path, and changes nothing until that one is moved aside.
   - Each link points into the checkout it runs from, so a hook stops a run from a worktree before anything is written.
 - It installs the tools that the global config and the root `mise.toml` pin.
