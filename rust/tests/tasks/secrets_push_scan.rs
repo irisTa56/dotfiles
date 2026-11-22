@@ -3,6 +3,7 @@
 //! trufflehog; which commits and which repository the scan reads, against a stand-in that
 //! reports the commits whose changes hold a token.
 
+mod failures;
 mod wrapper;
 
 use std::fs;

@@ -2,17 +2,22 @@
 //! a time, and how the run ended.
 
 use std::ffi::OsStr;
+use std::fs::File;
 use std::io::{self, Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::thread;
+
+use regex::Regex;
 
 /// A run not yet started: the command, the checkout it runs in, what it is fed on stdin,
-/// and which of its output streams, if any, is closed.
+/// or the file it reads there instead, and which of its output streams, if any, is closed.
 #[must_use = "an invocation runs nothing until `run` is called"]
 pub(crate) struct Invocation {
     command: Command,
     root: PathBuf,
     input: Vec<u8>,
+    stdin: Option<File>,
     closed: Option<Stream>,
 }
 
@@ -29,6 +34,13 @@ pub(crate) struct Run {
     output: String,
 }
 
+/// How a run ended: its exit code, and stdout and stderr each as it was written.
+pub(crate) struct Apart {
+    code: i32,
+    stdout: String,
+    stderr: String,
+}
+
 impl Invocation {
     /// A run of `command`, which already runs in the checkout at `root`, fed nothing and
     /// with both streams read.
@@ -37,6 +49,7 @@ impl Invocation {
             command,
             root,
             input: Vec::new(),
+            stdin: None,
             closed: None,
         }
     }
@@ -77,6 +90,13 @@ impl Invocation {
         self
     }
 
+    /// Gives the run the file at `path`, opened for reading, as its stdin, in place of a
+    /// pipe it is fed through: a directory there makes every read fail.
+    pub(crate) fn stdin_from(mut self, path: &Path) -> Self {
+        self.stdin = Some(File::open(path).expect("the file can be opened"));
+        self
+    }
+
     /// Makes `stream` a pipe whose reading end is already closed, so that the run's output
     /// is the other stream alone.
     pub(crate) fn closing(mut self, stream: Stream) -> Self {
@@ -88,17 +108,20 @@ impl Invocation {
     pub(crate) fn run(mut self) -> Run {
         let mut reader = self.connect_output();
         let Invocation {
-            mut command, input, ..
+            mut command,
+            input,
+            stdin,
+            ..
         } = self;
         let mut child = command
-            .stdin(Stdio::piped())
+            .stdin(stdin.map_or_else(Stdio::piped, Stdio::from))
             .spawn()
             .expect("the command runs");
         // A command that exits without reading its input fails the write, which says
         // nothing about the run.
-        let mut stdin = child.stdin.take().expect("stdin is piped");
-        let _ = stdin.write_all(&input);
-        drop(stdin);
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(&input);
+        }
         // The command holds the pipes' writing ends until it is dropped, and reading
         // waits for every one to close.
         drop(command);
@@ -112,6 +135,44 @@ impl Invocation {
                 .code()
                 .expect("the command exits rather than being killed"),
             output,
+        }
+    }
+
+    /// Runs the command to its end, feeding it its input and reading stdout and stderr
+    /// apart. No stream is closed: a closed one has nothing to read.
+    pub(crate) fn run_apart(self) -> Apart {
+        assert!(self.closed.is_none(), "a run read apart closes no stream");
+        let Invocation {
+            mut command,
+            input,
+            stdin,
+            ..
+        } = self;
+        let mut child = command
+            .stdin(stdin.map_or_else(Stdio::piped, Stdio::from))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("the command runs");
+        // Fed apart from the reading, so that a run writing more than a pipe holds before
+        // reading its input does not wait on the test. A command that exits without
+        // reading its input fails the write, which says nothing about the run.
+        let feeder = child.stdin.take().map(|mut stdin| {
+            thread::spawn(move || {
+                let _ = stdin.write_all(&input);
+            })
+        });
+        let output = child.wait_with_output().expect("the command's run ends");
+        if let Some(feeder) = feeder {
+            feeder.join().expect("feeding the input does not panic");
+        }
+        Apart {
+            code: output
+                .status
+                .code()
+                .expect("the command exits rather than being killed"),
+            stdout: String::from_utf8(output.stdout).expect("stdout is UTF-8"),
+            stderr: String::from_utf8(output.stderr).expect("stderr is UTF-8"),
         }
     }
 
@@ -160,5 +221,30 @@ impl Run {
                 self.output
             );
         }
+    }
+}
+
+impl Apart {
+    /// Asserts that the run exited with `code` and printed `stdout` and `stderr`, each
+    /// whole.
+    pub(crate) fn expect(&self, code: i32, stdout: &str, stderr: &str) {
+        assert_eq!(
+            (self.code, self.stdout.as_str(), self.stderr.as_str()),
+            (code, stdout, stderr),
+            "exit code, stdout and stderr"
+        );
+    }
+
+    /// Asserts that the run exited with `code` and printed `stdout`, and on stderr what
+    /// `stderr` matches whole, a pattern for output that names a path the run made up.
+    pub(crate) fn expect_matching(&self, code: i32, stdout: &str, stderr: &str) {
+        let pattern = Regex::new(&format!(r"\A(?:{stderr})\z")).expect("the pattern is valid");
+        assert!(
+            (self.code, self.stdout.as_str()) == (code, stdout) && pattern.is_match(&self.stderr),
+            "expected exit code {code}, stdout {stdout:?} and stderr matching {pattern}, not {}, {:?} and {:?}",
+            self.code,
+            self.stdout,
+            self.stderr
+        );
     }
 }

@@ -1,6 +1,7 @@
 //! `dotfiles-tasks links-commit-check`: whether the links of the files a commit stages
 //! resolve, checked by lychee, and the wrapper `tasks/links/commit-check.sh`.
 
+mod failures;
 mod wrapper;
 
 use std::fs;

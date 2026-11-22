@@ -1,5 +1,7 @@
 //! Runs without `--bump`: reading the pins and comparing each with its upstream.
 
+mod failures;
+
 use tempfile::TempDir;
 
 use super::Trace;
