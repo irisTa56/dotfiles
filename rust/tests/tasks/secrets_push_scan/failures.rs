@@ -137,10 +137,11 @@ fn passes_on_what_trufflehog_said_and_exits_1_where_a_signal_stops_its_scan() {
 fn passes_on_trufflehogs_log_and_says_why_where_its_report_is_not_json() {
     let bin = StandIns::new().program("trufflehog", "echo 'stand-in: log' >&2\necho 'not json'\n");
     let (_origin, _checkout, run, _) = push_on("fine\n", bin.path());
-    run.run_apart().expect(
+    // The reason after the colon is serde_json's, worded as that crate words it.
+    run.run_apart().expect_matching(
         1,
         "",
-        "stand-in: log\ncould not read trufflehog's report: expected ident at line 1 column 2\n",
+        r"stand-in: log\ncould not read trufflehog's report: [^\n]+\n",
     );
 }
 
