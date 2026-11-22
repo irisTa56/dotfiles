@@ -192,8 +192,8 @@ impl Push {
             ])
             .stdin(Stdio::null())
             .output()
-            .map_err(|unstarted| {
-                Stream::Stderr.line(format_args!("{unstarted}"));
+            .map_err(|error| {
+                Stream::Stderr.line(format_args!("{error}"));
                 ExitCode::from(STOPPED)
             })?;
         let report = Report(output);

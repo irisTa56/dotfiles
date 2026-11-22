@@ -1,6 +1,6 @@
-//! Running another program: every task starts git, lychee, trufflehog and curl through
-//! [`Program`], which says the same of each one it cannot start, run or feed, and leaves
-//! what that ends the task with to the task.
+//! Running another program: every task starts the programs it runs through [`Program`],
+//! which says the same of each one it cannot start, feed or wait on, and leaves what that
+//! ends the task with to the task.
 
 use std::ffi::OsStr;
 use std::fmt;
@@ -112,15 +112,22 @@ impl Program {
 }
 
 impl Running {
-    /// Writes `input` to the program's stdin, where it was set to a pipe, and closes it,
-    /// so that the program reads to its end.
+    /// Writes `input` to the program's stdin and closes it, so that the program reads to
+    /// its end.
+    ///
+    /// # Panics
+    ///
+    /// Where the program's stdin was not set to a pipe, or was fed already, since the
+    /// input would otherwise be dropped and the program read some other stdin.
     pub(crate) fn feed(&mut self, input: &[u8]) -> Result<(), Unstarted> {
-        if let Some(mut stdin) = self.child.stdin.take() {
-            stdin
-                .write_all(input)
-                .map_err(|error| self.unstarted(error))?;
-        }
-        Ok(())
+        let mut stdin = self
+            .child
+            .stdin
+            .take()
+            .expect("a program is fed once, through a stdin set to a pipe");
+        stdin
+            .write_all(input)
+            .map_err(|error| self.unstarted(error))
     }
 
     /// Waits for the program to end.
@@ -146,9 +153,14 @@ impl Running {
 }
 
 impl Unstarted {
-    /// Whether the program was not found, rather than found and not runnable.
-    pub(crate) fn not_found(&self) -> bool {
-        self.error.kind() == io::ErrorKind::NotFound
+    /// The status a shell ends with on a command it cannot run: 127 where the program is
+    /// not found, and 126 where it is found and cannot be run.
+    pub(crate) fn shell_status(&self) -> u8 {
+        if self.error.kind() == io::ErrorKind::NotFound {
+            127
+        } else {
+            126
+        }
     }
 }
 

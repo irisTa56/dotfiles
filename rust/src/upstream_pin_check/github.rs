@@ -79,7 +79,7 @@ impl GitHub {
             .args(["--write-out", "\n%{http_code}"])
             .arg(format!("{}/repos/{}/pulls", self.api, self.repository))
             .output()
-            .map_err(|unstarted| unstarted.to_string())?;
+            .map_err(|error| error.to_string())?;
         if !output.status.success() {
             return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
         }

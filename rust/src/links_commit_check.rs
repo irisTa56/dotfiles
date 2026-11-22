@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::process::{ExitCode, ExitStatus, Stdio};
 
 use crate::git::Git;
-use crate::program::{Program, Unstarted};
+use crate::program::Program;
 use crate::stream::Stream;
 
 /// The status of a run that could not check the links, where neither git nor lychee
@@ -79,7 +79,10 @@ impl Lychee {
             .stdin(Stdio::null())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|error| unstarted(&error))?;
+            .map_err(|error| {
+                Stream::Stderr.line(format_args!("{error}"));
+                ExitCode::from(error.shell_status())
+            })?;
         if !output.status.success() {
             return Err(failed(output.status));
         }
@@ -158,7 +161,10 @@ impl Lychee {
                 }
                 ExitCode::FAILURE
             }
-            Err(error) => unstarted(&error),
+            Err(error) => {
+                Stream::Stderr.line(format_args!("{error}"));
+                ExitCode::from(error.shell_status())
+            }
         }
     }
 
@@ -190,13 +196,6 @@ impl Staged {
         }
         list
     }
-}
-
-/// Reports a lychee that could not be started, and returns the code a shell ends with on
-/// such a command: 127 where it is not found, and 126 where it cannot be run.
-fn unstarted(unstarted: &Unstarted) -> ExitCode {
-    Stream::Stderr.line(format_args!("{unstarted}"));
-    ExitCode::from(if unstarted.not_found() { 127 } else { 126 })
 }
 
 /// The code to end with where lychee failed: its own status, or `UNCHECKED` where a

@@ -52,11 +52,11 @@ impl Run {
     }
 
     /// The run of a git that could not be started, or not fed its input.
-    fn unstarted(unstarted: &Unstarted) -> Self {
+    fn unstarted(error: &Unstarted) -> Self {
         Run {
             status: None,
             stdout: Vec::new(),
-            stderr: format!("{unstarted}\n"),
+            stderr: format!("{error}\n"),
         }
     }
 }
@@ -140,7 +140,7 @@ impl<'a> Call<'a> {
                 stdout: output.stdout,
                 stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
             },
-            Err(unstarted) => Run::unstarted(&unstarted),
+            Err(error) => Run::unstarted(&error),
         }
     }
 
