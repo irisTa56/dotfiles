@@ -1,10 +1,10 @@
 //! Runs git and hands back what it printed, whatever its exit status.
 
 use std::borrow::Cow;
-use std::io::Write;
 use std::path::Path;
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{ExitCode, Output, Stdio};
 
+use crate::program::{Program, Unstarted};
 use crate::stream::Stream;
 
 /// What one git run printed, and how it exited.
@@ -52,11 +52,11 @@ impl Run {
     }
 
     /// The run of a git that could not be started, or not fed its input.
-    fn unstarted(error: &std::io::Error) -> Self {
+    fn unstarted(unstarted: &Unstarted) -> Self {
         Run {
             status: None,
             stdout: Vec::new(),
-            stderr: format!("could not run git: {error}\n"),
+            stderr: format!("{unstarted}\n"),
         }
     }
 }
@@ -134,45 +134,37 @@ impl<'a> Call<'a> {
     }
 
     pub(crate) fn run(self) -> Run {
-        let mut command = Command::new("git");
-        command.args(self.args);
+        match self.output() {
+            Ok(output) => Run {
+                status: output.status.code(),
+                stdout: output.stdout,
+                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            },
+            Err(unstarted) => Run::unstarted(&unstarted),
+        }
+    }
+
+    fn output(self) -> Result<Output, Unstarted> {
+        let mut program = Program::new("git").args(self.args);
         for name in &self.git.cleared {
-            command.env_remove(name);
+            program = program.env_remove(name);
         }
-        command.envs(self.env.iter().copied());
+        program = program.envs(self.env.iter().copied());
         if let Some(dir) = self.dir {
-            command.current_dir(dir);
+            program = program.current_dir(dir);
         }
-        command
+        let mut running = program
             .stdin(if self.input.is_some() {
                 Stdio::piped()
             } else {
                 Stdio::null()
             })
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-        let child = match command.spawn() {
-            Ok(child) => child,
-            Err(error) => return Run::unstarted(&error),
-        };
-        let output = match feed(child, self.input) {
-            Ok(output) => output,
-            Err(error) => return Run::unstarted(&error),
-        };
-        Run {
-            status: output.status.code(),
-            stdout: output.stdout,
-            stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            .stderr(Stdio::piped())
+            .spawn()?;
+        if let Some(input) = self.input {
+            running.feed(input)?;
         }
+        running.wait_with_output()
     }
-}
-
-fn feed(
-    mut child: std::process::Child,
-    input: Option<&[u8]>,
-) -> std::io::Result<std::process::Output> {
-    if let (Some(input), Some(mut stdin)) = (input, child.stdin.take()) {
-        stdin.write_all(input)?;
-    }
-    child.wait_with_output()
 }

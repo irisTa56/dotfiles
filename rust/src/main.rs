@@ -3,6 +3,7 @@
 
 mod git;
 mod links_commit_check;
+mod program;
 mod secrets_push_scan;
 mod skills_size_check;
 mod stream;
