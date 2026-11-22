@@ -54,7 +54,5 @@ cask "visual-studio-code"
 cask "wireshark-app"
 # Yet another monitor
 cask "yam-display"
-# Multiplayer code editor
-cask "zed"
 # Video communication and virtual meeting platform
 cask "zoom"
