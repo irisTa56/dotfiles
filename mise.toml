@@ -260,7 +260,8 @@ run = [
 # copies the binary, so a later `cargo clean` leaves it working, and rebuilds and copies
 # again on every run, changed or not. The toolchain is named on the command line because
 # `cargo install` warns whenever rustup took it from RUSTUP_TOOLCHAIN, which mise sets to
-# the version pinned above; naming the same one keeps that pin and drops the warning.
+# the version it resolved for the `rust` tool above; naming the same one builds with that
+# version and drops the warning.
 [tasks."local:install"]
 description = "Install dotfiles-local into ~/.local/bin from this checkout, on main only"
 run = '''
