@@ -135,7 +135,7 @@ So do Claude Code's PreToolUse hooks: each goes in the `global-hooks` module as 
 A command for this machine alone that is written in Rust is a subcommand of `dotfiles-local`, the binary of the `rust/crates/local` package, so that it is compiled with warnings as errors and tested in CI, a dependency it takes is pinned in `rust/Cargo.lock`, and every such command shares one name on `PATH`.
 
 - `local:install` installs the binary into `~/.local/bin` from a checkout on `main`, and fails on any other branch, since every caller runs the installed copy.
-  - `mise bootstrap` runs it, and so do the post-merge and post-checkout hooks that `mise install` registers, once `main` moves or is switched to.
+  - `mise bootstrap` runs it, and so do the post-merge and post-checkout hooks that `mise install` registers, once `main` moves or a switch moves `HEAD` onto it.
   - A feature branch tries its change in its own worktree with `cargo run --manifest-path rust/Cargo.toml -p dotfiles-local -- <command>`; the installed binary runs main's code until the branch merges.
 - Each command is a module, `src/<name>.rs`, with a `Request` that clap reads the command's arguments into, and a variant of `src/main.rs`'s `Command` holding it.
   - The request's doc comments are the command's help, and clap lists the command under that variant's name, so the help and the list of commands both come from the definition.
