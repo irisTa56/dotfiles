@@ -80,8 +80,8 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let pinned = format!("# {}\n", up.marker("lints", 0));
-    let checkout = Checkout::new(&[("Cargo.toml", &pinned), ("README.md", "r")]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &pinned), ("README.md", "r")]);
+    let checkout = Checkout::clone_of(&origin);
     Runner::GitHubActions.bump(&checkout).run().expect(
         1,
         &[
@@ -108,8 +108,8 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
 fn under_github_actions_opens_the_pull_request_of_the_branch_it_pushes() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
         .bump(&checkout)
@@ -141,8 +141,8 @@ fn under_github_actions_opens_the_pull_request_of_the_branch_it_pushes() {
 fn under_github_actions_opens_the_pull_request_into_origins_default_branch_by_its_name() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     origin.rename_main("trunk");
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
@@ -173,8 +173,8 @@ fn under_github_actions_commits_as_the_bot_and_links_githubs_comparison() {
     .expect("the config can be written");
     let origin = Origin::new();
     let cargo = format!("# {}\n", marker(url, "lints", up.commit(0)));
-    let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &cargo)]);
+    let checkout = Checkout::clone_of(&origin);
     Runner::GitHubActions
         .bump(&checkout)
         .env("GIT_CONFIG_GLOBAL", &config)
@@ -243,8 +243,8 @@ fn under_github_actions_leaves_a_full_checkouts_history_as_it_was() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     let cargo = format!("# {}\n", up.marker("lints", 0));
-    let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &cargo)]);
+    let checkout = Checkout::clone_of(&origin);
     for message in ["second", "third"] {
         checkout.git(
             &[
@@ -327,8 +327,8 @@ fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() 
     let origin = Origin::new();
     origin.refuse_pushes_to(BUMP);
     let cargo = format!("# {}\n", up.marker("lints", 0));
-    let checkout = Checkout::new(&[("Cargo.toml", &cargo)]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &cargo)]);
+    let checkout = Checkout::clone_of(&origin);
     Runner::GitHubActions
         .bump(&checkout)
         .run()
@@ -342,8 +342,8 @@ fn under_github_actions_fails_as_unable_to_tell_where_origin_refuses_the_push() 
 fn under_github_actions_pushes_nothing_without_the_token_to_open_the_pull_request() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     Runner::GitHubActions
         .bump(&checkout)
         .env_remove("GITHUB_TOKEN")
@@ -357,8 +357,8 @@ fn under_github_actions_pushes_nothing_without_the_token_to_open_the_pull_reques
 fn under_github_actions_pushes_nothing_without_curl_to_open_the_pull_request() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let bin = without_curl();
     Runner::GitHubActions
         .bump(&checkout)
@@ -374,8 +374,8 @@ fn under_github_actions_pushes_nothing_without_curl_to_open_the_pull_request() {
 fn under_github_actions_fails_as_unable_to_tell_where_github_refuses_the_pull_request() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let refusal = "GitHub Actions is not permitted to create or approve pull requests.";
     let api = GitHubApi::answering(403, &format!(r#"{{"message":"{refusal}"}}"#));
     Runner::GitHubActions
@@ -399,8 +399,8 @@ fn under_github_actions_says_so_where_origin_refuses_to_delete_the_branch_it_cou
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
     origin.refuse_deleting(BUMP);
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
     Runner::GitHubActions
         .bump(&checkout)
@@ -419,8 +419,8 @@ fn under_github_actions_says_so_where_origin_refuses_to_delete_the_branch_it_cou
 fn under_github_actions_opens_the_pull_request_in_a_later_run_after_github_refused_one() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let refusing = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
     Runner::GitHubActions
         .bump(&checkout)
@@ -448,8 +448,8 @@ fn under_github_actions_opens_the_pull_request_in_a_later_run_after_github_refus
 fn under_github_actions_reports_the_reason_github_gives_for_a_422_and_blames_no_setting() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let reason = "A pull request already exists for o:upstream-pin-bump.";
     let api = GitHubApi::answering(
         422,
@@ -476,8 +476,8 @@ fn under_github_actions_reports_the_reason_github_gives_for_a_422_and_blames_no_
 fn under_github_actions_moves_the_pins_on_an_existing_bump_branch_over_what_it_holds() {
     let up = Upstream::changing_lints(3);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let added = origin.commit_onto_main_as(BUMP, "NOTE.md", "kept");
     let api = GitHubApi::answering(500, "{}");
     Runner::GitHubActions
@@ -509,8 +509,8 @@ fn under_github_actions_moves_the_pins_on_an_existing_bump_branch_over_what_it_h
 fn under_github_actions_leaves_a_bump_branch_holding_the_tips_already_as_it_is() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let moved = format!("# {}\n", up.marker("lints", 1));
     let added = origin.commit_onto_main_as(BUMP, "Cargo.toml", &moved);
     Runner::GitHubActions
@@ -586,8 +586,8 @@ fn under_github_actions_moves_a_pin_in_a_large_file_beside_one_in_a_small_file()
     let padding = format!("# {}\n", "x".repeat(1_600_000));
     let big = format!("{padding}# {}\n", up.marker("lints", 0));
     let cargo = format!("# {}\n", up.marker("lints", 0));
-    let checkout = Checkout::new(&[("big.toml", &big), ("Cargo.toml", &cargo)]);
-    checkout.publish(&origin);
+    origin.make_main(&[("big.toml", &big), ("Cargo.toml", &cargo)]);
+    let checkout = Checkout::clone_of(&origin);
     Runner::GitHubActions.bump(&checkout).run().expect(1, &[]);
     let pushed = origin
         .show(&format!("{BUMP}:big.toml"))
@@ -651,8 +651,8 @@ fn without_curl() -> TempDir {
 fn under_github_actions_opens_the_pull_request_as_a_draft_with_draft() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
         .bump(&checkout)
@@ -673,8 +673,8 @@ fn under_github_actions_opens_the_pull_request_as_a_draft_with_draft() {
 fn under_github_actions_opens_the_pull_request_ready_without_draft() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
         .bump(&checkout)
@@ -696,8 +696,8 @@ fn under_github_actions_opens_the_pull_request_ready_without_draft() {
 fn under_github_actions_proposes_the_move_on_the_branch_branch_suffix_names() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
     let api = GitHubApi::answering(201, &format!(r#"{{"html_url":"{OPENED}"}}"#));
     Runner::GitHubActions
@@ -731,8 +731,8 @@ fn under_github_actions_proposes_the_move_on_the_branch_branch_suffix_names() {
 fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_suffix_names() {
     let up = Upstream::changing_lints(3);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let added = origin.commit_onto_main_as("upstream-pin-bump-lints", "NOTE.md", "kept");
     let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
     let api = GitHubApi::answering(500, "{}");
@@ -758,8 +758,8 @@ fn under_github_actions_moves_the_pins_on_the_existing_branch_branch_suffix_name
 fn under_github_actions_deletes_the_suffixed_branch_it_could_not_propose() {
     let up = Upstream::changing_lints(2);
     let origin = Origin::new();
-    let checkout = Checkout::new(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
-    checkout.publish(&origin);
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
     let other = origin.commit_onto_main_as(BUMP, "other.txt", "another series");
     let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
     Runner::GitHubActions
