@@ -2,12 +2,13 @@
 //! run with the real git against a repository of the test's own and a fake fnox, which
 //! records how it was called and stands in for the keychain.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated, output_with_input};
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated, output_with_input};
 
 /// A repository named `repo` to run in, a directory holding the fakes, and the records
 /// the fakes leave, none of which the machine's git config reaches.
@@ -92,7 +93,7 @@ esac"#;
     /// Runs git with `args` in the repository.
     fn git(&self, args: &[&str]) {
         let status = self
-            .command("git", &self.repo())
+            .command(git(), &self.repo())
             .args(args)
             .status()
             .expect("git starts");
@@ -102,7 +103,7 @@ esac"#;
     /// `program` run in `dir`, with what a git hook sets in the environment taken away,
     /// the machine's git config left unread, the sandbox's home, and the fakes first on
     /// PATH.
-    fn command(&self, program: &str, dir: &Path) -> Command {
+    fn command(&self, program: impl AsRef<OsStr>, dir: &Path) -> Command {
         let mut command = isolated(program, dir, self.root());
         command
             .env("PATH", self.sandbox.path_before_inherited())

@@ -8,7 +8,7 @@ use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated};
 
 /// A bare origin whose default branch is `main`, a clone of it to run in, and a second
 /// clone that moves origin on, none of which the machine's git config reaches.
@@ -62,7 +62,7 @@ impl Fixture {
 
     fn git(&self, dir: &Path, args: &[&str]) {
         let status = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .status()
             .expect("git starts");
@@ -72,7 +72,7 @@ impl Fixture {
     /// What git with `args` prints in `dir`, trimmed.
     fn read(&self, dir: &Path, args: &[&str]) -> String {
         let output = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .output()
             .expect("git starts");

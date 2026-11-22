@@ -7,7 +7,7 @@ use std::io::Write as _;
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Mutex, OnceLock, PoisonError};
 
 /// The built `dotfiles-local`, the binary every test runs.
 pub(crate) const DOTFILES_LOCAL: &str = env!("CARGO_BIN_EXE_dotfiles-local");
@@ -156,6 +156,27 @@ impl Drop for Sandbox {
             let _ = fs::remove_dir_all(&self.root);
         }
     }
+}
+
+/// The git the tests' own setup and reads run: the program in git's exec path, which the
+/// `git` on PATH may only reach through a shim, such as the one macOS puts in `/usr/bin`
+/// that looks up the developer tools on every run. Where the exec path holds no `git`,
+/// the one on PATH. The binary under test runs the `git` on the PATH a test gives it.
+pub(crate) fn git() -> &'static Path {
+    static PROGRAM: OnceLock<PathBuf> = OnceLock::new();
+    PROGRAM.get_or_init(|| {
+        let output = Command::new("git")
+            .arg("--exec-path")
+            .output()
+            .expect("git runs");
+        let exec_path = String::from_utf8(output.stdout).expect("git's exec path is UTF-8");
+        let git = Path::new(exec_path.trim_end()).join("git");
+        if output.status.success() && git.is_file() {
+            git
+        } else {
+            PathBuf::from("git")
+        }
+    })
 }
 
 /// `dotfiles-local` run as `subcommand`, with the environment the tests run in.

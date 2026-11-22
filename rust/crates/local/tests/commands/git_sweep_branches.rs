@@ -4,10 +4,10 @@
 //! gh, and with nothing else on PATH.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated};
 
 /// A bare origin whose default branch is `main`, a clone of it to run in, and a second
 /// clone that moves origin on, none of which the machine's git config reaches.
@@ -24,7 +24,7 @@ impl Fixture {
         };
         fixture
             .sandbox
-            .fake("git", &format!("exec '{}' \"$@\"", real("git").display()));
+            .fake("git", &format!("exec '{}' \"$@\"", git().display()));
         fixture.gh_poi("");
         fixture
             .sandbox
@@ -82,7 +82,7 @@ impl Fixture {
 
     fn git(&self, dir: &Path, args: &[&str]) {
         let status = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .status()
             .expect("git starts");
@@ -92,7 +92,7 @@ impl Fixture {
     /// The local branches of the work clone, one a line.
     fn branches(&self) -> String {
         let output = self
-            .command("git", &self.root().join("work"))
+            .command(git(), &self.root().join("work"))
             .args(["for-each-ref", "--format=%(refname:short)", "refs/heads"])
             .output()
             .expect("git starts");
@@ -120,14 +120,6 @@ impl Fixture {
             .output()
             .expect("dotfiles-local starts")
     }
-}
-
-/// The path of `program` on the PATH the tests run with.
-fn real(program: &str) -> PathBuf {
-    std::env::split_paths(&std::env::var_os("PATH").expect("PATH is set"))
-        .map(|dir| dir.join(program))
-        .find(|path| path.is_file())
-        .unwrap_or_else(|| panic!("{program} is on PATH"))
 }
 
 // After gh-poi, each local branch origin's default branch holds whole is deleted, with
