@@ -3,9 +3,10 @@
 use std::env;
 use std::fs;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use super::{Failure, GitHub, PullRequest, Status};
+use crate::program::Program;
 
 /// Where GitHub Actions leaves `GITHUB_API_URL` unset, which it does not on GitHub.com.
 const DEFAULT_API: &str = "https://api.github.com";
@@ -29,7 +30,7 @@ impl GitHub {
                 .report();
             return Err(Status::Unknown);
         }
-        let curl = Command::new("curl")
+        let curl = Program::new("curl")
             .arg("--version")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -67,7 +68,7 @@ impl GitHub {
         if pull.draft {
             body["draft"] = serde_json::Value::Bool(true);
         }
-        let output = Command::new("curl")
+        let output = Program::new("curl")
             .args(["-sS", "-X", "POST"])
             .args(["--connect-timeout", CONNECT_TIMEOUT, "--max-time", MAX_TIME])
             .arg("-H")
@@ -78,7 +79,7 @@ impl GitHub {
             .args(["--write-out", "\n%{http_code}"])
             .arg(format!("{}/repos/{}/pulls", self.api, self.repository))
             .output()
-            .map_err(|error| format!("could not run curl: {error}"))?;
+            .map_err(|error| error.to_string())?;
         if !output.status.success() {
             return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
         }

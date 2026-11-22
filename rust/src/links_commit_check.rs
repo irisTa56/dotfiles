@@ -6,12 +6,12 @@
 //! skips links that passed recently, and lychee never caches a failure.
 
 use std::ffi::OsStr;
-use std::io::{self, Write};
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
-use std::process::{Command, ExitCode, ExitStatus, Stdio};
+use std::process::{ExitCode, ExitStatus, Stdio};
 
 use crate::git::Git;
+use crate::program::Program;
 use crate::stream::Stream;
 
 /// The status of a run that could not check the links, where neither git nor lychee
@@ -79,7 +79,7 @@ impl Lychee {
             .stdin(Stdio::null())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|error| unstarted(&error))?;
+            .map_err(|error| error.report(error.shell_status()))?;
         if !output.status.success() {
             return Err(failed(output.status));
         }
@@ -140,13 +140,11 @@ impl Lychee {
             .args(["--cache", "--no-progress", "--files-from", "-"])
             .stdin(Stdio::piped())
             .spawn()
-            .and_then(|mut child| {
-                if let Some(mut stdin) = child.stdin.take() {
-                    // lychee that stopped before reading its list, as on a config it
-                    // cannot load, says why in its status.
-                    let _ = stdin.write_all(&files.list());
-                }
-                child.wait()
+            .and_then(|mut running| {
+                // lychee that stopped before reading its list, as on a config it
+                // cannot load, says why in its status.
+                let _ = running.feed(&files.list());
+                running.wait()
             });
         match status {
             Ok(status) if status.success() => ExitCode::SUCCESS,
@@ -160,14 +158,12 @@ impl Lychee {
                 }
                 ExitCode::FAILURE
             }
-            Err(error) => unstarted(&error),
+            Err(error) => error.report(error.shell_status()),
         }
     }
 
-    fn command(&self) -> Command {
-        let mut command = Command::new("lychee");
-        command.current_dir(&self.root);
-        command
+    fn command(&self) -> Program {
+        Program::new("lychee").current_dir(&self.root)
     }
 }
 
@@ -194,17 +190,6 @@ impl Staged {
         }
         list
     }
-}
-
-/// Reports a lychee that could not be started, and returns the code a shell ends with on
-/// such a command: 127 where it is not found, and 126 where it cannot be run.
-fn unstarted(error: &io::Error) -> ExitCode {
-    Stream::Stderr.line(format_args!("could not run lychee: {error}"));
-    ExitCode::from(if error.kind() == io::ErrorKind::NotFound {
-        127
-    } else {
-        126
-    })
 }
 
 /// The code to end with where lychee failed: its own status, or `UNCHECKED` where a

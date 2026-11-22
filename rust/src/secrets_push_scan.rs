@@ -14,12 +14,13 @@ use std::fmt;
 use std::io::{self, Read};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
-use std::process::{Command, ExitCode, Output, Stdio};
+use std::process::{ExitCode, Output, Stdio};
 
 use clap::Args;
 use serde_json::Value;
 
 use crate::git::Git;
+use crate::program::Program;
 use crate::stream::Stream;
 
 /// The status of a push this stops, whether for a secret found or for a scan that could not
@@ -181,7 +182,7 @@ impl Push {
     /// go-git, which rejects a config that sets `extensions.worktreeConfig`. Verification
     /// stays off so a push never sends a candidate to its provider.
     fn trufflehog(&self, tip: &str) -> Result<Report, ExitCode> {
-        let output = Command::new("trufflehog")
+        let output = Program::new("trufflehog")
             .args(["git", &self.url, "--branch", tip])
             .args([
                 "--json",
@@ -191,10 +192,7 @@ impl Push {
             ])
             .stdin(Stdio::null())
             .output()
-            .map_err(|error| {
-                Stream::Stderr.line(format_args!("could not run trufflehog: {error}"));
-                ExitCode::from(STOPPED)
-            })?;
+            .map_err(|error| error.report(STOPPED))?;
         let report = Report(output);
         if !report.0.status.success() {
             return Err(report.unanswered(None));
