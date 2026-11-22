@@ -1,8 +1,9 @@
 //! git as the tests run it: kept to the repository it is run in.
 
 use std::ffi::OsStr;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::sync::OnceLock;
 
 /// A command that runs `program` in `dir` with git kept to the repository there: a git
@@ -72,5 +73,31 @@ pub(crate) fn git(dir: &Path, args: &[&str]) -> String {
         .to_owned()
 }
 
+/// Runs git in `dir` fed `input` on stdin, as setup that must succeed.
+pub(super) fn feed(dir: &Path, args: &[&str], input: &[u8]) {
+    let mut child = isolated(program(), dir)
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("git runs");
+    child
+        .stdin
+        .take()
+        .expect("stdin is piped")
+        .write_all(input)
+        .expect("git reads its input");
+    let output = child.wait_with_output().expect("git's run ends");
+    assert!(
+        output.status.success(),
+        "git {args:?} in {dir:?} failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
 /// The git identity setup commits are made with, since the host may have none.
 pub(crate) const IDENTITY: [&str; 4] = ["-c", "user.name=t", "-c", "user.email=t@example.com"];
+
+/// `IDENTITY` as a commit's author or committer line names it.
+pub(super) const IDENTITY_LINE: &str = "t <t@example.com>";
