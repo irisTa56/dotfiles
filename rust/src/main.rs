@@ -25,6 +25,9 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Task {
     /// Check the links of the files the commit stages with lychee.
+    // The task is being renamed `links:commit-check`, and its wrapper under that name
+    // runs this subcommand by the matching name from a release published before it.
+    #[command(alias = "links-commit-check")]
     LinkCheckStaged,
     /// Scan the commits a push is about to send for secrets with trufflehog, as a
     /// pre-push hook.

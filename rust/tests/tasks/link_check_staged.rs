@@ -30,20 +30,59 @@ fn which(program: &str) -> PathBuf {
 }
 
 // A link the commit breaks would otherwise land, and a link it does not add is the one
-// case that wants this check alone skipped, so the failure says how.
+// case that wants this check alone skipped, so the failure says how. mise names the
+// task it runs, by whichever name or alias it was called, without the `.sh` the skip
+// needs, so the skip follows the task's name rather than one the binary was built with.
 #[test]
-fn fails_on_a_broken_link_in_a_staged_file_naming_how_to_skip_this_check_alone() {
+fn fails_on_a_broken_link_in_a_staged_file_naming_how_to_skip_the_task_mise_runs() {
     staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
         .arg("link-check-staged")
+        .env("MISE_TASK_NAME", "links:commit-check")
         .run()
         .expect(
             1,
             &[
                 "missing.md",
-                "MISE_TASK_SKIP=link-check:staged.sh git commit",
+                "MISE_TASK_SKIP=links:commit-check.sh git commit",
             ],
         );
+}
+
+// An inline task named with the extension, as one that overrides the shared task with a
+// build of its own does, is skipped by that name as it stands.
+#[test]
+fn names_an_inline_task_named_with_the_extension_as_it_stands() {
+    staged(&[("a.md", "[gone](missing.md)\n")])
+        .dotfiles_tasks()
+        .arg("link-check-staged")
+        .env("MISE_TASK_NAME", "links:commit-check.sh")
+        .run()
+        .expect(1, &["MISE_TASK_SKIP=links:commit-check.sh git commit"]);
+}
+
+// Run other than by mise, there is no task for a skip to name, so the failure names
+// none rather than one that may skip nothing.
+#[test]
+fn names_no_skip_when_mise_is_not_running_a_task() {
+    let run = staged(&[("a.md", "[gone](missing.md)\n")])
+        .dotfiles_tasks()
+        .arg("link-check-staged")
+        .env_remove("MISE_TASK_NAME")
+        .run();
+    assert_eq!(run.code(), 1, "{}", run.output());
+    assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
+}
+
+// The task is to take the name `links:commit-check`, and a wrapper moved to it runs the
+// subcommand of that name from a release that still serves the wrapper here.
+#[test]
+fn runs_the_same_check_as_links_commit_check() {
+    staged(&[("a.md", "[gone](missing.md)\n")])
+        .dotfiles_tasks()
+        .arg("links-commit-check")
+        .run()
+        .expect(1, &["missing.md"]);
 }
 
 // The repository's lychee config decides which files a run over the whole tree reads,

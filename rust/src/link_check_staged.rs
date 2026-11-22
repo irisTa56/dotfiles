@@ -152,11 +152,12 @@ impl Lychee {
             Ok(status) if status.success() => ExitCode::SUCCESS,
             Ok(_) => {
                 // The bypass at hand otherwise is --no-verify, which drops every other
-                // check with it. The skip takes the task's full name, `.sh` included;
-                // the bare name skips nothing.
-                Stream::Stderr.line(format_args!(
-                    "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP=link-check:staged.sh git commit ..."
-                ));
+                // check with it.
+                if let Some(task) = skip_name() {
+                    Stream::Stderr.line(format_args!(
+                        "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP={task} git commit ..."
+                    ));
+                }
                 ExitCode::FAILURE
             }
             Err(error) => unstarted(&error),
@@ -215,4 +216,13 @@ fn failed(status: ExitStatus) -> ExitCode {
             .and_then(|code| u8::try_from(code).ok())
             .unwrap_or(UNCHECKED),
     )
+}
+
+/// What `MISE_TASK_SKIP` takes to skip the task mise is running, or none where mise is
+/// not running one. mise names a file task without the `.sh` the skip needs, by
+/// whichever of its names or aliases it was called, and an inline task by its name as
+/// written, so a name with the extension already is taken as it stands.
+fn skip_name() -> Option<String> {
+    let task = std::env::var("MISE_TASK_NAME").ok()?;
+    Some(format!("{}.sh", task.strip_suffix(".sh").unwrap_or(&task)))
 }
