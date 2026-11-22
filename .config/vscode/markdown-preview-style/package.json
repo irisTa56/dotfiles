@@ -4,7 +4,6 @@
   "description": "Adds a stylesheet to VS Code's built-in Markdown preview",
   "publisher": "irista56",
   "version": "0.0.1",
-  "private": true,
   "engines": { "vscode": "^1.80.0" },
   "contributes": {
     "markdown.previewStyles": ["./preview.css"]
