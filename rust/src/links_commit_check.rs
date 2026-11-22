@@ -8,11 +8,12 @@
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 use std::path::PathBuf;
-use std::process::{ExitCode, ExitStatus, Stdio};
+use std::process::Stdio;
+
+use dotfiles_shared::Failure;
 
 use crate::git::Git;
-use crate::program::Program;
-use crate::stream::Stream;
+use crate::program::{self, Program};
 
 /// The status of a run that could not check the links, where neither git nor lychee
 /// gave one.
@@ -34,29 +35,21 @@ pub(crate) struct Lychee {
 struct Staged(Vec<u8>);
 
 impl Lychee {
-    /// Checks the links of the files the commit stages, and returns the code to exit
-    /// with. The task reads no arguments.
-    pub(crate) fn check_staged() -> ExitCode {
-        match Self::stages() {
-            Ok(code) | Err(code) => code,
-        }
-    }
-
-    /// Each stage hands the next what it needs, or ends the run with a code it has
-    /// already reported.
-    fn stages() -> Result<ExitCode, ExitCode> {
+    /// Checks the links of the files the commit stages. The task reads no arguments.
+    /// Each stage hands the next what it needs, or ends the run.
+    pub(crate) fn check_staged() -> Result<(), Failure> {
         let lychee = Lychee::at_root()?;
         let inputs = lychee.inputs()?;
         let files = lychee.staged(&inputs)?;
         if files.0.is_empty() {
-            return Ok(ExitCode::SUCCESS);
+            return Ok(());
         }
-        Ok(lychee.check(&files))
+        lychee.check(&files)
     }
 
     /// lychee at the root of the repository the task runs in, which the environment a
     /// git hook exports names.
-    fn at_root() -> Result<Self, ExitCode> {
+    fn at_root() -> Result<Self, Failure> {
         let top = Git::inheriting().run(&["rev-parse", "--show-toplevel"]);
         if !top.success() {
             return Err(top.failure(UNCHECKED));
@@ -72,16 +65,17 @@ impl Lychee {
     /// config and .gitignore decide which files count, as they do for a run over the
     /// whole tree: a file named to lychee is checked whatever its extension and whether
     /// or not it is ignored.
-    fn inputs(&self) -> Result<Vec<String>, ExitCode> {
+    fn inputs(&self) -> Result<Vec<String>, Failure> {
         let output = self
             .command()
             .args(["--dump-inputs", "."])
             .stdin(Stdio::null())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|error| error.report(error.shell_status()))?;
+            .map_err(|error| error.failure(error.shell_status()))?;
         if !output.status.success() {
-            return Err(failed(output.status));
+            // lychee says why on the stderr it shares with the task.
+            return Err(Failure::quiet(program::exit_code(output.status, UNCHECKED)));
         }
         // A name that is not UTF-8 matches nothing git stores, and goes unchecked.
         Ok(String::from_utf8_lossy(&output.stdout)
@@ -96,7 +90,7 @@ impl Lychee {
     /// one on disk (macOS precomposes) still matches. The pathspecs go to git in batches,
     /// as xargs would pass them, since a repository's files can name more than one
     /// command line holds.
-    fn staged(&self, inputs: &[String]) -> Result<Staged, ExitCode> {
+    fn staged(&self, inputs: &[String]) -> Result<Staged, Failure> {
         let mut staged = Vec::new();
         let mut rest = inputs;
         // With no pathspec, git would list every staged file, so no batch is empty.
@@ -133,8 +127,8 @@ impl Lychee {
         Ok(Staged(staged))
     }
 
-    /// Checks the links of `files`, and returns the code to exit with.
-    fn check(&self, files: &Staged) -> ExitCode {
+    /// Checks the links of `files`.
+    fn check(&self, files: &Staged) -> Result<(), Failure> {
         let status = self
             .command()
             .args(["--cache", "--no-progress", "--files-from", "-"])
@@ -147,18 +141,21 @@ impl Lychee {
                 running.wait()
             });
         match status {
-            Ok(status) if status.success() => ExitCode::SUCCESS,
-            Ok(_) => {
-                // The bypass at hand otherwise is --no-verify, which drops every other
-                // check with it.
-                if let Some(task) = skip_name() {
-                    Stream::Stderr.line(format_args!(
-                        "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP={task} git commit ..."
-                    ));
-                }
-                ExitCode::FAILURE
-            }
-            Err(error) => error.report(error.shell_status()),
+            Ok(status) if status.success() => Ok(()),
+            // lychee has listed the failing links. The bypass at hand otherwise is
+            // --no-verify, which drops every other check with it.
+            Ok(_) => Err(skip_name().map_or_else(
+                || Failure::quiet(1),
+                |task| {
+                    Failure::new(
+                        format_args!(
+                            "If a failing link is not one this commit adds, skip only this check: MISE_TASK_SKIP={task} git commit ..."
+                        ),
+                        1,
+                    )
+                },
+            )),
+            Err(error) => Err(error.failure(error.shell_status())),
         }
     }
 
@@ -190,17 +187,6 @@ impl Staged {
         }
         list
     }
-}
-
-/// The code to end with where lychee failed: its own status, or `UNCHECKED` where a
-/// signal stopped it and it has none.
-fn failed(status: ExitStatus) -> ExitCode {
-    ExitCode::from(
-        status
-            .code()
-            .and_then(|code| u8::try_from(code).ok())
-            .unwrap_or(UNCHECKED),
-    )
 }
 
 /// What `MISE_TASK_SKIP` takes to skip the task mise is running, or none where mise is

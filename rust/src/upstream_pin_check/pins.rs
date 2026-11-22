@@ -3,8 +3,10 @@
 use std::collections::HashMap;
 use std::{env, fs, io};
 
+use dotfiles_shared::Failure;
+
 use super::{
-    Checked, Differing, Failure, Marker, Move, Moves, Pin, Pins, Proposal, Scratch, Status, Text,
+    Checked, Differing, FailLine, Marker, Move, Moves, Pin, Pins, Proposal, Scratch, Status, Text,
 };
 
 impl Pin {
@@ -82,9 +84,9 @@ impl Differing<'_> {
         &self,
         scratch: &Scratch,
         proposal: Proposal,
-    ) -> Result<Status, Status> {
+    ) -> Result<Status, Failure> {
         if env::var("GITHUB_ACTIONS").is_ok_and(|v| v == "true") {
-            Ok(scratch.move_on_origin(self, proposal))
+            scratch.move_on_origin(self, proposal)
         } else {
             self.move_in_working_tree()
                 .map_err(|error| Status::stopped_on(&error))
@@ -108,7 +110,7 @@ impl Differing<'_> {
             moved.0.extend(file_moved.0);
         }
         for line in moved.describe() {
-            Failure(&format!("moved the pin of {line}")).report();
+            FailLine(&format!("moved the pin of {line}")).report();
         }
         Ok(Status::Differs)
     }

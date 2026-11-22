@@ -1,14 +1,15 @@
 //! Running another program: every task starts the programs it runs through [`Program`],
-//! which says the same of each one it cannot start, feed or wait on, and leaves what that
-//! ends the task with to the task.
+//! which says the same of each one it cannot start, feed or wait on, and gives the
+//! status a task that fails on one ends with, leaving to the task the status it ends with
+//! where the program gives none.
 
 use std::ffi::OsStr;
 use std::fmt;
 use std::io::{self, Write};
 use std::path::Path;
-use std::process::{Child, Command, ExitCode, ExitStatus, Output, Stdio};
+use std::process::{Child, Command, ExitStatus, Output, Stdio};
 
-use crate::stream::Stream;
+use dotfiles_shared::Failure;
 
 /// A program to run, with its arguments, environment, directory and streams.
 #[derive(Debug)]
@@ -155,10 +156,9 @@ impl Running {
 }
 
 impl Unstarted {
-    /// Reports why the program could not run, and returns `status` to end the task with.
-    pub(crate) fn report(&self, status: u8) -> ExitCode {
-        Stream::Stderr.line(format_args!("{self}"));
-        ExitCode::from(status)
+    /// What ends the task with `status`, saying why the program could not run.
+    pub(crate) fn failure(&self, status: u8) -> Failure {
+        Failure::new(format_args!("{self}"), status)
     }
 
     /// The status a shell ends with on a command it cannot run: 127 where the program is
@@ -176,4 +176,13 @@ impl fmt::Display for Unstarted {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "could not run {}: {}", self.program, self.error)
     }
+}
+
+/// The status a task that fails on a program ends with, where the program ended with
+/// `status`: the program's own, or `otherwise` where a signal stopped it and it has none.
+pub(crate) fn exit_code(status: ExitStatus, otherwise: u8) -> u8 {
+    status
+        .code()
+        .and_then(|code| u8::try_from(code).ok())
+        .unwrap_or(otherwise)
 }

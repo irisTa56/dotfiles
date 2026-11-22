@@ -14,9 +14,10 @@ use std::fmt;
 use std::io::{self, Read};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
-use std::process::{ExitCode, Output, Stdio};
+use std::process::{Output, Stdio};
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use serde_json::Value;
 
 use crate::git::Git;
@@ -75,16 +76,8 @@ struct Hit {
 
 impl Push {
     /// Scans what the push sends, `hook` being the hook's arguments and stdin its ref
-    /// lines, and returns the code to exit with.
-    pub(crate) fn scan(hook: &Hook) -> ExitCode {
-        match Self::stages(hook) {
-            Ok(code) | Err(code) => code,
-        }
-    }
-
-    /// Each stage hands the next what it needs, or ends the run with a code it has already
-    /// reported.
-    fn stages(hook: &Hook) -> Result<ExitCode, ExitCode> {
+    /// lines. Each stage hands the next what it needs, or ends the run.
+    pub(crate) fn scan(hook: &Hook) -> Result<(), Failure> {
         let push = Push::from_hook(hook)?;
         let mut found = false;
         for local in Self::pushed()? {
@@ -98,19 +91,21 @@ impl Push {
             found |= !hits.is_empty();
         }
         if !found {
-            return Ok(ExitCode::SUCCESS);
+            return Ok(());
         }
         // Said once, after every ref's hits: the marker that clears a false positive clears
         // a real secret too, so a push made on someone's behalf asks them first.
-        Stream::Stderr.line(format_args!(
-            "A trufflehog:ignore comment on a reported line lets it through only when the commit that introduced the line carries it, so adding one means rewriting that commit; it lets a real secret through as readily, so an agent pushing for someone shows them these hits and rewrites only on their confirmation."
-        ));
-        Ok(ExitCode::from(STOPPED))
+        Err(Failure::new(
+            format_args!(
+                "A trufflehog:ignore comment on a reported line lets it through only when the commit that introduced the line carries it, so adding one means rewriting that commit; it lets a real secret through as readily, so an agent pushing for someone shows them these hits and rewrites only on their confirmation."
+            ),
+            STOPPED,
+        ))
     }
 
     /// The push the hook's arguments name, from the repository the environment a git hook
     /// exports names.
-    fn from_hook(hook: &Hook) -> Result<Self, ExitCode> {
+    fn from_hook(hook: &Hook) -> Result<Self, Failure> {
         let top = Git::inheriting().run(&["rev-parse", "--show-toplevel"]);
         if !top.success() {
             return Err(top.failure(STOPPED));
@@ -127,14 +122,16 @@ impl Push {
     /// `<local ref> <local sha> <remote ref> <remote sha>`. A ref's name may hold any bytes
     /// git allows, so the lines are split as bytes. A deletion arrives with an all-zero local
     /// sha, and adds nothing.
-    fn pushed() -> Result<Vec<String>, ExitCode> {
+    fn pushed() -> Result<Vec<String>, Failure> {
         let mut input = Vec::new();
         io::stdin()
             .lock()
             .read_to_end(&mut input)
             .map_err(|error| {
-                Stream::Stderr.line(format_args!("could not read the pushed refs: {error}"));
-                ExitCode::from(STOPPED)
+                Failure::new(
+                    format_args!("could not read the pushed refs: {error}"),
+                    STOPPED,
+                )
             })?;
         Ok(input
             .split(|&byte| byte == b'\n')
@@ -150,7 +147,7 @@ impl Push {
 
     /// What the push sends of the ref at `local`, or None where the remote holds all of it
     /// already, and scanning would answer for what it already has.
-    fn sending(&self, local: &str) -> Result<Option<Sending>, ExitCode> {
+    fn sending(&self, local: &str) -> Result<Option<Sending>, Failure> {
         let git = Git::inheriting();
         let remotes = format!("--remotes={}", self.remote);
         let new = git.run(&["rev-list", local, "--not", &remotes]);
@@ -172,7 +169,7 @@ impl Push {
     }
 
     /// The secrets trufflehog finds in the commits `sending` holds.
-    fn hits(&self, sending: &Sending) -> Result<Vec<Hit>, ExitCode> {
+    fn hits(&self, sending: &Sending) -> Result<Vec<Hit>, Failure> {
         self.trufflehog(&sending.tip)?.hits_in(sending)
     }
 
@@ -181,7 +178,7 @@ impl Push {
     /// `--trust-local-git-config` is left off: with it trufflehog reads the repository with
     /// go-git, which rejects a config that sets `extensions.worktreeConfig`. Verification
     /// stays off so a push never sends a candidate to its provider.
-    fn trufflehog(&self, tip: &str) -> Result<Report, ExitCode> {
+    fn trufflehog(&self, tip: &str) -> Result<Report, Failure> {
         let output = Program::new("trufflehog")
             .args(["git", &self.url, "--branch", tip])
             .args([
@@ -192,7 +189,7 @@ impl Push {
             ])
             .stdin(Stdio::null())
             .output()
-            .map_err(|error| error.report(STOPPED))?;
+            .map_err(|error| error.failure(STOPPED))?;
         let report = Report(output);
         if !report.0.status.success() {
             return Err(report.unanswered(None));
@@ -205,7 +202,7 @@ impl Report {
     /// The hits in the commits `sending` holds; trufflehog walked the history behind them
     /// too. A result that names no commit cannot be told to be in them or not, and passing
     /// it over would let a push through on a report this cannot read.
-    fn hits_in(&self, sending: &Sending) -> Result<Vec<Hit>, ExitCode> {
+    fn hits_in(&self, sending: &Sending) -> Result<Vec<Hit>, Failure> {
         let mut hits = Vec::new();
         for line in String::from_utf8_lossy(&self.0.stdout).lines() {
             if line.is_empty() {
@@ -222,15 +219,17 @@ impl Report {
         Ok(hits)
     }
 
-    /// Reports a scan that gave no answer, and returns the code to end with. trufflehog's
-    /// log is held back otherwise, since it counts every hit it walked and so would announce
-    /// a secret on a push the filter lets through; here it is the one account of why.
-    fn unanswered(&self, reason: Option<&dyn fmt::Display>) -> ExitCode {
-        Stream::Stderr.bytes(&self.0.stderr);
+    /// What ends a scan that gave no answer, saying trufflehog's log. That log is held
+    /// back otherwise, since it counts every hit it walked and so would announce a secret
+    /// on a push the filter lets through; here it is the one account of why.
+    fn unanswered(&self, reason: Option<&dyn fmt::Display>) -> Failure {
+        let mut stderr = self.0.stderr.clone();
         if let Some(reason) = reason {
-            Stream::Stderr.line(format_args!("could not read trufflehog's report: {reason}"));
+            stderr.extend_from_slice(
+                format!("could not read trufflehog's report: {reason}\n").as_bytes(),
+            );
         }
-        ExitCode::from(STOPPED)
+        Failure::verbatim(stderr, STOPPED)
     }
 }
 
