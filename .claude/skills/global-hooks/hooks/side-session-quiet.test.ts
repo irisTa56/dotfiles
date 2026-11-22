@@ -88,6 +88,19 @@ describe("a note that arrives with a prompt of the user's", () => {
   });
 });
 
+describe("a prompt of the user's that only quotes part of the ask", () => {
+  test("enters unchanged and reports nothing", async ($, on) => {
+    const reports: string[] = [];
+    on("ui.log", (_, e) => {
+      reports.push(e.text);
+      return { value: undefined };
+    });
+    const text = "fix it, and mention the outcome to the user";
+    expect(await submit($, on, text)).toBe(text);
+    expect(reports.some((r) => r.includes("side-session"))).toBe(false);
+  });
+});
+
 describe("any other prompt", () => {
   test("enters unchanged", async ($, on) => {
     const text = "tell the user the outcome in one or two lines";
