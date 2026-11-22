@@ -117,15 +117,11 @@ impl Scratch {
     }
 
     /// The object each of `revs` names, `None` for one that names none. Where every one
-    /// names one, a single run of git says so; otherwise each is resolved on its own.
-    /// Only `--verify` takes a rev as one name whatever it holds, and it takes one rev
-    /// per run, so revs that a run without it could read as a range (`..`) or a set of
-    /// commits (`^`) go one per run from the start.
+    /// names one, a single run of git says so; otherwise each is resolved on its own, as
+    /// it is where that run prints other than one name per rev, which a rev it read as a
+    /// range would.
     fn resolve<const N: usize>(&self, revs: [&str; N]) -> [Option<String>; N] {
-        let plain = revs
-            .iter()
-            .all(|rev| !rev.contains("..") && !rev.contains('^'));
-        if N > 1 && plain {
+        if N > 1 {
             let mut args = vec!["rev-parse"];
             args.extend(revs);
             args.push("--");
