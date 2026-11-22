@@ -86,6 +86,17 @@ fn names_no_skip_when_mise_names_an_empty_task() {
     assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
 }
 
+// Repositories taking the shared tasks name the task's former name in their pre-commit,
+// so mise must still find this task by it.
+#[test]
+fn answers_to_its_former_name_link_check_staged() {
+    Checkout::new(&[])
+        .mise_taking_the_tasks()
+        .args(["tasks", "info", "--json", "link-check:staged"])
+        .run()
+        .expect(0, &[r#""name": "links:commit-check""#]);
+}
+
 // The repository's lychee config decides which files a run over the whole tree reads,
 // and a commit's check reads no file that run would leave out.
 #[test]
