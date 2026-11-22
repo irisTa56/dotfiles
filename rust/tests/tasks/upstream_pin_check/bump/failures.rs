@@ -293,6 +293,35 @@ fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_read
     );
 }
 
+// On a bump branch that exists already, the move is read from that branch, which the
+// line names.
+#[test]
+fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_read_the_bump_branch() {
+    let (up, origin, checkout) = pinned_on_origin();
+    origin.commit_onto_main_as(BUMP, "README.md", "r");
+    let bin = StandIns::new().git_on("read-tree", FAILING);
+    bump_ends(
+        &up,
+        &checkout,
+        &bin,
+        &format!("stand-in: failed\n[fail] could not read {BUMP}\n"),
+    );
+}
+
+#[test]
+fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_list_a_file_on_the_bump_branch()
+ {
+    let (up, origin, checkout) = pinned_on_origin();
+    origin.commit_onto_main_as(BUMP, "README.md", "r");
+    let bin = StandIns::new().git_on("ls-tree", FAILING);
+    bump_ends(
+        &up,
+        &checkout,
+        &bin,
+        &format!("stand-in: failed\n[fail] could not read Cargo.toml on {BUMP}\n"),
+    );
+}
+
 #[test]
 fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_stage_the_move() {
     let (up, _origin, checkout) = pinned_on_origin();

@@ -6,7 +6,7 @@ use std::ffi::OsStr;
 
 use tempfile::TempDir;
 
-use super::{ahead_of, leaking, main_line};
+use super::{ZERO, ahead_of, commit, leaking, line, main_line};
 use crate::support::checkout::Checkout;
 use crate::support::invocation::Invocation;
 use crate::support::origin::Origin;
@@ -168,4 +168,62 @@ fn names_each_hit_and_the_way_through_once_and_exits_1_on_a_secret_the_push_send
         "",
         &format!("Github at line 1 of the commit message, commit {sha}\n{WAY_THROUGH}"),
     );
+}
+
+/// A push of two refs: `main`, one commit over origin's holding a token in `a.txt`, and a
+/// new `topic`, one commit over origin's `main` holding a token in `b.txt`; with the two
+/// commits and the lines git feeds the hook.
+fn two_refs() -> (Origin, Checkout, String, String, String) {
+    let origin = Origin::with_main(&[("base.txt", "fine\n")]);
+    let (checkout, first) = ahead_of(&origin, &[("a.txt", &leaking())]);
+    checkout.git(&["switch", "-q", "-c", "topic", "origin/main"]);
+    checkout.write("b.txt", leaking());
+    checkout.git(&["add", "b.txt"]);
+    let second = commit(&checkout, "topic");
+    let refs = [
+        main_line(&checkout, &first),
+        line("refs/heads/topic", &second, "refs/heads/topic", ZERO),
+    ]
+    .concat();
+    (origin, checkout, first, second, refs)
+}
+
+/// The line a hit trufflehog's stand-in reports in `commit` gets.
+fn hit(commit: &str) -> String {
+    format!("Github at line 1 of the commit message, commit {commit}\n")
+}
+
+#[test]
+fn names_each_refs_hits_in_turn_and_the_way_through_once_after_the_last() {
+    let (_origin, checkout, first, second, refs) = two_refs();
+    let trufflehog = Trufflehog::reporting_tokens();
+    checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(&refs)
+        .env("PATH", trufflehog.path())
+        .run_apart()
+        .expect(
+            1,
+            "",
+            &format!("{}{}{WAY_THROUGH}", hit(&first), hit(&second)),
+        );
+}
+
+// The hits of a ref scanned before the run stopped are said as they were found, and the
+// way through, said after the last ref, is not.
+#[test]
+fn keeps_an_earlier_refs_hits_and_says_no_way_through_where_a_later_ref_stops_the_run() {
+    let (_origin, checkout, first, second, refs) = two_refs();
+    let trufflehog = Trufflehog::reporting_tokens();
+    let bin = StandIns::new().git_on(&format!("rev-list {second}"), FAILING);
+    checkout
+        .dotfiles_tasks()
+        .arg("secrets-push-scan")
+        .arg("origin")
+        .input(&refs)
+        .env("PATH", bin.path_over(&trufflehog.path()))
+        .run_apart()
+        .expect(5, "", &format!("{}stand-in: failed\n", hit(&first)));
 }
