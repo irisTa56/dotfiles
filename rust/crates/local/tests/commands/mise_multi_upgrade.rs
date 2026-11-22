@@ -1209,8 +1209,7 @@ fn fails_naming_mise_when_it_cannot_run_an_upgrade() {
     let sandbox = Fixture::new("gone-before-upgrade");
     let dir = sandbox.project("/work/project");
     sandbox.outdated_in(Place::Dir(dir), &[("jq", "1.6", "1.7")]);
-    let bin = sandbox.root().join("bin");
-    fs::rename(bin.join("mise"), bin.join("mise-before")).expect("mise is moved aside");
+    sandbox.sandbox.rename_fake("mise", "mise-before");
     // Asking for release dates comes after every listing and before any upgrade.
     sandbox.sandbox.fake(
         "mise",

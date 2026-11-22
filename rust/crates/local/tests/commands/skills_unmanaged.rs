@@ -6,7 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Output, Stdio};
 
-use crate::support::{DOTFILES_LOCAL, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, Sandbox, git, isolated};
 
 /// A git repository of the test's own, which no git config of the machine running the
 /// tests reaches.
@@ -45,7 +45,7 @@ impl Fixture {
     }
 
     fn git(&self, args: &[&str]) {
-        let status = self.command("git").args(args).status().expect("git starts");
+        let status = self.command(git()).args(args).status().expect("git starts");
         assert!(status.success(), "git {args:?} failed");
     }
 

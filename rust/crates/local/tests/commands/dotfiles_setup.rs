@@ -5,12 +5,13 @@
 //! each recording how it was called in one log, in order; and for zsh, which CI's
 //! runner lacks.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated};
 
 /// A dotfiles checkout of the test's own, a home, a directory holding the fakes and the
 /// records they leave, none of which the machine's git config reaches.
@@ -153,7 +154,7 @@ esac
     /// Runs git with `args` in `dir`.
     fn git(&self, dir: &Path, args: &[&str]) {
         let status = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .status()
             .expect("git starts");
@@ -163,7 +164,7 @@ esac
     /// `program` run in `dir`, with what a git hook sets in the environment and the
     /// keychain command taken away, the machine's git config left unread, the sandbox's
     /// home, and the fakes first on PATH.
-    fn command(&self, program: &str, dir: &Path) -> Command {
+    fn command(&self, program: impl AsRef<OsStr>, dir: &Path) -> Command {
         let mut command = isolated(program, dir, self.root());
         command
             .env_remove("RCLONE_PASSWORD_COMMAND")

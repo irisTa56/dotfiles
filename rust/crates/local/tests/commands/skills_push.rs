@@ -4,11 +4,12 @@
 //! bare repository in the sandbox, and a fake apm and gh stand in for theirs, so nothing
 //! reaches gist.github.com.
 
+use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, Sandbox, git, isolated};
 
 /// The gist the test's skill comes from, as apm.lock.yaml names it.
 const GIST: &str = "tester/0123abcd";
@@ -145,7 +146,7 @@ sed "s/{PIN}/$pin/" "$SANDBOX/apm-lockfile" > apm.lock.yaml"#
     /// Runs git with `args` in `dir`.
     fn git(&self, dir: &Path, args: &[&str]) {
         let status = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .status()
             .expect("git starts");
@@ -155,7 +156,7 @@ sed "s/{PIN}/$pin/" "$SANDBOX/apm-lockfile" > apm.lock.yaml"#
     /// What git with `args` in `dir` prints, its trailing newline cut.
     fn read_git(&self, dir: &Path, args: &[&str]) -> String {
         let output = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .output()
             .expect("git starts");
@@ -168,7 +169,7 @@ sed "s/{PIN}/$pin/" "$SANDBOX/apm-lockfile" > apm.lock.yaml"#
     /// `program` run in `dir`, with what a git hook sets in the environment taken away,
     /// the sandbox's git config read in place of the machine's, and the fakes first on
     /// PATH.
-    fn command(&self, program: &str, dir: &Path) -> Command {
+    fn command(&self, program: impl AsRef<OsStr>, dir: &Path) -> Command {
         let mut command = isolated(program, dir, self.root());
         command
             .env("PATH", self.sandbox.path_before_inherited())

@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, isolated};
+use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated};
 
 /// A bare origin whose default branch is `main`, a clone of it to run in, and a second
 /// clone that moves origin on, none of which the machine's git config reaches.
@@ -82,7 +82,7 @@ impl Fixture {
 
     fn git(&self, dir: &Path, args: &[&str]) {
         let status = self
-            .command("git", dir)
+            .command(git(), dir)
             .args(args)
             .status()
             .expect("git starts");
@@ -92,7 +92,7 @@ impl Fixture {
     /// The local branches of the work clone, one a line.
     fn branches(&self) -> String {
         let output = self
-            .command("git", &self.root().join("work"))
+            .command(git(), &self.root().join("work"))
             .args(["for-each-ref", "--format=%(refname:short)", "refs/heads"])
             .output()
             .expect("git starts");
