@@ -43,9 +43,13 @@ local fileSteps = new Mapping<String, Step> {
   ["shfmt"] = (Builtins.shfmt) {
     match_any = List(shFiles)
   }
-  // biome.json names the files: the function-hooks module under global-hooks.
+  // biome.json names the files, the function-hooks module under global-hooks, and Biome
+  // knows the file types it reads, so the step hands it every file and lets the two
+  // choose; the builtin's glob would leave out types Biome reads, such as `.mts`.
   ["biome"] = (Builtins.biome) {
-    check = "biome ci --error-on-warnings --no-errors-on-unmatched {{files}}"
+    glob = "**/*"
+    check = "biome ci --error-on-warnings --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
+    fix = "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
   }
 }
 
