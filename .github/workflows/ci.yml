@@ -87,8 +87,11 @@ jobs:
       # the cache and is downloaded rather than an older one being kept. rustup checks
       # a restored toolchain against the release's manifest and fetches whatever it
       # lacks, a component added to mise.toml included, so the cache only saves time.
+      # Fails on a release it cannot resolve, rather than keying the cache on nothing.
       - id: rust
-        run: echo "version=$(mise latest rust)" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(mise latest rust)
+          echo "version=${version:?}" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
