@@ -1,0 +1,6 @@
+root = true
+
+# shfmt reads its indentation from here.
+[*.sh]
+indent_style = space
+indent_size = 2

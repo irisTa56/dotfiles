@@ -1,41 +1,141 @@
 amends "package://github.com/jdx/hk/releases/download/v2.13.0/hk@2.13.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.13.0/hk@2.13.0#/Builtins.pkl"
 
-// The commit hook: mise.toml's pre-commit, less the checks a commit cannot change the
-// result of. The steps run in parallel. There is no fix step, so nothing is stashed,
-// and each check reads the working tree as `mise run pre-commit` does.
+// Every check lives here. A file that a check's result depends on, its config and the
+// mise.toml that pins its tool included, selects that check, so a commit that changes
+// only the config still runs it. A check of the whole project is a mise task that a
+// step calls, so it can also run by itself. mise.toml's entry points run hk.
 //
-// A step is chosen by a `git diff --cached` over the paths whose change can change its
-// result, rather than by `glob`, which hk matches against the staged files that are
-// still there: a commit that only deletes such a file would skip the step. The diff also
-// sees a mode change, a symlink and a binary file, which `glob` leaves out by default,
-// and reads the index `git commit <path>` builds, which git names in GIT_INDEX_FILE.
-// Both conditions run at the repository's root.
+// The `check` hook holds every check the repository has, and CI runs each of its steps
+// by name (.github/workflows/ci.yml). The commit hook runs the same steps, each only
+// when the commit stages a file its result depends on, and two scans of the staged
+// change besides. It runs no fix, so nothing is stashed, and each check reads the
+// working tree.
+
+// The files every check depends on: the mise config that pins the tools, including the
+// Claude Code CLI .config/mise/config.toml declares, and this file. A new release of a
+// tool declared at `latest` changes none of them, so a commit can skip a check that
+// release would fail; CI, which runs every step on every run, catches that, except for
+// `plugins`, which CI does not run.
+local tooling = List("mise.toml", ".config/mise/config.toml", "hk.pkl")
+
+// A step's condition on the commit: true when it stages a change under one of `paths` or
+// to `tooling`. It is a `git diff --cached` rather than hk's `glob`, which matches only
+// the staged files that are still there, so a commit that only deletes such a file would
+// skip the step. The diff also sees a mode change, a symlink and a binary file, which
+// `glob` leaves out by default, and reads the index `git commit <path>` builds, which
+// git names in GIT_INDEX_FILE. It runs at the repository's root.
+local function staged(paths: List<String>): String =
+  #"!exec_ok("git diff --cached --quiet -- "# + (paths + tooling).join(" ") + #"")"#
+
+// The shell scripts: the task scripts under tasks/ and the shell startup fragments.
+local shDirs = List("tasks", "zsh_fragments")
+local shFiles = new FileSelector { glob = shDirs.map((d) -> "\(d)/**/*.sh") }
+local shFind = "find \(shDirs.join(" ")) -name '*.sh' -exec"
+
+// The checks that read files one at a time, run on the files a hook selects.
+local fileSteps = new Mapping<String, Step> {
+  ["rumdl"] = Builtins.rumdl
+  ["shellcheck"] = (Builtins.shellcheck) {
+    match_any = List(shFiles)
+  }
+  // shfmt takes its indentation from .editorconfig.
+  ["shfmt"] = (Builtins.shfmt) {
+    match_any = List(shFiles)
+  }
+  // biome.json names the files, the function-hooks module under global-hooks, and Biome
+  // knows the file types it reads, so the step hands it every file and lets the two
+  // choose; the builtin's glob would leave out types Biome reads, such as `.mts`.
+  ["biome"] = (Builtins.biome) {
+    glob = "**/*"
+    check = "biome ci --error-on-warnings --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
+    fix = "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
+  }
+}
+
+// The same checks over every file they cover, for a commit that changes what their
+// result depends on without staging a file they read.
+local treeSteps = new Mapping<String, Step> {
+  ["rumdl-tree"] {
+    step_condition = staged(List(".rumdl.toml"))
+    check = "rumdl check"
+  }
+  ["shellcheck-tree"] {
+    step_condition = staged(List())
+    check = "\(shFind) shellcheck {} +"
+  }
+  ["shfmt-tree"] {
+    step_condition = staged(List(".editorconfig"))
+    check = "\(shFind) shfmt -d {} +"
+  }
+  ["biome-tree"] {
+    step_condition = staged(List("biome.json"))
+    check = "biome ci --error-on-warnings"
+  }
+}
+
+// The checks of the whole project, each a mise task that also runs by itself.
+local projectSteps = new Mapping<String, Step> {
+  ["rust"] {
+    check = "mise run qa:rust:crates"
+  }
+  ["skills-size"] {
+    check = "mise run qa:rust:skills"
+  }
+  ["config"] {
+    check = "mise run qa:config"
+  }
+  ["links-offline"] {
+    check = "mise run qa:links:offline"
+  }
+  // CI does not run this one: `claude plugin validate` needs the Claude Code CLI, which
+  // CI does not install.
+  ["plugins"] {
+    check = "mise run qa:plugins"
+  }
+}
+
 hooks {
+  ["check"] {
+    steps {
+      ...fileSteps
+      ...projectSteps
+    }
+  }
+  ["fix"] {
+    fix = true
+    steps {
+      ...fileSteps
+    }
+  }
   ["pre-commit"] {
     steps {
-      // Every other check, a `qa:` task added later included, through mise.toml's
-      // pre-commit. MISE_TASK_SKIP keeps the tasks the steps below run, and any the
-      // commit was given to skip.
-      ["checks"] {
-        check = #"MISE_TASK_SKIP="${MISE_TASK_SKIP:+$MISE_TASK_SKIP,}qa:rust:crates,plugins:check" mise run pre-commit"#
-      }
+      ...fileSteps
+      ...treeSteps
       // The Rust tests run the task wrappers and scripts under tasks/ and the tools the
       // mise config declares, so a change to either runs them as a change to rust/ does.
-      // A new release of a tool declared at `latest` changes no file here; CI, which
-      // runs every test on every run, is what catches that.
-      ["rust"] {
-        step_condition = #"!exec_ok("git diff --cached --quiet -- rust tasks mise.toml .config/mise/config.toml")"#
-        check = "mise run qa:rust:crates"
+      ["rust"] = (projectSteps["rust"]) {
+        step_condition = staged(List("rust", "tasks"))
       }
+      ["skills-size"] = (projectSteps["skills-size"]) {
+        step_condition = staged(List(".claude/skills", "rust"))
+      }
+      // Every commit, as the files the `qa:config:` tasks read grow with the tasks.
+      ["config"] = projectSteps["config"]
+      // Any change can break a link: a renamed file breaks the links to it from files
+      // the commit does not touch.
+      ["links-offline"] = projectSteps["links-offline"]
       // `claude plugin validate .claude/skills` reads the skills apm installs there too,
-      // which a change to apm.yml or apm.lock.yaml brings in; mise.toml defines the task,
-      // and .config/mise/config.toml declares the Claude Code CLI the checks run on.
-      // A new release of that CLI, declared at `latest`, changes no file here, and CI does
-      // not run these checks, so a release that breaks the plugin shows at the next commit
-      // that touches those paths, or at `mise run pre-commit`.
-      ["plugins"] {
-        step_condition = #"!exec_ok("git diff --cached --quiet -- .claude/skills apm.yml apm.lock.yaml mise.toml .config/mise/config.toml")"#
-        check = "mise run plugins:check"
+      // which a change to apm.yml or apm.lock.yaml brings in.
+      ["plugins"] = (projectSteps["plugins"]) {
+        step_condition = staged(List(".claude/skills", "apm.yml", "apm.lock.yaml"))
+      }
+      // The shared tasks that read the staged change itself, which only a commit has.
+      ["secrets"] {
+        check = "mise run secrets:commit-scan"
+      }
+      ["link-check-staged"] {
+        check = "mise run link-check:staged"
       }
     }
   }

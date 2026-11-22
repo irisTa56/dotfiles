@@ -1,11 +1,10 @@
 name: CI
 
 # Follows the CI baseline in .claude/rules/ci-baseline.md; a departure from it says why here.
-# Each `qa:` task runs by name in one job; which tasks need a job, and why, is in
-# the comment above `[tasks.pre-commit]` in mise.toml. A new job also needs a place in
-# the main ruleset's required checks before a merge waits on it.
-# A check written in Rust sits under `qa:rust:`, as the package's own checks do, and
-# rust-qa runs them all through `qa:rust`, so adding one needs no change here.
+# Each step of hk.pkl's `check` hook runs by name in one job, through
+# `hk check --all --step <name>`, so a step added there needs a job here, or a comment
+# there saying why CI leaves it out. A new job also needs a place in the main ruleset's
+# required checks before a merge waits on it.
 
 on:
   # No path filter: these checks are required status checks on main, so they must
@@ -43,11 +42,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
-          install_args: rumdl
+          install_args: hk rumdl
           # mise.toml tracks these tools at `latest`, and a restored cache would hold
           # each at the release it was first saved with until mise.toml changed.
           cache: false
-      - run: mise run qa:md
+      - run: hk check --all --step rumdl
 
   shell-qa:
     runs-on: ubuntu-latest
@@ -55,9 +54,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
-          install_args: shellcheck shfmt
+          install_args: hk shellcheck shfmt
           cache: false # as in `markdown-lint`
-      - run: mise run qa:sh
+      - run: hk check --all --step shellcheck --step shfmt
 
   ts-qa:
     runs-on: ubuntu-latest
@@ -65,9 +64,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
-          install_args: biome
+          install_args: hk biome
           cache: false # as in `markdown-lint`
-      - run: mise run qa:ts
+      - run: hk check --all --step biome
 
   rust-qa:
     runs-on: ubuntu-latest
@@ -80,7 +79,7 @@ jobs:
           # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
           # this action puts on PATH, after clearing every MISE_ variable.
           # rust is installed in the steps below, from a cache of its own.
-          install_args: lychee gitleaks trufflehog
+          install_args: hk lychee gitleaks trufflehog
           cache: false # as in `markdown-lint`
       # A departure from the CI baseline's `cache: false`: the Rust toolchain is cached,
       # keyed on the release `latest` resolves to in this run, so a new release misses
@@ -120,7 +119,7 @@ jobs:
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: rust
-      - run: mise run qa:rust
+      - run: hk check --all --step rust --step skills-size
 
   config-qa:
     runs-on: ubuntu-latest
@@ -129,9 +128,9 @@ jobs:
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
           # What the tasks under qa:config: read the config files with.
-          install_args: yq
+          install_args: hk yq
           cache: false # as in `markdown-lint`
-      - run: mise run qa:config
+      - run: hk check --all --step config
 
   link-check-offline:
     runs-on: ubuntu-latest
@@ -139,9 +138,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
-          install_args: lychee
+          install_args: hk lychee
           cache: false # as in `markdown-lint`
-      - run: mise run qa:links:offline
+      - run: hk check --all --step links-offline
 
   # The two scans mirror the local pair, gitleaks per commit and trufflehog per push,
   # for commits that reached the repository without going through those hooks.
