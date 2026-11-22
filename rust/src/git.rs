@@ -168,3 +168,21 @@ impl<'a> Call<'a> {
         running.wait_with_output()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Git;
+
+    /// A git that ends without reading its input leaves the write of that input failing,
+    /// which the run holds as a git that could not run. The input is larger than any pipe
+    /// holds, so the write cannot finish before git ends.
+    #[test]
+    fn holds_a_git_that_does_not_take_its_input_as_one_that_could_not_run() {
+        let input = vec![b'x'; 8 << 20];
+        let run = Git::inheriting().call(&["--version"]).input(&input).run();
+        assert_eq!(
+            (run.status(), run.stderr()),
+            (None, "could not run git: Broken pipe (os error 32)\n")
+        );
+    }
+}
