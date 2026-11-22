@@ -111,7 +111,7 @@ lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lyc
 It takes no argument.
 It exits 1 on a broken link, and 2 on an argument or where the release it runs cannot be installed; either blocks the commit.
 A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=links:commit-check.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
-The full name is what matters: mise skips nothing for `links:commit-check` without the `.sh`, for the reason the section above on overriding a task gives, nor for its former name, below.
+The full name is what matters: mise skips nothing for `links:commit-check` without the `.sh`, for the reason the section above on overriding a task gives, nor for its former name, as [Renamed tasks](#renamed-tasks) says.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
 ### `skills:size-check`
