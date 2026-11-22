@@ -95,14 +95,16 @@ impl Sandbox {
         }
     }
 
-    /// Writes a fake `name` into `bin` that runs `body` as a script of `interpreter`, a
-    /// shebang line's command.
+    /// Writes a fake `name` into `bin` that runs `body` with `interpreter`, a shebang
+    /// line's command naming a POSIX shell, such as sh or bash, that keeps `$0` while
+    /// sourcing a file.
     ///
     /// The fake is a symlink to a launcher shared by every fake of `interpreter`, which
     /// sources `body` from `<name>.body` beside the link, so `$0` and the arguments are
     /// the fake's own. macOS assesses an executable the first time it runs, taking about
-    /// 0.2 s for content it has not seen before, and a body naming the sandbox would be
-    /// such content on each run; the launcher's content is always the same.
+    /// 0.2 s for content it has not seen before, and a body naming a sandbox whose path
+    /// carries the process id would be such content on every run; the launcher's content
+    /// is always the same.
     pub(crate) fn fake_run_by(&self, name: &str, interpreter: &str, body: &str) {
         let path = self.bin().join(name);
         fs::write(body_of(&path), format!("{body}\n")).expect("the fake's body is written");
@@ -125,10 +127,10 @@ fn body_of(path: &Path) -> PathBuf {
     PathBuf::from(body)
 }
 
-/// The launcher the fakes run by `interpreter` link to, written under this build's
-/// `target/` the first time a test asks for it. It is written aside and renamed into
-/// place, so a test running in another process at the same time sees it whole or not
-/// at all.
+/// The launcher the fakes run by `interpreter` link to, kept under this build's
+/// `target/` and written wherever it does not hold what this build would write, as
+/// after an earlier run of other code. It is written aside and renamed into place, so
+/// a test running in another process at the same time sees it whole or not at all.
 fn launcher(interpreter: &str) -> PathBuf {
     static WRITING: Mutex<()> = Mutex::new(());
     let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("fake-launchers");
@@ -137,12 +139,12 @@ fn launcher(interpreter: &str) -> PathBuf {
         .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
         .collect();
     let path = dir.join(&name);
+    let script = format!("#!{interpreter}\n. \"$0.body\"\n");
     let _writing = WRITING.lock().unwrap_or_else(PoisonError::into_inner);
-    if !path.exists() {
+    if fs::read_to_string(&path).ok().as_deref() != Some(script.as_str()) {
         fs::create_dir_all(&dir).expect("the launchers' directory is created");
         let aside = dir.join(format!("{name}.{}", std::process::id()));
-        fs::write(&aside, format!("#!{interpreter}\n. \"$0.body\"\n"))
-            .expect("the launcher is written");
+        fs::write(&aside, script).expect("the launcher is written");
         fs::set_permissions(&aside, fs::Permissions::from_mode(0o755))
             .expect("the launcher is made executable");
         fs::rename(&aside, &path).expect("the launcher is put in place");
