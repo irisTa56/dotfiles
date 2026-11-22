@@ -25,11 +25,13 @@ fn fails_as_unable_to_check_where_mise_cannot_locate_the_release_it_installed() 
     assert_eq!(run.code(), 2, "output: {}", run.output());
 }
 
-// The binary's exit code is the commit's answer, so the wrapper must end with it.
+// The binary's exit code is the commit's answer, so the wrapper must end with it, and
+// the binary still learns which task mise is running, to name its skip.
 #[test]
 fn exits_as_link_check_staged_does_on_a_broken_link() {
     staged(&[("a.md", "[gone](missing.md)\n")])
         .wrapper("link-check/staged.sh", &Mise::installing_with(0))
+        .env("MISE_TASK_NAME", "link-check:staged")
         .run()
         .expect(
             1,
