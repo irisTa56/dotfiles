@@ -24,10 +24,11 @@ rust = "latest"
 shellcheck = "latest"
 shfmt = "latest"
 uv = "latest"
-"cargo:trunk" = "latest"
 # Its release assets are bare binaries named `<os>-<arch>`, and mise strips the arch suffix
 # from one to name the executable, which leaves `darwin`; `bin` names it instead of that.
 "github:seachicken/gh-poi" = { version = "latest", bin = "gh-poi" }
+# The registry's `trunk` is trunk.io's launcher, and aqua has no package for this one.
+"github:trunk-rs/trunk" = "latest"
 "npm:ccusage" = "latest"
 "npm:diff2html-cli" = "latest"
 "pipx:basic-memory" = "latest"
