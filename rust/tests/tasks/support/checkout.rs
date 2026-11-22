@@ -176,45 +176,6 @@ impl Checkout {
         self.invocation(command)
     }
 
-    /// A run of the mise on PATH in the repository, with a `mise.toml` there that takes
-    /// the shared tasks from `tasks/` and holds `config` besides, and with mise's state
-    /// kept inside the repository, so that neither the configs nor the session of the
-    /// shell running the tests reach it.
-    pub(crate) fn mise_taking_the_tasks(&self, config: &str) -> Invocation {
-        let tasks = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks");
-        self.write(
-            "mise.toml",
-            format!(
-                "[task_config]\nincludes = [{:?}]\n{config}",
-                tasks.display().to_string()
-            ),
-        );
-        let dir = self.dir.path();
-        let state = dir.join(".mise");
-        let mut command = isolated("mise", dir);
-        for (name, _) in std::env::vars_os() {
-            let name = name.to_string_lossy();
-            if name.starts_with("MISE_") || name.starts_with("__MISE_") {
-                command.env_remove(name.as_ref());
-            }
-        }
-        command
-            .env("MISE_DATA_DIR", state.join("data"))
-            .env("MISE_CONFIG_DIR", state.join("config"))
-            .env("MISE_STATE_DIR", state.join("state"))
-            .env("MISE_CACHE_DIR", state.join("cache"))
-            .env("MISE_GLOBAL_CONFIG_FILE", state.join("config/config.toml"))
-            .env("MISE_SYSTEM_CONFIG_FILE", state.join("system.toml"))
-            .env("MISE_TRUSTED_CONFIG_PATHS", dir)
-            // mise reads no config in a ceiling directory itself, the repository's own
-            // `mise.toml` included, so the ceiling is the directory above it.
-            .env(
-                "MISE_CEILING_PATHS",
-                dir.parent().expect("a temporary directory has a parent"),
-            );
-        self.invocation(command)
-    }
-
     fn invocation(&self, command: Command) -> Invocation {
         Invocation::new(command, self.dir.path().to_path_buf())
     }

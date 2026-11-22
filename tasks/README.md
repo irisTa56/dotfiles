@@ -54,12 +54,6 @@ A workflow that runs them sets `MISE_NO_HOOKS: "1"` in its workflow-wide `env`, 
 A `postinstall` that sets up a local checkout has nothing to do in CI and can break a job there: a pre-push hook it registers runs on the push `upstream:pin-check -- --bump` makes, and where the hook fails, as one whose tool the job did not install does, the push fails with it.
 The `mise install` a task runs for the `dotfiles-tasks` binary skips the hooks itself.
 
-### Renamed tasks
-
-`links:commit-check` was `link-check:staged`, and still runs under that name, as an alias its header declares, so that a repository whose `pre-commit` names the former one keeps working when its pin moves past the rename.
-The alias goes once no repository taking these tasks names it.
-It runs the task under either name, from `mise run` and from another task's `depends` alike, but `MISE_TASK_SKIP` matches the task's own name alone, so a skip written as `link-check:staged.sh` skips nothing.
-
 ### `secrets:commit-scan`
 
 It reads the staged diff, so it belongs in a pre-commit hook.
@@ -111,7 +105,7 @@ lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lyc
 It takes no argument.
 It exits 1 on a broken link, and 2 on an argument or where the release it runs cannot be installed; either blocks the commit.
 A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=links:commit-check.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
-The full name is what matters: mise skips nothing for `links:commit-check` without the `.sh`, for the reason the section above on overriding a task gives, nor for its former name, as [Renamed tasks](#renamed-tasks) says.
+The full name is what matters: mise skips nothing for `links:commit-check` without the `.sh`, for the reason the section above on overriding a task gives.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
 ### `skills:size-check`
