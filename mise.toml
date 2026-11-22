@@ -76,6 +76,10 @@ includes = ["tasks"]
 "~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
+# A local VS Code extension that only adds preview.css to the built-in Markdown
+# preview, so the style applies in every folder; VS Code registers it on finding
+# the link. Its directory name must follow package.json's publisher.name-version.
+"~/.vscode/extensions/irista56.markdown-preview-style-0.0.1" = { source = ".config/vscode/markdown-preview-style", mode = "symlink" }
 # Written out as content rather than linked, so it is no `.sh` file that `qa:sh`
 # checks: after changing it, run
 #   yq -r '.dotfiles."~/.local/bin/notify_desktop".content' mise.toml | shellcheck -
