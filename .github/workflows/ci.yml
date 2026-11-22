@@ -79,8 +79,9 @@ jobs:
           # gitleaks for secrets:commit-scan's, which run the task's script,
           # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
           # this action puts on PATH, after clearing every MISE_ variable.
+          # cargo-nextest, which qa:rust:crates runs the tests with.
           # rust is installed in the steps below, from a cache of its own.
-          install_args: lychee gitleaks trufflehog
+          install_args: lychee gitleaks trufflehog aqua:nextest-rs/nextest/cargo-nextest
           cache: false # as in `markdown-lint`
       # A departure from the CI baseline's `cache: false`: the Rust toolchain is cached,
       # keyed on the release `latest` resolves to in this run, so a new release misses

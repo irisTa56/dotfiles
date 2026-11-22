@@ -10,6 +10,7 @@ shellcheck = "latest"
 shfmt = "latest"
 trufflehog = "latest"
 yq = "latest"
+"aqua:nextest-rs/nextest/cargo-nextest" = "latest"
 "pipx:apm-cli" = "latest"
 
 [env]
@@ -195,13 +196,16 @@ depends = ["qa:rust:*"]
 
 # Each command names the whole workspace: run in rust/, cargo would otherwise take only
 # the dotfiles-tasks package at its root.
+# nextest runs the tests of every test binary from one pool, where cargo test runs the
+# binaries one after another. It runs no doctests, which is safe while every package is
+# binaries only: a library added to one would need `cargo test --doc` beside it.
 [tasks."qa:rust:crates"]
 description = "Check formatting of, lint and test every package of the Rust workspace"
 dir = "{{config_root}}/rust"
 run = [
   "cargo fmt --all --check",
   "cargo clippy --workspace --all-targets --locked -- -D warnings",
-  "cargo test --workspace --locked",
+  "cargo nextest run --workspace --locked",
 ]
 
 # The subcommand built from the working tree rather than the release the shared task
