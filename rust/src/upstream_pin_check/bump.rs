@@ -218,10 +218,11 @@ impl Scratch {
         if tip == found.commit {
             return None;
         }
-        let Ok(pinned) = self.fetch(found.url, found.commit) else {
+        if !self.holds(found.url, found.commit) {
             return Some(tip.to_owned());
-        };
-        (self.tree_at(&pinned, found.path) != self.tree_at(tip, found.path)).then(|| tip.to_owned())
+        }
+        let [pinned_tree, tip_tree] = self.trees_at([found.commit, tip], found.path);
+        (pinned_tree != tip_tree).then(|| tip.to_owned())
     }
 
     /// Runs git on the scratch index the move is staged in.
