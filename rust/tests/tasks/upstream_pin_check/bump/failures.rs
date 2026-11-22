@@ -324,10 +324,12 @@ fn under_github_actions_says_the_default_branch_holds_no_pin_to_move_and_exits_2
     );
 }
 
+// The stand-in reads the message it is fed before it fails, as git does, since a git
+// that exits first fails the run's write of it and the run says that instead.
 #[test]
 fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_commit_the_move() {
     let (up, _origin, checkout) = pinned_on_origin();
-    let bin = StandIns::new().git_on("commit-tree", FAILING);
+    let bin = StandIns::new().git_on("commit-tree", &format!("/bin/cat >/dev/null\n{FAILING}"));
     bump_ends(
         &up,
         &checkout,
