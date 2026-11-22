@@ -3,6 +3,7 @@
 
 use tempfile::TempDir;
 
+use super::Trace;
 use crate::support::checkout::Checkout;
 use crate::support::git::IDENTITY;
 use crate::support::github::GitHubApi;
@@ -100,6 +101,23 @@ fn under_github_actions_pushes_the_move_on_origins_default_branch_to_its_own_bra
         Some(b"r".to_vec())
     );
     assert_eq!(origin.commit(&format!("{BUMP}~1")), origin.commit("main"));
+}
+
+// The move compares the pin origin's default branch spells with the tip; where it is the
+// commit the check read already, the upstream has nothing more to give.
+#[test]
+fn under_github_actions_asks_an_upstream_once_where_origin_pins_the_commit_checked() {
+    let up = Upstream::changing_lints(2);
+    let origin = Origin::new();
+    origin.make_main(&[("Cargo.toml", &format!("# {}\n", up.marker("lints", 0)))]);
+    let checkout = Checkout::clone_of(&origin);
+    let trace = Trace::new();
+    Runner::GitHubActions
+        .bump(&checkout)
+        .env("GIT_TRACE2_EVENT", trace.path())
+        .run()
+        .expect(1, &["pushed the move to upstream-pin-bump"]);
+    assert_eq!(trace.requests_of(&up), 1);
 }
 
 // The pull request goes from the branch to the default branch origin's HEAD names, on

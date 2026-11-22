@@ -14,6 +14,9 @@ mod request;
 mod scratch;
 mod text;
 
+use std::cell::RefCell;
+use std::collections::HashSet;
+
 use clap::Args;
 use tempfile::TempDir;
 
@@ -140,12 +143,22 @@ enum Checked {
     Unknown,
 }
 
+/// What a pin is compared by: its upstream's default branch tip, and the trees at the
+/// pin's path there and at the pinned commit, each `None` where the path is not in it.
+#[derive(Debug)]
+struct Compared {
+    tip: String,
+    at_tip: Option<String>,
+    pinned: Option<String>,
+}
+
 /// A scratch repository that upstream commits are fetched into, trees without blobs, and
-/// removed with it.
+/// removed with it, with the URL and commit of each pinned commit fetched so far.
 #[derive(Debug)]
 struct Scratch {
     git: Git,
     dir: TempDir,
+    fetched: RefCell<HashSet<(String, String)>>,
 }
 
 /// GitHub's REST API as a run under GitHub Actions reaches it: where the API is, the

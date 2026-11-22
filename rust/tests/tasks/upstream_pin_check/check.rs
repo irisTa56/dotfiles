@@ -2,6 +2,7 @@
 
 use tempfile::TempDir;
 
+use super::Trace;
 use crate::support::checkout::Checkout;
 use crate::support::git::git;
 use crate::support::invocation::Stream;
@@ -47,6 +48,22 @@ fn passes_a_pin_whose_path_is_unchanged_on_the_default_branch_tip() {
         .arg("upstream-pin-check")
         .run()
         .expect(0, &["[ok]"]);
+}
+
+// Each request of an upstream is a round trip to its host, and a check reads two commits
+// of it: the default branch's tip and the pinned one.
+#[test]
+fn asks_an_upstream_once_for_both_the_default_branch_and_the_pinned_commit() {
+    let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
+    let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
+    let trace = Trace::new();
+    Checkout::new(&[("Cargo.toml", &cargo)])
+        .dotfiles_tasks()
+        .arg("upstream-pin-check")
+        .env("GIT_TRACE2_EVENT", trace.path())
+        .run()
+        .expect(0, &["[ok]"]);
+    assert_eq!(trace.requests_of(&up), 1);
 }
 
 // A git hook, such as a pre-push one that runs this check, exports GIT_DIR for the
