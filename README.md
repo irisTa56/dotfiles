@@ -128,7 +128,7 @@ A command that runs unattended, or whose caller does not start zsh, is one in `~
 - So a `mise.toml` that cannot be parsed, a `git::` include that cannot be fetched, or a missing tool while offline fails a mise task, and a task of the same name in that directory runs in its place.
 - `mise -C ~ run --skip-tools` avoids those only for as long as every caller remembers it, and a caller that forgets works until one of them happens, when nobody is watching.
 - A caller that does not start zsh gives the command's full path, since `.zprofile` is what puts `~/.local/bin` on `PATH`.
-- The shell checks in `hk.pkl` reach only `.sh` files, so it does not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
+- The shell checks in `hk.pkl` reach only `.sh` files, so they do not reach a script written out as `content`, and an edit to one reaches `~/.local/bin` only at the next `mise dot apply` or `mise bootstrap`.
 
 The shared tasks under `tasks/`, which other repositories run, follow [their own rules](tasks/README.md#writing-one) instead.
 So do Claude Code's PreToolUse hooks: each goes in the `global-hooks` module as a `tool.check` hook with TypeScript tests, unless it rewrites the call's input, as [Agent Skills](#agent-skills) describes.
