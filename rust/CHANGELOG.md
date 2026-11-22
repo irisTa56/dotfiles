@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.10.0...dotfiles-tasks-v0.11.0) (2026-11-22)
+
+
+### Features
+
+* **tasks:** name the skip after the task mise runs, and take links-commit-check ([#530](https://github.com/irisTa56/dotfiles/issues/530)) ([487a860](https://github.com/irisTa56/dotfiles/commit/487a8603e0f76346812aa2c18805060026d179dd))
+
+
+### Performance Improvements
+
+* **upstream-pin-check:** ask each upstream once per pin and batch tree reads ([#525](https://github.com/irisTa56/dotfiles/issues/525)) ([a58d246](https://github.com/irisTa56/dotfiles/commit/a58d246fb86d9a40351eb93f816ac3fbab5c9bdc))
+
 ## [0.10.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.9.0...dotfiles-tasks-v0.10.0) (2026-11-21)
 
 
