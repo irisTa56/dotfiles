@@ -86,8 +86,8 @@ fn names_no_skip_when_mise_names_an_empty_task() {
     assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
 }
 
-// A wrapper under the task name `links:commit-check` calls the subcommand by the
-// matching name, and it runs the same check.
+// The subcommand's second name, for a wrapper under the task name `links:commit-check`
+// to call, runs the same check.
 #[test]
 fn runs_the_same_check_as_links_commit_check() {
     staged(&[("a.md", "[gone](missing.md)\n")])
