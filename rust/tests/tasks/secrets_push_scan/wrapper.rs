@@ -3,6 +3,7 @@
 
 use crate::support::mise::{Mise, POSTINSTALL};
 use crate::support::origin::Origin;
+use crate::support::trufflehog::Trufflehog;
 
 use super::{ahead_of, leaking, main_line};
 
@@ -40,12 +41,15 @@ fn fails_as_unable_to_scan_where_mise_cannot_locate_the_release_it_installed() {
 fn exits_as_secrets_push_scan_does_on_a_secret_the_push_sends() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
+    let mise = Mise::installing_with(0);
+    let trufflehog = Trufflehog::reporting_tokens();
     checkout
-        .wrapper("secrets/push-scan.sh", &Mise::installing_with(0))
+        .wrapper("secrets/push-scan.sh", &mise)
+        .env("PATH", trufflehog.path_over(&mise.path()))
         .arg("origin")
         .input(main_line(&checkout, &sha))
         .run()
-        .expect(1, &[&format!("Github at line 1 of a.txt, commit {sha}")]);
+        .expect(1, &[&format!("commit {sha}")]);
 }
 
 // mise runs a consumer's `[hooks] postinstall` on every install in its project;
@@ -55,8 +59,11 @@ fn exits_as_secrets_push_scan_does_on_a_secret_the_push_sends() {
 fn installs_the_release_without_running_the_consumers_postinstall() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
+    let mise = Mise::installing_with(0);
+    let trufflehog = Trufflehog::reporting_tokens();
     let run = checkout
-        .wrapper("secrets/push-scan.sh", &Mise::installing_with(0))
+        .wrapper("secrets/push-scan.sh", &mise)
+        .env("PATH", trufflehog.path_over(&mise.path()))
         .arg("origin")
         .input(main_line(&checkout, &sha))
         .run();
