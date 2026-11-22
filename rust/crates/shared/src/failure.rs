@@ -4,10 +4,10 @@ use std::fmt;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-/// What ends a run before it finishes: a message for stderr, where one is due, and the
-/// exit status.
+/// What ends a run before it finishes: what it writes to stderr, line ends included,
+/// which may be nothing, and the exit status.
 pub struct Failure {
-    message: Option<String>,
+    stderr: Vec<u8>,
     code: u8,
 }
 
@@ -15,7 +15,7 @@ impl Failure {
     #[must_use]
     pub fn new(message: fmt::Arguments<'_>, code: u8) -> Self {
         Failure {
-            message: Some(message.to_string()),
+            stderr: format!("{message}\n").into_bytes(),
             code,
         }
     }
@@ -24,15 +24,20 @@ impl Failure {
     #[must_use]
     pub fn quiet(code: u8) -> Self {
         Failure {
-            message: None,
+            stderr: Vec::new(),
             code,
         }
     }
 
+    /// What ends a run with `code`, writing `stderr` byte for byte: what another program
+    /// printed, say, followed by the lines that say what failed.
+    #[must_use]
+    pub fn verbatim(stderr: Vec<u8>, code: u8) -> Self {
+        Failure { stderr, code }
+    }
+
     pub fn report(self) -> ExitCode {
-        if let Some(message) = self.message {
-            let _ = writeln!(io::stderr(), "{message}");
-        }
+        let _ = io::stderr().write_all(&self.stderr);
         ExitCode::from(self.code)
     }
 }

@@ -172,6 +172,7 @@ name = "dotfiles-tasks"
 version = "0.11.0"
 dependencies = [
  "clap",
+ "dotfiles-shared",
  "regex",
  "serde_json",
  "tempfile",

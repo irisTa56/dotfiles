@@ -432,6 +432,27 @@ fn under_github_actions_passes_on_what_git_said_and_exits_2_where_it_cannot_dele
         );
 }
 
+// The line is the only account of why the pull request failed, so a run killed while the
+// delete push stalls has to have written it already. The stand-in kills its parent, the
+// task, as the push begins.
+#[test]
+fn under_github_actions_has_said_why_the_pull_request_failed_when_killed_deleting_the_branch() {
+    let (up, _origin, checkout) = pinned_on_origin();
+    let api = GitHubApi::answering(403, r#"{"message":"Resource not accessible"}"#);
+    let bin = StandIns::new().git_on("push -q origin :refs/heads/", "kill -9 $PPID\n");
+    let stderr = Runner::GitHubActions
+        .bump(&checkout)
+        .env("GITHUB_API_URL", api.url())
+        .env("PATH", bin.path())
+        .run_killed();
+    let said = refused(&up, "Resource not accessible");
+    let line = said.lines().last().expect("the refusal is a line");
+    assert!(
+        stderr.contains(&format!("{line}\n")),
+        "stderr lacks {line:?}:\n{stderr}"
+    );
+}
+
 #[test]
 fn under_github_actions_passes_on_what_curl_said_and_exits_2_where_curl_fails() {
     let (up, _origin, checkout) = pinned_on_origin();

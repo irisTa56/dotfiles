@@ -22,7 +22,8 @@ use tempfile::TempDir;
 
 use crate::git::Git;
 
-/// How a run ends, ordered so that the worst of several outcomes is their maximum.
+/// How a run that checked every pin ends, ordered so that the worst of several outcomes
+/// is their maximum; each is the status the run exits with.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Status {
     /// Nothing to act on.
@@ -72,9 +73,10 @@ struct BranchSuffix(String);
 #[derive(Debug, Clone)]
 struct Pathspec(String);
 
-/// What a run could not do, as the line that says so.
+/// A line a run writes to stderr marked `[fail]`: what it could not do, or what it did
+/// that the caller has to act on, such as a pin it moved.
 #[derive(Debug, Clone, Copy)]
-struct Failure<'m>(&'m str);
+struct FailLine<'m>(&'m str);
 
 /// A file's contents, in which markers are found and moved. They are bytes, since a file
 /// need not be UTF-8, and a move leaves every byte outside its markers as it was.

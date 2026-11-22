@@ -3,7 +3,9 @@
 use std::cell::RefCell;
 use std::path::Path;
 
-use super::{Checked, Compared, Failure, Pin, Scratch, Status};
+use dotfiles_shared::Failure;
+
+use super::{Checked, Compared, FailLine, Pin, Scratch, Status};
 use crate::git::{Git, Run};
 use crate::stream::Stream;
 
@@ -23,7 +25,7 @@ impl Checked {
 
 impl Scratch {
     /// An empty repository in a directory of its own, removed when the value is dropped.
-    pub(super) fn new(git: Git) -> Result<Self, Status> {
+    pub(super) fn new(git: Git) -> Result<Self, Failure> {
         let dir = tempfile::Builder::new()
             .prefix("upstream-pin-check-")
             .tempdir()
@@ -35,11 +37,11 @@ impl Scratch {
         };
         let init = scratch.git(&["init", "-q"]);
         if !init.success() {
-            return Err(Failure(&format!(
+            return Err(FailLine(&format!(
                 "could not create a scratch repository at {}",
                 scratch.dir().display()
             ))
-            .report_git(&init));
+            .ending_git(&init));
         }
         Ok(scratch)
     }
@@ -161,11 +163,11 @@ impl Scratch {
     /// that cannot read one says which, and why.
     fn fetch_each(&self, pin: &Pin) -> Result<Compared, Checked> {
         let tip = self.fetch_one(&pin.url, "HEAD").map_err(|run| {
-            Failure(&format!("could not read the default branch of {}", pin.url)).report_git(&run);
+            FailLine(&format!("could not read the default branch of {}", pin.url)).report_git(&run);
             Checked::Unknown
         })?;
         let pinned = self.fetch_one(&pin.url, &pin.commit).map_err(|run| {
-            Failure(&format!("could not read {} from {}", pin.commit, pin.url)).report_git(&run);
+            FailLine(&format!("could not read {} from {}", pin.commit, pin.url)).report_git(&run);
             Checked::Unknown
         })?;
         self.remember(&pin.url, &pin.commit);
@@ -192,7 +194,7 @@ impl Scratch {
             pinned,
         } = compared;
         let Some(pinned_tree) = pinned else {
-            Failure(&format!(
+            FailLine(&format!(
                 "{place} does not exist at the pinned {}",
                 pin.commit
             ))
@@ -202,7 +204,7 @@ impl Scratch {
         let files = pin.files.join(", ");
         // A pin moved to a tip without the path would fail every run after, so it stays.
         let Some(tip_tree) = at_tip else {
-            Failure(&format!(
+            FailLine(&format!(
                 "{place} is gone from the default branch ({tip}), pinned in {files}; a bump leaves this pin where it is"
             )).report();
             return Checked::Gone;
@@ -215,12 +217,12 @@ impl Scratch {
             return Checked::Matches;
         }
         // Not which is the older: the pin may be ahead of the default branch as well as behind.
-        Failure(&format!(
+        FailLine(&format!(
             "{place} differs from the default branch, pinned in {files}"
         ))
         .report();
-        Failure(&format!("pinned: {}", pin.commit)).report();
-        Failure(&format!("tip:    {tip}")).report();
+        FailLine(&format!("pinned: {}", pin.commit)).report();
+        FailLine(&format!("tip:    {tip}")).report();
         Checked::Differs(tip)
     }
 }

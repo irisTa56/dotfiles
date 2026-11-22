@@ -4,8 +4,10 @@
 use std::collections::HashMap;
 use std::fmt::Write;
 
+use dotfiles_shared::Failure;
+
 use super::{
-    Differing, Failure, GitHub, Marker, Message, Move, Moves, Proposal, PullRequest, Scratch,
+    Differing, FailLine, GitHub, Marker, Message, Move, Moves, Proposal, PullRequest, Scratch,
     Status, Text,
 };
 use crate::git::Run;
@@ -26,19 +28,20 @@ impl Scratch {
     /// pushed to a branch of its own, and proposed as a pull request into that branch.
     /// While that branch exists, its pull request is open, so the move is made on the
     /// branch instead, over whatever a person added there.
-    pub(super) fn move_on_origin(&self, differing: &Differing, proposal: Proposal) -> Status {
-        let moved = match self.bump_branch_exists(proposal.branch) {
-            Ok(true) => self.move_on_bump_branch(differing, proposal.branch),
-            Ok(false) => self.propose_move(differing, proposal),
-            Err(status) => Err(status),
-        };
-        match moved {
-            Ok(status) | Err(status) => status,
+    pub(super) fn move_on_origin(
+        &self,
+        differing: &Differing,
+        proposal: Proposal,
+    ) -> Result<Status, Failure> {
+        if self.bump_branch_exists(proposal.branch)? {
+            self.move_on_bump_branch(differing, proposal.branch)
+        } else {
+            self.propose_move(differing, proposal)
         }
     }
 
     /// Whether `branch` exists on origin; a run that cannot tell ends here.
-    fn bump_branch_exists(&self, branch: &str) -> Result<bool, Status> {
+    fn bump_branch_exists(&self, branch: &str) -> Result<bool, Failure> {
         let bump_ref = format!("refs/heads/{branch}");
         let exists = self
             .git
@@ -50,8 +53,8 @@ impl Scratch {
             return Ok(false);
         }
         Err(
-            Failure(&format!("could not tell whether {branch} exists on origin"))
-                .report_git(&exists),
+            FailLine(&format!("could not tell whether {branch} exists on origin"))
+                .ending_git(&exists),
         )
     }
 
@@ -59,32 +62,32 @@ impl Scratch {
     /// new, and opens its pull request, as a draft where the proposal says so. What opening
     /// one needs is checked before the push, so that a run lacking it leaves no branch
     /// behind.
-    fn propose_move(&self, differing: &Differing, proposal: Proposal) -> Result<Status, Status> {
+    fn propose_move(&self, differing: &Differing, proposal: Proposal) -> Result<Status, Failure> {
         let branch = proposal.branch;
         let github = GitHub::from_env()?;
         let default_branch = self.default_branch()?;
         let base = self.fetch_from_origin("HEAD")?;
         let (tree, moved) = self.stage_moves(&base, "origin's default branch", differing)?;
         if moved.0.is_empty() {
-            Failure("origin's default branch holds none of these pins to move, or holds them where the path matches the tip's already").report();
-            return Err(Status::Unknown);
+            return Err(FailLine("origin's default branch holds none of these pins to move, or holds them where the path matches the tip's already").ending());
         }
         let message = Message::of(&moved);
         self.push_move(&base, &tree, &message, branch)?;
         for line in &message.0 {
-            Failure(&format!("pushed the move to {branch}: {line}")).report();
+            FailLine(&format!("pushed the move to {branch}: {line}")).report();
         }
-        Ok(self.open_pull_request(&github, &default_branch, &message, proposal))
+        self.open_pull_request(&github, &default_branch, &message, proposal)?;
+        Ok(Status::Differs)
     }
 
     /// Moves the pins as `branch` spells them, in a commit over its tip, which its open
     /// pull request then shows; a branch whose pins are at the tips already is left as it
     /// is.
-    fn move_on_bump_branch(&self, differing: &Differing, branch: &str) -> Result<Status, Status> {
+    fn move_on_bump_branch(&self, differing: &Differing, branch: &str) -> Result<Status, Failure> {
         let base = self.fetch_from_origin(&format!("refs/heads/{branch}"))?;
         let (tree, moved) = self.stage_moves(&base, branch, differing)?;
         if moved.0.is_empty() {
-            Failure(&format!(
+            FailLine(&format!(
                 "{branch} holds none of these pins to move, or holds them where the path matches the tip's already, so it is left as it is"
             ))
             .report();
@@ -93,13 +96,13 @@ impl Scratch {
         let message = Message::of(&moved);
         self.push_move(&base, &tree, &message, branch)?;
         for line in &message.0 {
-            Failure(&format!("pushed the move onto {branch}: {line}")).report();
+            FailLine(&format!("pushed the move onto {branch}: {line}")).report();
         }
         Ok(Status::Differs)
     }
 
     /// The name of origin's default branch, which the pull request goes into.
-    fn default_branch(&self) -> Result<String, Status> {
+    fn default_branch(&self) -> Result<String, Failure> {
         let listed = self
             .git
             .run(&["ls-remote", "-q", "--symref", "origin", "HEAD"]);
@@ -108,19 +111,19 @@ impl Scratch {
             (name == "HEAD").then(|| target.to_owned())
         });
         name.ok_or_else(|| {
-            Failure("could not tell which branch is origin's default").report_git(&listed)
+            FailLine("could not tell which branch is origin's default").ending_git(&listed)
         })
     }
 
     /// Fetches `rev` from origin and returns the commit it named. A shallow checkout, as
     /// actions/checkout leaves by default, takes that commit alone; a full one fetches its
     /// history whole, since a depth would leave it shallow for the steps after this one.
-    fn fetch_from_origin(&self, rev: &str) -> Result<String, Status> {
+    fn fetch_from_origin(&self, rev: &str) -> Result<String, Failure> {
         let git = &self.git;
         let shallow = git.run(&["rev-parse", "--is-shallow-repository"]);
         if !shallow.success() {
             return Err(
-                Failure("could not tell whether the checkout is shallow").report_git(&shallow)
+                FailLine("could not tell whether the checkout is shallow").ending_git(&shallow)
             );
         }
         let fetched = if shallow.stdout().trim() == "true" {
@@ -129,7 +132,9 @@ impl Scratch {
             git.run(&["fetch", "-q", "origin", rev])
         };
         if !fetched.success() {
-            return Err(Failure(&format!("could not fetch {rev} from origin")).report_git(&fetched));
+            return Err(
+                FailLine(&format!("could not fetch {rev} from origin")).ending_git(&fetched)
+            );
         }
         Ok(git
             .run(&["rev-parse", "FETCH_HEAD"])
@@ -145,7 +150,7 @@ impl Scratch {
         base: &str,
         place: &str,
         differing: &Differing,
-    ) -> Result<(String, Moves), Status> {
+    ) -> Result<(String, Moves), Failure> {
         let tips: Tips = differing
             .0
             .iter()
@@ -153,7 +158,7 @@ impl Scratch {
             .collect();
         let read = self.indexed(&["read-tree", base]);
         if !read.success() {
-            return Err(Failure(&format!("could not read {place}")).report_git(&read));
+            return Err(FailLine(&format!("could not read {place}")).ending_git(&read));
         }
         let mut moved = Moves::default();
         for file in differing.files() {
@@ -172,11 +177,11 @@ impl Scratch {
         place: &str,
         file: &str,
         tips: &Tips,
-    ) -> Result<Moves, Status> {
+    ) -> Result<Moves, Failure> {
         let git = &self.git;
         let listed = git.run(&["ls-tree", base, "--", file]);
         if !listed.success() {
-            return Err(Failure(&format!("could not read {file} on {place}")).report_git(&listed));
+            return Err(FailLine(&format!("could not read {file} on {place}")).ending_git(&listed));
         }
         let entry = listed.stdout();
         let fields: Vec<&str> = entry.split_whitespace().collect();
@@ -185,7 +190,7 @@ impl Scratch {
         };
         let before = git.run(&["cat-file", "blob", &format!("{base}:{file}")]);
         if !before.success() {
-            return Err(Failure(&format!("could not read {file} on {place}")).report_git(&before));
+            return Err(FailLine(&format!("could not read {file} on {place}")).ending_git(&before));
         }
         let (after, moved) =
             Text(before.stdout_bytes()).rewrite(|found| self.base_tip(tips, found));
@@ -205,7 +210,9 @@ impl Scratch {
             &format!("{mode},{blob},{file}"),
         ]);
         if !update.success() {
-            return Err(Failure(&format!("could not stage the move of {file}")).report_git(&update));
+            return Err(
+                FailLine(&format!("could not stage the move of {file}")).ending_git(&update)
+            );
         }
         Ok(moved)
     }
@@ -241,7 +248,7 @@ impl Scratch {
         tree: &str,
         message: &Message,
         branch: &str,
-    ) -> Result<(), Status> {
+    ) -> Result<(), Failure> {
         let git = &self.git;
         let commit = git
             .call(&["commit-tree", tree, "-p", base, "-F", "-"])
@@ -252,28 +259,29 @@ impl Scratch {
             .input(message.text().as_bytes())
             .run();
         if !commit.success() {
-            return Err(Failure("could not commit the move").report_git(&commit));
+            return Err(FailLine("could not commit the move").ending_git(&commit));
         }
         let refspec = format!("{}:refs/heads/{branch}", commit.stdout().trim());
         let pushed = git.run(&["push", "-q", "origin", &refspec]);
         if !pushed.success() {
-            return Err(Failure(&format!(
+            return Err(FailLine(&format!(
                     "could not push the move to {branch}; the push needs the job's token with contents: write kept on the checkout's origin"
-                )).report_git(&pushed));
+                )).ending_git(&pushed));
         }
         Ok(())
     }
 
     /// Opens the pull request of the proposal's branch into `base`, as a draft where the
-    /// proposal says so. Where it cannot, the branch this run pushed is deleted again, since
-    /// a run that finds the branch takes its pull request to be open and opens none.
+    /// proposal says so. Where it cannot, it says why at once, before a push that may stall,
+    /// and deletes the branch this run pushed again, since a run that finds the branch takes
+    /// its pull request to be open and opens none; the run ends on how that went.
     fn open_pull_request(
         &self,
         github: &GitHub,
         base: &str,
         message: &Message,
         proposal: Proposal,
-    ) -> Status {
+    ) -> Result<(), Failure> {
         let body = message.list();
         let pull = PullRequest {
             head: proposal.branch,
@@ -284,29 +292,29 @@ impl Scratch {
         };
         match github.open(self.dir(), &pull) {
             Ok(page) => {
-                Failure(&format!("opened its pull request: {page}")).report();
-                Status::Differs
+                FailLine(&format!("opened its pull request: {page}")).report();
+                Ok(())
             }
             Err(reason) => {
-                Failure(&format!("could not open its pull request: {reason}")).report();
-                self.withdraw_push(proposal.branch);
-                Status::Unknown
+                FailLine(&format!("could not open its pull request: {reason}")).report();
+                Err(self.withdraw_push(proposal.branch))
             }
         }
     }
 
-    /// Deletes `branch` from origin, where this run pushed it.
-    fn withdraw_push(&self, branch: &str) {
+    /// Deletes `branch` from origin, where this run pushed it, and returns what ends the
+    /// run, saying how that went.
+    fn withdraw_push(&self, branch: &str) -> Failure {
         let deleted = self
             .git
             .run(&["push", "-q", "origin", &format!(":refs/heads/{branch}")]);
         if deleted.success() {
-            Failure(&format!(
+            FailLine(&format!(
                 "deleted {branch} again, so that the next run opens its pull request"
             ))
-            .report();
+            .ending()
         } else {
-            Failure(&format!("could not delete {branch}; delete it by hand, or the next run will open no pull request")).report_git(&deleted);
+            FailLine(&format!("could not delete {branch}; delete it by hand, or the next run will open no pull request")).ending_git(&deleted)
         }
     }
 }

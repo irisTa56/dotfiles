@@ -41,10 +41,16 @@ enum Task {
 fn main() -> ExitCode {
     // A usage error exits 2 on stderr, and --help 0 on stdout, as clap's `Error::exit`
     // does; a write it cannot make there, as to a closed pipe, is dropped.
-    match Cli::parse().task {
+    let outcome = match Cli::parse().task {
         Task::LinksCommitCheck => links_commit_check::Lychee::check_staged(),
         Task::SecretsPushScan(hook) => secrets_push_scan::Push::scan(&hook),
         Task::SkillsSizeCheck(request) => request.run(),
-        Task::UpstreamPinCheck(request) => ExitCode::from(request.run() as u8),
+        Task::UpstreamPinCheck(request) => request.run(),
+    };
+    // Each task's failure is reported here, once, whatever stage it came from; what a
+    // task says as its run goes on, it has said already.
+    match outcome {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(failure) => failure.report(),
     }
 }

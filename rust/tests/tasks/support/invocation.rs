@@ -4,8 +4,9 @@
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::os::unix::process::ExitStatusExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Command, ExitStatus, Stdio};
 use std::thread;
 
 use regex::Regex;
@@ -141,6 +142,29 @@ impl Invocation {
     /// Runs the command to its end, feeding it its input and reading stdout and stderr
     /// apart. No stream is closed: a closed one has nothing to read.
     pub(crate) fn run_apart(self) -> Apart {
+        let (status, stdout, stderr) = self.run_apart_status();
+        Apart {
+            code: status
+                .code()
+                .expect("the command exits rather than being killed"),
+            stdout,
+            stderr,
+        }
+    }
+
+    /// Runs the command to its end, which is a signal's, and returns what it had written to
+    /// stderr by then.
+    pub(crate) fn run_killed(self) -> String {
+        let (status, _stdout, stderr) = self.run_apart_status();
+        assert_eq!(
+            status.signal(),
+            Some(9),
+            "the command is killed; stderr:\n{stderr}"
+        );
+        stderr
+    }
+
+    fn run_apart_status(self) -> (ExitStatus, String, String) {
         assert!(self.closed.is_none(), "a run read apart closes no stream");
         let Invocation {
             mut command,
@@ -166,14 +190,11 @@ impl Invocation {
         if let Some(feeder) = feeder {
             feeder.join().expect("feeding the input does not panic");
         }
-        Apart {
-            code: output
-                .status
-                .code()
-                .expect("the command exits rather than being killed"),
-            stdout: String::from_utf8(output.stdout).expect("stdout is UTF-8"),
-            stderr: String::from_utf8(output.stderr).expect("stderr is UTF-8"),
-        }
+        (
+            output.status,
+            String::from_utf8(output.stdout).expect("stdout is UTF-8"),
+            String::from_utf8(output.stderr).expect("stderr is UTF-8"),
+        )
     }
 
     /// Points stdout and stderr at one pipe, or, where a stream is to be closed, that one at

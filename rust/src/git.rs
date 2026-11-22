@@ -2,27 +2,30 @@
 
 use std::borrow::Cow;
 use std::path::Path;
-use std::process::{ExitCode, Output, Stdio};
+use std::process::{ExitStatus, Output, Stdio};
 
-use crate::program::{Program, Unstarted};
-use crate::stream::Stream;
+use dotfiles_shared::Failure;
+
+use crate::program::{self, Program, Unstarted};
 
 /// What one git run printed, and how it exited.
 #[derive(Debug)]
 pub(crate) struct Run {
-    /// None where git could not be started, or a signal stopped it.
-    status: Option<i32>,
+    /// None where git could not be started.
+    status: Option<ExitStatus>,
     stdout: Vec<u8>,
     stderr: String,
 }
 
 impl Run {
+    /// The status git exited with, None where it could not be started or a signal
+    /// stopped it.
     pub(crate) fn status(&self) -> Option<i32> {
-        self.status
+        self.status.and_then(|status| status.code())
     }
 
     pub(crate) fn success(&self) -> bool {
-        self.status == Some(0)
+        self.status() == Some(0)
     }
 
     /// What git printed, as text: a name or an id, say.
@@ -39,16 +42,14 @@ impl Run {
         &self.stderr
     }
 
-    /// Reports what a failed run said, and returns the code to end the task with: git's
-    /// own status, such as 128 outside a repository, or `otherwise` where it has none,
-    /// git having never run or been stopped by a signal.
-    pub(crate) fn failure(&self, otherwise: u8) -> ExitCode {
-        Stream::Stderr.bytes(self.stderr.as_bytes());
-        ExitCode::from(
-            self.status
-                .and_then(|status| u8::try_from(status).ok())
-                .unwrap_or(otherwise),
-        )
+    /// What ends the task on a failed run, saying what git said: it ends with git's own
+    /// status, such as 128 outside a repository, or `otherwise` where it has none, git
+    /// having never run or been stopped by a signal.
+    pub(crate) fn failure(&self, otherwise: u8) -> Failure {
+        let code = self
+            .status
+            .map_or(otherwise, |status| program::exit_code(status, otherwise));
+        Failure::verbatim(self.stderr.clone().into_bytes(), code)
     }
 
     /// The run of a git that could not be started, or not fed its input.
@@ -136,7 +137,7 @@ impl<'a> Call<'a> {
     pub(crate) fn run(self) -> Run {
         match self.output() {
             Ok(output) => Run {
-                status: output.status.code(),
+                status: Some(output.status),
                 stdout: output.stdout,
                 stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
             },

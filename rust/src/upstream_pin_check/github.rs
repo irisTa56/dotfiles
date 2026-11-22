@@ -5,7 +5,9 @@ use std::fs;
 use std::path::Path;
 use std::process::Stdio;
 
-use super::{Failure, GitHub, PullRequest, Status};
+use dotfiles_shared::Failure;
+
+use super::{FailLine, GitHub, PullRequest};
 use crate::program::Program;
 
 /// Where GitHub Actions leaves `GITHUB_API_URL` unset, which it does not on GitHub.com.
@@ -18,17 +20,17 @@ const MAX_TIME: &str = "60";
 impl GitHub {
     /// Reads what opening a pull request needs from the step's environment, and checks
     /// that curl runs, so that a run lacking either stops before it pushes anything.
-    pub(super) fn from_env() -> Result<Self, Status> {
+    pub(super) fn from_env() -> Result<Self, Failure> {
         let token = env::var("GITHUB_TOKEN").unwrap_or_default();
         if token.is_empty() {
-            Failure("opening the pull request needs the job's token in the step's env, as GITHUB_TOKEN: ${{ github.token }}").report();
-            return Err(Status::Unknown);
+            return Err(FailLine("opening the pull request needs the job's token in the step's env, as GITHUB_TOKEN: ${{ github.token }}").ending());
         }
         let repository = env::var("GITHUB_REPOSITORY").unwrap_or_default();
         if repository.is_empty() {
-            Failure("opening the pull request needs GITHUB_REPOSITORY, which GitHub Actions sets")
-                .report();
-            return Err(Status::Unknown);
+            return Err(FailLine(
+                "opening the pull request needs GITHUB_REPOSITORY, which GitHub Actions sets",
+            )
+            .ending());
         }
         let curl = Program::new("curl")
             .arg("--version")
@@ -36,8 +38,7 @@ impl GitHub {
             .stderr(Stdio::null())
             .status();
         if !curl.is_ok_and(|status| status.success()) {
-            Failure("opening the pull request needs curl on PATH").report();
-            return Err(Status::Unknown);
+            return Err(FailLine("opening the pull request needs curl on PATH").ending());
         }
         let api = env::var("GITHUB_API_URL")
             .ok()

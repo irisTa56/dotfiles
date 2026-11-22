@@ -15,9 +15,9 @@ use std::fs;
 use std::io;
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;
-use std::process::ExitCode;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::git::Git;
 use crate::stream::Stream;
@@ -68,16 +68,8 @@ enum Unmeasured {
 }
 
 impl Request {
-    /// Runs the check, and returns the code to exit with.
-    pub(crate) fn run(&self) -> ExitCode {
-        match self.check() {
-            Ok(code) | Err(code) => code,
-        }
-    }
-
-    /// Each stage hands the next what it needs, or ends the run with a code it has
-    /// already reported.
-    fn check(&self) -> Result<ExitCode, ExitCode> {
+    /// Runs the check: each stage hands the next what it needs, or ends the run.
+    pub(crate) fn run(&self) -> Result<(), Failure> {
         let listed = Self::list(self.pathspec())?;
         let mut failed = false;
         for path in listed
@@ -86,7 +78,11 @@ impl Request {
         {
             failed |= !self.measure(Path::new(OsStr::from_bytes(path)));
         }
-        Ok(ExitCode::from(u8::from(failed)))
+        // Each skill that failed has said why.
+        if failed {
+            return Err(Failure::quiet(1));
+        }
+        Ok(())
     }
 
     /// The pathspec argument, or the default one where it is empty.
@@ -99,14 +95,16 @@ impl Request {
 
     /// The tracked files `pathspec` names, NUL-separated: asked of git, so an ignored or
     /// vendored skill is left out and one staged for the commit being made is checked.
-    fn list(pathspec: &str) -> Result<Vec<u8>, ExitCode> {
+    fn list(pathspec: &str) -> Result<Vec<u8>, Failure> {
         let listed = Git::inheriting().run(&["ls-files", "-z", "--", pathspec]);
         if !listed.success() {
             return Err(listed.failure(UNCHECKED));
         }
         if listed.stdout_bytes().is_empty() {
-            Stream::Stderr.line(format_args!("git tracks no skill at {pathspec} to check."));
-            return Err(ExitCode::FAILURE);
+            return Err(Failure::new(
+                format_args!("git tracks no skill at {pathspec} to check."),
+                1,
+            ));
         }
         Ok(listed.stdout_bytes().to_vec())
     }
