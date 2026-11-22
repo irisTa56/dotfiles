@@ -272,9 +272,9 @@ impl Scratch {
     }
 
     /// Opens the pull request of the proposal's branch into `base`, as a draft where the
-    /// proposal says so. Where it cannot, the branch this run pushed is deleted again, since
-    /// a run that finds the branch takes its pull request to be open and opens none, and
-    /// the run ends saying both.
+    /// proposal says so. Where it cannot, it says why at once, before a push that may stall,
+    /// and deletes the branch this run pushed again, since a run that finds the branch takes
+    /// its pull request to be open and opens none; the run ends on how that went.
     fn open_pull_request(
         &self,
         github: &GitHub,
@@ -296,18 +296,15 @@ impl Scratch {
                 Ok(())
             }
             Err(reason) => {
-                let mut said = FailLine(&format!("could not open its pull request: {reason}"))
-                    .line()
-                    .into_bytes();
-                said.extend(self.withdraw_push(proposal.branch));
-                Err(Failure::verbatim(said, Status::Unknown.code()))
+                FailLine(&format!("could not open its pull request: {reason}")).report();
+                Err(self.withdraw_push(proposal.branch))
             }
         }
     }
 
-    /// Deletes `branch` from origin, where this run pushed it, and returns what to say of
-    /// how that went.
-    fn withdraw_push(&self, branch: &str) -> Vec<u8> {
+    /// Deletes `branch` from origin, where this run pushed it, and returns what ends the
+    /// run, saying how that went.
+    fn withdraw_push(&self, branch: &str) -> Failure {
         let deleted = self
             .git
             .run(&["push", "-q", "origin", &format!(":refs/heads/{branch}")]);
@@ -315,10 +312,9 @@ impl Scratch {
             FailLine(&format!(
                 "deleted {branch} again, so that the next run opens its pull request"
             ))
-            .line()
-            .into_bytes()
+            .ending()
         } else {
-            FailLine(&format!("could not delete {branch}; delete it by hand, or the next run will open no pull request")).after_git(&deleted)
+            FailLine(&format!("could not delete {branch}; delete it by hand, or the next run will open no pull request")).ending_git(&deleted)
         }
     }
 }

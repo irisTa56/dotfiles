@@ -31,14 +31,14 @@ impl FailLine<'_> {
     }
 
     /// git's own reason, and the line below it that says what could not be done.
-    pub(super) fn after_git(self, run: &Run) -> Vec<u8> {
+    fn after_git(self, run: &Run) -> Vec<u8> {
         let mut bytes = run.stderr().as_bytes().to_vec();
         bytes.extend_from_slice(self.line().as_bytes());
         bytes
     }
 
     /// The line, with its line end.
-    pub(super) fn line(self) -> String {
+    fn line(self) -> String {
         format!("{}\n", self.text())
     }
 
