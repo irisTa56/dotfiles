@@ -28,8 +28,11 @@ fn line(local_ref: &str, local_sha: &str, remote_ref: &str, remote_sha: &str) ->
 
 /// A checkout of `origin`'s `main` with `files` committed on top, and the commit.
 fn ahead_of(origin: &Origin, files: &[(&str, &str)]) -> (Checkout, String) {
-    let checkout = Checkout::new(files);
-    checkout.stage_over(origin);
+    let checkout = Checkout::clone_of(origin);
+    for (path, content) in files {
+        checkout.write(path, content);
+    }
+    checkout.git(&["add", "-A"]);
     let sha = commit(&checkout, "change");
     (checkout, sha)
 }

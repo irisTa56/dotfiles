@@ -6,8 +6,8 @@ use std::path::Path;
 
 use tempfile::TempDir;
 
-use super::checkout::Checkout;
 use super::git::{IDENTITY, git, query};
+use super::import::commit_on_main;
 
 /// A bare repository that a checkout names as its `origin`.
 pub(crate) struct Origin {
@@ -22,11 +22,15 @@ impl Origin {
         Origin { dir }
     }
 
-    /// A bare repository whose `main` holds `files`, given as path and content, published
-    /// from a checkout of its own.
+    /// A bare repository whose `main` holds `files`, given as path and content, in one
+    /// commit.
     pub(crate) fn with_main(files: &[(&str, &str)]) -> Self {
         let origin = Origin::new();
-        Checkout::new(files).publish(&origin);
+        let change: Vec<(&str, Option<&str>)> = files
+            .iter()
+            .map(|(path, content)| (*path, Some(*content)))
+            .collect();
+        commit_on_main(origin.path(), "base", &[&change]);
         origin
     }
 
