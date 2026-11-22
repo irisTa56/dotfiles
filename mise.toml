@@ -1,6 +1,7 @@
 [tools]
 biome = "latest"
 gitleaks = "latest"
+hk = "latest"
 jq = "latest"
 lychee = "latest"
 rumdl = "latest"
@@ -22,13 +23,11 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # missing the .zshrc fragment, which pre-commit had always checked.
 sh_paths = "tasks zsh_fragments"
 
-# The pre-commit hook is regenerated on every install. It only runs the pre-commit
-# task, so it goes stale only when mise's template or the task name changes, and a
-# hook written once would then stay old with nothing saying so. `mise generate`
-# moves the previous hook aside as `pre-commit.old`, replacing the one there, so a
-# hook anything else put in its place is gone after the second install.
-# The push scan is registered in git's config instead, which runs beside any
-# pre-push hook file and is safe to set on every install (see tasks/README.md).
+# hk runs the pre-commit hook from hk.pkl, which says what a commit checks. It
+# registers the hook in git's config, which leaves the hooks directory alone and is
+# safe to repeat, so it runs on every install; `--mise` runs hk through `mise x`.
+# The push scan is registered in git's config too, which runs beside any pre-push
+# hook file (see tasks/README.md).
 # Two more keep dotfiles-local current with main: `local:install` after a merge into
 # main, such as sync-base's fast-forward, and after a switch to main. Set in the
 # repository's config, they run in every worktree, whatever branch it is on, and
@@ -44,7 +43,7 @@ sh_paths = "tasks zsh_fragments"
 # leaving pushes unscanned and dotfiles-local stale in silence.
 [hooks]
 postinstall = '''
-mise generate git-pre-commit --task pre-commit --write
+hk install --mise
 git config hook.secrets-push-scan.event pre-push
 git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
 git config hook.local-install-on-merge.event post-merge
@@ -120,29 +119,35 @@ run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
 
+# Outside `qa:` because CI leaves it out: `claude plugin validate` needs the Claude
+# Code CLI, which CI does not install.
+# Validating `.claude/skills` reads it as a skills directory and does not reach the
+# global-hooks plugin inside it, so that plugin is validated on its own. That run
+# type-checks the function-hooks module, reporting each type error as a warning, so
+# `--strict` is what makes one fail the commit.
+[tasks."plugins:check"]
+description = "Validate the skills directory and the global-hooks plugin, and run the plugin's tests"
+run = [
+  "claude plugin validate .claude/skills",
+  "claude plugin validate --strict .claude/skills/global-hooks",
+  "claude plugin test .claude/skills/global-hooks",
+]
+
+# Every check, run in parallel. The commit hook runs the same checks from hk.pkl,
+# which leaves out the Rust tests and the plugin checks when the commit stages
+# nothing they read.
 # CI runs each `qa:` task by name in one of its jobs (.github/workflows/ci.yml), or
 # through an aggregate one runs, as `qa:rust` gathers `qa:rust:*`, so a check that
 # belongs in CI goes under `qa:`, and a new `qa:` task needs a job or such an aggregate
 # too: `qa:**` picks it up here and nothing picks it up in CI. `**`, not `*`, because mise's
 # `*` matches a single task segment and would leave `qa:links:offline` out.
-# The steps under `run` are the ones CI leaves out: `claude plugin validate` needs the
-# Claude Code CLI, which CI does not install.
-# Validating `.claude/skills` reads it as a skills directory and does not reach the
-# global-hooks plugin inside it, so that plugin is validated on its own. That run
-# type-checks the function-hooks module, reporting each type error as a warning, so
-# `--strict` is what makes one fail the commit.
 # `secrets:commit-scan` is a shared task, so it sits outside `qa:`; CI scans a pull
 # request's commits with its own jobs instead of the staged diff this one reads.
 # `link-check:staged` sits outside `qa:` for the same reason, and because a networked
 # check would gate a pull request on third-party hosts.
 [tasks.pre-commit]
 description = "Run pre-commit checks"
-depends = ["qa:**", "secrets:commit-scan", "link-check:staged"]
-run = [
-  "claude plugin validate .claude/skills",
-  "claude plugin validate --strict .claude/skills/global-hooks",
-  "claude plugin test .claude/skills/global-hooks",
-]
+depends = ["qa:**", "secrets:commit-scan", "link-check:staged", "plugins:check"]
 
 # The checks that config files agree with each other sit under `qa:config:`, which
 # `qa:config` gathers for CI's config-qa job to run.
