@@ -4,8 +4,10 @@
 pub(crate) mod checkout;
 pub(crate) mod git;
 pub(crate) mod github;
+pub(crate) mod import;
 pub(crate) mod invocation;
 pub(crate) mod mise;
 pub(crate) mod origin;
 pub(crate) mod secret;
+pub(crate) mod trufflehog;
 pub(crate) mod upstream;

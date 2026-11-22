@@ -51,6 +51,14 @@ impl Checkout {
         checkout
     }
 
+    /// A clone of `origin`, on its `main`.
+    pub(crate) fn clone_of(origin: &Origin) -> Self {
+        let dir = TempDir::new().expect("a temporary directory can be made");
+        let checkout = Checkout { dir };
+        checkout.git(&["clone", "-q", origin.location(), "."]);
+        checkout
+    }
+
     /// Writes `contents` to `path` in the working tree, staging nothing.
     pub(crate) fn write(&self, path: &str, contents: impl AsRef<[u8]>) {
         let file = self.dir.path().join(path);

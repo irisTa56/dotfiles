@@ -1,19 +1,17 @@
 //! `dotfiles-tasks secrets-push-scan`: whether the commits a push sends hold a secret,
-//! checked by the real trufflehog, as a pre-push hook runs it.
+//! as a pre-push hook runs it. How trufflehog's report is read is checked against the real
+//! trufflehog; which commits and which repository the scan reads, against a stand-in that
+//! reports the commits whose changes hold a token.
 
 mod wrapper;
 
-use std::ffi::OsString;
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
-
-use tempfile::TempDir;
 
 use crate::support::checkout::Checkout;
 use crate::support::git::IDENTITY;
 use crate::support::origin::Origin;
 use crate::support::secret::github_token;
+use crate::support::trufflehog::{Trufflehog, path_without_trufflehog};
 
 /// The all-zero object name git gives for a ref a push creates or deletes.
 const ZERO: &str = "0000000000000000000000000000000000000000";
@@ -23,28 +21,6 @@ fn leaking() -> String {
     format!("token = \"{}\"\n", github_token())
 }
 
-/// The tests' PATH with the directories holding a `trufflehog` left out, and with `first`
-/// ahead of the rest where it is given.
-fn path_without_trufflehog(first: Option<&TempDir>) -> OsString {
-    let inherited = std::env::var_os("PATH").expect("PATH is set");
-    let dirs = first
-        .map(|dir| PathBuf::from(dir.path()))
-        .into_iter()
-        .chain(std::env::split_paths(&inherited).filter(|dir| !dir.join("trufflehog").exists()));
-    std::env::join_paths(dirs).expect("no directory on PATH holds a colon")
-}
-
-/// A directory holding a stand-in `trufflehog` that runs `script` with `sh`, for what the
-/// real one cannot be made to do.
-fn stand_in(script: &str) -> TempDir {
-    let bin = TempDir::new().expect("a temporary directory can be made");
-    let trufflehog = bin.path().join("trufflehog");
-    fs::write(&trufflehog, format!("#!/bin/sh\n{script}")).expect("the stand-in can be written");
-    fs::set_permissions(&trufflehog, fs::Permissions::from_mode(0o755))
-        .expect("the stand-in can be made executable");
-    bin
-}
-
 /// The line git feeds a pre-push hook for one ref.
 fn line(local_ref: &str, local_sha: &str, remote_ref: &str, remote_sha: &str) -> String {
     format!("{local_ref} {local_sha} {remote_ref} {remote_sha}\n")
@@ -52,8 +28,11 @@ fn line(local_ref: &str, local_sha: &str, remote_ref: &str, remote_sha: &str) ->
 
 /// A checkout of `origin`'s `main` with `files` committed on top, and the commit.
 fn ahead_of(origin: &Origin, files: &[(&str, &str)]) -> (Checkout, String) {
-    let checkout = Checkout::new(files);
-    checkout.stage_over(origin);
+    let checkout = Checkout::clone_of(origin);
+    for (path, content) in files {
+        checkout.write(path, content);
+    }
+    checkout.git(&["add", "-A"]);
     let sha = commit(&checkout, "change");
     (checkout, sha)
 }
@@ -135,9 +114,11 @@ fn fails_on_a_secret_another_remote_holds_but_the_pushed_one_does_not() {
     let other = Origin::new();
     checkout.add_remote("other", &other);
     checkout.git(&["push", "-q", "other", "HEAD:refs/heads/main"]);
+    let trufflehog = Trufflehog::reporting_tokens();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .arg("origin")
         .input(main_line(&checkout, &sha))
         .run()
@@ -221,9 +202,11 @@ fn reports_the_secrets_of_every_ref_the_push_sends_and_the_way_through_once() {
         line("refs/heads/topic", &second, "refs/heads/topic", ZERO),
     ]
     .concat();
+    let trufflehog = Trufflehog::reporting_tokens();
     let run = checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .arg("origin")
         .input(&refs)
         .run();
@@ -240,9 +223,11 @@ fn reports_the_secrets_of_every_ref_the_push_sends_and_the_way_through_once() {
 fn fails_on_a_secret_the_push_sends_when_run_from_a_subdirectory() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking()), ("sub/b.txt", "fine\n")]);
+    let trufflehog = Trufflehog::reporting_tokens();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .arg("origin")
         .in_dir("sub")
         .input(main_line(&checkout, &sha))
@@ -284,13 +269,15 @@ fn fails_as_a_usage_error_without_the_remote_name_git_gives_a_pre_push_hook() {
 fn fails_on_a_secret_the_push_sends_when_given_the_remotes_url_too() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &format!("fine\n{}", leaking()))]);
+    let trufflehog = Trufflehog::reporting_tokens();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .args(["origin", "https://example.com/origin.git"])
         .input(main_line(&checkout, &sha))
         .run()
-        .expect(1, &[&format!("Github at line 2 of a.txt, commit {sha}")]);
+        .expect(1, &[&format!("commit {sha}")]);
 }
 
 // A scan that failed has checked nothing, and what trufflehog said is the one account of
@@ -299,8 +286,8 @@ fn fails_on_a_secret_the_push_sends_when_given_the_remotes_url_too() {
 fn fails_with_what_trufflehog_said_where_its_scan_fails() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let bin = stand_in("echo scan broke >&2\nexit 3\n");
-    let path = path_without_trufflehog(Some(&bin));
+    let bin = Trufflehog::running("echo scan broke >&2\nexit 3\n");
+    let path = bin.path();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
@@ -317,7 +304,7 @@ fn fails_with_what_trufflehog_said_where_its_scan_fails() {
 fn fails_naming_trufflehog_where_it_is_not_on_path() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let path = path_without_trufflehog(None);
+    let path = path_without_trufflehog();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
@@ -346,9 +333,11 @@ fn passes_a_push_of_a_ref_whose_name_is_not_utf8() {
         b"\n",
     ]
     .concat();
+    let trufflehog = Trufflehog::reporting_tokens();
     let run = checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .arg("origin")
         .input(&refs)
         .run();
@@ -361,8 +350,8 @@ fn passes_a_push_of_a_ref_whose_name_is_not_utf8() {
 fn fails_where_trufflehogs_report_lines_lack_the_commit() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", &leaking())]);
-    let bin = stand_in("echo '{\"SourceMetadata\":{\"Data\":{}}}'\n");
-    let path = path_without_trufflehog(Some(&bin));
+    let bin = Trufflehog::running("echo '{\"SourceMetadata\":{\"Data\":{}}}'\n");
+    let path = bin.path();
     let run = checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
@@ -387,9 +376,11 @@ fn fails_on_a_secret_in_the_first_ref_the_push_sends_when_a_later_one_is_clean()
         line("refs/heads/topic", &second, "refs/heads/topic", ZERO),
     ]
     .concat();
+    let trufflehog = Trufflehog::reporting_tokens();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
+        .env("PATH", trufflehog.path())
         .arg("origin")
         .input(&refs)
         .run()
@@ -404,8 +395,8 @@ fn fails_on_a_secret_in_the_first_ref_the_push_sends_when_a_later_one_is_clean()
 fn asks_trufflehog_not_to_verify_to_fail_on_a_scan_error_and_not_to_update() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let bin = stand_in("printf '%s\\n' \"$@\" >\"$(dirname \"$0\")/args\"\n");
-    let path = path_without_trufflehog(Some(&bin));
+    let bin = Trufflehog::running("printf '%s\\n' \"$@\" >\"$(dirname \"$0\")/args\"\n");
+    let path = bin.path();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
@@ -414,7 +405,7 @@ fn asks_trufflehog_not_to_verify_to_fail_on_a_scan_error_and_not_to_update() {
         .env("PATH", &path)
         .run()
         .expect(0, &[]);
-    let args = fs::read_to_string(bin.path().join("args")).expect("the stand-in ran");
+    let args = fs::read_to_string(bin.dir().join("args")).expect("the stand-in ran");
     let args: Vec<&str> = args.lines().collect();
     assert!(
         ["--no-verification", "--fail-on-scan-errors", "--no-update"]
@@ -431,8 +422,8 @@ fn passes_a_ref_the_remote_holds_already_without_scanning_it() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, _) = ahead_of(&origin, &[]);
     let held = checkout.git(&["rev-parse", "origin/main"]);
-    let bin = stand_in("echo scan broke >&2\nexit 3\n");
-    let path = path_without_trufflehog(Some(&bin));
+    let bin = Trufflehog::running("echo scan broke >&2\nexit 3\n");
+    let path = bin.path();
     let run = checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")
@@ -464,8 +455,8 @@ fn fails_with_gits_status_on_a_pushed_object_the_repository_lacks() {
 fn fails_where_trufflehogs_report_is_not_json() {
     let origin = Origin::with_main(&[("base.txt", "fine\n")]);
     let (checkout, sha) = ahead_of(&origin, &[("a.txt", "fine\n")]);
-    let bin = stand_in("echo 'not json'\n");
-    let path = path_without_trufflehog(Some(&bin));
+    let bin = Trufflehog::running("echo 'not json'\n");
+    let path = bin.path();
     checkout
         .dotfiles_tasks()
         .arg("secrets-push-scan")

@@ -1,10 +1,9 @@
 //! Upstream repositories a pin names, reached by `file://` URLs.
 
-use std::fs;
-
 use tempfile::TempDir;
 
-use super::git::{IDENTITY, git};
+use super::git::git;
+use super::import::{Change, commit_on_main};
 
 /// A commit spelled as a pin can spell one, which no upstream in these tests has.
 pub(crate) const ABSENT_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -14,9 +13,6 @@ pub(crate) struct Upstream {
     dir: TempDir,
     commits: Vec<String>,
 }
-
-/// One upstream commit: each path with its content, `None` deleting the path.
-type Change<'c> = &'c [(&'c str, Option<&'c str>)];
 
 impl Upstream {
     /// A repository whose `lints` changes in each of its `commits` commits.
@@ -30,32 +26,12 @@ impl Upstream {
         Upstream::new(&changes)
     }
 
-    /// A repository with one commit per item of `changes`, in order.
+    /// A repository with one commit per item of `changes`, in order, made as `git commit`
+    /// would make them, by the setup identity at the current time, but in one run of git.
     pub(crate) fn new(changes: &[Change<'_>]) -> Self {
         let dir = TempDir::new().expect("a temporary directory can be made");
         git(dir.path(), &["init", "-q", "-b", "main"]);
-        let commits = changes
-            .iter()
-            .map(|change| {
-                for (path, content) in *change {
-                    let file = dir.path().join(path);
-                    match content {
-                        Some(content) => {
-                            fs::create_dir_all(file.parent().expect("a file has a parent"))
-                                .expect("the file's directory can be made");
-                            fs::write(&file, content).expect("the file can be written");
-                        }
-                        None => fs::remove_file(&file).expect("the file can be removed"),
-                    }
-                }
-                git(dir.path(), &["add", "-A"]);
-                git(
-                    dir.path(),
-                    &[&IDENTITY[..], &["commit", "-q", "--allow-empty", "-m", "c"]].concat(),
-                );
-                git(dir.path(), &["rev-parse", "HEAD"])
-            })
-            .collect();
+        let commits = commit_on_main(dir.path(), "c", changes);
         Upstream { dir, commits }
     }
 

@@ -60,7 +60,7 @@ impl Mise {
     }
 
     /// The tests' own PATH, with this directory ahead of it.
-    pub(super) fn path(&self) -> OsString {
+    pub(crate) fn path(&self) -> OsString {
         let inherited = std::env::var_os("PATH").unwrap_or_default();
         let dirs = std::iter::once(PathBuf::from(self.dir.path()))
             .chain(std::env::split_paths(&inherited));
