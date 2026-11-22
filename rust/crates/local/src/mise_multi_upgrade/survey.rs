@@ -2,6 +2,8 @@
 
 use std::io::{self, Write};
 
+use dotfiles_shared::Failure;
+
 use super::group::{Found, Group};
 use super::parallel::Pool;
 use super::place::Place;
@@ -10,7 +12,6 @@ use super::release_dates::ReleaseDates;
 use super::report::Report;
 use super::table::Table;
 use crate::failure;
-use dotfiles_shared::Failure;
 
 /// The places with tools to report, and those mise could not list, each in the order
 /// the places were given.

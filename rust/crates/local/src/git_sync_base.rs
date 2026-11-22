@@ -5,9 +5,9 @@ use std::io::{self, Write};
 use std::str::FromStr;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::git::{git, read};
-use dotfiles_shared::Failure;
 
 /// Bring a base branch up to date with origin, typically after a pull request into it
 /// merges.

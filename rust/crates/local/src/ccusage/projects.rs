@@ -1,11 +1,11 @@
 //! The usage ccusage prints, by project.
 
+use dotfiles_shared::Failure;
 use serde_json::Value;
 
 use super::command::Period;
 use super::entry::Entry;
 use super::session_logs::SessionLogs;
-use dotfiles_shared::Failure;
 
 /// The usage ccusage reports, by project.
 pub(super) struct Projects(serde_json::Map<String, Value>);

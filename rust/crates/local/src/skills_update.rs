@@ -9,12 +9,12 @@ use std::path::Path;
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
 
 use crate::apm_lock::{ApmLock, LockedDependency};
 use crate::program::{self, Program};
-use dotfiles_shared::Failure;
 
 /// Update APM skills, holding back any whose last change upstream merged under a day ago.
 ///

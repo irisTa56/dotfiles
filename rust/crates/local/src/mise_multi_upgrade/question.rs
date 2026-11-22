@@ -2,8 +2,9 @@
 
 use std::io::{self, BufRead, Write};
 
-use crate::failure;
 use dotfiles_shared::Failure;
+
+use crate::failure;
 
 /// What a question was answered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

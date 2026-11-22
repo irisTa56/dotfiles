@@ -3,6 +3,7 @@
 use std::io::{self, Write};
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use super::options::Options;
 use super::place::Place;
@@ -11,7 +12,6 @@ use super::survey::Survey;
 use super::tracked::Tracked;
 use super::upgrades::Upgrades;
 use crate::failure;
-use dotfiles_shared::Failure;
 
 /// Upgrade mise tools directory by directory, asking for each first.
 ///

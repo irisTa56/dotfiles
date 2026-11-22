@@ -1,10 +1,10 @@
 //! One day of one project's usage, as ccusage reports it.
 
+use dotfiles_shared::Failure;
 use serde_json::Value;
 
 use super::command::Period;
 use super::figures::{Count, Money, Percent};
-use dotfiles_shared::Failure;
 
 /// One day of one project's usage.
 pub(super) struct Entry {

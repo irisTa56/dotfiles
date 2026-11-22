@@ -2,10 +2,11 @@
 
 use std::io::{self, Write};
 
+use dotfiles_shared::Failure;
+
 use super::mise::Mise;
 use super::place::Place;
 use crate::failure;
-use dotfiles_shared::Failure;
 
 /// The places answered yes, in order.
 pub(super) struct Upgrades {

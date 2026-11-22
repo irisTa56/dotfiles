@@ -6,11 +6,11 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
 use crate::failure;
-use dotfiles_shared::Failure;
 
 /// The fields of a record, in the order its line gives them.
 const RECORD: [&str; 6] = [

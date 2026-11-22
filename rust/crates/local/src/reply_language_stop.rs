@@ -15,11 +15,11 @@ use std::path::PathBuf;
 use std::sync::LazyLock;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use regex::{Captures, Regex};
 use serde_json::{Value, json};
 
 use crate::failure;
-use dotfiles_shared::Failure;
 
 /// What Claude is asked for when its reply is sent back.
 const REWRITE: &str = "直前の返答は英語で書かれている。同じ内容を日本語で書き直して、もう一度返答する。ユーザーが英語で求めた文やコードはそのまま残し、その周りの説明を日本語で書く。";

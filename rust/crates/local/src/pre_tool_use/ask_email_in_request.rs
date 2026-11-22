@@ -14,12 +14,12 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use regex::{Regex, RegexBuilder};
 use serde_json::Value;
 
 use super::{BashCall, Verdict};
 use crate::git;
-use dotfiles_shared::Failure;
 
 /// A bare curl or wget, at the start of a line or after a space, ;, &, ( or |, and
 /// followed by a space. A space is an ASCII one, the only kind the shell splits words on.

@@ -12,12 +12,12 @@ use std::path::Path;
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::apm_lock::ApmLock;
 use crate::failure;
 use crate::git;
 use crate::program;
-use dotfiles_shared::Failure;
 
 /// The directory whose entries are listed, relative to the checkout's root.
 const SKILLS: &str = ".claude/skills";

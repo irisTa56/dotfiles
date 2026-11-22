@@ -4,10 +4,10 @@
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::git::{self, git, read};
 use crate::program::Program;
-use dotfiles_shared::Failure;
 
 /// Run gh-poi, then delete the local branches it leaves that carry no commits of their own.
 ///

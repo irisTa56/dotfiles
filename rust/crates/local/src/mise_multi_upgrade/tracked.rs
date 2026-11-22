@@ -2,12 +2,13 @@
 
 use std::path::Path;
 
+use dotfiles_shared::Failure;
+
 use super::mise::Mise;
 use super::options::Options;
 use super::place::Place;
 use super::temp_dirs::TempDirs;
 use crate::git;
-use dotfiles_shared::Failure;
 
 /// The project directories of the configs mise tracks, each once, in order.
 #[derive(Debug)]

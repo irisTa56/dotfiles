@@ -1,7 +1,8 @@
 //! Running git.
 
-use crate::program::Program;
 use dotfiles_shared::Failure;
+
+use crate::program::Program;
 
 /// git with `args`, to run.
 pub(crate) fn command(args: &[&str]) -> Program {

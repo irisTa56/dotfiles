@@ -8,6 +8,7 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use serde::Deserialize;
 use serde_json::value::RawValue;
 
@@ -15,7 +16,6 @@ use super::json::Json;
 use super::{CATALOG, Note, Report};
 use crate::failure;
 use crate::program::{self, Program};
-use dotfiles_shared::Failure;
 
 /// The fields of a note kboat-note is asked for: what judging and lookup read.
 const FIELDS: [&str; 10] = [
