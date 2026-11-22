@@ -79,10 +79,7 @@ impl Lychee {
             .stdin(Stdio::null())
             .stderr(Stdio::inherit())
             .output()
-            .map_err(|error| {
-                Stream::Stderr.line(format_args!("{error}"));
-                ExitCode::from(error.shell_status())
-            })?;
+            .map_err(|error| error.report(error.shell_status()))?;
         if !output.status.success() {
             return Err(failed(output.status));
         }
@@ -161,10 +158,7 @@ impl Lychee {
                 }
                 ExitCode::FAILURE
             }
-            Err(error) => {
-                Stream::Stderr.line(format_args!("{error}"));
-                ExitCode::from(error.shell_status())
-            }
+            Err(error) => error.report(error.shell_status()),
         }
     }
 

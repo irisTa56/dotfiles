@@ -6,7 +6,9 @@ use std::ffi::OsStr;
 use std::fmt;
 use std::io::{self, Write};
 use std::path::Path;
-use std::process::{Child, Command, ExitStatus, Output, Stdio};
+use std::process::{Child, Command, ExitCode, ExitStatus, Output, Stdio};
+
+use crate::stream::Stream;
 
 /// A program to run, with its arguments, environment, directory and streams.
 #[derive(Debug)]
@@ -153,6 +155,12 @@ impl Running {
 }
 
 impl Unstarted {
+    /// Reports why the program could not run, and returns `status` to end the task with.
+    pub(crate) fn report(&self, status: u8) -> ExitCode {
+        Stream::Stderr.line(format_args!("{self}"));
+        ExitCode::from(status)
+    }
+
     /// The status a shell ends with on a command it cannot run: 127 where the program is
     /// not found, and 126 where it is found and cannot be run.
     pub(crate) fn shell_status(&self) -> u8 {

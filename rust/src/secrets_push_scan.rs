@@ -192,10 +192,7 @@ impl Push {
             ])
             .stdin(Stdio::null())
             .output()
-            .map_err(|error| {
-                Stream::Stderr.line(format_args!("{error}"));
-                ExitCode::from(STOPPED)
-            })?;
+            .map_err(|error| error.report(STOPPED))?;
         let report = Report(output);
         if !report.0.status.success() {
             return Err(report.unanswered(None));
