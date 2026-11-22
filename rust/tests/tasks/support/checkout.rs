@@ -177,15 +177,15 @@ impl Checkout {
     }
 
     /// A run of the mise on PATH in the repository, with a `mise.toml` there that takes
-    /// the shared tasks from `tasks/` and with mise's state kept inside the repository,
-    /// so that neither the configs nor the session of the shell running the tests reach
-    /// it.
-    pub(crate) fn mise_taking_the_tasks(&self) -> Invocation {
+    /// the shared tasks from `tasks/` and holds `config` besides, and with mise's state
+    /// kept inside the repository, so that neither the configs nor the session of the
+    /// shell running the tests reach it.
+    pub(crate) fn mise_taking_the_tasks(&self, config: &str) -> Invocation {
         let tasks = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tasks");
         self.write(
             "mise.toml",
             format!(
-                "[task_config]\nincludes = [{:?}]\n",
+                "[task_config]\nincludes = [{:?}]\n{config}",
                 tasks.display().to_string()
             ),
         );

@@ -219,11 +219,11 @@ fn failed(status: ExitStatus) -> ExitCode {
 }
 
 /// What `MISE_TASK_SKIP` takes to skip the task mise is running, or none where mise is
-/// not running one. mise names a file task without the `.sh` the skip needs, by
-/// whichever of its names or aliases it was called, so the extension is added; a name
-/// that has it already, as an inline task named after the file task has, is taken as it
-/// stands. An inline task named without it cannot be told from a file task here, and is
-/// given a skip that does not match it.
+/// not running one. mise names a file task by its own name, whichever of its names or
+/// aliases it was called by, and without the `.sh` the skip needs, so the extension is
+/// added; a name that has it already, as an inline task named after the file task has,
+/// is taken as it stands. An inline task named without it cannot be told from a file
+/// task here, and is given a skip that does not match it.
 fn skip_name() -> Option<String> {
     let task = std::env::var("MISE_TASK_NAME")
         .ok()
