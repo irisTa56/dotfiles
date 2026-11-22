@@ -8,8 +8,8 @@ use std::process::Stdio;
 use std::str::FromStr;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
-use crate::failure::Failure;
 use crate::git::read;
 use crate::program::Program;
 

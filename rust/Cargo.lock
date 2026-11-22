@@ -153,6 +153,7 @@ name = "dotfiles-local"
 version = "0.11.0"
 dependencies = [
  "clap",
+ "dotfiles-shared",
  "jiff",
  "regex",
  "serde",
@@ -161,6 +162,10 @@ dependencies = [
  "serde_json",
  "tempfile",
 ]
+
+[[package]]
+name = "dotfiles-shared"
+version = "0.11.0"
 
 [[package]]
 name = "dotfiles-tasks"

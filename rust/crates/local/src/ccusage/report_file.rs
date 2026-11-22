@@ -6,7 +6,8 @@ use std::path::PathBuf;
 use std::process::Stdio;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
+
 use crate::program::Program;
 
 /// A report written as HTML in a directory of its own under the temporary one, both

@@ -1,10 +1,11 @@
 //! A place and the tools it would upgrade.
 
+use dotfiles_shared::Failure;
+
 use super::mise::Mise;
 use super::place::Place;
 use super::report::Report;
 use super::row::{Entries, Row};
-use crate::failure::Failure;
 
 /// What a place has to report.
 #[derive(Debug)]

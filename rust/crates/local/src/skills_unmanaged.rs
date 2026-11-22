@@ -12,9 +12,10 @@ use std::path::Path;
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::apm_lock::ApmLock;
-use crate::failure::Failure;
+use crate::failure;
 use crate::git;
 use crate::program;
 
@@ -50,7 +51,7 @@ fn list() -> Result<(), Failure> {
         .collect();
     match write(&unmanaged) {
         // A reader that has gone, as `head` does, wanted no more of the list.
-        Err(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(Failure::writing(&error)),
+        Err(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(failure::writing(&error)),
         _ => Ok(()),
     }
 }

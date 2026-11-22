@@ -3,6 +3,7 @@
 use std::process::Stdio;
 
 use clap::{Args, ValueEnum};
+use dotfiles_shared::Failure;
 use jiff::civil::Date;
 use jiff::{ToSpan, ZonedDateTime};
 
@@ -10,7 +11,6 @@ use super::projects::Projects;
 use super::report::Report;
 use super::report_file::ReportFile;
 use super::session_logs::SessionLogs;
-use crate::failure::Failure;
 use crate::program::{self, Program};
 
 /// Show Claude Code usage in a Quick Look popup as three tables per period.

@@ -3,7 +3,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
+
 use crate::git::read;
 
 /// The manifest of dotfiles-local, which marks a dotfiles checkout.

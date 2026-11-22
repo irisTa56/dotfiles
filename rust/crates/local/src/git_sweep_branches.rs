@@ -4,8 +4,8 @@
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
-use crate::failure::Failure;
 use crate::git::{self, git, read};
 use crate::program::Program;
 

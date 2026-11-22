@@ -14,11 +14,11 @@ use std::process::Stdio;
 use std::sync::LazyLock;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use regex::{Regex, RegexBuilder};
 use serde_json::Value;
 
 use super::{BashCall, Verdict};
-use crate::failure::Failure;
 use crate::git;
 
 /// A bare curl or wget, at the start of a line or after a space, ;, &, ( or |, and

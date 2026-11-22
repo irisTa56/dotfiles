@@ -2,6 +2,8 @@
 
 use std::io::{self, Write};
 
+use dotfiles_shared::Failure;
+
 use super::group::{Found, Group};
 use super::parallel::Pool;
 use super::place::Place;
@@ -9,7 +11,7 @@ use super::question::{Answer, Question};
 use super::release_dates::ReleaseDates;
 use super::report::Report;
 use super::table::Table;
-use crate::failure::Failure;
+use crate::failure;
 
 /// The places with tools to report, and those mise could not list, each in the order
 /// the places were given.
@@ -51,7 +53,7 @@ impl Survey {
             match write!(stdout, "{}", Table::new(group, dates, report).render()) {
                 Ok(()) => {}
                 Err(error) if error.kind() == io::ErrorKind::BrokenPipe => return Ok(()),
-                Err(error) => return Err(Failure::writing(&error)),
+                Err(error) => return Err(failure::writing(&error)),
             }
         }
         Ok(())
@@ -72,13 +74,13 @@ impl Survey {
                 "{}",
                 Table::new(group, dates, Report::Pinned).render()
             )
-            .map_err(|error| Failure::writing(&error))?;
+            .map_err(|error| failure::writing(&error))?;
             let question = Question::new(format!("Upgrade {}? [y/N] ", group.place().label()));
             match question.ask()? {
                 Answer::Yes => accepted.push(group.place().clone()),
                 Answer::No => {}
                 Answer::End => {
-                    writeln!(stdout).map_err(|error| Failure::writing(&error))?;
+                    writeln!(stdout).map_err(|error| failure::writing(&error))?;
                     break;
                 }
             }

@@ -7,7 +7,7 @@ use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
 use std::process::{Child, Command, ExitStatus, Output, Stdio};
 
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
 
 /// A program to run, with its arguments, environment, directory and streams.
 #[derive(Debug)]

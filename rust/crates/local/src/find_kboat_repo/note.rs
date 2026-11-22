@@ -3,10 +3,10 @@
 use std::fmt;
 use std::path::Path;
 
+use dotfiles_shared::Failure;
 use serde_json::value::RawValue;
 
 use super::Note;
-use crate::failure::Failure;
 
 impl Note<'_> {
     /// The frontmatter field `name`, if the note has it.

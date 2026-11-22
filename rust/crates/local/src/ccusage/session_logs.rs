@@ -7,10 +7,10 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::LazyLock;
 
+use dotfiles_shared::Failure;
 use regex::Regex;
 use serde_json::Value;
 
-use crate::failure::Failure;
 use crate::git;
 
 /// The session logs ccusage reads, through which each project is resolved to the

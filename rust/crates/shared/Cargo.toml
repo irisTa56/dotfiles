@@ -1,0 +1,10 @@
+[package]
+name = "dotfiles-shared"
+version = "0.11.0"
+description = "Code meant for both dotfiles-tasks and dotfiles-local"
+edition = "2024"
+repository = "https://github.com/irisTa56/dotfiles"
+publish = false
+
+[lints]
+workspace = true

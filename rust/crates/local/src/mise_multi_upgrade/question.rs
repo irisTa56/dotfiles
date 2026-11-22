@@ -2,7 +2,9 @@
 
 use std::io::{self, BufRead, Write};
 
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
+
+use crate::failure;
 
 /// What a question was answered.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,7 +32,7 @@ impl Question {
         loop {
             write!(stdout, "{}", self.prompt)
                 .and_then(|()| stdout.flush())
-                .map_err(|error| Failure::writing(&error))?;
+                .map_err(|error| failure::writing(&error))?;
             let mut line = Vec::new();
             let read = stdin.read_until(b'\n', &mut line).map_err(|error| {
                 Failure::new(format_args!("cannot read the answer: {error}"), 1)

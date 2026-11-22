@@ -8,12 +8,13 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use clap::Args;
+use dotfiles_shared::Failure;
 use serde::Deserialize;
 use serde_json::value::RawValue;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
-use crate::failure::Failure;
+use crate::failure;
 use crate::program::{self, Program};
 
 /// The fields of a note kboat-note is asked for: what judging and lookup read.
@@ -276,5 +277,5 @@ fn print(json: &str) -> Result<(), Failure> {
         .map_err(|error| Failure::new(format_args!("cannot lay out the output: {error}"), 1))?;
     io::stdout()
         .write_all(text.as_bytes())
-        .map_err(|error| Failure::writing(&error))
+        .map_err(|error| failure::writing(&error))
 }

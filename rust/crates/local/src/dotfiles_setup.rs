@@ -10,9 +10,9 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
 use clap::Args;
+use dotfiles_shared::Failure;
 
 use crate::dotfiles_checkout::DotfilesCheckout;
-use crate::failure::Failure;
 use crate::program::Program;
 
 /// The canonical dircolors, which `~/.dircolors` is overwritten with.
