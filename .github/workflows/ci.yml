@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
         with:
-          # The real tools the tests run, offline: lychee for link-check-staged's,
+          # The real tools the tests run, offline: lychee for links-commit-check's,
           # gitleaks for secrets:commit-scan's, which run the task's script,
           # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
           # this action puts on PATH, after clearing every MISE_ variable.

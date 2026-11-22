@@ -2,7 +2,7 @@
 //! wrappers under tasks/ pin the release that runs them.
 
 mod git;
-mod link_check_staged;
+mod links_commit_check;
 mod secrets_push_scan;
 mod skills_size_check;
 mod stream;
@@ -25,10 +25,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Task {
     /// Check the links of the files the commit stages with lychee.
-    // A second name for this subcommand, for a wrapper under the task name
-    // `links:commit-check` to call.
-    #[command(alias = "links-commit-check")]
-    LinkCheckStaged,
+    LinksCommitCheck,
     /// Scan the commits a push is about to send for secrets with trufflehog, as a
     /// pre-push hook.
     SecretsPushScan(secrets_push_scan::Hook),
@@ -44,7 +41,7 @@ fn main() -> ExitCode {
     // A usage error exits 2 on stderr, and --help 0 on stdout, as clap's `Error::exit`
     // does; a write it cannot make there, as to a closed pipe, is dropped.
     match Cli::parse().task {
-        Task::LinkCheckStaged => link_check_staged::Lychee::check_staged(),
+        Task::LinksCommitCheck => links_commit_check::Lychee::check_staged(),
         Task::SecretsPushScan(hook) => secrets_push_scan::Push::scan(&hook),
         Task::SkillsSizeCheck(request) => request.run(),
         Task::UpstreamPinCheck(request) => ExitCode::from(request.run() as u8),

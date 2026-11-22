@@ -1,5 +1,5 @@
-//! `dotfiles-tasks link-check-staged`: whether the links of the files a commit stages
-//! resolve, checked by lychee, and the wrapper `tasks/link-check/staged.sh`.
+//! `dotfiles-tasks links-commit-check`: whether the links of the files a commit stages
+//! resolve, checked by lychee, and the wrapper `tasks/links/commit-check.sh`.
 
 mod wrapper;
 
@@ -31,13 +31,14 @@ fn which(program: &str) -> PathBuf {
 
 // A link the commit breaks would otherwise land, and a link it does not add is the one
 // case that wants this check alone skipped, so the failure says how. mise names the
-// task it runs, by whichever name or alias it was called, without the `.sh` the skip
-// needs, so the skip follows the task's name rather than one the binary was built with.
+// task it runs by the task's own name, whichever name or alias it was called by, and
+// without the `.sh` the skip needs, so the skip follows that name rather than one the
+// binary was built with.
 #[test]
 fn fails_on_a_broken_link_in_a_staged_file_naming_how_to_skip_the_task_mise_runs() {
     staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("MISE_TASK_NAME", "links:commit-check")
         .run()
         .expect(
@@ -55,7 +56,7 @@ fn fails_on_a_broken_link_in_a_staged_file_naming_how_to_skip_the_task_mise_runs
 fn names_an_inline_task_named_with_the_extension_as_it_stands() {
     staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("MISE_TASK_NAME", "links:commit-check.sh")
         .run()
         .expect(1, &["MISE_TASK_SKIP=links:commit-check.sh git commit"]);
@@ -67,7 +68,7 @@ fn names_an_inline_task_named_with_the_extension_as_it_stands() {
 fn names_no_skip_when_mise_is_not_running_a_task() {
     let run = staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env_remove("MISE_TASK_NAME")
         .run();
     assert_eq!(run.code(), 1, "{}", run.output());
@@ -79,22 +80,30 @@ fn names_no_skip_when_mise_is_not_running_a_task() {
 fn names_no_skip_when_mise_names_an_empty_task() {
     let run = staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("MISE_TASK_NAME", "")
         .run();
     assert_eq!(run.code(), 1, "{}", run.output());
     assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
 }
 
-// The subcommand's second name, for a wrapper under the task name `links:commit-check`
-// to call, runs the same check.
+// Repositories taking the shared tasks name the task's former name in their commit
+// hooks, run by name or from another task's `depends`, so mise must still resolve it to
+// this task either way. mise is asked which task each names rather than to run one,
+// since a run, a dry one included, resolves the tools the task declares over the
+// network.
 #[test]
-fn runs_the_same_check_as_links_commit_check() {
-    staged(&[("a.md", "[gone](missing.md)\n")])
-        .dotfiles_tasks()
-        .arg("links-commit-check")
-        .run()
-        .expect(1, &["missing.md"]);
+fn resolves_its_former_name_link_check_staged() {
+    let checkout = Checkout::new(&[]);
+    let taking = |args: &[&str]| {
+        checkout
+            .mise_taking_the_tasks("[tasks.gate]\ndepends = [\"link-check:staged\"]\n")
+            .args(args)
+            .run()
+    };
+    taking(&["tasks", "info", "--json", "link-check:staged"])
+        .expect(0, &[r#""name": "links:commit-check""#]);
+    taking(&["tasks", "deps", "gate"]).expect(0, &["links:commit-check"]);
 }
 
 // The repository's lychee config decides which files a run over the whole tree reads,
@@ -109,7 +118,7 @@ fn leaves_out_a_staged_file_the_lychee_config_excludes() {
         ("drafts/a.md", "[gone](missing.md)\n"),
     ])
     .dotfiles_tasks()
-    .arg("link-check-staged")
+    .arg("links-commit-check")
     .run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
@@ -120,7 +129,7 @@ fn leaves_out_a_staged_file_the_lychee_config_excludes() {
 fn checks_a_staged_file_whose_name_holds_glob_characters() {
     staged(&[("c[1]*?.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &["c[1]*?.md", "missing.md"]);
 }
@@ -135,7 +144,7 @@ fn checks_the_files_staged_across_the_repository_when_run_from_a_subdirectory() 
     ]);
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .in_dir("sub")
         .run()
         .expect(1, &["a.md", "missing.md"]);
@@ -148,7 +157,7 @@ fn leaves_out_a_staged_file_gitignore_ignores() {
     let checkout = staged(&[(".gitignore", "ignored.md\n")]);
     checkout.write("ignored.md", "[gone](missing.md)\n");
     checkout.git(&["add", "-f", "ignored.md"]);
-    let run = checkout.dotfiles_tasks().arg("link-check-staged").run();
+    let run = checkout.dotfiles_tasks().arg("links-commit-check").run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -157,7 +166,7 @@ fn leaves_out_a_staged_file_gitignore_ignores() {
 fn leaves_out_a_broken_link_in_a_file_the_commit_does_not_stage() {
     let checkout = staged(&[]);
     checkout.write("untracked.md", "[gone](missing.md)\n");
-    let run = checkout.dotfiles_tasks().arg("link-check-staged").run();
+    let run = checkout.dotfiles_tasks().arg("links-commit-check").run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -168,7 +177,7 @@ fn leaves_out_a_file_the_commit_removes() {
     let checkout = staged(&[("a.md", "[gone](missing.md)\n")]);
     checkout.git(&[&IDENTITY[..], &["commit", "-qm", "base"]].concat());
     checkout.git(&["rm", "-q", "--cached", "a.md"]);
-    let run = checkout.dotfiles_tasks().arg("link-check-staged").run();
+    let run = checkout.dotfiles_tasks().arg("links-commit-check").run();
     assert_eq!((run.code(), run.output()), (0, ""));
 }
 
@@ -177,7 +186,7 @@ fn leaves_out_a_file_the_commit_removes() {
 fn checks_a_staged_file_whose_name_starts_with_a_hash() {
     staged(&[("#a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &["#a.md", "missing.md"]);
 }
@@ -188,7 +197,7 @@ fn checks_a_staged_file_whose_name_starts_with_a_hash() {
 fn checks_a_staged_file_whose_name_is_outside_ascii() {
     staged(&[("é.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &["é.md", "missing.md"]);
 }
@@ -204,7 +213,7 @@ fn checks_the_files_staged_in_the_index_a_hook_names() {
     checkout.git(&["rm", "-q", "--cached", "a.md"]);
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("GIT_INDEX_FILE", &index)
         .run()
         .expect(1, &["a.md", "missing.md"]);
@@ -217,7 +226,7 @@ fn checks_a_staged_file_as_it_is_on_disk() {
     checkout.write("a.md", "[gone](missing.md)\n");
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &["a.md", "missing.md"]);
 }
@@ -230,7 +239,7 @@ fn fails_with_gits_status_outside_a_repository() {
     checkout.remove(".git");
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(128, &["not a git repository"]);
 }
@@ -244,7 +253,7 @@ fn fails_as_a_shell_does_on_a_missing_command_where_lychee_is_not_on_path() {
     std::os::unix::fs::symlink(which("git"), bin.path().join("git")).expect("git can be linked");
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("PATH", bin.path())
         .run()
         .expect(127, &["lychee"]);
@@ -256,7 +265,7 @@ fn fails_as_a_shell_does_on_a_missing_command_where_lychee_is_not_on_path() {
 fn fails_with_lychees_status_where_lychee_cannot_load_the_config() {
     Checkout::new(&[("lychee.toml", "offline = \"yes\"\n"), ("a.md", "fine\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(3, &["lychee.toml"]);
 }
@@ -277,7 +286,7 @@ fn checks_more_staged_files_than_one_command_line_can_name() {
         .collect();
     staged(&files)
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &["last.md", "missing.md"]);
 }
@@ -287,7 +296,7 @@ fn checks_more_staged_files_than_one_command_line_can_name() {
 fn fails_on_a_broken_link_when_stderr_is_closed() {
     let run = staged(&[("a.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .closing(Stream::Stderr)
         .run();
     assert_eq!(run.code(), 1, "output: {}", run.output());
@@ -303,7 +312,7 @@ fn fails_as_a_shell_does_on_a_command_it_cannot_run_where_lychee_is_not_executab
     fs::write(bin.path().join("lychee"), "").expect("the stand-in can be written");
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .env("PATH", bin.path())
         .run()
         .expect(126, &["lychee"]);
@@ -315,7 +324,7 @@ fn fails_as_a_shell_does_on_a_command_it_cannot_run_where_lychee_is_not_executab
 fn checks_a_staged_file_whose_name_git_could_read_as_pathspec_magic() {
     staged(&[(":x.md", "[gone](missing.md)\n")])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .run()
         .expect(1, &[":x.md", "missing.md"]);
 }
@@ -332,7 +341,7 @@ fn keeps_lychees_cache_at_the_root_when_run_from_a_subdirectory() {
     ]);
     checkout
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .in_dir("sub")
         .run()
         .expect(0, &[]);

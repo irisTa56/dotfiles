@@ -4,20 +4,20 @@
 
 - `secrets:commit-scan`, which gates a commit here too
 - `secrets:push-scan`, which gates a push here too
-- `link-check:staged`, which gates a commit here too
+- `links:commit-check`, which gates a commit here too
 - `skills:size-check`
 - `upstream:pin-check`
 
-This repository checks its own skills, staged links and pushes with the subcommands `skills:size-check`, `link-check:staged` and `secrets:push-scan` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
+This repository checks its own skills, staged links and pushes with the subcommands `skills:size-check`, `links:commit-check` and `secrets:push-scan` run, built from the working tree rather than installed from the release the task pins, since a release pull request pins one not yet published.
 The first half of this file is for a repository taking them, the second for whoever adds the next one.
 
 ## Taking them
 
 A consuming repository picks them up with a [`task_config.includes`](https://mise.jdx.dev/tasks/task-configuration.html#task_config.includes) entry pointing here, and needs no `[tools]` of its own: a task that needs a tool mise can install declares it, and mise installs it for that task alone.
-A job that sets [`MISE_TASK_RUN_AUTO_INSTALL=false`](https://mise.jdx.dev/configuration/settings.html#task.run_auto_install) turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `link-check:staged` does lychee and `secrets:push-scan` trufflehog.
+A job that sets [`MISE_TASK_RUN_AUTO_INSTALL=false`](https://mise.jdx.dev/configuration/settings.html#task.run_auto_install) turns that install off, so a task declaring a tool fails there unless the job installs the tool itself; a task that runs the `dotfiles-tasks` binary installs it itself with `mise install`, so it runs either way unless it declares a tool as well, as `links:commit-check` does lychee and `secrets:push-scan` trufflehog.
 Beyond that the library assumes git and bash.
 A task that runs the `dotfiles-tasks` binary, which every one of them but `secrets:commit-scan` does, also needs a release built for the host: one is built for macOS on Apple silicon and for Linux on x86-64 and ARM64, and none for an Intel Mac or Windows.
-Such a task prints its usage on `--help` after mise's `--`, as in `mise run link-check:staged -- --help`, and exits 0 having done nothing else; it exits 2 on an argument it does not take, saying which.
+Such a task prints its usage on `--help` after mise's `--`, as in `mise run links:commit-check -- --help`, and exits 0 having done nothing else; it exits 2 on an argument it does not take, saying which.
 
 ```toml
 # mise.toml, in the consuming repository
@@ -53,6 +53,12 @@ A workflow that runs them sets `MISE_NO_HOOKS: "1"` in its workflow-wide `env`, 
 
 A `postinstall` that sets up a local checkout has nothing to do in CI and can break a job there: a pre-push hook it registers runs on the push `upstream:pin-check -- --bump` makes, and where the hook fails, as one whose tool the job did not install does, the push fails with it.
 The `mise install` a task runs for the `dotfiles-tasks` binary skips the hooks itself.
+
+### Renamed tasks
+
+`links:commit-check` was `link-check:staged`, and still runs under that name, as an alias its header declares, so that a repository whose `pre-commit` names the former one keeps working when its pin moves past the rename.
+The alias goes once no repository taking these tasks names it.
+It runs the task under either name, from `mise run` and from another task's `depends` alike, but `MISE_TASK_SKIP` matches the task's own name alone, so a skip written as `link-check:staged.sh` skips nothing.
 
 ### `secrets:commit-scan`
 
@@ -92,7 +98,7 @@ A push from an environment with no mise on PATH, an editor's Git UI say, fails o
 
 It exits 1 on a hit, and 2 where the release it runs cannot be installed or no remote's name reaches it; a scan that could not answer exits non-zero as well, with git's own status where a git command failed, and any of these refuses the push.
 
-### `link-check:staged`
+### `links:commit-check`
 
 It runs lychee on the files the commit stages, so it belongs in a pre-commit hook, and fails the commit on a broken link.
 It takes the staged files among those `lychee .` would read there, so the repository's `lychee.toml` (`extensions`, `exclude_path`) and `.gitignore` decide which files count, as they do for a run over the whole tree.
@@ -104,8 +110,8 @@ lychee writes its [request cache](https://lychee.cli.rs/recipes/caching/), `.lyc
 
 It takes no argument.
 It exits 1 on a broken link, and 2 on an argument or where the release it runs cannot be installed; either blocks the commit.
-A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=link-check:staged.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
-The full name is what matters: mise skips nothing for `link-check:staged` without the `.sh`, for the reason the section above on overriding a task gives.
+A broken link prints the variable that skips this task alone, `MISE_TASK_SKIP=links:commit-check.sh`, set on the `git commit` it blocked, and the variable skips it on a failed install too.
+The full name is what matters: mise skips nothing for `links:commit-check` without the `.sh`, for the reason the section above on overriding a task gives, nor for its former name, as [Renamed tasks](#renamed-tasks) says.
 The bypass otherwise at hand is `--no-verify`, which drops every other pre-commit check with it.
 
 ### `skills:size-check`
@@ -226,7 +232,7 @@ Keep such a file out of here.
 
 A task here is a shell script, and its name says so: this repository hands every `*.sh` under this directory to shellcheck and `shfmt`, so a task in another language is named out of that and goes unchecked until the shell steps in `hk.pkl` reach it.
 Where the work outgrows a few lines of shell, the script is a wrapper that runs a subcommand of the `dotfiles-tasks` binary, built from `rust/`.
-The subcommand takes the task's name with its colon as a hyphen, as `link-check-staged` does for `link-check:staged`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
+The subcommand takes the task's name with its colon as a hyphen, as `links-commit-check` does for `links:commit-check`, and its module under `rust/src/` and its tests' under `rust/tests/tasks/` take that name with underscores.
 It installs the release it pins with `mise install`, rather than declaring it in a [`#MISE tools=` header](https://mise.jdx.dev/tasks/task-configuration.html#tools), which installs nothing under `MISE_TASK_RUN_AUTO_INSTALL=false`, and runs the binary from the directory `mise where` prints, since [`mise x`](https://mise.jdx.dev/cli/exec.html) would leave the tools the header declares off `PATH`.
 That install runs under `MISE_NO_HOOKS=1`, since mise runs the consuming project's [`[hooks] postinstall`](https://mise.jdx.dev/hooks.html) on every install there.
 The line that spells the release ends in `# x-release-please-version`, and `release-please-config.json` lists the wrapper among its `extra-files`, so the release pull request moves its version.

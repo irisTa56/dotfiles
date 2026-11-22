@@ -166,9 +166,6 @@ A subcommand of `dotfiles-local` or `dotfiles-tasks` takes the name of the mise 
 - A skill that has an agent run a subcommand uses the name settled this way, and does not set one.
 - One that neither a task nor a person runs by name, such as a hook or a command only a skill runs, keeps the name it has.
 
-One name predates the rule and does not follow it yet: the shared task `link-check:staged` puts its action where its area goes.
-Renaming it means changing, together, the release each wrapper pins, the variable that skips it, and the commit hook of every repository that runs it, so it keeps its name until they change with it.
-
 ## Agent Instructions
 
 - `CLAUDE.md` — this repository's own project instructions, loaded only for sessions working inside it.
