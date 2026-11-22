@@ -79,12 +79,42 @@ jobs:
           # gitleaks for secrets:commit-scan's, which run the task's script,
           # trufflehog for secrets-push-scan's. mise-multi-upgrade's drive the mise
           # this action puts on PATH, after clearing every MISE_ variable.
-          install_args: rust lychee gitleaks trufflehog
+          # rust is installed in the steps below, from a cache of its own.
+          install_args: lychee gitleaks trufflehog
           cache: false # as in `markdown-lint`
-      # Caches the built dependencies, not mise's tools, which `cache: false` above
-      # leaves uncached. Measured in #508 (2026-11-21, 10 paired runs of one commit),
-      # a matching cache cut the job from 47-68 s to 42-49 s (mean difference 14 s,
-      # 95% interval 8-20 s), and the run that saved it spent about 6 s doing so.
+      # A departure from the CI baseline's `cache: false`: the Rust toolchain is cached,
+      # keyed on the release `latest` resolves to in this run, so a new release misses
+      # the cache and is downloaded rather than an older one being kept. rustup checks
+      # a restored toolchain against the release's manifest and fetches whatever it
+      # lacks, so the cache only saves time. The key also holds mise.toml's options for
+      # rust, so a component added there is saved with the toolchain once, not fetched
+      # on every run until the next release.
+      # Fails on what it cannot resolve, rather than keying the cache on nothing.
+      - id: rust
+        run: |
+          set -o pipefail
+          version=$(mise latest rust)
+          echo "version=${version:?}" >> "$GITHUB_OUTPUT"
+          options=$(mise tool rust --tool-options | sha256sum | cut -c1-16)
+          echo "options=$options" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.rustup/toolchains/${{ steps.rust.outputs.version }}-*
+            ~/.rustup/update-hashes/${{ steps.rust.outputs.version }}-*
+          key: rust-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust.outputs.version }}-${{ steps.rust.outputs.options }}
+      # mise-action exported the environment before rust was installed, without the
+      # RUSTUP_TOOLCHAIN that selects mise.toml's release, so rustc in a later step
+      # would run the runner image's default toolchain; this exports it again. The
+      # dotenv output leaves PATH out, which already holds rust's bin directory.
+      - run: |
+          mise install rust
+          mise env --dotenv >> "$GITHUB_ENV"
+      # Caches the built dependencies; mise's other tools stay uncached, as
+      # `cache: false` above leaves them. Measured in #508 (2026-11-21, 10 paired runs
+      # of one commit), a matching cache cut the job from 47-68 s to 42-49 s (mean
+      # difference 14 s, 95% interval 8-20 s), and the run that saved it spent about 6 s
+      # doing so.
       # After a Cargo.lock change, rust-cache restores the previous lockfile's cache
       # and rebuilds what changed, a case #508 did not time.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
