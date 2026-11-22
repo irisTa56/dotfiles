@@ -29,7 +29,7 @@ pub(super) fn isolated(program: impl AsRef<OsStr>, dir: &Path) -> Command {
 /// `git` on PATH may only reach through a shim, such as the one macOS puts in `/usr/bin`
 /// that looks up the developer tools on every run. Where the exec path holds no `git`,
 /// the one on PATH.
-fn program() -> &'static Path {
+pub(super) fn program() -> &'static Path {
     static PROGRAM: OnceLock<PathBuf> = OnceLock::new();
     PROGRAM.get_or_init(|| {
         let output = Command::new("git")

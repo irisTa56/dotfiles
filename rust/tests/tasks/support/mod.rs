@@ -9,5 +9,6 @@ pub(crate) mod invocation;
 pub(crate) mod mise;
 pub(crate) mod origin;
 pub(crate) mod secret;
+pub(crate) mod stand_in;
 pub(crate) mod trufflehog;
 pub(crate) mod upstream;

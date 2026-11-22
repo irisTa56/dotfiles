@@ -92,6 +92,16 @@ impl Checkout {
         .expect("the file's mode can be set");
     }
 
+    /// Takes the write permissions off `path` in the working tree, so that it can be read
+    /// and not written.
+    pub(crate) fn protect(&self, path: &str) {
+        fs::set_permissions(
+            self.dir.path().join(path),
+            fs::Permissions::from_mode(0o444),
+        )
+        .expect("the file's mode can be set");
+    }
+
     /// Gives `path` in the working tree the mode a directory is made with, undoing `lock`
     /// so that the temporary directory can be removed.
     pub(crate) fn unlock(&self, path: &str) {

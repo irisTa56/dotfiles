@@ -1,6 +1,8 @@
 //! Runs with `--bump`: outside GitHub Actions it moves the pins in the working tree, and
 //! under it pushes the move on origin's default branch to a branch of its own.
 
+mod failures;
+
 use tempfile::TempDir;
 
 use super::Trace;
