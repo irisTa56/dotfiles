@@ -74,8 +74,20 @@ fn names_no_skip_when_mise_is_not_running_a_task() {
     assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
 }
 
-// The task is to take the name `links:commit-check`, and a wrapper moved to it runs the
-// subcommand of that name from a release that still serves the wrapper here.
+// An empty name is no task either, and `.sh` alone would skip nothing.
+#[test]
+fn names_no_skip_when_mise_names_an_empty_task() {
+    let run = staged(&[("a.md", "[gone](missing.md)\n")])
+        .dotfiles_tasks()
+        .arg("link-check-staged")
+        .env("MISE_TASK_NAME", "")
+        .run();
+    assert_eq!(run.code(), 1, "{}", run.output());
+    assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
+}
+
+// A wrapper under the task name `links:commit-check` calls the subcommand by the
+// matching name, and it runs the same check.
 #[test]
 fn runs_the_same_check_as_links_commit_check() {
     staged(&[("a.md", "[gone](missing.md)\n")])
