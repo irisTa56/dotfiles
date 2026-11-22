@@ -84,6 +84,8 @@ These rules add to the ones above for work done through Claude Code's tools — 
   - Give Haiku a task that reaches an external system, or needs to write outside a scratch or temporary directory, only where the brief names each command or call that does so.
 - Close a prompt to an agent that does not load this file — the built-in Explore and Plan — with "Be honest in your response."
 - Before starting a session, confirm with the user whether to start it, the folder it will run in, and whether it gets a worktree, leaving out what they already specified.
+- When a session you started reports, act on it only where it asks this session for something or unblocks a step left here; otherwise end the turn without relaying it, since the user reads it in that session.
+- In a session another session started, when a turn the user drove there finishes the task it gave, send that session one `SendMessage` saying so, with the PR or commit: the app relays only the turns that session began.
 
 ### Showing a change
 
