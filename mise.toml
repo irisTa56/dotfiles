@@ -197,15 +197,17 @@ depends = ["qa:rust:*"]
 # Each command names the whole workspace: run in rust/, cargo would otherwise take only
 # the dotfiles-tasks package at its root.
 # nextest runs the tests of every test binary from one pool, where cargo test runs the
-# binaries one after another. It runs no doctests, which is safe while every package is
-# binaries only: a library added to one would need `cargo test --doc` beside it.
+# binaries one after another. It runs no doctests, so the command before it fails once a
+# target has any, as a library would, rather than leaving them unrun. `--no-fail-fast`
+# reports every failing test, where nextest would stop at the first.
 [tasks."qa:rust:crates"]
 description = "Check formatting of, lint and test every package of the Rust workspace"
 dir = "{{config_root}}/rust"
 run = [
   "cargo fmt --all --check",
   "cargo clippy --workspace --all-targets --locked -- -D warnings",
-  "cargo nextest run --workspace --locked",
+  """if cargo metadata --no-deps --format-version 1 --locked | grep -q '"doctest":true'; then echo 'A target has doctests, which nextest does not run: add `cargo test --workspace --locked --doc` to qa:rust:crates.' >&2; exit 1; fi""",
+  "cargo nextest run --workspace --locked --no-fail-fast",
 ]
 
 # The subcommand built from the working tree rather than the release the shared task
