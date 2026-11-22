@@ -206,7 +206,12 @@ impl Checkout {
             .env("MISE_GLOBAL_CONFIG_FILE", state.join("config/config.toml"))
             .env("MISE_SYSTEM_CONFIG_FILE", state.join("system.toml"))
             .env("MISE_TRUSTED_CONFIG_PATHS", dir)
-            .env("MISE_CEILING_PATHS", dir);
+            // mise reads no config in a ceiling directory itself, the repository's own
+            // `mise.toml` included, so the ceiling is the directory above it.
+            .env(
+                "MISE_CEILING_PATHS",
+                dir.parent().expect("a temporary directory has a parent"),
+            );
         self.invocation(command)
     }
 
