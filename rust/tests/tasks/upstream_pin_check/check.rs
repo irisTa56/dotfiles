@@ -51,11 +51,17 @@ fn passes_a_pin_whose_path_is_unchanged_on_the_default_branch_tip() {
 }
 
 // Each request of an upstream is a round trip to its host, and a check reads two commits
-// of it: the default branch's tip and the pinned one.
+// of each: the default branch's tip and the pinned one. Upstreams with unrelated
+// histories, checked in one run, are each read the same way.
 #[test]
-fn asks_an_upstream_once_for_both_the_default_branch_and_the_pinned_commit() {
-    let up = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
-    let cargo = format!("# upstream: {}\n", up.marker("lints", 0));
+fn asks_each_upstream_once_for_both_the_default_branch_and_the_pinned_commit() {
+    let lints = Upstream::new(&[&[("lints/a.toml", Some("a"))], &[("README.md", Some("r"))]]);
+    let tasks = Upstream::new(&[&[("tasks/a.sh", Some("a"))], &[("README.md", Some("r"))]]);
+    let cargo = format!(
+        "# {}\n# {}\n",
+        lints.marker("lints", 0),
+        tasks.marker("tasks", 0)
+    );
     let trace = Trace::new();
     Checkout::new(&[("Cargo.toml", &cargo)])
         .dotfiles_tasks()
@@ -63,7 +69,10 @@ fn asks_an_upstream_once_for_both_the_default_branch_and_the_pinned_commit() {
         .env("GIT_TRACE2_EVENT", trace.path())
         .run()
         .expect(0, &["[ok]"]);
-    assert_eq!(trace.requests_of(&up), 1);
+    assert_eq!(
+        (trace.requests_of(&lints), trace.requests_of(&tasks)),
+        (1, 1)
+    );
 }
 
 // A git hook, such as a pre-push one that runs this check, exports GIT_DIR for the
