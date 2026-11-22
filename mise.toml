@@ -34,8 +34,11 @@ sh_paths = "tasks zsh_fragments"
 # repository's config, they run in every worktree, whatever branch it is on, and
 # `local:install` fails off main, so each tests the branch before running mise.
 # post-checkout also runs on a checkout of files, whose third argument is 0
-# where a switch's is 1. A failed hook would fail `git switch`, which stops sync-base
-# before main moves, so a failed install only warns. git passes the hook's arguments
+# where a switch's is 1, and on a switch that leaves HEAD where it was, such as
+# sync-base's switch to the main it is already on, whose first two arguments match.
+# Neither changes the code checked out, so the hook installs only on a switch that
+# moves HEAD. A failed hook would fail `git switch`, which stops sync-base before main
+# moves, so a failed install only warns. git passes the hook's arguments
 # after the command too, and the trailing `:` takes them.
 # git before 2.54 ignores those keys, so the last line says so rather than
 # leaving pushes unscanned and dotfiles-local stale in silence.
@@ -47,7 +50,7 @@ git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
 git config hook.local-install-on-merge.event post-merge
 git config hook.local-install-on-merge.command 'if test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
 git config hook.local-install-on-switch.event post-checkout
-git config hook.local-install-on-switch.command 'if test "$3" = 1 && test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
+git config hook.local-install-on-switch.command 'if test "$3" = 1 && test "$1" != "$2" && test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
 git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning: this git ignores hook.* config, so pushes are not scanned and dotfiles-local is not installed when main moves; git 2.54 or later runs them" >&2
 '''
 
