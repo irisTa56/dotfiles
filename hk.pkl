@@ -87,7 +87,7 @@ local projectSteps = new Mapping<String, Step> {
   // CI does not run this one: `claude plugin validate` needs the Claude Code CLI, which
   // CI does not install.
   ["plugins"] {
-    check = "mise run plugins:check"
+    check = "mise run qa:plugins"
   }
 }
 
@@ -116,9 +116,8 @@ hooks {
       ["skills-size"] = (projectSteps["skills-size"]) {
         step_condition = staged(List(".claude/skills", "rust"))
       }
-      ["config"] = (projectSteps["config"]) {
-        step_condition = staged(List())
-      }
+      // Every commit, as the files the `qa:config:` tasks read grow with the tasks.
+      ["config"] = projectSteps["config"]
       // Any change can break a link: a renamed file breaks the links to it from files
       // the commit does not touch.
       ["links-offline"] = projectSteps["links-offline"]

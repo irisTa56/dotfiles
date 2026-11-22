@@ -105,6 +105,13 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 # the order it runs: `bootstrap`, then the tasks it runs, in turn. How a task is named
 # is in README.md, under "Naming tasks and subcommands".
 
+# Every check hk.pkl's `check` hook holds; the commit hook runs them too, each only
+# when the commit can change its result. The scans of the staged change,
+# `secrets:commit-scan` and `link-check:staged`, run at a commit alone.
+[tasks.check]
+description = "Run every check"
+run = "hk check --all"
+
 # The shared task, run by the subcommand built from the working tree for the reason
 # `qa:rust:skills` below gives; a commit here, on a release pull request's branch included,
 # waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
@@ -116,27 +123,6 @@ run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-
 [tasks."links:check"]
 description = "Check if links are valid, showing redirects"
 run = "lychee -v ."
-
-# Outside `qa:` because CI leaves it out: `claude plugin validate` needs the Claude
-# Code CLI, which CI does not install.
-# Validating `.claude/skills` reads it as a skills directory and does not reach the
-# global-hooks plugin inside it, so that plugin is validated on its own. That run
-# type-checks the function-hooks module, reporting each type error as a warning, so
-# `--strict` is what makes one fail the commit.
-[tasks."plugins:check"]
-description = "Validate the skills directory and the global-hooks plugin, and run the plugin's tests"
-run = [
-  "claude plugin validate .claude/skills",
-  "claude plugin validate --strict .claude/skills/global-hooks",
-  "claude plugin test .claude/skills/global-hooks",
-]
-
-# Every check, as CI runs them, through hk.pkl's `check` hook; the commit hook runs them
-# too, each only when the commit can change its result. The scans of the staged change,
-# `secrets:commit-scan` and `link-check:staged`, run at a commit alone.
-[tasks.check]
-description = "Run every check"
-run = "hk check --all"
 
 # The checks that config files agree with each other sit under `qa:config:`, which
 # `qa:config` gathers for CI's config-qa job to run.
@@ -166,6 +152,18 @@ run = [
   # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
   # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
   "! find -L .claude/evals -type l | grep .",
+]
+
+# Validating `.claude/skills` reads it as a skills directory and does not reach the
+# global-hooks plugin inside it, so that plugin is validated on its own. That run
+# type-checks the function-hooks module, reporting each type error as a warning, so
+# `--strict` is what makes one fail the commit.
+[tasks."qa:plugins"]
+description = "Validate the skills directory and the global-hooks plugin, and run the plugin's tests"
+run = [
+  "claude plugin validate .claude/skills",
+  "claude plugin validate --strict .claude/skills/global-hooks",
+  "claude plugin test .claude/skills/global-hooks",
 ]
 
 # The checks written in Rust, and the checks of the Rust package itself, sit under
