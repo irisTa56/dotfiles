@@ -255,7 +255,9 @@ run = [
 # a branch tries its change with `cargo run` in its worktree. Silence off main would let
 # bootstrap pass with no binary in place, so this fails there instead. `cargo install`
 # copies the binary, so a later `cargo clean` leaves it working, and rebuilds and copies
-# again on every run, changed or not.
+# again on every run, changed or not. The toolchain is named on the command line because
+# `cargo install` warns whenever rustup took it from RUSTUP_TOOLCHAIN, which mise sets to
+# the version pinned above; naming the same one keeps that pin and drops the warning.
 [tasks."local:install"]
 description = "Install dotfiles-local into ~/.local/bin from this checkout, on main only"
 run = '''
@@ -263,7 +265,7 @@ test "$(git branch --show-current)" = main || {
   echo "dotfiles-local installs from main only: run this in a checkout on main, or try a branch with cargo run" >&2
   exit 1
 }
-cargo install --locked --path rust/crates/local --profile local --root ~/.local
+cargo +"${RUSTUP_TOOLCHAIN:?mise sets it for the rust tool}" install --locked --path rust/crates/local --profile local --root ~/.local
 '''
 
 [tasks."dotfiles:setup"]
