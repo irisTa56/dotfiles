@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 #MISE description="Check the links of staged files"
 #MISE tools={ lychee = "latest" }
-#MISE alias="link-check:staged"
-# What it checks is in tasks/README.md under "links:commit-check", and why it answers
-# to its former name as well, under "Renamed tasks". The check itself is
+# What it checks is in tasks/README.md under "links:commit-check". The check itself is
 # the dotfiles-tasks binary, built from rust/ and released from this repository, which
 # runs the lychee the header above puts on PATH; how it picks the files is in
 # rust/src/links_commit_check.rs. The release pinned below is installed here rather than

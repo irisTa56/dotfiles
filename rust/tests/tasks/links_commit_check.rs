@@ -87,25 +87,6 @@ fn names_no_skip_when_mise_names_an_empty_task() {
     assert!(!run.output().contains("MISE_TASK_SKIP"), "{}", run.output());
 }
 
-// Repositories taking the shared tasks name the task's former name in their commit
-// hooks, run by name or from another task's `depends`, so mise must still resolve it to
-// this task either way. mise is asked which task each names rather than to run one,
-// since a run, a dry one included, resolves the tools the task declares over the
-// network.
-#[test]
-fn resolves_its_former_name_link_check_staged() {
-    let checkout = Checkout::new(&[]);
-    let taking = |args: &[&str]| {
-        checkout
-            .mise_taking_the_tasks("[tasks.gate]\ndepends = [\"link-check:staged\"]\n")
-            .args(args)
-            .run()
-    };
-    taking(&["tasks", "info", "--json", "link-check:staged"])
-        .expect(0, &[r#""name": "links:commit-check""#]);
-    taking(&["tasks", "deps", "gate"]).expect(0, &["links:commit-check"]);
-}
-
 // The repository's lychee config decides which files a run over the whole tree reads,
 // and a commit's check reads no file that run would leave out.
 #[test]
