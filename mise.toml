@@ -107,24 +107,24 @@ test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --pa
 
 # Every check hk.pkl's `check` hook holds; the commit hook runs them too, each only
 # when the commit can change its result. The scans of the staged change,
-# `secrets:commit-scan` and `link-check:staged`, run at a commit alone.
+# `secrets:commit-scan` and `links:commit-check`, run at a commit alone.
 # A `qa:` task below runs only as a step there: a new one needs its step, and the step a
 # CI job (.github/workflows/ci.yml) or a comment saying why CI leaves it out.
 [tasks.check]
 description = "Run every check"
 run = "hk check --all"
 
+[tasks."links:check"]
+description = "Check if links are valid, showing redirects"
+run = "lychee -v ."
+
 # The shared task, run by the subcommand built from the working tree for the reason
 # `qa:rust:skills` below gives; a commit here, on a release pull request's branch included,
 # waits on it. A `run` replaces the shared script, and the `.sh` keeps the name the
 # subcommand's failure tells a commit to skip.
-[tasks."link-check:staged.sh"]
+[tasks."links:commit-check.sh"]
 description = "Check the links of staged files"
-run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- link-check-staged"
-
-[tasks."links:check"]
-description = "Check if links are valid, showing redirects"
-run = "lychee -v ."
+run = "cargo run --manifest-path rust/Cargo.toml --locked --quiet -- links-commit-check"
 
 # The checks that config files agree with each other sit under `qa:config:`, which
 # `qa:config` gathers for CI's config-qa job to run.
@@ -144,7 +144,7 @@ test "$mise_python" = "$uv_pin" || {
 '''
 
 # Offline, so a pull request never waits on a third-party host and a host being down
-# never fails one; `link-check:staged` requests the links of the files a commit
+# never fails one; `links:commit-check` requests the links of the files a commit
 # touches, and `links:check` requests every link, which CI runs weekly without
 # gating anything (.github/workflows/link-check-weekly.yml).
 [tasks."qa:links:offline"]

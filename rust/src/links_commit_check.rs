@@ -1,4 +1,4 @@
-//! `link-check:staged`: whether the links of the files a commit stages resolve, as
+//! `links:commit-check`: whether the links of the files a commit stages resolve, as
 //! lychee checks them under the repository's own lychee config.
 //!
 //! Every link in a staged file is requested, old ones included, so a host failing on one

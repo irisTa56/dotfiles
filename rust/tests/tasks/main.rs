@@ -7,7 +7,7 @@
 //! dead code.
 
 mod dispatch;
-mod link_check_staged;
+mod links_commit_check;
 mod release_pins;
 mod secrets_commit_scan;
 mod secrets_push_scan;

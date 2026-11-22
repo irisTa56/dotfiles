@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #MISE description="Check the links of staged files"
 #MISE tools={ lychee = "latest" }
-# What it checks is in tasks/README.md under "link-check:staged". The check itself is
+#MISE alias="link-check:staged"
+# What it checks is in tasks/README.md under "links:commit-check", and why it answers
+# to its former name as well, under "Renamed tasks". The check itself is
 # the dotfiles-tasks binary, built from rust/ and released from this repository, which
 # runs the lychee the header above puts on PATH; how it picks the files is in
-# rust/src/link_check_staged.rs. The release pinned below is installed here rather than
+# rust/src/links_commit_check.rs. The release pinned below is installed here rather than
 # in the header, so that a job that sets MISE_TASK_RUN_AUTO_INSTALL=false, which
 # installs no task's tools, has only lychee to install itself. A failed install, or an
 # installation mise then cannot find, checks no link, so it exits 2 rather than with
@@ -15,4 +17,4 @@
 tool='github:irisTa56/dotfiles[version_prefix=dotfiles-tasks-v,bin=dotfiles-tasks]@0.11.0' # x-release-please-version
 MISE_NO_HOOKS=1 mise install --quiet "$tool" || exit 2
 dir=$(mise where "$tool") || exit 2
-exec "$dir/dotfiles-tasks" link-check-staged "$@"
+exec "$dir/dotfiles-tasks" links-commit-check "$@"

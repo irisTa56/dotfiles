@@ -6,7 +6,7 @@ use crate::support::invocation::Stream;
 
 /// Every subcommand, by its name.
 const TASKS: [&str; 4] = [
-    "link-check-staged",
+    "links-commit-check",
     "secrets-push-scan",
     "skills-size-check",
     "upstream-pin-check",
@@ -114,12 +114,12 @@ fn each_task_fails_as_a_usage_error_on_stderr_on_an_option_it_does_not_take() {
     }
 }
 
-// `link-check-staged` takes no argument, so one given is not silently dropped.
+// `links-commit-check` takes no argument, so one given is not silently dropped.
 #[test]
-fn link_check_staged_fails_as_a_usage_error_on_an_argument() {
+fn links_commit_check_fails_as_a_usage_error_on_an_argument() {
     Checkout::new(&[])
         .dotfiles_tasks()
-        .arg("link-check-staged")
+        .arg("links-commit-check")
         .arg("README.md")
         .run()
         .expect(2, &["'README.md'"]);

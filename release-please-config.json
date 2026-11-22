@@ -9,7 +9,7 @@
       "extra-files": [
         {
           "type": "generic",
-          "path": "/tasks/link-check/staged.sh"
+          "path": "/tasks/links/commit-check.sh"
         },
         {
           "type": "generic",

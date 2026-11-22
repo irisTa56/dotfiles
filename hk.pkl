@@ -134,8 +134,8 @@ hooks {
       ["secrets"] {
         check = "mise run secrets:commit-scan"
       }
-      ["link-check-staged"] {
-        check = "mise run link-check:staged"
+      ["links-commit-check"] {
+        check = "mise run links:commit-check"
       }
     }
   }
