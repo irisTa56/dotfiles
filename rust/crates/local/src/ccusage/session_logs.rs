@@ -10,8 +10,8 @@ use std::sync::LazyLock;
 use regex::Regex;
 use serde_json::Value;
 
-use crate::failure::Failure;
 use crate::git;
+use dotfiles_shared::Failure;
 
 /// The session logs ccusage reads, through which each project is resolved to the
 /// repository it counts toward.

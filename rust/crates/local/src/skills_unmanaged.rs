@@ -14,9 +14,10 @@ use std::process::Stdio;
 use clap::Args;
 
 use crate::apm_lock::ApmLock;
-use crate::failure::Failure;
+use crate::failure;
 use crate::git;
 use crate::program;
+use dotfiles_shared::Failure;
 
 /// The directory whose entries are listed, relative to the checkout's root.
 const SKILLS: &str = ".claude/skills";
@@ -50,7 +51,7 @@ fn list() -> Result<(), Failure> {
         .collect();
     match write(&unmanaged) {
         // A reader that has gone, as `head` does, wanted no more of the list.
-        Err(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(Failure::writing(&error)),
+        Err(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(failure::writing(&error)),
         _ => Ok(()),
     }
 }

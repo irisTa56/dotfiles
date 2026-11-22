@@ -3,8 +3,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use crate::failure::Failure;
 use crate::git::read;
+use dotfiles_shared::Failure;
 
 /// The manifest of dotfiles-local, which marks a dotfiles checkout.
 const MANIFEST: &str = "rust/crates/local/Cargo.toml";

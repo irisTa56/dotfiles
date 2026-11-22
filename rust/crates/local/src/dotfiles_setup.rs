@@ -12,8 +12,8 @@ use std::process::Stdio;
 use clap::Args;
 
 use crate::dotfiles_checkout::DotfilesCheckout;
-use crate::failure::Failure;
 use crate::program::Program;
+use dotfiles_shared::Failure;
 
 /// The canonical dircolors, which `~/.dircolors` is overwritten with.
 const COLORS: &str = "https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/LS_COLORS";

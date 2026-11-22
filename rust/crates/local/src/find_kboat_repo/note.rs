@@ -6,7 +6,7 @@ use std::path::Path;
 use serde_json::value::RawValue;
 
 use super::Note;
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
 
 impl Note<'_> {
     /// The frontmatter field `name`, if the note has it.

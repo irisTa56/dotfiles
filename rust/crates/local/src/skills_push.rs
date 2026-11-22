@@ -14,9 +14,9 @@ use tempfile::TempDir;
 
 use crate::apm_lock::{ApmLock, LockedDependency};
 use crate::dotfiles_checkout::DotfilesCheckout;
-use crate::failure::Failure;
 use crate::git::{git, read};
 use crate::program::Program;
+use dotfiles_shared::Failure;
 
 /// Push a gist-sourced skill's local edit back to its gist, and pin the pushed commit.
 ///

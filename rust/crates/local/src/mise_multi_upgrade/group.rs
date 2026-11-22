@@ -4,7 +4,7 @@ use super::mise::Mise;
 use super::place::Place;
 use super::report::Report;
 use super::row::{Entries, Row};
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
 
 /// What a place has to report.
 #[derive(Debug)]

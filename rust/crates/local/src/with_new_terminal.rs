@@ -10,8 +10,8 @@ use std::process::Stdio;
 
 use clap::Args;
 
-use crate::failure::Failure;
 use crate::program::{self, Program};
+use dotfiles_shared::Failure;
 
 /// Run a shell script in a new Terminal window, leaving out its comment and blank lines.
 ///

@@ -4,8 +4,8 @@ use std::fmt;
 use std::io::{self, Read, Write};
 use std::process::{ExitStatus, Stdio};
 
-use crate::failure::Failure;
 use crate::program::Program;
+use dotfiles_shared::Failure;
 
 /// mise, called with a list of arguments.
 pub(super) struct Mise {

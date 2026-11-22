@@ -10,8 +10,8 @@ use super::projects::Projects;
 use super::report::Report;
 use super::report_file::ReportFile;
 use super::session_logs::SessionLogs;
-use crate::failure::Failure;
 use crate::program::{self, Program};
+use dotfiles_shared::Failure;
 
 /// Show Claude Code usage in a Quick Look popup as three tables per period.
 ///

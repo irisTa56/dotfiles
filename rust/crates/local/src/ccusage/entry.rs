@@ -4,7 +4,7 @@ use serde_json::Value;
 
 use super::command::Period;
 use super::figures::{Count, Money, Percent};
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
 
 /// One day of one project's usage.
 pub(super) struct Entry {

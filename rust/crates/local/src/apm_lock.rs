@@ -7,7 +7,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::failure::Failure;
+use dotfiles_shared::Failure;
 
 /// The lockfile's file name, relative to the checkout's root.
 const FILE: &str = "apm.lock.yaml";

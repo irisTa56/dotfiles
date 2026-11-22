@@ -9,7 +9,8 @@ use clap::Args;
 
 use super::json::Json;
 use super::{CATALOG, Note, Report};
-use crate::failure::Failure;
+use crate::failure;
+use dotfiles_shared::Failure;
 
 /// The fields of a record, in the order its line gives them.
 const RECORD: [&str; 6] = [
@@ -62,7 +63,7 @@ fn lookup(dir: &Path, titles: &[String]) -> Result<(), Failure> {
         .collect();
     io::stdout()
         .write_all(text.as_bytes())
-        .map_err(|error| Failure::writing(&error))
+        .map_err(|error| failure::writing(&error))
 }
 
 impl Note<'_> {

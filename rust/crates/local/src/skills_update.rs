@@ -13,8 +13,8 @@ use jiff::{SignedDuration, Timestamp};
 use serde_json::Value;
 
 use crate::apm_lock::{ApmLock, LockedDependency};
-use crate::failure::Failure;
 use crate::program::{self, Program};
+use dotfiles_shared::Failure;
 
 /// Update APM skills, holding back any whose last change upstream merged under a day ago.
 ///

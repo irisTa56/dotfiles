@@ -9,9 +9,9 @@ use std::str::FromStr;
 
 use clap::Args;
 
-use crate::failure::Failure;
 use crate::git::read;
 use crate::program::Program;
+use dotfiles_shared::Failure;
 
 /// The fnox config the command declares the provider in and stores the key through,
 /// git-ignored, so a worktree has none and fnox finds the main checkout's from one

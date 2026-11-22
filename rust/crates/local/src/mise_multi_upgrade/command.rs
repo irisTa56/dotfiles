@@ -10,7 +10,8 @@ use super::release_dates::ReleaseDates;
 use super::survey::Survey;
 use super::tracked::Tracked;
 use super::upgrades::Upgrades;
-use crate::failure::Failure;
+use crate::failure;
+use dotfiles_shared::Failure;
 
 /// Upgrade mise tools directory by directory, asking for each first.
 ///
@@ -53,7 +54,7 @@ fn upgrade(options: &Options) -> Result<(), Failure> {
         } else {
             "Nothing to upgrade within the requested versions."
         };
-        writeln!(io::stdout(), "{message}").map_err(|error| Failure::writing(&error))?;
+        writeln!(io::stdout(), "{message}").map_err(|error| failure::writing(&error))?;
         Vec::new()
     } else if options.dry_run() {
         survey.show(&dates, report)?;

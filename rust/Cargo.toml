@@ -16,9 +16,9 @@ tempfile = "3"
 workspace = true
 
 # dotfiles-local, the commands for this machine alone, built from the main checkout and
-# never released.
+# never released, and dotfiles-shared, the code it and this package both use.
 [workspace]
-members = ["crates/local"]
+members = ["crates/local", "crates/shared"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
