@@ -397,7 +397,7 @@ fn stores_a_random_password_and_encrypts_the_config_with_it() {
 
     assert_eq!(run.status.code(), Some(0), "{}", stderr(&run));
     let password = sandbox.password().expect("the item is stored");
-    assert_eq!(password.len(), 56, "{password}");
+    assert_eq!(password.len(), 56);
     assert_eq!(
         sandbox.rclone_calls(),
         [
