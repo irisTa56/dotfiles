@@ -82,12 +82,9 @@ pub(super) fn feed(dir: &Path, args: &[&str], input: &[u8]) {
         .stderr(Stdio::piped())
         .spawn()
         .expect("git runs");
-    child
-        .stdin
-        .take()
-        .expect("stdin is piped")
-        .write_all(input)
-        .expect("git reads its input");
+    // git stops reading where it rejects the input, which fails the write; the status
+    // below says so, with git's reason.
+    let _ = child.stdin.take().expect("stdin is piped").write_all(input);
     let output = child.wait_with_output().expect("git's run ends");
     assert!(
         output.status.success(),

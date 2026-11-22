@@ -8,6 +8,25 @@ use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
 
+use super::secret::GITHUB_TOKEN_PREFIX;
+
+/// The script of `Trufflehog::reporting_tokens`, given what a token opens with as `token`.
+const REPORTING_TOKENS: &str = r#"while [ "$#" -gt 0 ]; do
+    case $1 in
+        file://*) url=$1 ;;
+        --branch) shift; tip=$1 ;;
+    esac
+    shift
+done
+clone=$(mktemp -d) || exit 1
+trap 'rm -rf "$clone"' EXIT
+git clone -q --bare "$url" "$clone" || exit 1
+commits=$(git -C "$clone" log --format=%H -G "$token" "$tip") || exit 1
+for commit in $commits; do
+    printf '{"DetectorName":"Github","SourceMetadata":{"Data":{"Git":{"commit":"%s","line":1}}}}\n' "$commit"
+done
+"#;
+
 /// A directory holding a `trufflehog` that runs a script with `sh`.
 pub(crate) struct Trufflehog {
     dir: TempDir,
@@ -30,23 +49,9 @@ impl Trufflehog {
     /// or remove a GitHub token, naming no file. Like the real one, it reads the repository
     /// through a clone of its own, so a URL that names no repository fails the scan.
     pub(crate) fn reporting_tokens() -> Self {
-        Self::running(
-            r#"while [ "$#" -gt 0 ]; do
-    case $1 in
-        file://*) url=$1 ;;
-        --branch) shift; tip=$1 ;;
-    esac
-    shift
-done
-clone=$(mktemp -d) || exit 1
-trap 'rm -rf "$clone"' EXIT
-git clone -q --bare "$url" "$clone" || exit 1
-commits=$(git -C "$clone" log --format=%H -G 'ghp_' "$tip") || exit 1
-for commit in $commits; do
-    printf '{"DetectorName":"Github","SourceMetadata":{"Data":{"Git":{"commit":"%s","line":1}}}}\n' "$commit"
-done
-"#,
-        )
+        Self::running(&format!(
+            "token='{GITHUB_TOKEN_PREFIX}_'\n{REPORTING_TOKENS}"
+        ))
     }
 
     /// The directory the stand-in runs in, where a script may leave what it was asked.
@@ -63,17 +68,22 @@ done
     /// `path` with this stand-in ahead of the rest, and with every directory holding
     /// another `trufflehog` left out.
     pub(crate) fn path_over(&self, path: &OsStr) -> OsString {
-        let dirs = std::iter::once(PathBuf::from(self.dir.path()))
-            .chain(std::env::split_paths(path).filter(|dir| !dir.join("trufflehog").exists()));
+        let dirs = std::iter::once(PathBuf::from(self.dir.path())).chain(without_trufflehog(path));
         std::env::join_paths(dirs).expect("no directory on PATH holds a colon")
     }
 }
 
 /// The tests' PATH with every directory holding a `trufflehog` left out.
 pub(crate) fn path_without_trufflehog() -> OsString {
-    let inherited = inherited();
-    let dirs = std::env::split_paths(&inherited).filter(|dir| !dir.join("trufflehog").exists());
-    std::env::join_paths(dirs).expect("no directory on PATH holds a colon")
+    std::env::join_paths(without_trufflehog(&inherited()))
+        .expect("no directory on PATH holds a colon")
+}
+
+/// The directories of `path` that hold no `trufflehog`.
+fn without_trufflehog(path: &OsStr) -> Vec<PathBuf> {
+    std::env::split_paths(path)
+        .filter(|dir| !dir.join("trufflehog").exists())
+        .collect()
 }
 
 /// The PATH the tests run with.
