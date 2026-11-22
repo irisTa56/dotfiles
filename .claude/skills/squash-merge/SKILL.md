@@ -39,15 +39,17 @@ These are what a squash would otherwise lose: co-authors, and the `Entire-Checkp
 
 ## Merging
 
-Show the user the subject in the reply and the body in full, and merge only on their yes.
+Show the user the subject in the reply and the body in full.
+Merge without asking where every check passed, the message is in English, and its body says nothing the pull request's body does not: it only leaves out, shortens or reformats what that body says, or changes the trailers.
+Otherwise, such as where the message carries a correction the pull request's body lacks, merge only on the user's yes, since the message then says something they have not yet read.
 Then write the subject and the body to files in the scratchpad, since a title can hold a quote the shell would read, and run:
 
 ```shell
 gh pr merge <N> --squash --subject "$(cat <subject file>)" --body-file <body file> --match-head-commit <headRefOid>
 ```
 
-`--match-head-commit` refuses the merge where the head moved after the user saw the message.
-Where it refuses, read the pull request again and show the new message rather than retrying.
+`--match-head-commit` refuses the merge where the head moved after the message was drawn.
+Where it refuses, read the pull request again and show the new message rather than retrying, merging it as the rules above say.
 Where the merge fails for another reason, report what `gh` says rather than working around it.
 
 Once the merge succeeds, run `~/.local/bin/dotfiles-local git-sync-base <base>`, and report what the base moved to and which branch this checkout is on, since continuing work wants a fresh branch off the base.
