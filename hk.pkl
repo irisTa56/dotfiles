@@ -28,12 +28,13 @@ hooks {
         check = "mise run qa:rust:crates"
       }
       // `claude plugin validate .claude/skills` reads the skills apm installs there too,
-      // which a change to apm.yml or apm.lock.yaml brings in; mise.toml defines the task.
-      // A Claude Code update that breaks the plugin changes no file here, and CI does not
-      // run these checks, so it shows at the next commit that touches those paths, or at
-      // `mise run pre-commit`.
+      // which a change to apm.yml or apm.lock.yaml brings in; mise.toml defines the task,
+      // and .config/mise/config.toml declares the Claude Code CLI the checks run on.
+      // A new release of that CLI, declared at `latest`, changes no file here, and CI does
+      // not run these checks, so a release that breaks the plugin shows at the next commit
+      // that touches those paths, or at `mise run pre-commit`.
       ["plugins"] {
-        step_condition = #"!exec_ok("git diff --cached --quiet -- .claude/skills apm.yml apm.lock.yaml mise.toml")"#
+        step_condition = #"!exec_ok("git diff --cached --quiet -- .claude/skills apm.yml apm.lock.yaml mise.toml .config/mise/config.toml")"#
         check = "mise run plugins:check"
       }
     }
