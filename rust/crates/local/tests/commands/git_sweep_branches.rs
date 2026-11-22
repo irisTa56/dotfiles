@@ -4,7 +4,7 @@
 //! gh, and with nothing else on PATH.
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use crate::support::{DOTFILES_LOCAL, IDENTITY, Sandbox, git, isolated};
@@ -24,7 +24,7 @@ impl Fixture {
         };
         fixture
             .sandbox
-            .fake("git", &format!("exec '{}' \"$@\"", git().display()));
+            .fake("git", &format!("exec '{}' \"$@\"", real("git").display()));
         fixture.gh_poi("");
         fixture
             .sandbox
@@ -120,6 +120,14 @@ impl Fixture {
             .output()
             .expect("dotfiles-local starts")
     }
+}
+
+/// The path of `program` on the PATH the tests run with.
+fn real(program: &str) -> PathBuf {
+    std::env::split_paths(&std::env::var_os("PATH").expect("PATH is set"))
+        .map(|dir| dir.join(program))
+        .find(|path| path.is_file())
+        .unwrap_or_else(|| panic!("{program} is on PATH"))
 }
 
 // After gh-poi, each local branch origin's default branch holds whole is deleted, with
