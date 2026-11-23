@@ -28,9 +28,10 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # `local:follow-main` decides from the event whether to install. Set in the
 # repository's config, they run in every worktree, so each starts mise only on main:
 # elsewhere it would cost every git command a mise start. --skip-tools keeps a tool
-# install out of a git command; the arguments go on as "$@", and `|| :` takes git's
-# copy of them and keeps a failure of mise itself from reaching git, as
-# post-checkout's status becomes the switch's, which would stop sync-base.
+# install out of a git command; the arguments go on as "$@". The task warns on a
+# failed install itself, so a failure reaching the hook is mise's own, and the hook
+# only warns on it: post-checkout's status becomes the switch's, which would stop
+# sync-base. The trailing `:` takes git's copy of the arguments.
 # git before 2.54 ignores those keys, so the last line says so rather than
 # leaving pushes unscanned and dotfiles-local stale in silence.
 [hooks]
@@ -39,12 +40,13 @@ hk install --mise
 git config hook.secrets-push-scan.event pre-push
 git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
 follow='test "$(git branch --show-current)" != main || mise run -q --skip-tools local:follow-main'
+warn="echo 'warning: mise did not run local:follow-main, so dotfiles-local may lag main' >&2; :"
 git config hook.local-install-on-merge.event post-merge
-git config hook.local-install-on-merge.command "$follow post-merge \"\$@\" || :"
+git config hook.local-install-on-merge.command "$follow post-merge \"\$@\" || $warn"
 git config hook.local-install-on-switch.event post-checkout
-git config hook.local-install-on-switch.command "$follow post-checkout \"\$@\" || :"
+git config hook.local-install-on-switch.command "$follow post-checkout \"\$@\" || $warn"
 git config hook.local-install-on-rebase.event post-rewrite
-git config hook.local-install-on-rebase.command "$follow post-rewrite \"\$@\" || :"
+git config hook.local-install-on-rebase.command "$follow post-rewrite \"\$@\" || $warn"
 git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan ||
   echo "warning: git before 2.54 ignores hook.* config: pushes go unscanned, and dotfiles-local lags main" >&2
 '''
@@ -270,10 +272,11 @@ cargo +"${RUSTUP_TOOLCHAIN:?mise sets it for the rust tool}" install \
 #   is already on. Any other switch installs, which is how a failed install is retried.
 # - post-rewrite: an amend, as a commit on main installs nothing either.
 # - post-merge, and post-rewrite after a rebase: one that leaves what local:install
-#   reads as it was before (ORIG_HEAD), which is the workspace but the dotfiles-tasks
-#   package's own files, and mise.toml's rust tool and local:install; a release's
-#   version bump in rust/Cargo.toml counts. Where ORIG_HEAD cannot be compared, it
-#   installs.
+#   reads as it was before, which is the workspace but the dotfiles-tasks package's
+#   own files, and mise.toml's rust tool and local:install; a release's version bump
+#   in rust/Cargo.toml counts. "Before" is main@{1}, main's previous position, which
+#   the event moves once; ORIG_HEAD would not do, as a `git reset` inside a rebase
+#   moves it. Where main@{1} cannot be compared, it installs.
 # A `git rebase` with nothing to replay only fast-forwards and runs none of these
 # hooks, so it needs `mise run local:install` by hand; `git pull --rebase` with
 # nothing to replay fast-forwards as a merge, which post-merge covers.
@@ -290,8 +293,8 @@ test "$usage_event" != post-checkout || { test "$3" = 1 && test "$1" != "$2"; } 
 test "$usage_event" != post-rewrite || test "$1" = rebase || exit 0
 case $usage_event in post-merge | post-rewrite)
   view='[.tools.rust, .tasks["local:install"]]'
-  git diff --quiet ORIG_HEAD HEAD -- rust ':!rust/src' ':!rust/tests' ':!rust/CHANGELOG.md' &&
-    before=$(git show ORIG_HEAD:mise.toml | yq -p toml -o json -I0 "$view") &&
+  git diff --quiet 'main@{1}' HEAD -- rust ':!rust/src' ':!rust/tests' ':!rust/CHANGELOG.md' &&
+    before=$(git show 'main@{1}:mise.toml' | yq -p toml -o json -I0 "$view") &&
     test "$before" = "$(git show HEAD:mise.toml | yq -p toml -o json -I0 "$view")" &&
     exit 0
 esac

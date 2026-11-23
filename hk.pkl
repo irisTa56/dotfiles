@@ -20,8 +20,9 @@ local tooling = List(".config/mise/config.toml", "hk.pkl")
 
 // mise.toml as a step with a condition reads it, at `rev` (an empty `rev` is the index):
 // every table but [dotfiles], [hooks] and [bootstrap], which none of those steps reads,
-// with only the tasks in `tasks` kept. A step whose task lives in mise.toml names it, so an
-// edit to another task, a link or a comment does not run the step. Where yq fails, the
+// with only the tasks in `tasks` kept. A step whose task lives in mise.toml names it, and
+// every task that one depends on or runs, so an edit to another task, a link or a
+// comment does not run the step. Where yq fails, the
 // two never match, and the step runs.
 local function miseRead(rev: String, tasks: List<String>): String =
   let (names = tasks.map((t) -> #"\"\#(t)\""#).join(", "))
