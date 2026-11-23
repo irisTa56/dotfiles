@@ -1,5 +1,5 @@
 ---
-description: An English log of setting up a developer machine, to be summarized in Japanese, where install, reinstall and version each have an established katakana term
+description: An English log of setting up a developer machine, to be summarized in Japanese, where the model varies インストール into 導入 to avoid repeating it unless the skill names that case
 max_turns: 8
 allowed_tools: [Skill]
 ---

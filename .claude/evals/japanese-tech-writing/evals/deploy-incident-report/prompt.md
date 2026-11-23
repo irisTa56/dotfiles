@@ -1,5 +1,5 @@
 ---
-description: An English incident log about a failed deployment, to be summarized in Japanese, whose terms all have established katakana forms that none of the skill's examples name
+description: An English incident log about a failed deployment, to be summarized in Japanese, whose terms have established katakana forms that the model keeps even without the skill, so it guards against the skill pushing them into kanji
 max_turns: 8
 allowed_tools: [Skill]
 ---
