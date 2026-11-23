@@ -130,7 +130,7 @@ jobs:
           # What the tasks under qa:config: read the config files with.
           install_args: hk yq
           cache: false # as in `markdown-lint`
-      - run: hk check --all --step config
+      - run: hk check --all --step config --step mise-toml-width
 
   link-check-offline:
     runs-on: ubuntu-latest
