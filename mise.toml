@@ -153,9 +153,9 @@ run = [
   "lychee --offline --no-progress .",
   # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
   # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
-  # A target git ignores, such as an APM-installed skill, is absent from a fresh clone,
-  # so only targets git would track are reported, by path.
-  "! find -L .claude/evals -type l -exec realpath -m --relative-to=. {} + | git check-ignore --stdin -v -n | sed -n 's/^::\\t//p' | grep .",
+  # The japanese-tech-writing suite links a skill APM installs from a gist, which a fresh
+  # clone lacks, so that one link is left out.
+  "! find -L .claude/evals -type l -not -path .claude/evals/japanese-tech-writing/skills/japanese-tech-writing | grep .",
 ]
 
 # Validating `.claude/skills` reads it as a skills directory and does not reach the
