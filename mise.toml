@@ -40,11 +40,16 @@ postinstall = '''
 hk install --mise
 git config hook.secrets-push-scan.event pre-push
 git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
+on_main='test "$(git branch --show-current)" = main'
+switched='test "$3" = 1 && test "$1" != "$2"'
+warning='dotfiles-local was not installed, so ~/.local/bin keeps its previous build'
+install="mise run local:install || echo 'warning: $warning' >&2"
 git config hook.local-install-on-merge.event post-merge
-git config hook.local-install-on-merge.command 'if test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
+git config hook.local-install-on-merge.command "if $on_main; then $install; fi; :"
 git config hook.local-install-on-switch.event post-checkout
-git config hook.local-install-on-switch.command 'if test "$3" = 1 && test "$1" != "$2" && test "$(git branch --show-current)" = main; then mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2; fi; :'
-git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan || echo "warning: this git ignores hook.* config, so pushes are not scanned and dotfiles-local is not installed when main moves; git 2.54 or later runs them" >&2
+git config hook.local-install-on-switch.command "if $switched && $on_main; then $install; fi; :"
+git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan ||
+  echo "warning: git before 2.54 ignores hook.* config: pushes go unscanned, and dotfiles-local lags main" >&2
 '''
 
 # tasks/ holds the task definitions this repository shares with others (see README).
@@ -56,28 +61,28 @@ includes = ["tasks"]
 # `mise bootstrap` sets a machine up from this checkout: these dotfiles,
 # then the tools, then the bootstrap task below. Each source resolves from this
 # file's directory, so a run from a worktree would link into a directory that goes away.
+# The entries are in path order, so those under one directory sit together.
 [dotfiles]
-"~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
-"~/.config/uv/.python-version" = { content = "3.14\n" }
-"~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
-# Its keys only: Claude Code writes the same file itself.
-"~/.claude/settings.json/dotfiles" = { source = ".config/claude/settings.json", merge = true }
 # cargo's release window (README.md, "Release window"). User config rather than
 # CARGO_REGISTRY_GLOBAL_MIN_PUBLISH_AGE, which would outrank a project's own
 # .cargo/config.toml. Its keys only: the file may hold others.
 "~/.cargo/config.toml/dotfiles" = { source = ".config/cargo/config.toml", merge = true }
 "~/.claude/CLAUDE.md" = { source = ".claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/rules" = { source = ".claude/rules", mode = "symlink" }
+# Its keys only: Claude Code writes the same file itself.
+"~/.claude/settings.json/dotfiles" = { source = ".config/claude/settings.json", merge = true }
 "~/.claude/skills" = { source = ".claude/skills", mode = "symlink" }
-# A local VS Code extension that only adds preview.css to the built-in Markdown
-# preview, so the style applies in every folder; VS Code registers it on finding
-# the link. Its directory name must follow package.json's publisher.name-version.
-"~/.vscode/extensions/irista56.markdown-preview-style-0.0.1" = { source = ".config/vscode/markdown-preview-style", mode = "symlink" }
+"~/.config/git/ignore" = { source = ".config/git/ignore", mode = "copy" }
+"~/.config/mise/config.toml" = { source = ".config/mise/config.toml", mode = "symlink" }
+"~/.config/uv/.python-version" = { content = "3.14\n" }
+
 # Written out as content rather than linked, so it is no `.sh` file that hk.pkl's
 # shell checks reach: after changing it, run
 #   yq -r '.dotfiles."~/.local/bin/notify_desktop".content' mise.toml | shellcheck -
 # An edit reaches ~/.local/bin only at the next `mise dot apply` or `mise bootstrap`.
-"~/.local/bin/notify_desktop" = { permissions = "755", content = '''
+[dotfiles."~/.local/bin/notify_desktop"]
+permissions = "755"
+content = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -90,11 +95,19 @@ osascript \
   -e 'display notification (item 2 of argv) with title (item 1 of argv) sound name "Glass"' \
   -e 'end run' \
   "$1 ($(date '+%m/%d %H:%M'))" "$2"
-''' }
+'''
+
+# A local VS Code extension that only adds preview.css to the built-in Markdown
+# preview, so the style applies in every folder; VS Code registers it on finding
+# the link. Its directory name must follow package.json's publisher.name-version.
+[dotfiles."~/.vscode/extensions/irista56.markdown-preview-style-0.0.1"]
+source = ".config/vscode/markdown-preview-style"
+mode = "symlink"
 
 [bootstrap.hooks]
 pre-dotfiles = '''
-test "$(git rev-parse --path-format=absolute --git-dir)" = "$(git rev-parse --path-format=absolute --git-common-dir)" || {
+git_dir=$(git rev-parse --path-format=absolute --git-dir)
+test "$git_dir" = "$(git rev-parse --path-format=absolute --git-common-dir)" || {
   echo "run mise bootstrap from the main checkout: from a worktree, [dotfiles] would link into it" >&2
   exit 1
 }
@@ -155,7 +168,10 @@ run = [
   # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
   # The japanese-tech-writing suite links a skill APM installs from a gist, which a fresh
   # clone lacks, so that one link is left out.
-  "! find -L .claude/evals -type l -not -path .claude/evals/japanese-tech-writing/skills/japanese-tech-writing | grep .",
+  '''
+gist_skill=.claude/evals/japanese-tech-writing/skills/japanese-tech-writing
+! find -L .claude/evals -type l -not -path "$gist_skill" | grep .
+''',
 ]
 
 # Validating `.claude/skills` reads it as a skills directory and does not reach the
@@ -222,7 +238,10 @@ run = [
   "apm install",
   # Read from the file Claude Code keeps user-scoped servers in: `claude mcp get`
   # starts the server to check it, and `add-json` fails on one already there.
-  "jq -e '.mcpServers[\"basic-memory\"]' ~/.claude.json >/dev/null 2>&1 || claude mcp add-json -s user basic-memory '{\"command\":\"uvx\",\"args\":[\"basic-memory\",\"mcp\"]}'",
+  '''
+jq -e '.mcpServers["basic-memory"]' ~/.claude.json >/dev/null 2>&1 ||
+  claude mcp add-json -s user basic-memory '{"command":"uvx","args":["basic-memory","mcp"]}'
+''',
 ]
 
 # Installs dotfiles-local from this checkout, and only from main: every caller runs the
@@ -241,11 +260,12 @@ test "$(git branch --show-current)" = main || {
   echo "dotfiles-local installs from main only: run this in a checkout on main, or try a branch with cargo run" >&2
   exit 1
 }
-cargo +"${RUSTUP_TOOLCHAIN:?mise sets it for the rust tool}" install --locked --path rust/crates/local --profile local --root ~/.local
+cargo +"${RUSTUP_TOOLCHAIN:?mise sets it for the rust tool}" install \
+  --locked --path rust/crates/local --profile local --root ~/.local
 '''
 
 [tasks."dotfiles:setup"]
-description = "Run initial dotfiles setup (dircolors, shell startup files, npm and Hex release windows, rclone config encryption)"
+description = "Set up dircolors, shell startup files, npm and Hex release windows, and rclone config encryption"
 run = "~/.local/bin/dotfiles-local dotfiles-setup"
 
 [tasks."ccusage:daily"]
@@ -302,8 +322,9 @@ run = "~/.local/bin/dotfiles-local skills-update"
 [tasks."ts:types"]
 description = "Write the installed Claude Code CLI's type declarations for editing the function-hooks module"
 env = { CLAUDE_CODE_PLUGIN_DIR_WATCH = "1", CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1" }
-run = [
-  "rm -rf .claude/skills/global-hooks/.claude-plugin/types",
-  "claude -p --no-session-persistence --strict-mcp-config --plugin-dir .claude/skills/global-hooks /cost </dev/null >/dev/null",
-  "test -f .claude/skills/global-hooks/.claude-plugin/types/tsconfig.json",
-]
+run = '''
+plugin=.claude/skills/global-hooks
+rm -rf "$plugin/.claude-plugin/types"
+claude -p --no-session-persistence --strict-mcp-config --plugin-dir "$plugin" /cost </dev/null >/dev/null
+test -f "$plugin/.claude-plugin/types/tsconfig.json"
+'''

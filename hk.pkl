@@ -51,6 +51,14 @@ local fileSteps = new Mapping<String, Step> {
     check = "biome ci --error-on-warnings --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
     fix = "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {{files}}"
   }
+  // mise.toml holds shell scripts, which stay readable in an editor and a diff only
+  // where no line runs past 120 columns. grep counts characters, not bytes, under a
+  // UTF-8 locale, and C.UTF-8 is one both macOS and CI's Ubuntu have. Only grep's
+  // "no match" passes, so an error from grep fails the step too.
+  ["mise-toml-width"] {
+    glob = "mise.toml"
+    check = #"rc=0; LC_ALL=C.UTF-8 grep -Hn -E '^.{121}' {{files}} || rc=$?; test $rc -eq 1 || { echo 'mise-toml-width: keep each line within 120 columns' >&2; exit 1; }"#
+  }
 }
 
 // The same checks over every file they cover, for a commit that changes what their
