@@ -162,15 +162,17 @@ test "$mise_python" = "$uv_pin" || {
 # gating anything (.github/workflows/link-check-weekly.yml).
 [tasks."qa:links:offline"]
 description = "Check local links and anchors, and eval symlinks, without the network"
-run = '''
-lychee --offline --no-progress .
-# An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
-# and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
-# The japanese-tech-writing suite links a skill APM installs from a gist, which a fresh
-# clone lacks, so that one link is left out.
+run = [
+  "lychee --offline --no-progress .",
+  # An eval suite reaches its skills through symlinks that a skill rename leaves dangling,
+  # and `claude plugin validate` passes those; `find -L` lists only the dangling ones.
+  # The japanese-tech-writing suite links a skill APM installs from a gist, which a fresh
+  # clone lacks, so that one link is left out.
+  '''
 gist_skill=.claude/evals/japanese-tech-writing/skills/japanese-tech-writing
 ! find -L .claude/evals -type l -not -path "$gist_skill" | grep .
-'''
+''',
+]
 
 # Validating `.claude/skills` reads it as a skills directory and does not reach the
 # global-hooks plugin inside it, so that plugin is validated on its own. That run
