@@ -40,6 +40,8 @@ cask "corretto"
 cask "drawio"
 # Web browser
 cask "google-chrome"
+# Native desktop AI assistant from Google
+cask "google-gemini"
 # Code notebooks for Elixir developers
 cask "livebook"
 # Clipboard manager
