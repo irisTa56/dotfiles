@@ -1,5 +1,5 @@
 ---
 type: regex
-pattern: '導入|入れ直'
+pattern: '導入'
 match: not_contains
 ---
