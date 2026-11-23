@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.11.0...dotfiles-tasks-v0.12.0) (2026-11-23)
+
+
+### Features
+
+* **tasks:** rename link-check:staged to links:commit-check ([#531](https://github.com/irisTa56/dotfiles/issues/531)) ([e51e67c](https://github.com/irisTa56/dotfiles/commit/e51e67c07c95fa66a23fcd4e3a1dc5a9a4728efa))
+
 ## [0.11.0](https://github.com/irisTa56/dotfiles/compare/dotfiles-tasks-v0.10.0...dotfiles-tasks-v0.11.0) (2026-11-22)
 
 
