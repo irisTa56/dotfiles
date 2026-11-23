@@ -22,17 +22,16 @@ HOMEBREW_BUNDLE_DUMP_NO_VSCODE = "1"
 # safe to repeat, so it runs on every install; `--mise` runs hk through `mise x`.
 # The push scan is registered in git's config too, which runs beside any pre-push
 # hook file (see tasks/README.md).
-# Two more keep dotfiles-local current with main: `local:install` after a merge into
-# main, such as sync-base's fast-forward, and after a switch to main. Set in the
-# repository's config, they run in every worktree, whatever branch it is on, and
-# `local:install` fails off main, so each tests the branch before running mise.
-# post-checkout also runs on a checkout of files, whose third argument is 0
-# where a switch's is 1, and on a switch that leaves HEAD where it was, such as
-# sync-base's switch to the main it is already on, whose first two arguments match.
-# Neither changes the code checked out, so the hook installs only on a switch that
-# moves HEAD. A failed hook would fail `git switch`, which stops sync-base before main
-# moves, so a failed install only warns. git passes the hook's arguments
-# after the command too, and the trailing `:` takes them.
+# The local-install-on-* hooks keep dotfiles-local current with main: after a merge
+# into main, such as sync-base's fast-forward, after a switch to main, and after a
+# rebase of main, which moves main only when it ends, the point post-rewrite runs at.
+# `local:follow-main` decides from the event whether to install. Set in the
+# repository's config, they run in every worktree, so each starts mise only on main:
+# elsewhere it would cost every git command a mise start. --skip-tools keeps a tool
+# install out of a git command; the arguments go on as "$@". The task warns on a
+# failed install itself, so a failure reaching the hook is mise's own, and the hook
+# only warns on it: post-checkout's status becomes the switch's, which would stop
+# sync-base. The trailing `:` takes git's copy of the arguments.
 # git before 2.54 ignores those keys, so the last line says so rather than
 # leaving pushes unscanned and dotfiles-local stale in silence.
 [hooks]
@@ -40,14 +39,14 @@ postinstall = '''
 hk install --mise
 git config hook.secrets-push-scan.event pre-push
 git config hook.secrets-push-scan.command 'mise run secrets:push-scan'
-on_main='test "$(git branch --show-current)" = main'
-switched='test "$3" = 1 && test "$1" != "$2"'
-warning='dotfiles-local was not installed, so ~/.local/bin keeps its previous build'
-install="mise run local:install || echo 'warning: $warning' >&2"
+follow='test "$(git branch --show-current)" != main || mise run -q --skip-tools local:follow-main'
+warn="echo 'warning: mise did not run local:follow-main, so dotfiles-local may lag main' >&2; :"
 git config hook.local-install-on-merge.event post-merge
-git config hook.local-install-on-merge.command "if $on_main; then $install; fi; :"
+git config hook.local-install-on-merge.command "$follow post-merge \"\$@\" || $warn"
 git config hook.local-install-on-switch.event post-checkout
-git config hook.local-install-on-switch.command "if $switched && $on_main; then $install; fi; :"
+git config hook.local-install-on-switch.command "$follow post-checkout \"\$@\" || $warn"
+git config hook.local-install-on-rebase.event post-rewrite
+git config hook.local-install-on-rebase.command "$follow post-rewrite \"\$@\" || $warn"
 git hook list pre-push 2>/dev/null | grep -qx secrets-push-scan ||
   echo "warning: git before 2.54 ignores hook.* config: pushes go unscanned, and dotfiles-local lags main" >&2
 '''
@@ -262,6 +261,44 @@ test "$(git branch --show-current)" = main || {
 }
 cargo +"${RUSTUP_TOOLCHAIN:?mise sets it for the rust tool}" install \
   --locked --path rust/crates/local --profile local --root ~/.local
+'''
+
+# The local-install-on-* git hooks ([hooks] postinstall) run this on main, and it
+# installs only where the event can have changed the build; a failed install warns
+# that the binary in place stays. Each guard ends the run where the event leaves the
+# build as it is:
+# - post-checkout: a checkout of files (third argument 0), or a switch that leaves
+#   HEAD in place (the same commit twice), such as sync-base's switch to the main it
+#   is already on. Any other switch installs, which is how a failed install is retried.
+# - post-rewrite: an amend, as a commit on main installs nothing either.
+# - post-merge, and post-rewrite after a rebase: one that leaves what local:install
+#   reads as it was before, which is the workspace but the dotfiles-tasks package's
+#   own files, and mise.toml's rust tool and local:install; a release's version bump
+#   in rust/Cargo.toml counts. "Before" is main@{1}, main's previous position, which
+#   the event moves once; ORIG_HEAD would not do, as a `git reset` inside a rebase
+#   moves it. Where main@{1} cannot be compared, it installs.
+# A `git rebase` with nothing to replay only fast-forwards and runs none of these
+# hooks, so it needs `mise run local:install` by hand; `git pull --rebase` with
+# nothing to replay fast-forwards as a merge, which post-merge covers.
+[tasks."local:follow-main"]
+description = "Install dotfiles-local after a git hook event that can have changed its build"
+usage = '''
+arg "<event>" help="The git hook that runs this"
+arg "[args]" var=#true help="The hook's own arguments"
+'''
+run = '''
+test "$(git branch --show-current)" = main || exit 0
+set -- ${usage_args-}
+test "$usage_event" != post-checkout || { test "$3" = 1 && test "$1" != "$2"; } || exit 0
+test "$usage_event" != post-rewrite || test "$1" = rebase || exit 0
+case $usage_event in post-merge | post-rewrite)
+  view='[.tools.rust, .tasks["local:install"]]'
+  git diff --quiet 'main@{1}' HEAD -- rust ':!rust/src' ':!rust/tests' ':!rust/CHANGELOG.md' &&
+    before=$(git show 'main@{1}:mise.toml' | yq -p toml -o json -I0 "$view") &&
+    test "$before" = "$(git show HEAD:mise.toml | yq -p toml -o json -I0 "$view")" &&
+    exit 0
+esac
+mise run local:install || echo "warning: dotfiles-local was not installed, so ~/.local/bin keeps its previous build" >&2
 '''
 
 [tasks."dotfiles:setup"]

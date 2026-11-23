@@ -12,21 +12,32 @@ import "package://github.com/jdx/hk/releases/download/v2.13.0/hk@2.13.0#/Builtin
 // change besides. It runs no fix, so nothing is stashed, and each check reads the
 // working tree.
 
-// The files every check depends on: the mise config that pins the tools, including the
-// Claude Code CLI .config/mise/config.toml declares, and this file. A new release of a
-// tool declared at `latest` changes none of them, so a commit can skip a check that
-// release would fail; CI, which runs every step on every run, catches that, except for
-// `plugins`, which CI does not run.
-local tooling = List("mise.toml", ".config/mise/config.toml", "hk.pkl")
+// The files every check depends on: the global mise config, which pins tools such as
+// the Claude Code CLI, and this file. A new release of a tool declared at `latest`
+// changes neither, so a commit can skip a check that release would fail; CI, which runs
+// every step on every run, catches that, except for `plugins`, which CI does not run.
+local tooling = List(".config/mise/config.toml", "hk.pkl")
+
+// mise.toml as a step with a condition reads it, at `rev` (an empty `rev` is the index):
+// every table but [dotfiles], [hooks] and [bootstrap], which none of those steps reads,
+// with only the tasks in `tasks` kept. A step whose task lives in mise.toml names it, and
+// every task that one depends on or runs, so an edit to another task, a link or a
+// comment does not run the step. A named task that mise.toml lacks, as after a
+// rename, fails yq; where yq fails, the two never match, and the step runs.
+local function miseRead(rev: String, tasks: List<String>): String =
+  let (names = tasks.map((t) -> #"\"\#(t)\""#).join(", "))
+    #"$(git show \#(rev):mise.toml | yq -p toml -o json -I0 'del(.dotfiles, .hooks, .bootstrap) | .tasks |= pick([\#(names)]) | if (.tasks | length) == \#(tasks.length) then . else error(\"missing task\") end')"#
 
 // A step's condition on the commit: true when it stages a change under one of `paths` or
-// to `tooling`. It is a `git diff --cached` rather than hk's `glob`, which matches only
-// the staged files that are still there, so a commit that only deletes such a file would
-// skip the step. The diff also sees a mode change, a symlink and a binary file, which
-// `glob` leaves out by default, and reads the index `git commit <path>` builds, which
-// git names in GIT_INDEX_FILE. It runs at the repository's root.
-local function staged(paths: List<String>): String =
+// to `tooling`, or a change to mise.toml that `miseRead` keeps. It is a `git diff
+// --cached` rather than hk's `glob`, which matches only the staged files that are still
+// there, so a commit that only deletes such a file would skip the step. The diff also
+// sees a mode change, a symlink and a binary file, which `glob` leaves out by default,
+// and reads the index `git commit <path>` builds, which git names in GIT_INDEX_FILE, as
+// `git show :mise.toml` does. It runs at the repository's root.
+local function staged(paths: List<String>, tasks: List<String>): String =
   #"!exec_ok("git diff --cached --quiet -- "# + (paths + tooling).join(" ") + #"")"#
+    + #" || !exec_ok("git diff --cached --quiet -- mise.toml || { before=\#(miseRead("HEAD", tasks)) && test \"$before\" = \"\#(miseRead("", tasks))\"; }")"#
 
 // The shell scripts: the task scripts under tasks/ and the shell startup fragments.
 local shDirs = List("tasks", "zsh_fragments")
@@ -65,19 +76,19 @@ local fileSteps = new Mapping<String, Step> {
 // result depends on without staging a file they read.
 local treeSteps = new Mapping<String, Step> {
   ["rumdl-tree"] {
-    step_condition = staged(List(".rumdl.toml"))
+    step_condition = staged(List(".rumdl.toml"), List())
     check = "rumdl check"
   }
   ["shellcheck-tree"] {
-    step_condition = staged(List())
+    step_condition = staged(List(), List())
     check = "\(shFind) shellcheck {} +"
   }
   ["shfmt-tree"] {
-    step_condition = staged(List(".editorconfig"))
+    step_condition = staged(List(".editorconfig"), List())
     check = "\(shFind) shfmt -d {} +"
   }
   ["biome-tree"] {
-    step_condition = staged(List("biome.json"))
+    step_condition = staged(List("biome.json"), List())
     check = "biome ci --error-on-warnings"
   }
 }
@@ -123,10 +134,10 @@ hooks {
       // The Rust tests run the task wrappers and scripts under tasks/ and the tools the
       // mise config declares, so a change to either runs them as a change to rust/ does.
       ["rust"] = (projectSteps["rust"]) {
-        step_condition = staged(List("rust", "tasks"))
+        step_condition = staged(List("rust", "tasks"), List("qa:rust:crates"))
       }
       ["skills-size"] = (projectSteps["skills-size"]) {
-        step_condition = staged(List(".claude/skills", "rust"))
+        step_condition = staged(List(".claude/skills", "rust"), List("qa:rust:skills"))
       }
       // Every commit, as the files the `qa:config:` tasks read grow with the tasks.
       ["config"] = projectSteps["config"]
@@ -136,7 +147,7 @@ hooks {
       // `claude plugin validate .claude/skills` reads the skills apm installs there too,
       // which a change to apm.yml or apm.lock.yaml brings in.
       ["plugins"] = (projectSteps["plugins"]) {
-        step_condition = staged(List(".claude/skills", "apm.yml", "apm.lock.yaml"))
+        step_condition = staged(List(".claude/skills", "apm.yml", "apm.lock.yaml"), List("qa:plugins"))
       }
       // The shared tasks that read the staged change itself, which only a commit has.
       ["secrets"] {
