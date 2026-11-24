@@ -40,6 +40,10 @@ These rules assume nothing beyond a conversation with the user.
 - Look first at what is already there, and build on it where it is sound, or, before building anything else, say what building on it cannot fix; reinventing the wheel is not undone by finding it afterwards.
   - Inside the codebase: a feature or helper that does the same job, the arrangement the change would replace.
   - Outside it: the tool's native features, existing OSS, an issue tracker already tracking it as a defect.
+- Where a check rejects the place a change belongs because of a gap in the check rather than a fault in the change, weigh exempting only what it cannot judge (one suppression, the missing declaration) against moving the change.
+  - A move that adds a mechanism to get around the check needs that exemption ruled out first.
+  - A security or policy check is not exempted this way.
+  - Name an exemption you take to the user, with what the check cannot judge there.
 - Leave out of a comment, and of the documentation beside the code, what stops telling its reader anything once time passes — a version floor every install will soon be past, a state that held only while the change was landing. Keep the reason that holds for as long as the code does.
 - An explanation of a change says what is different now, and why: what the thing as a whole now does, or asserts, that it did not. Which lines moved is not that, and neither is a list of the wording fixes.
 
