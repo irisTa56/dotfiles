@@ -53,6 +53,7 @@ Where it refuses, read the pull request again and show the new message rather th
 Where the merge fails for another reason, report what `gh` says rather than working around it.
 
 Once the merge succeeds, run `~/.local/bin/dotfiles-local git-sync-base <base>`, and report what the base moved to and which branch this checkout is on, since continuing work wants a fresh branch off the base.
+Where it rebased commits that only the local base had, report their hashes before and after as it prints them, since whoever made those commits may have cited the old ones.
 Where that fails, report what git says and that the merge itself went through, rather than working around it.
 
 Where another session started this one and the merge finishes the task it gave, send that session one `SendMessage` saying so, with the pull request's number, since the app does not relay a turn the user drives to it.
