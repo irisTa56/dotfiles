@@ -13,7 +13,8 @@
   - A Copilot-authored one prints `.github/skills/<name>/…` paths that resolve nowhere here; its companion files sit beside the `SKILL.md` under `~/.claude/skills/<name>/`, and the wrong path text is knowingly left as it stands.
   - Search them with `command grep -r --exclude-dir=worktrees`; bare `grep` here is a harness wrapper around `ugrep --ignore-files`, so it shares `rg`'s blind spot and sees only the tracked ones, and a short result reads as an answer rather than as a failure.
     - Neither honors `.git/info/exclude`, which is where `.claude/worktrees/` is excluded, so its copy of every skill and rule comes back as hits unless the search drops that directory.
-- Run `mise install` only in the main checkout, and only when the user asks: its `[hooks] postinstall` (`mise.toml`) writes hook commands into the git config every worktree shares, so a run in a worktree whose `[hooks]` differs from `main` installs that branch's hooks for every checkout.
+- Run `mise install` or `mise use` without `MISE_NO_HOOKS=1` only in the main checkout, and only when the user asks: mise then runs the `[hooks] postinstall` in `mise.toml`, which writes hook commands into the git config every worktree shares.
+  - On a branch that changes `[hooks]`, set `MISE_NO_HOOKS=1` on every mise command, since `mise x` and `mise run` also run that hook when they install a missing tool, and it would install the branch's hooks for every checkout.
 - Checks: `mise run check` from this repository's root.
   - It also leaves out skill evals, which spend plan usage; [skill-evals.md](.claude/rules/skill-evals.md) says when an edit to a skill calls for them.
   - Pass `rumdl` no path; an explicit `.claude/skills/*/SKILL.md` glob sweeps the vendored copies that `.gitignore` holds out of the default run.
