@@ -55,6 +55,25 @@ impl Fixture {
         self.upstream(&["commit", "--quiet", "--allow-empty", "--message", message]);
     }
 
+    /// Commits `file` with `content` in `dir`.
+    fn commit_file(&self, dir: &Path, file: &str, content: &str) {
+        fs::write(dir.join(file), content).expect("the file is written");
+        self.git(dir, &["add", file]);
+        self.git(dir, &["commit", "--quiet", "--message", file]);
+    }
+
+    /// Pushes a commit of `file` with `content` to origin's `main`.
+    fn push_file(&self, file: &str, content: &str) {
+        let upstream = self.root().join("upstream");
+        self.commit_file(&upstream, file, content);
+        self.upstream(&["push", "--quiet", "origin", "HEAD:main"]);
+    }
+
+    /// The subjects of the commits on `main` in `dir`, newest first.
+    fn subjects(&self, dir: &Path) -> String {
+        self.read(dir, &["log", "--format=%s", "main"])
+    }
+
     /// Runs git with `args` in the upstream clone.
     fn upstream(&self, args: &[&str]) {
         self.git(&self.root().join("upstream"), args);
@@ -254,31 +273,227 @@ fn fast_forwards_the_base_this_checkout_is_on() {
     );
 }
 
-// Where git fails, the run ends with git's exit code and what git says alone, and
-// does nothing after it: a base that has moved apart from origin is not switched to
-// and left unmerged.
+// Where the base has commits origin lacks, as when another session committed to it
+// and has not pushed, and origin has moved on as well, a fast-forward cannot reach
+// origin, so those commits are rebased onto it, and the run says what they were and
+// what they became.
 #[test]
-fn ends_with_gits_failure() {
+fn rebases_commits_only_the_base_has_onto_origin() {
     let sandbox = Fixture::new("diverged");
-    sandbox.commit("upstream");
-    sandbox.upstream(&["push", "--quiet", "origin", "HEAD:main"]);
+    sandbox.push_file("merged", "merged\n");
     sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&sandbox.work(), "local", "local\n");
+    let before = sandbox.read(&sandbox.work(), &["log", "-1", "--format=%h local", "main"]);
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(0), "{stderr}");
+    assert_eq!(sandbox.subjects(&sandbox.work()), "local\nmerged\nfirst");
+    let after = sandbox.read(&sandbox.work(), &["log", "-1", "--format=%h local", "main"]);
+    assert!(
+        stderr.ends_with(&format!(
+            "Rebased the commits main had that origin/main lacked onto it.\nBefore:\n  {before}\nAfter:\n  {after}\n"
+        )),
+        "{stderr}"
+    );
+}
+
+// Where another worktree holds the base, the commits are rebased there, and the run
+// says so in place of the fast-forward it did not do.
+#[test]
+fn rebases_in_the_worktree_holding_the_base() {
+    let sandbox = Fixture::new("diverged-held-elsewhere");
+    let holder = sandbox.root().join("held");
     sandbox.git(
         &sandbox.work(),
-        &["commit", "--quiet", "--allow-empty", "--message", "local"],
+        &["worktree", "add", "--quiet", "../held", "main"],
+    );
+    sandbox.push_file("merged", "merged\n");
+    sandbox.commit_file(&holder, "local", "local\n");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(0), "{stderr}");
+    assert!(
+        stderr.ends_with(&format!(
+            "Rebased main in {}; this checkout stays on feature.\n",
+            fs::canonicalize(&holder)
+                .expect("the holder exists")
+                .display()
+        )),
+        "{stderr}"
+    );
+    assert_eq!(sandbox.subjects(&holder), "local\nmerged\nfirst");
+}
+
+// A rebase that conflicts in the worktree holding the base is undone there, so that
+// worktree is not left partway through it.
+#[test]
+fn undoes_a_conflicting_rebase_in_the_worktree_holding_the_base() {
+    let sandbox = Fixture::new("diverged-held-elsewhere-conflict");
+    let holder = sandbox.root().join("held");
+    sandbox.git(
+        &sandbox.work(),
+        &["worktree", "add", "--quiet", "../held", "main"],
+    );
+    sandbox.push_file("shared", "origin\n");
+    sandbox.commit_file(&holder, "shared", "local\n");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
+    assert_eq!(
+        (
+            sandbox.subjects(&holder),
+            sandbox.read(&holder, &["status", "--porcelain"]),
+            sandbox.read(&holder, &["branch", "--show-current"]),
+        ),
+        ("shared\nfirst".to_owned(), String::new(), "main".to_owned())
+    );
+}
+
+// Where those commits do not rebase cleanly, the rebase is undone and the run fails,
+// leaving the base as it was and naming the commits that stopped it.
+#[test]
+fn leaves_the_base_as_it_was_where_the_rebase_conflicts() {
+    let sandbox = Fixture::new("diverged-conflict");
+    sandbox.push_file("shared", "origin\n");
+    sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&sandbox.work(), "shared", "local\n");
+    let local = sandbox.read(
+        &sandbox.work(),
+        &["log", "-1", "--format=%h shared", "main"],
     );
 
     let run = sandbox.run(&sandbox.work(), &["main"]);
 
     let stderr = String::from_utf8_lossy(&run.stderr);
-    assert_eq!(run.status.code(), Some(128), "{stderr}");
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
     assert!(
-        stderr.ends_with("fatal: Not possible to fast-forward, aborting.\n"),
+        stderr.ends_with(&format!(
+            "main has commits origin/main lacks that do not rebase onto it cleanly, so main is left as it was:\n  {local}\n"
+        )),
         "{stderr}"
     );
     assert_eq!(
-        sandbox.read(&sandbox.work(), &["log", "-1", "--format=%s"]),
-        "local"
+        (
+            sandbox.subjects(&sandbox.work()),
+            sandbox.read(&sandbox.work(), &["status", "--porcelain"]),
+            sandbox.read(&sandbox.work(), &["branch", "--show-current"]),
+        ),
+        ("shared\nfirst".to_owned(), String::new(), "main".to_owned())
+    );
+}
+
+// Where the rebase cannot start, as when an untracked file in the checkout holding the
+// base is one it would overwrite, the run fails with the rebase's own exit code, leaving
+// the base and the untracked file as they were and naming the commits.
+#[test]
+fn leaves_the_base_as_it_was_where_the_rebase_does_not_start() {
+    let sandbox = Fixture::new("diverged-rebase-refused");
+    sandbox.push_file("merged", "merged\n");
+    sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&sandbox.work(), "local", "local\n");
+    let local = sandbox.read(&sandbox.work(), &["log", "-1", "--format=%h local", "main"]);
+    fs::write(sandbox.work().join("merged"), "mine\n").expect("the file is written");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
+    assert_eq!(
+        stderr.lines().last(),
+        Some(format!("  {local}").as_str()),
+        "{stderr}"
+    );
+    assert_eq!(
+        (
+            sandbox.subjects(&sandbox.work()),
+            fs::read_to_string(sandbox.work().join("merged")).expect("the file is read"),
+        ),
+        ("local\nfirst".to_owned(), "mine\n".to_owned())
+    );
+}
+
+// Where the commits the base has include a merge, the run never silently loses it: it
+// either keeps as many merges as the base had, or fails and leaves the base where it was.
+#[test]
+fn never_loses_a_merge_among_the_commits_only_the_base_has() {
+    let sandbox = Fixture::new("diverged-merge");
+    let work = sandbox.work();
+    sandbox.git(&work, &["switch", "--quiet", "main"]);
+    sandbox.git(&work, &["switch", "--quiet", "--create", "side"]);
+    sandbox.commit_file(&work, "side", "side\n");
+    sandbox.git(&work, &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&work, "local", "local\n");
+    sandbox.git(&work, &["merge", "--quiet", "--no-ff", "--no-edit", "side"]);
+    let merges = sandbox
+        .read(
+            &work,
+            &["rev-list", "--merges", "--count", "origin/main..main"],
+        )
+        .parse::<usize>()
+        .expect("a count");
+    assert_eq!(merges, 1);
+    let before = sandbox.read(&work, &["rev-parse", "main"]);
+    sandbox.push_file("merged", "merged\n");
+
+    let run = sandbox.run(&work, &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    let after = sandbox.read(&work, &["rev-parse", "main"]);
+    let kept = sandbox.read(
+        &work,
+        &["rev-list", "--merges", "--count", "origin/main..main"],
+    );
+    assert!(
+        (run.status.success() && kept == merges.to_string())
+            || (!run.status.success() && after == before),
+        "exit {:?}, merges {kept} of {merges}, main {before} -> {after}\n{stderr}",
+        run.status.code()
+    );
+}
+
+// Where the worktree holding the base has uncommitted changes to tracked files, the
+// commits are not rebased, even where git is set to stash those changes around a
+// rebase, since the stash is shared by every worktree; the run fails, saying why and
+// naming the commits.
+#[test]
+fn leaves_a_base_with_uncommitted_changes_unrebased() {
+    let sandbox = Fixture::new("diverged-dirty");
+    sandbox.push_file("merged", "merged\n");
+    sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
+    sandbox.git(&sandbox.work(), &["config", "rebase.autoStash", "true"]);
+    sandbox.commit_file(&sandbox.work(), "local", "local\n");
+    let local = sandbox.read(&sandbox.work(), &["log", "-1", "--format=%h local", "main"]);
+    fs::write(sandbox.work().join("local"), "in progress\n").expect("the file is written");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
+    assert_eq!(
+        stderr.lines().rev().take(2).collect::<Vec<_>>(),
+        [
+            format!("  {local}").as_str(),
+            "main has uncommitted changes to tracked files, so its commits origin/main lacks are not rebased onto it:",
+        ],
+        "{stderr}"
+    );
+    assert_eq!(
+        (
+            sandbox.subjects(&sandbox.work()),
+            fs::read_to_string(sandbox.work().join("local")).expect("the file is read"),
+            sandbox.read(&sandbox.work(), &["stash", "list"]),
+        ),
+        (
+            "local\nfirst".to_owned(),
+            "in progress\n".to_owned(),
+            String::new()
+        )
     );
 }
 

@@ -19,8 +19,10 @@ Take the current branch from `git branch --show-current`, and skip the query whe
 Where neither yields a base, leave it out, and the command takes origin's default branch.
 
 Run `~/.local/bin/dotfiles-local git-sync-base <base>`.
-It switches this checkout to the base and fast-forwards it, or, where another worktree has the base checked out, fast-forwards that worktree and leaves this checkout where it is.
+It switches this checkout to the base and brings it up to origin, or, where another worktree has the base checked out, brings that worktree's up and leaves this checkout where it is.
+It fast-forwards, or, where the local base has commits origin lacks and origin has moved on as well, rebases those commits onto origin's base.
 Where it fails, report what git says rather than working around it.
 
 Report what the base moved to, and which branch this checkout is on, since continuing work wants a fresh branch off the base.
+Where it rebased commits that only the local base had, report their hashes before and after as it prints them, since whoever made those commits may have cited the old ones.
 The merged branch and its worktree are left alone, for `sweep-branches` to clear with the rest.
