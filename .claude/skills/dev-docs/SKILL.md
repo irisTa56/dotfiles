@@ -37,7 +37,7 @@ Where the diff adds or changes these documents, the person also reads it, since 
 
 - Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as the list above and its reference state them.
   - A reviewer who is not told raises whatever the building session might trip on, and since each such finding is true, taking findings on their truth turns a plan into an implementation plan and a decision record into a list of a tool's behaviours.
-- Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge can only be superseded.
+- Where the diff adds an ADR or closes a phase, offer the person a `cold-check` of the claims in the ADR or in the plan's Evidence lines before the pull request opens, since after the merge a false claim in an ADR can only be superseded, and a closed plan is not edited again.
 
 ## Fit the repository first
 
@@ -63,6 +63,7 @@ Read the reference for each document you write or change, and only those:
 2. Research whatever could swing the direction, such as which data source or dependency to use, before writing the plan.
    - Start from what earlier research, such as the roadmap's, left in the private workspace, and check a finding again before the plan rests on it, since facts such as a service's load or a repository's activity can change within days.
    - For a choice among candidates, take the candidates from a source that lists the field, such as a comparison page its community keeps, before turning any down, since a search that starts from the ones you know returns those.
+   - Where the phase renames, moves or removes something called by name or path, search for its callers outside the repository too, in every repository that uses it and wherever unattended runs are defined, such as `~/.claude/scheduled-tasks`, since a caller there can decide what the phase may change.
    - Where settling an assumption takes something only the person can allow, such as a large download or an install, ask for it now rather than carrying the assumption into the plan unverified.
    - Where the notes and a download go is in [Research](#research).
 3. Take the person through each decision that sets what the phase delivers or what it is built on before writing the plan, one decision at a time, with the candidates, what the research found for each, and the one you would pick.
