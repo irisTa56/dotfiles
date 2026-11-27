@@ -84,6 +84,7 @@ The IDs are local to the plan.
     - What the check supplies, such as the reference a result is compared with or the input it is run on, is the Check's to say and not the item's, and what the person would see stays in the item.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
     - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example.
+    - A Check that no use of an old name remains names where it searches and each form the name takes, such as a task name, a path and a module name, and leaves mentions in prose to a reading of the diff, since a search cannot tell them from other uses of a common word.
   - Every R and every unverified A appears in at least one item, or the plan says why not.
 - **Open questions**: only questions whose answer will not change this plan.
   - One that could change a requirement, a decision, or a Done when item cannot wait, so resolve it before committing the plan.
