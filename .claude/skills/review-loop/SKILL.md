@@ -1,6 +1,7 @@
 ---
 name: review-loop
 description: "Orchestrate an iterate-until-clean review of code you just changed: a subagent reviews, you judge and fix, and rounds repeat until one leaves the change untouched. Invoke when the user asks to pass the current changes through review, or when a workflow step calls for a review pass."
+allowed-tools: Bash(~/.local/bin/review-loop-record *)
 ---
 
 # Review Loop
@@ -15,7 +16,8 @@ The last two both go to the user, and "Waiting on the user" governs both.
 ## The record
 
 The loop keeps its state in files, so it survives a compaction and a session that ends mid-loop; re-read them whenever your own context no longer holds what they say.
-Its verdict section lives at `$(git rev-parse --abbrev-ref HEAD).md` under "the record directory", `$HOME/.claude/review-loop/$(git rev-parse --path-format=absolute --git-common-dir | tr / -)/`, and its background at the same path under "the background directory", `$HOME/.claude/review-loop-background/` in place of `$HOME/.claude/review-loop/` (create the leading directories).
+Its verdict section lives at the branch's name with `.md` under "the record directory", and its background at the same path under "the background directory".
+`~/.local/bin/review-loop-record paths`, run in the checkout, creates both directories and prints them and the two files' paths: copy a path from its output wherever you write one, a prompt included, rather than composing it.
 Each directory is keyed by the common git dir, which linked worktrees share, and sits outside the repository, so `git worktree remove` leaves it alone, it never reaches the reviewer through `git status`, and a worktree-isolated agent can still write it where the harness refuses that agent writes under the common git dir.
 
 It has two sections, each a file of its own, so a reviewer can be handed the background without the verdicts:
