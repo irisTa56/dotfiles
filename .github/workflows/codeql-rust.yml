@@ -1,0 +1,44 @@
+name: CodeQL (Rust)
+
+# Advanced setup in place of CodeQL default setup, which cannot skip a language by
+# changed paths: Rust analysis takes minutes, and every tracked Rust file sits under
+# rust/, so a change outside it has nothing for this run to find. The path filter is
+# safe because no ruleset requires a CodeQL check or code scanning results, so a run
+# skipped here blocks no merge. The weekly run keeps main's analysis on this week's
+# CodeQL queries even when no Rust change lands. Workflow files are analyzed by
+# codeql-actions.yml, which has no path filter.
+
+on:
+  pull_request:
+    paths:
+      - "rust/**"
+      - ".github/workflows/codeql-rust.yml"
+  push:
+    branches: [main]
+    paths:
+      - "rust/**"
+      - ".github/workflows/codeql-rust.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (rust)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # build-mode none, as default setup used: CodeQL extracts Rust without a build,
+      # so the job needs no toolchain.
+      - uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          languages: rust
+          build-mode: none
+      - uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          category: "/language:rust"
