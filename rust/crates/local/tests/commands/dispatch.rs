@@ -6,7 +6,7 @@ use std::process::{Command, Output};
 use crate::support::DOTFILES_LOCAL;
 
 /// Every command, as `--help` lists them.
-const COMMANDS: [&str; 14] = [
+const COMMANDS: [&str; 16] = [
     "ask-email-in-request",
     "ccusage",
     "dotfiles-setup",
@@ -17,6 +17,8 @@ const COMMANDS: [&str; 14] = [
     "git-sync-base",
     "mise-multi-upgrade",
     "reply-language-stop",
+    "review-loop-record-paths",
+    "review-loop-record-selector-input",
     "skills-push",
     "skills-unmanaged",
     "skills-update",
