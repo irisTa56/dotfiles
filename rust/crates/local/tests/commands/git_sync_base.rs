@@ -361,6 +361,75 @@ fn leaves_the_base_as_it_was_where_the_rebase_conflicts() {
     );
 }
 
+// Where the rebase cannot start, as when an untracked file in the checkout holding the
+// base is one it would overwrite, the run fails with the rebase's own exit code, leaving
+// the base and the untracked file as they were and naming the commits.
+#[test]
+fn leaves_the_base_as_it_was_where_the_rebase_does_not_start() {
+    let sandbox = Fixture::new("diverged-rebase-refused");
+    sandbox.push_file("merged", "merged\n");
+    sandbox.git(&sandbox.work(), &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&sandbox.work(), "local", "local\n");
+    let local = sandbox.read(&sandbox.work(), &["log", "-1", "--format=%h local", "main"]);
+    fs::write(sandbox.work().join("merged"), "mine\n").expect("the file is written");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
+    assert_eq!(
+        stderr.lines().last(),
+        Some(format!("  {local}").as_str()),
+        "{stderr}"
+    );
+    assert_eq!(
+        (
+            sandbox.subjects(&sandbox.work()),
+            fs::read_to_string(sandbox.work().join("merged")).expect("the file is read"),
+        ),
+        ("local\nfirst".to_owned(), "mine\n".to_owned())
+    );
+}
+
+// Where the commits the base has include a merge, the run never silently loses it: it
+// either keeps as many merges as the base had, or fails and leaves the base where it was.
+#[test]
+fn never_loses_a_merge_among_the_commits_only_the_base_has() {
+    let sandbox = Fixture::new("diverged-merge");
+    let work = sandbox.work();
+    sandbox.git(&work, &["switch", "--quiet", "main"]);
+    sandbox.git(&work, &["switch", "--quiet", "--create", "side"]);
+    sandbox.commit_file(&work, "side", "side\n");
+    sandbox.git(&work, &["switch", "--quiet", "main"]);
+    sandbox.commit_file(&work, "local", "local\n");
+    sandbox.git(&work, &["merge", "--quiet", "--no-ff", "--no-edit", "side"]);
+    let merges = sandbox
+        .read(
+            &work,
+            &["rev-list", "--merges", "--count", "origin/main..main"],
+        )
+        .parse::<usize>()
+        .expect("a count");
+    assert_eq!(merges, 1);
+    let before = sandbox.read(&work, &["rev-parse", "main"]);
+    sandbox.push_file("merged", "merged\n");
+
+    let run = sandbox.run(&work, &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    let after = sandbox.read(&work, &["rev-parse", "main"]);
+    let kept = sandbox.read(
+        &work,
+        &["rev-list", "--merges", "--count", "origin/main..main"],
+    );
+    assert!(
+        (run.status.success() && kept == merges.to_string())
+            || (!run.status.success() && after == before),
+        "exit {:?}, merges {kept} of {merges}, main {before} -> {after}\n{stderr}",
+        run.status.code()
+    );
+}
+
 // Where the worktree holding the base has uncommitted changes to tracked files, the
 // commits are not rebased, even where git is set to stash those changes around a
 // rebase, since the stash is shared by every worktree; the run fails, saying why and

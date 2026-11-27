@@ -2,6 +2,7 @@
 //! pull request into it merges.
 
 use std::io::{self, Write};
+use std::path::Path;
 use std::str::FromStr;
 
 use clap::Args;
@@ -19,9 +20,10 @@ use crate::program::exit_code;
 /// worktree is fast-forwarded in place and this checkout stays on its current branch.
 ///
 /// Where the branch has commits origin lacks and origin has moved on as well, those
-/// commits are rebased onto origin's branch instead, and their hashes before and after
-/// are printed. Where the worktree holding the branch has uncommitted changes to tracked
-/// files, or the rebase conflicts, the branch is left as it was and the run fails.
+/// commits are rebased onto origin's branch instead, any merges among them kept, and
+/// their hashes before and after are printed. Where the worktree holding the branch has
+/// uncommitted changes to tracked files, or the rebase fails, the branch is left as it
+/// was and the run fails.
 #[derive(Debug, Args)]
 pub(crate) struct Request {
     /// The base branch [default: origin's default branch]
@@ -115,46 +117,84 @@ impl<'a> Base<'a> {
     /// upstream lacks and the upstream has moved on as well, rebases those commits
     /// onto it, returning which of the two it did.
     fn bring_up(&self) -> Result<&'static str, Failure> {
-        if self.only_upstream_has()?.is_empty() || self.only_branch_has()?.is_empty() {
+        let local = self.only_branch_has()?;
+        if local.is_empty() || self.only_upstream_has()?.is_empty() {
             git(&self.at(&["merge", "--ff-only", self.upstream]))?;
             return Ok("Fast-forwarded");
         }
-        let before = self.only_branch_has()?;
-        if !read(&self.at(&["status", "--porcelain", "--untracked-files=no"]))?.is_empty() {
-            return Err(Failure::new(
-                format_args!(
-                    "{} has uncommitted changes to tracked files, so its commits {} lacks are not rebased onto it:\n{}",
-                    self.branch,
-                    self.upstream,
-                    indent(&before)
-                ),
-                1,
-            ));
+        self.check_clean(&local)?;
+        self.rebase(&local)?;
+        self.report_rebased(&local)?;
+        Ok("Rebased")
+    }
+
+    /// Fails, naming the `local` commits, where the worktree holding the branch has
+    /// uncommitted changes to tracked files, which a rebase would have to stash.
+    fn check_clean(&self, local: &str) -> Result<(), Failure> {
+        if read(&self.at(&["status", "--porcelain", "--untracked-files=no"]))?.is_empty() {
+            return Ok(());
         }
+        Err(Failure::new(
+            format_args!(
+                "{} has uncommitted changes to tracked files, so its commits {} lacks are not rebased onto it:\n{}",
+                self.branch,
+                self.upstream,
+                indent(local)
+            ),
+            1,
+        ))
+    }
+
+    /// Rebases the `local` commits, merges kept, onto the upstream, or, where that
+    /// fails, undoes whatever of it started and fails, naming them.
+    fn rebase(&self, local: &str) -> Result<(), Failure> {
         // Not stashed around the rebase, since every worktree shares the stash.
-        let rebase = command(&self.at(&["rebase", "--no-autostash", self.upstream])).status()?;
-        if !rebase.success() {
-            git(&self.at(&["rebase", "--abort"]))?;
-            return Err(Failure::new(
-                format_args!(
-                    "{0} has commits {1} lacks that do not rebase onto it cleanly, so {0} is left as it was:\n{2}",
-                    self.branch,
-                    self.upstream,
-                    indent(&before)
-                ),
-                exit_code(rebase),
-            ));
+        let rebase =
+            command(&self.at(&["rebase", "--no-autostash", "--rebase-merges", self.upstream]))
+                .status()?;
+        if rebase.success() {
+            return Ok(());
         }
+        // A rebase that fails before it starts, as where an untracked file is in the
+        // way, leaves nothing to abort.
+        if self.rebasing()? {
+            git(&self.at(&["rebase", "--abort"]))?;
+        }
+        Err(Failure::new(
+            format_args!(
+                "{0} has commits {1} lacks that do not rebase onto it cleanly, so {0} is left as it was:\n{2}",
+                self.branch,
+                self.upstream,
+                indent(local)
+            ),
+            exit_code(rebase),
+        ))
+    }
+
+    /// Whether a rebase is in progress in the worktree holding the branch.
+    fn rebasing(&self) -> Result<bool, Failure> {
+        for state in ["rebase-merge", "rebase-apply"] {
+            let path =
+                read(&self.at(&["rev-parse", "--path-format=absolute", "--git-path", state]))?;
+            if Path::new(&path).exists() {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    /// Says what the `local` commits were before the rebase and what they are now.
+    fn report_rebased(&self, local: &str) -> Result<(), Failure> {
         let after = self.only_branch_has()?;
         let _ = writeln!(
             io::stderr(),
             "Rebased the commits {} had that {} lacked onto it.\nBefore:\n{}\nAfter:\n{}",
             self.branch,
             self.upstream,
-            indent(&before),
+            indent(local),
             indent(&after)
         );
-        Ok("Rebased")
+        Ok(())
     }
 
     /// The commits the branch has that its upstream lacks, one `<hash> <subject>` line
