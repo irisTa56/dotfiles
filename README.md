@@ -104,7 +104,7 @@ A day is the default [mise](https://mise.jdx.dev/configuration/settings.html#min
 
 ### Where a script goes
 
-For a script shared across this machine, what it is for decides whether it has to be shell, whether its branches rejoin decides whether it is written in Rust, and who calls it decides where the rest goes.
+For a script shared across this machine, what it is for decides whether it has to be shell, whether its branches rejoin decides whether it has to be written in Rust, and who calls it decides where a shell one goes.
 Take the first of these that fits:
 
 1. It changes the calling shell's state, such as its environment, `PATH`, working directory, or the settings of the shell or the terminal: shell, as a function or a line in a shell fragment, since a separate process cannot.
@@ -117,7 +117,7 @@ Take the first of these that fits:
    - Variables and pipes do not count, since they split no path.
    - A name a person types is an alias or function in `zsh_fragments/zshrc.sh` that runs the subcommand.
    - A command a skill has an agent run is a subcommand too, which the skill names by that path, since an agent's shell does not read `.zshrc`.
-4. Anything else stays shell, where its caller finds it:
+4. Anything else may be either: a subcommand as in 3, or shell, where its caller finds it:
    - a mise task's `run` in `mise.toml`, for one run as a mise task;
    - an alias or function in `zsh_fragments/zshrc.sh`, for one a person types;
    - a script written out as `content` in `[dotfiles]`, with `permissions = "755"`, for one another caller runs by its path in `~/.local/bin`.
