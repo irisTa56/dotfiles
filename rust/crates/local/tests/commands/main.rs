@@ -14,6 +14,7 @@ mod git_sync_base;
 mod mise_multi_upgrade;
 mod pre_tool_use;
 mod reply_language_stop;
+mod review_loop_record;
 mod skills_push;
 mod skills_unmanaged;
 mod skills_update;

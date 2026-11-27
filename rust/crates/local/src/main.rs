@@ -15,6 +15,7 @@ mod mise_multi_upgrade;
 mod pre_tool_use;
 mod program;
 mod reply_language_stop;
+mod review_loop_record;
 mod skills_push;
 mod skills_unmanaged;
 mod skills_update;
@@ -45,6 +46,8 @@ enum Command {
     GitSyncBase(git_sync_base::Request),
     MiseMultiUpgrade(mise_multi_upgrade::Request),
     ReplyLanguageStop(reply_language_stop::Request),
+    ReviewLoopRecordPaths(review_loop_record::paths::Request),
+    ReviewLoopRecordSelectorInput(review_loop_record::selector_input::Request),
     SkillsPush(skills_push::Request),
     SkillsUnmanaged(skills_unmanaged::Request),
     SkillsUpdate(skills_update::Request),
@@ -65,6 +68,8 @@ fn main() -> ExitCode {
         Command::GitSyncBase(request) => request.run(),
         Command::MiseMultiUpgrade(request) => request.run(),
         Command::ReplyLanguageStop(request) => request.run(),
+        Command::ReviewLoopRecordPaths(request) => request.run(),
+        Command::ReviewLoopRecordSelectorInput(request) => request.run(),
         Command::SkillsPush(request) => request.run(),
         Command::SkillsUnmanaged(request) => request.run(),
         Command::SkillsUpdate(request) => request.run(),

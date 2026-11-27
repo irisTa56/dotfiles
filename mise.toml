@@ -96,62 +96,6 @@ osascript \
   "$1 ($(date '+%m/%d %H:%M'))" "$2"
 '''
 
-# The review-loop skill runs it by this path. Written out as content for the reason
-# notify_desktop's comment gives: after changing it, run
-#   yq -r '.dotfiles."~/.local/bin/review-loop-record".content' mise.toml | shellcheck -
-[dotfiles."~/.local/bin/review-loop-record"]
-permissions = "755"
-content = '''
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Usage: review-loop-record paths | selector-input
-# Run in a checkout, for the review-loop record of the branch checked out there.
-#   paths           create the record and background directories and print them and
-#                   the branch's two files' paths
-#   selector-input  write the background, the verdict section and finding-bar whole
-#                   into a new file for the close's selector, and print its path
-
-key=$(git rev-parse --path-format=absolute --git-common-dir | tr / -)
-branch=$(git rev-parse --abbrev-ref HEAD)
-record_dir=$HOME/.claude/review-loop/$key
-background_dir=$HOME/.claude/review-loop-background/$key
-record=$record_dir/$branch.md
-background=$background_dir/$branch.md
-finding_bar=$HOME/.claude/skills/finding-bar/SKILL.md
-
-require() {
-  test -s "$1" || { echo "review-loop-record: $1 is missing or empty" >&2; exit 1; }
-}
-
-section() {
-  printf '===== %s =====\n\n' "$1"
-  cat "$1"
-  printf '\n'
-}
-
-case ${1-} in
-  paths)
-    mkdir -p "$(dirname "$record")" "$(dirname "$background")"
-    printf 'record directory: %s\nbackground directory: %s\nrecord: %s\nbackground: %s\n' \
-      "$record_dir" "$background_dir" "$record" "$background"
-    ;;
-  selector-input)
-    require "$background"
-    require "$record"
-    require "$finding_bar"
-    # Outside both directories, where looking for a record reads every file.
-    out=$(mktemp "${TMPDIR:-/tmp}/review-loop-selector.XXXXXX")
-    { section "$background"; section "$record"; section "$finding_bar"; } >"$out"
-    printf '%s\n' "$out"
-    ;;
-  *)
-    echo "usage: review-loop-record paths | selector-input" >&2
-    exit 2
-    ;;
-esac
-'''
-
 # A local VS Code extension that only adds preview.css to the built-in Markdown
 # preview, so the style applies in every folder; VS Code registers it on finding
 # the link. Its directory name must follow package.json's publisher.name-version.
