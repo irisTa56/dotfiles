@@ -65,7 +65,9 @@ These hold for commands in a document and for commands you hand the user in a re
   - everything started also stopped;
   - every count still true under each branch;
   - every demonstrative resolvable on the page.
-- Check each command against the program before handing it over: that it exists under that name where the executor runs it, such as a task in the task list or a command on `PATH`, and how the program treats each argument you give it, read from its argument handling where running it could write, since an option it does not know may be taken as a name to write.
+- Check each command against the program before handing it over:
+  - that it exists under that name, such as a task in the task list or a command on `PATH`;
+  - how the program treats each argument you give it, read from its source or its documentation rather than assumed from the argument's name, since an option it does not know may be taken as a name to write.
 - Before handing over a procedure document you wrote or restructured, also have a cold reader read the whole document with nothing else, since your own read-back shares the context that fills the gaps a reader without it meets.
   - The cold reader is a general-purpose subagent at `effort: high` that has seen none of the conversation and is told to make no edits.
   - This is a reader's pass, not a `raise-findings` review: it returns each of these it finds, with where it sits.
