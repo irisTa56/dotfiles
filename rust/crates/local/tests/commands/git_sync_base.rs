@@ -328,6 +328,33 @@ fn rebases_in_the_worktree_holding_the_base() {
     assert_eq!(sandbox.subjects(&holder), "local\nmerged\nfirst");
 }
 
+// A rebase that conflicts in the worktree holding the base is undone there, so that
+// worktree is not left partway through it.
+#[test]
+fn undoes_a_conflicting_rebase_in_the_worktree_holding_the_base() {
+    let sandbox = Fixture::new("diverged-held-elsewhere-conflict");
+    let holder = sandbox.root().join("held");
+    sandbox.git(
+        &sandbox.work(),
+        &["worktree", "add", "--quiet", "../held", "main"],
+    );
+    sandbox.push_file("shared", "origin\n");
+    sandbox.commit_file(&holder, "shared", "local\n");
+
+    let run = sandbox.run(&sandbox.work(), &["main"]);
+
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert_eq!(run.status.code(), Some(1), "{stderr}");
+    assert_eq!(
+        (
+            sandbox.subjects(&holder),
+            sandbox.read(&holder, &["status", "--porcelain"]),
+            sandbox.read(&holder, &["branch", "--show-current"]),
+        ),
+        ("shared\nfirst".to_owned(), String::new(), "main".to_owned())
+    );
+}
+
 // Where those commits do not rebase cleanly, the rebase is undone and the run fails,
 // leaving the base as it was and naming the commits that stopped it.
 #[test]
