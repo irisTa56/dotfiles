@@ -85,6 +85,9 @@ The IDs are local to the plan.
     - It stops at what is observed and by what kind of check, and leaves which cases a fixture holds to the building session.
     - Before a Check is left to someone's eyes, take the R and A items it verifies one at a time and look for a reference a test can compare each with, such as a published table or a standard's worked example.
     - A Check that no use of an old name remains names where it searches and each form the name takes, such as a task name, a path and a module name, and leaves mentions in prose to a reading of the diff, since a search cannot tell them from other uses of a common word.
+    - Before committing the plan, name for each Check the result that would mean the item failed, and look for what could decide that result whether or not the item holds, since a Check so decided verifies nothing and is restated or dropped.
+      - Such a path is a present state that already reads as passing on an outcome the phase has yet to deliver, or another item or constraint of the phase that forces the pass or keeps the Check from ever running.
+      - Where the Check only reads and finishes in minutes, run it once on the tree as it stands; a pass now on such an outcome is the first of those paths.
   - Every R and every unverified A appears in at least one item, or the plan says why not.
 - **Open questions**: only questions whose answer will not change this plan.
   - One that could change a requirement, a decision, or a Done when item cannot wait, so resolve it before committing the plan.
