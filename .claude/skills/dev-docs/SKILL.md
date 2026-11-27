@@ -37,7 +37,7 @@ Where the diff adds or changes these documents, the person also reads it, since 
 
 - Give the loop, as the use the change is built for, who reads each of those documents and what it leaves to another document or to the building session, as the list above and its reference state them.
   - A reviewer who is not told raises whatever the building session might trip on, and since each such finding is true, taking findings on their truth turns a plan into an implementation plan and a decision record into a list of a tool's behaviours.
-- Where the diff adds an ADR, offer the person a `cold-check` of its claims before the pull request opens, since a claim found false after the merge can only be superseded.
+- Where the diff adds an ADR or closes a phase, offer the person a `cold-check` of the claims in the ADR or in the plan's Evidence lines before the pull request opens, since after the merge a false claim in an ADR can only be superseded, and one in a closed plan cannot be corrected at all.
 
 ## Fit the repository first
 
