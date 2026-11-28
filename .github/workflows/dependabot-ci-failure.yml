@@ -40,8 +40,7 @@ jobs:
             --jq '.[] | select(any(.statusCheckRollup[];
               (.__typename == "CheckRun" and .status == "COMPLETED"
                 and (.conclusion | IN("SUCCESS", "NEUTRAL", "SKIPPED") | not))
-              or (.__typename == "StatusContext" and (.state | IN("FAILURE", "ERROR")))))
-              | .url')
+              or (.__typename == "StatusContext" and (.state | IN("FAILURE", "ERROR"))))) | .url')
           if [ -n "$failed" ]; then
             echo "::error::An open Dependabot PR has a failed check:"
             echo "$failed"
