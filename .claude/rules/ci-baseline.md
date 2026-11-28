@@ -22,6 +22,7 @@ A repository departs from it only where a comment in its workflow says why.
   - The workflow sets `MISE_TASK_RUN_AUTO_INSTALL: "false"`, so `mise run` does not install a tool its job left out, and the check fails on the missing command.
     - The runner image's own copy of a command hides that failure: a job that runs cargo without `rust` among its tools runs the image's toolchain, not `mise.toml`'s.
 - Every job that gates a pull request is a required check in the main ruleset. A Dependabot PR that auto-merges waits on those checks and nothing else.
+  - Each such job sets `timeout-minutes` well above its longest run, so a job that hangs ends its check unsuccessful instead of holding the pull request for GitHub's 360-minute default.
 
 ## Secret scanning
 
