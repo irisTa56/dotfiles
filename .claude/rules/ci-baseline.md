@@ -37,6 +37,7 @@ Secrets are scanned in three layers, each covering what the one before it cannot
 
 - `ci.yml` also runs weekly. Every job then meets the current release of its tools even when no pull request comes in, and both secret scans cover the whole history with their current rules.
 - The networked link check runs in a workflow of its own, weekly, and gates nothing; the offline link check is one of the checks above and gates every pull request. Both workflows fail on a problem, so that GitHub notifies whoever last edited the cron line.
+- A repository whose Dependabot PRs auto-merge also runs a daily workflow that fails while an open Dependabot PR has a failed check, since GitHub notifies no one of the CI runs Dependabot triggers, and a scheduled run's failure reaches whoever last edited its cron line.
 
 ## Actions
 
