@@ -31,6 +31,15 @@ pedantic = { level = "warn", priority = -1 }
 print_stdout = "warn"
 print_stderr = "warn"
 
+# A crate in `[dependencies]` that the code never uses. `deny` rather than the
+# default `warn`: this lint is cargo's, not rustc's, so the `-D warnings` that
+# `qa:rust:crates` passes to clippy leaves it a warning that passes. It does not
+# look at `[dev-dependencies]`, nor at a crate another dependency also depends
+# on, which cargo takes for one named to set its version or features
+# (rust-lang/cargo#16935).
+[workspace.lints.cargo]
+unused_dependencies = "deny"
+
 # A release binary is what consumers download, so it is built small.
 [profile.release]
 strip = true
