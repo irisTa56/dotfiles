@@ -1,10 +1,10 @@
 name: Dependabot CI failure
 
-# Fail when an open Dependabot PR has a check that ended other than in success,
-# so that the failure reaches the repository owner. GitHub notifies a user of
-# the workflow runs they triggered and of no other, and Dependabot triggers
-# the CI runs of its own PRs, so a failing update otherwise sits open, its
-# auto-merge waiting, and nobody is told. A scheduled run is notified to the
+# Fail when an open Dependabot PR has a failed check, so that the failure
+# reaches the repository owner. GitHub notifies a user of the workflow runs
+# they triggered and of no other, and Dependabot triggers the CI runs of its
+# own PRs, so a failing update otherwise sits open, its auto-merge waiting, and
+# nobody is told. A scheduled run is notified to the
 # user who last changed its `cron` line, as link-check-weekly.yml relies on, so
 # the failure of this one reaches the owner.
 #
